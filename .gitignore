@@ -10,6 +10,7 @@ src/helpers/temp.dbml
 
 # Node modules:
 node_modules/
+.pnpm-lock.yaml
 
 # Input folders:
 yaml-files/
