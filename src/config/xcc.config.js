@@ -15,7 +15,7 @@ export default {
    },
    test: {
       oas: './oas.yaml',
-      setup: './config/xcc.test.setup.local.json',
+      setup: 'xcc.test.setup.json',
       secrets: './tests/secrets.json', // Needs to be stored actually securely e.g. with keytar
       defaultAsserts: {
          statusOk: "error",

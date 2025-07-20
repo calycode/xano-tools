@@ -5,6 +5,8 @@ import { generateMockDataForSchema } from './utils/mockData.js';
 import { validateSchema } from './utils/schemaValidation.js';
 import { availableAsserts } from './utils/customAssertions.js';
 import { prettyLog } from '../process-xano/utils/console/prettify.js';
+import path from 'path';
+import { mkdir, writeFile } from 'fs/promises';
 
 export async function runOasApiTests({
    oasSpec,
@@ -115,9 +117,11 @@ export async function runOasApiTests({
       }
    }
 
-   if (output) {
-      await fs.promises.writeFile(output, JSON.stringify(results, null, 2));
-   }
+if (output) {
+   const parentDir = path.dirname(output);
+   await mkdir(parentDir, { recursive: true });
+   await writeFile(output, JSON.stringify(results, null, 2));
+}
 
    return results;
 }

@@ -1,6 +1,10 @@
 # Standalone files
 .env
-.workspace.yaml
+workspace.yaml
+
+# Config files
+xcc.config.js
+xcc.test.setup.json
 
 # Generated folders:
 output/
@@ -14,6 +18,7 @@ pnpm-lock.yaml
 
 # Input folders:
 yaml-files/
+oas.json
 
 # Other
 debug_requests.json

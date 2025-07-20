@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import { copyFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
+import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { processWorkspace } from './process-xano/index.js';
 import { runLintXano } from './lint-xano/index.js';
@@ -38,14 +39,25 @@ program
    .command('setup')
    .description('Setup Xano Community CLI configurations')
    .action(() => {
-      const targetPath = join(process.cwd(), 'xcc.config.js');
-      if (existsSync(targetPath)) {
-         prettyLog(`Config already exists at -> ${targetPath}`, "info");
+      // Create the configuration:
+      const configTargetPath = join(process.cwd(), 'xcc.config.js');
+      if (existsSync(configTargetPath)) {
+         prettyLog(`Config already exists at -> ${configTargetPath}`, "info");
          return;
       }
-      const templatePath = join(__dirname, 'config', 'xcc.config.js');
-      copyFileSync(templatePath, targetPath);
-      prettyLog(`Created config at -> ${targetPath}`, "success");
+      const configTemplatePath = join(__dirname, 'config', 'xcc.config.js');
+      copyFileSync(configTemplatePath, configTargetPath);
+      prettyLog(`Created config at -> ${configTargetPath}`, "success");
+
+      // Create the test setup:
+      const testSetupTargetPath = join(process.cwd(), 'xcc.test.setup.json');
+      if (existsSync(testSetupTargetPath)) {
+         prettyLog(`Config already exists at -> ${testSetupTargetPath}`, 'info');
+         return;
+      }
+      const testSetupTemplatePath = join(__dirname, 'config', 'xcc.test.setup.json');
+      copyFileSync(testSetupTemplatePath, testSetupTargetPath);
+      prettyLog(`Created test setup at -> ${testSetupTargetPath}`, 'success');
    });
 
 program
