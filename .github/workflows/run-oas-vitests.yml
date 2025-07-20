@@ -21,12 +21,10 @@ on:
           default: 'staging'
   pull_request:
     branches:
-      - main
       - staging
       - prod
   push:
     branches:
-      - main
       - staging
       - prod
       - dev
