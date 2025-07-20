@@ -6,45 +6,65 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { processWorkspace } from './process-xano/index.js';
 import { runLintXano } from './lint-xano/index.js';
 import { prettyLog } from './process-xano/utils/console/prettify.js';
+import { runTestSuite } from './tests/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const program = new Command();
-
-async function useConfig() {
+// ---------- UTILITIES -------------- //
+async function loadConfig(configFileName = 'xcc.config.js', configSection = null) {
    try {
-      // Try user config in current working directory
-      const userConfigPath = join(process.cwd(), 'xcc.config.js');
-      return (await import(pathToFileURL(userConfigPath))).default;
-   } catch (e1) {
+      const userConfigPath = join(process.cwd(), configFileName);
+      const config = (await import(pathToFileURL(userConfigPath))).default;
+      return configSection ? config[configSection] || {} : config;
+   } catch {
       try {
-         // Try internal default config in src/config/xcc.config.js
-         const internalConfigPath = join(__dirname, 'config', 'xcc.config.js');
-         return (await import(pathToFileURL(internalConfigPath))).default;
-      } catch (e2) {
-         prettyLog('No config file found and no internal default config present!', 'error');
+         const internalConfigPath = join(__dirname, 'config', configFileName);
+         const config = (await import(pathToFileURL(internalConfigPath))).default;
+         return configSection ? config[configSection] || {} : config;
+      } catch {
+         prettyLog(
+            `No config file (${configFileName}) found and no internal default config present!`,
+            'error'
+         );
          process.exit(1);
       }
    }
 }
 
+function copyConfigTemplate(templateName, targetName) {
+   const targetPath = join(process.cwd(), targetName);
+   if (existsSync(targetPath)) {
+      prettyLog(`Config already exists at -> ${targetPath}`, 'info');
+      return false;
+   }
+   const templatePath = join(__dirname, 'config', templateName);
+   copyFileSync(templatePath, targetPath);
+   prettyLog(`Created config at -> ${targetPath}`, 'success');
+   return true;
+}
+
+async function handleCommand(section, opts, runner, configFile = 'xcc.config.js') {
+   const defaultConfig = await loadConfig(configFile, section);
+   const finalConfig = { ...defaultConfig, ...opts };
+   await runner(finalConfig);
+}
+
+const program = new Command();
+
 program
    .name('xano-community-cli')
    .description('CLI for processing, linting, and testing Xano backend logic')
-   .version('0.0.1');
+   .version('0.0.1')
+   .exitOverride(() => {
+      process.exit(0);
+   });
 
 program
    .command('setup')
    .description('Setup Xano Community CLI configurations')
    .action(() => {
-      const targetPath = join(process.cwd(), 'xcc.config.js');
-      if (existsSync(targetPath)) {
-         prettyLog(`Config already exists at -> ${targetPath}`, "info");
-         return;
-      }
-      const templatePath = join(__dirname, 'config', 'xcc.config.js');
-      copyFileSync(templatePath, targetPath);
-      prettyLog(`Created config at -> ${targetPath}`, "success");
+      copyConfigTemplate('xcc.config.js', 'xcc.config.js');
+      copyConfigTemplate('xcc.test.setup.json', 'xcc.test.setup.json');
    });
 
 program
@@ -52,14 +72,7 @@ program
    .description('Process Xano workspace into repo structure')
    .option('-i, --input <file>', 'workspace yaml file')
    .option('-o, --output <dir>', 'output directory')
-   .action(async (opts) => {
-      const defaultConfig = await useConfig();
-      const finalConfig = { ...defaultConfig.process, ...opts };
-      await processWorkspace({
-         inputFile: finalConfig.input,
-         outputDir: finalConfig.output,
-      });
-   });
+   .action((opts) => handleCommand('process', opts, processWorkspace));
 
 program
    .command('lint')
@@ -67,31 +80,23 @@ program
    .option('-i, --input <file>', 'workspace yaml file')
    .option('-c, --config <file>', 'lint rules config')
    .option('-o, --output <file>', 'lint output file')
-   .action(async (opts) => {
-      const defaultConfig = await useConfig();
-      const finalConfig = { ...defaultConfig.lint, ...opts };
-      await runLintXano({
-         inputDir: finalConfig.input,
-         outputFile: finalConfig.output,
-         ruleConfig: finalConfig.rules,
-      });
-   });
+   .action((opts) => handleCommand('lint', opts, runLintXano));
 
 program
    .command('test')
-   .description('Run API tests')
+   .description('Run an API test suite')
+   .option('--test-config <file>', 'Custom test config file')
    .option('--oas <file>', 'OpenAPI spec file')
    .option('--setup <file>', 'test setup file')
-   .option('--assertions <file>', 'custom assertions config')
-   .option('--secrets <file>', 'secrets/config file for secure values')
-   .option('-o, --output <file>', 'test results output')
-   .action((opts) => {
-      console.log('Test command called with:');
-      console.log('  OAS:', opts.oas);
-      console.log('  Setup:', opts.setup);
-      console.log('  Assertions:', opts.assertions);
-      console.log('  Secrets:', opts.secrets);
-      console.log('  Output:', opts.output);
-   });
+   .option('--secrets <file>', 'secrets/config file')
+   .option('--output <file>', 'test results output')
+   .option('--base-url <url>', 'API base URL')
+   .action((opts) => handleCommand('test', opts, runTestSuite));
 
 program.parse();
+
+// Add this at the end:
+if (!process.argv.slice(2).length) {
+   program.outputHelp();
+   process.exit(0); // <-- success code, not error
+}

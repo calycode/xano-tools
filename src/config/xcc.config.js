@@ -15,12 +15,21 @@ export default {
    },
    test: {
       oas: './oas.yaml',
-      setup: './tests/setup.local.json',
-      assertions: './tests/assertions.js',
-      secrets: './tests/secrets.json',
-      output: './test-results.json',
+      setup: 'xcc.test.setup.json',
+      secrets: './tests/secrets.json', // Needs to be stored actually securely e.g. with keytar
+      defaultAsserts: {
+         statusOk: "error",
+         responseDefined: "error",
+         responseSchema: "error",
+      },
+      output: './output/tests/test-results.json',
+      baseUrl: 'https://your-xano-instance.xano.io/api:group',
+      headers: {
+         'X-Branch': 'staging',
+         'X-Data-Source': 'test',
+      },
    },
-   // Future features e.g. proper json schema 2020-12 draft creation from OAS with AJV + scaffold whole projects (from XS templates) 
+   // Future features e.g. proper json schema 2020-12 draft creation from OAS with AJV + scaffold whole projects (from XS templates)
    // I know AI will most probably be able to do those things better and better, but for reliability and truly robust systems
    // I'd still keep it in my own control. Maybe I'm not bullish enough on AI...
 };

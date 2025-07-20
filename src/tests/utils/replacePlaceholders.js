@@ -1,3 +1,4 @@
+// src/tests/utils/replacePlaceholders.js
 const replacePlaceholders = (obj, replacements) => {
    if (typeof obj === 'string') {
       return obj.replace(/{{ENVIRONMENT\.([A-Z0-9_]+)}}/g, (_, key) => replacements[key] || '');

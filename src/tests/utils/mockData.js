@@ -1,3 +1,4 @@
+// src/tests/utils/mockData.js
 import { faker } from '@faker-js/faker';
 
 export function generateMockDataForSchema(schema) {
