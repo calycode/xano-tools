@@ -93,6 +93,32 @@ program
    .option('--base-url <url>', 'API base URL')
    .action((opts) => handleCommand('test', opts, runTestSuite));
 
+program
+   .command('generate-schemas-from-examples')
+   .description('Generate json-schema compliant schemas from OAS examples')
+   .action(() => {
+      prettyLog('Not implemented yet', 'error');
+   });
+
+program
+   .command('export-backup')
+   .description('Backup Xano Workspace via Metadata API')
+   .action(() => { prettyLog('Not implemented yet', 'error')});
+
+program
+   .command('import-backup')
+   .description('Backup Xano Workspace via Metadata API')
+   .action(() => {
+      prettyLog('Not implemented yet', 'error');
+   });
+
+program
+   .command('create-xano-workspace')
+   .description('Create a XANO instance from a template.')
+   .action(() => {
+      prettyLog('Not implemented yet', 'error');
+   });
+
 program.parse();
 
 // Add this at the end:
