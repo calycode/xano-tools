@@ -1,18 +1,22 @@
-// Example
+// src/config/xcc.test.setup.local.json
 [
    {
       "path": "/translations/list",
       "method": "GET",
       "headers": { "X-Data-Source": "live" },
       "queryParams": { "language": "en-US" },
-      "requestBody": null
+      "requestBody": null,
+      "response_runtime_key": null,
+      "customAsserts": {}
    },
    {
       "path": "/translations/list",
       "method": "GET",
       "headers": { "X-Data-Source": "live" },
       "queryParams": null,
-      "requestBody": null
+      "requestBody": null,
+      "response_runtime_key": null,
+      "customAsserts": {}
    },
    {
       "path": "/auth/continue",
@@ -23,6 +27,8 @@
          "password": "{{ENVIRONMENT.DEMO_USER_PASSWORD}}",
          "email": "test_user@my-mail.ai",
          "language": "en-US"
-      }
+      },
+      "response_runtime_key": null,
+      "customAsserts": {}
    }
 ]

@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { processWorkspace } from './process-xano/index.js';
 import { runLintXano } from './lint-xano/index.js';
 import { prettyLog } from './process-xano/utils/console/prettify.js';
+import { runTestSuite } from './tests/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -79,19 +80,32 @@ program
 
 program
    .command('test')
-   .description('Run API tests')
+   .option('--test-config <file>', 'Custom test config file')
    .option('--oas <file>', 'OpenAPI spec file')
    .option('--setup <file>', 'test setup file')
-   .option('--assertions <file>', 'custom assertions config')
-   .option('--secrets <file>', 'secrets/config file for secure values')
-   .option('-o, --output <file>', 'test results output')
-   .action((opts) => {
-      console.log('Test command called with:');
-      console.log('  OAS:', opts.oas);
-      console.log('  Setup:', opts.setup);
-      console.log('  Assertions:', opts.assertions);
-      console.log('  Secrets:', opts.secrets);
-      console.log('  Output:', opts.output);
+   .option('--secrets <file>', 'secrets/config file')
+   .option('--output <file>', 'test results output')
+   .option('--base-url <url>', 'API base URL')
+   .action(async (opts) => {
+      // 1. Load config
+      let testConfig = {};
+      if (opts.testConfig) {
+         testConfig = (await import(pathToFileURL(opts.testConfig))).default?.test || {};
+      } else {
+         try {
+            testConfig = (
+               await import(pathToFileURL(path.join(process.cwd(), 'xcc.config.js')))
+            ).default?.test || {};
+         } catch {
+            testConfig = (
+               await import(pathToFileURL(path.join(__dirname, 'config', 'xcc.config.js')))
+            ).default?.test || {};
+         }
+      }
+      // 2. Merge CLI flags (override config)
+      const finalConfig = { ...testConfig, ...opts };
+      // 3. Run your test runner with the merged config
+      await runTestSuite(finalConfig);
    });
 
 program.parse();

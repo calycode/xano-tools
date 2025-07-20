@@ -1,3 +1,4 @@
+// src/tests/utils/request.js
 export function prepareRequest({ baseUrl, path, method, headers, body, queryParams }) {
   let fullUrl = baseUrl + path.replace(/\{(\w+?)\}/g, '1');
 

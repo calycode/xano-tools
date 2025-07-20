@@ -1,3 +1,4 @@
+// src/tests/utils/customAssertions.js
 import { expect } from 'vitest';
 
 /**
@@ -6,11 +7,12 @@ import { expect } from 'vitest';
  * @param {string} method - The HTTP method.
  * @param {string} path - The API endpoint path.
  */
-export function assertResponseStatus(res, method, path) {
-  expect(
-    res.ok,
-    `${method.toUpperCase()}:${path} | ❌ Response was not OK. Status: ${res.status}`
-  ).toBe(true);
+function assertResponseStatus(context) {
+  const { res, method, path } = context;
+   expect(
+      res.ok,
+      `${method.toUpperCase()}:${path} | ❌ Response was not OK. Status: ${res.status}`
+   ).toBe(true);
 }
 
 /**
@@ -19,11 +21,9 @@ export function assertResponseStatus(res, method, path) {
  * @param {string} method - The HTTP method.
  * @param {string} path - The API endpoint path.
  */
-export function assertResponseDefined(result, method, path) {
-  expect(
-    result,
-    `${method.toUpperCase()}:${path} | ❌ Response was undefined.`
-  ).toBeDefined();
+function assertResponseDefined(context) {
+  const { result, method, path } = context;
+   expect(result, `${method.toUpperCase()}:${path} | ❌ Response was undefined.`).toBeDefined();
 }
 
 /**
@@ -33,11 +33,22 @@ export function assertResponseDefined(result, method, path) {
  * @param {string} method - The HTTP method.
  * @param {string} path - The API endpoint path.
  */
-export function assertResponseSchema(isValid, errors = null, method, path) {
-  expect(
-    isValid,
-    `${method.toUpperCase()}:${path} | ❌ Response schema was not valid. Validation errors: ${JSON.stringify(
-      errors, null, 2
-    )}`
-  ).toBe(true);
+function assertResponseSchema(context) {
+  const { isValid, errors = null, method, path } = context
+   expect(
+      isValid,
+      `${method.toUpperCase()}:${path} | ❌ Response schema was not valid. Validation errors: ${JSON.stringify(
+         errors,
+         null,
+         2
+      )}`
+   ).toBe(true);
 }
+
+const availableAsserts = {
+   statusOk: assertResponseStatus,
+   responseDefined: assertResponseDefined,
+   responseSchema: assertResponseSchema,
+};
+
+export { availableAsserts, assertResponseStatus, assertResponseDefined, assertResponseSchema };
