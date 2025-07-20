@@ -1,0 +1,82 @@
+name: Run OAS API Tests (Vitest)
+
+on:
+  workflow_dispatch:
+      inputs:
+        api_base_url:
+          description: 'Base URL for the API'
+          required: false
+          default: ''
+        debug_mode:
+          description: 'Enable debug mode (true/false)'
+          required: false
+          default: 'false'
+        default_x_data_source:
+          description: 'Default value for the X-Data-Source header'
+          required: false
+          default: 'test'
+        default_x_branch:
+          description: 'Default value for the X-Branch header'
+          required: false
+          default: 'staging'
+  pull_request:
+    branches:
+      - main
+      - staging
+      - prod
+  push:
+    branches:
+      - main
+      - staging
+      - prod
+      - dev
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        id: run-tests
+        env:
+          API_BASE_URL: ${{ github.event.inputs.api_base_url }}
+          DEBUG_MODE: ${{ github.event.inputs.debug_mode }}
+          DEFAULT_X_DATA_SOURCE: ${{ github.event.inputs.default_x_data_source }}
+          DEFAULT_X_BRANCH: ${{ github.event.inputs.default_x_branch }}
+          API_SPEC_TOKEN: ${{ secrets.API_SPEC_TOKEN }}
+          DEMO_ADMIN_PASSWORD: ${{ secrets.DEMO_ADMIN_PASSWORD }}
+        run: npm run test
+        continue-on-error: true
+
+      - name: Upload Test Reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-json
+          path: reports/json/test-output.json
+          retention-days: 30
+
+      - name: Upload JUnit Test Results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-junit
+          path: reports/junit/test-results.xml
+          retention-days: 30
+      
+      - name: Fail run if tests failed
+        if: ${{ steps.run-tests.conclusion == 'failure' }}
+        run: |
+          echo "Tests failed. Please check the test reports for details."
+          exit 1

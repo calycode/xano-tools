@@ -1,0 +1,18 @@
+# Standalone files
+.env
+.workspace.yaml
+
+# Generated folders:
+output/
+repo/
+reports/
+src/helpers/temp.dbml
+
+# Node modules:
+node_modules/
+
+# Input folders:
+yaml-files/
+
+# Other
+debug_requests.json

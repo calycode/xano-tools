@@ -1,0 +1,28 @@
+// Example
+[
+   {
+      "path": "/translations/list",
+      "method": "GET",
+      "headers": { "X-Data-Source": "live" },
+      "queryParams": { "language": "en-US" },
+      "requestBody": null
+   },
+   {
+      "path": "/translations/list",
+      "method": "GET",
+      "headers": { "X-Data-Source": "live" },
+      "queryParams": null,
+      "requestBody": null
+   },
+   {
+      "path": "/auth/continue",
+      "method": "POST",
+      "headers": {},
+      "queryParams": null,
+      "requestBody": {
+         "password": "{{ENVIRONMENT.DEMO_USER_PASSWORD}}",
+         "email": "test_user@my-mail.ai",
+         "language": "en-US"
+      }
+   }
+]
