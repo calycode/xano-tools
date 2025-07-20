@@ -21,6 +21,8 @@ export async function runOasApiTests({
       responseSchema: 'error',
    },
 }) {
+
+   prettyLog('Starting tests...', 'info');
    const runtimeValues = { ...secrets };
 
    const results = [];
@@ -40,6 +42,9 @@ export async function runOasApiTests({
          ...defaultAsserts,
          ...customAsserts,
       };
+
+      // Start timer
+      const testStart = Date.now();
 
       try {
          // Replace placeholders in headers, request body and queryParams
@@ -109,11 +114,17 @@ export async function runOasApiTests({
             }
          }
 
+         // End timer
+         const testEnd = Date.now();
+         const testDuration = testEnd - testStart;
          // Optionally collect results
-         results.push({ path, method, success: true, errors: null });
+         results.push({ path, method, success: true, errors: null, duration: testDuration });
       } catch (err) {
+         // End timer
+         const testEnd = Date.now();
+         const testDuration = testEnd - testStart;
          console.warn(`❌ Test failed for ${method.toUpperCase()} ${path}:`, err);
-         results.push({ path, method, success: false, errors: err.stack || err.message });
+         results.push({ path, method, success: false, errors: err.stack || err.message, duration: testDuration });
       }
    }
 
@@ -122,6 +133,8 @@ if (output) {
    await mkdir(parentDir, { recursive: true });
    await writeFile(output, JSON.stringify(results, null, 2));
 }
+
+   prettyLog(`Tests completed. Report is at -> ${output}`, 'success');
 
    return results;
 }
