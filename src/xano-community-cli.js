@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { copyFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { prettyLog } from './process-xano/utils/console/prettify.js';
+import { ensureSecretKeyInEnv } from './utils/crypto/index.js';
 import { processWorkspace } from './process-xano/index.js';
 import { runLintXano } from './lint-xano/index.js';
-import { prettyLog } from './process-xano/utils/console/prettify.js';
 import { runTestSuite } from './tests/index.js';
+import { setupWizard } from './utils/cli-walkthroughs/setup.js';
+import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ---------- UTILITIES -------------- //
 async function loadConfig(configFileName = 'xcc.config.js', configSection = null) {
+   ensureSecretKeyInEnv();
+   loadEnvToProcess();
    try {
       const userConfigPath = join(process.cwd(), configFileName);
       const config = (await import(pathToFileURL(userConfigPath))).default;
@@ -29,18 +33,6 @@ async function loadConfig(configFileName = 'xcc.config.js', configSection = null
          process.exit(1);
       }
    }
-}
-
-function copyConfigTemplate(templateName, targetName) {
-   const targetPath = join(process.cwd(), targetName);
-   if (existsSync(targetPath)) {
-      prettyLog(`Config already exists at -> ${targetPath}`, 'info');
-      return false;
-   }
-   const templatePath = join(__dirname, 'config', templateName);
-   copyFileSync(templatePath, targetPath);
-   prettyLog(`Created config at -> ${targetPath}`, 'success');
-   return true;
 }
 
 async function handleCommand(section, opts, runner, configFile = 'xcc.config.js') {
@@ -62,9 +54,8 @@ program
 program
    .command('setup')
    .description('Setup Xano Community CLI configurations')
-   .action(() => {
-      copyConfigTemplate('xcc.config.js', 'xcc.config.js');
-      copyConfigTemplate('xcc.test.setup.json', 'xcc.test.setup.json');
+   .action(async () => {
+      await setupWizard();
    });
 
 program

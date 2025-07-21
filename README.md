@@ -22,6 +22,12 @@ _(Work In Progress)_
   pnpm run xano-community-cli
   ```
 
+- run the `setup` command to setup the CLI and connect your XANO Instance (+ metadata API)
+
+  ```
+  pnpm run xano-community-cli setup
+  ```
+
 - run the `process` to generate a 'repo' from your XANO workspace
 
   ```
@@ -71,19 +77,20 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 
 - [x] Linting with custom rulesets
 - [x] Processing Xano queries, functions, and tables into a browsable repo structure
+- [x] Automated test runner with assertion configuration
 
 ---
 
 ## 🛠️ TODOs
 
-- [X] Build Config file to configure non-secret configurations.
-- [X] Create the CLI command handler.
-- [ ] Add the automated testing also to the configurable features
-- [ ] Improve path handling (support custom output: `.zip`, directories, etc.)
-- [ ] Improve input handling (custom file locations for workspace.yaml, test.local.json, OAS specs, etc.)
-- [ ] Create a `.env.example`
-- [ ] Create a CLI setup walkthrough guide
+- [x] Build Config file to configure non-secret configurations.
+- [x] Create the CLI command handler.
+- [x] Create a CLI setup walkthrough guide
+- [x] Improve input handling (custom file locations for workspace.yaml, test.local.json, OAS specs, etc.)
+- [x] Add the automated testing also to the configurable features
+- [ ] Improve output handling (support custom output: `.zip`, directories, etc.)
 - [ ] Bring the XANO default docs to the future with ajv. (AJV create schema from the Examples set in XANO + updated the OAS to v3.1, clean up the tags)
+- [ ] improve test runner and assertions to return a pretty (.md, .html, .json?) report with useful runtime information (duration, errors, etc)
 
 ---
 
