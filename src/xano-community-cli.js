@@ -9,6 +9,7 @@ import { runLintXano } from './lint-xano/index.js';
 import { runTestSuite } from './tests/index.js';
 import { setupWizard } from './utils/cli-walkthroughs/setup.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
+import { log } from '@clack/prompts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -76,13 +77,35 @@ program
 program
    .command('test')
    .description('Run an API test suite')
+   .option('--group <name>', 'Test group to run (e.g. Default, public, admin)')
    .option('--test-config <file>', 'Custom test config file')
    .option('--oas <file>', 'OpenAPI spec file')
    .option('--setup <file>', 'test setup file')
    .option('--secrets <file>', 'secrets/config file')
    .option('--output <file>', 'test results output')
    .option('--base-url <url>', 'API base URL')
-   .action((opts) => handleCommand('test', opts, runTestSuite));
+   .action(async (opts) => {
+      // Load config (custom file, or default)
+      const config = await loadConfig(opts.testConfig || 'xcc.config.js');
+      let testGroups = config.test;
+      if (!Array.isArray(testGroups)) testGroups = Object.values(testGroups);
+
+      // If a group is specified, filter; else run all
+      const groupsToRun = opts.group ? testGroups.filter((g) => g.name === opts.group) : testGroups;
+
+      if (groupsToRun.length === 0) {
+         console.error(`No test group found with name "${opts.group}".`);
+         process.exit(1);
+      }
+
+      for (const group of groupsToRun) {
+         log.step(`Running tests for group "${group.name}"`)
+         // Merge CLI overrides into group config (if provided)
+         const finalGroupConfig = { ...group, ...opts };
+         await runTestSuite(finalGroupConfig);
+      }
+      log.success('All tests completed');
+   });
 
 program
    .command('generate-schemas-from-examples')
