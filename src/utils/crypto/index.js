@@ -1,7 +1,7 @@
-import crypto from 'crypto';
-import fs from 'fs';
+import * as crypto from 'crypto';
+import { writeEnvFile, readEnvFile } from './handleEnv.js';
 
-const ALGORITHM = 'aes-256-gcm'; // or 'aes-256-cbc'
+const ALGORITHM = 'aes-256-gcm';
 
 // Generate a random 32-byte key (hex) for AES-256
 function generateKey() {
@@ -31,14 +31,11 @@ function decryptData(cipherText, key, { json = false } = {}) {
 }
 
 function ensureSecretKeyInEnv(envPath = '.env') {
-   let env = '';
-   if (fs.existsSync(envPath)) {
-      env = fs.readFileSync(envPath, 'utf8');
-      if (/^XCC_SECRET_KEY=.+/m.test(env)) return; // already exists
-   }
+   const envObj = readEnvFile(envPath);
+   if (envObj.XCC_SECRET_KEY) return; // Already exists, do nothing
+
    const key = generateKey();
-   env += `\nXCC_SECRET_KEY=${key}\n`;
-   fs.writeFileSync(envPath, env);
+   writeEnvFile({ XCC_SECRET_KEY: key }, envPath);
 }
 
 export { encryptData, decryptData, ensureSecretKeyInEnv }

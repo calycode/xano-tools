@@ -8,12 +8,14 @@ import { processWorkspace } from './process-xano/index.js';
 import { runLintXano } from './lint-xano/index.js';
 import { runTestSuite } from './tests/index.js';
 import { setupWizard } from './utils/cli-walkthroughs/setup.js';
+import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ---------- UTILITIES -------------- //
 async function loadConfig(configFileName = 'xcc.config.js', configSection = null) {
    ensureSecretKeyInEnv();
+   loadEnvToProcess();
    try {
       const userConfigPath = join(process.cwd(), configFileName);
       const config = (await import(pathToFileURL(userConfigPath))).default;
