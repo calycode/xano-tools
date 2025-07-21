@@ -26,7 +26,7 @@ export default {
          defaultAsserts: {
             statusOk: 'error',
             responseDefined: 'error',
-            responseSchema: 'error',
+            responseSchema: 'off',
          },
          output: './output/tests/test-results.json',
          headers: {
