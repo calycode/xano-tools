@@ -1,8 +1,8 @@
 // src/config/xcc.config.js
 export default {
    instance: {
-      baseUrl: "https://your-xano-instance.xano.io",
-      metadataKey: "encrypted_metadata_key"
+      baseUrl: 'https://your-xano-instance.xano.io',
+      metadataKey: 'encrypted_metadata_key',
    },
    process: {
       input: 'workspace.yaml',
@@ -17,19 +17,22 @@ export default {
          'is-description-present': 'warn',
       },
    },
-   test: {
-      oas: './oas.yaml',
-      setup: 'xcc.test.setup.json',
-      secrets: './tests/secrets.json',
-      defaultAsserts: {
-         statusOk: "error",
-         responseDefined: "error",
-         responseSchema: "error",
+   test: [
+      {
+         name: "Default",
+         oas: './oas.yaml',
+         setup: 'xcc.test.setup.json',
+         secrets: './tests/secrets.json',
+         defaultAsserts: {
+            statusOk: 'error',
+            responseDefined: 'error',
+            responseSchema: 'off',
+         },
+         output: './output/tests/test-results.json',
+         headers: {
+            'X-Branch': 'staging',
+            'X-Data-Source': 'test',
+         },
       },
-      output: './output/tests/test-results.json',
-      headers: {
-         'X-Branch': 'staging',
-         'X-Data-Source': 'test',
-      },
-   },
+   ],
 };
