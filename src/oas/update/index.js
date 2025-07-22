@@ -1,35 +1,41 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-export async function updateOpenapiSpec(inputOas, outputDir) {
-   // 1. Load the OAS file
-   const oasRaw = await fs.readFile(inputOas, 'utf8');
-   const oas = JSON.parse(oasRaw);
-
-   // 2. Patch the OAS object
-   oas.openapi = '3.1.1';
-   oas.components = oas.components || {};
-   oas.components.securitySchemes = oas.components.securitySchemes || {};
-   oas.components.securitySchemes.bearerAuth = {
+// Pure function: patch OAS object in-memory
+export function patchOasSpec(oas) {
+   const newOas = { ...oas };
+   newOas.openapi = '3.1.1';
+   newOas.components = newOas.components || {};
+   newOas.components.securitySchemes = newOas.components.securitySchemes || {};
+   newOas.components.securitySchemes.bearerAuth = {
       type: 'http',
       scheme: 'bearer',
       bearerFormat: 'JWT',
    };
-   oas.security = oas.security || [{ bearerAuth: [] }];
+   newOas.security = newOas.security || [{ bearerAuth: [] }];
+   return newOas;
+}
 
-   // 3. Ensure output directories exist
+// I/O: load, patch, save, and generate Scalar HTML
+export async function updateOpenapiSpec(inputOas, outputDir) {
+   // Load and patch
+   const oasRaw = await fs.readFile(inputOas, 'utf8');
+   const originalOas = JSON.parse(oasRaw);
+   const oas = patchOasSpec(originalOas);
+
+   // Ensure output directories exist
    await fs.mkdir(outputDir, { recursive: true });
    await fs.mkdir(path.join(outputDir, 'html'), { recursive: true });
 
-   // 4. Write the updated OAS to both locations
+   // Write JSON specs
    await fs.writeFile(path.join(outputDir, 'spec.json'), JSON.stringify(oas, null, 2));
    await fs.writeFile(path.join(outputDir, 'html', 'spec.json'), JSON.stringify(oas, null, 2));
 
-   // 5. Write the Scalar HTML, referencing the correct spec file
+   // Write Scalar HTML
    const html = `<!doctype html>
 <html>
   <head>
-    <title>${oas.info.title}</title>
+    <title>${oas.info?.title || 'API Reference'}</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
@@ -63,6 +69,7 @@ export async function updateOpenapiSpec(inputOas, outputDir) {
   </body>
 </html>
 `;
-
    await fs.writeFile(path.join(outputDir, 'html', 'index.html'), html);
+
+   return oas; // Return the updated OAS object for further use (e.g., SDK generation)
 }

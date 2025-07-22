@@ -10,6 +10,7 @@ import { runTestSuite } from './tests/index.js';
 import { setupWizard } from './utils/cli-walkthroughs/setup.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
 import { updateOpenapiSpec } from './oas/update/index.js';
+import { generateClientSdk } from '../src/oas/client-sdk/generate.js'
 import { log } from '@clack/prompts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -136,6 +137,36 @@ program
          await updateOpenapiSpec(finalGroupConfig.input, finalGroupConfig.output);
       }
       log.success('OpenAPI specs updated and references generated.');
+   });
+
+program
+   .command('generate-client-sdk')
+   .description(
+      'Create a client library based on the OpenAPI specification.'
+   )
+   .option('--group <name>', 'API group to update (e.g. Default)')
+   .option('--input-oas <file>', 'Input OpenAPI spec file')
+   .option('--output-dir <dir>', 'Output directory')
+   .action(async (opts) => {
+      const config = await loadConfig('xcc.config.js');
+      let { openApiSpecs } = config;
+      if (!Array.isArray(openApiSpecs)) openApiSpecs = Object.values(openApiSpecs);
+
+      const groupsToRun = opts.group
+         ? openApiSpecs.filter((g) => g.name === opts.group)
+         : openApiSpecs;
+
+      if (groupsToRun.length === 0) {
+         console.error(`No open API spec config found with name "${opts.group}".`);
+         process.exit(1);
+      }
+
+      for (const group of groupsToRun) {
+         log.step(`Updating OpenAPI spec for group "${group.name}"`);
+         const finalGroupConfig = { ...group, ...opts };
+         await generateClientSdk(finalGroupConfig.input, finalGroupConfig.output);
+      }
+      log.success('Client SDK generated successfully!');
    });
 
 program
