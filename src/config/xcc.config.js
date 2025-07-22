@@ -19,7 +19,7 @@ export default {
    },
    test: [
       {
-         name: "Default",
+         name: 'Default',
          oas: './oas.yaml',
          setup: 'xcc.test.setup.json',
          secrets: './tests/secrets.json',
@@ -33,6 +33,13 @@ export default {
             'X-Branch': 'staging',
             'X-Data-Source': 'test',
          },
+      },
+   ],
+   openApiSpecs: [
+      {
+         name: 'Default',
+         input: './oas.json',
+         output: 'output/oas',
       },
    ],
 };
