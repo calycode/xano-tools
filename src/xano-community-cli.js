@@ -9,6 +9,8 @@ import { runLintXano } from './lint-xano/index.js';
 import { runTestSuite } from './tests/index.js';
 import { setupWizard } from './utils/cli-walkthroughs/setup.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
+import { updateOpenapiSpec } from './oas/update/index.js';
+import { generateClientSdk } from '../src/oas/client-sdk/generate.js'
 import { log } from '@clack/prompts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -45,7 +47,7 @@ async function handleCommand(section, opts, runner, configFile = 'xcc.config.js'
 const program = new Command();
 
 program
-   .name('xano-community-cli')
+   .name('xano-community-cli (alias: xcc)')
    .description('CLI for processing, linting, and testing Xano backend logic')
    .version('0.0.1')
    .exitOverride(() => {
@@ -99,12 +101,72 @@ program
       }
 
       for (const group of groupsToRun) {
-         log.step(`Running tests for group "${group.name}"`)
+         log.step(`Running tests for group "${group.name}"`);
          // Merge CLI overrides into group config (if provided)
          const finalGroupConfig = { ...group, ...opts };
          await runTestSuite(finalGroupConfig);
       }
       log.success('All tests completed');
+   });
+
+program
+   .command('update-oas')
+   .description(
+      'Update the OpenAPI specification for newer version and generate Scalar API reference html'
+   )
+   .option('--group <name>', 'API group to update (e.g. Default)')
+   .option('--input-oas <file>', 'Input OpenAPI spec file')
+   .option('--output-dir <dir>', 'Output directory')
+   .action(async (opts) => {
+      const config = await loadConfig('xcc.config.js');
+      let { openApiSpecs } = config;
+      if (!Array.isArray(openApiSpecs)) openApiSpecs = Object.values(openApiSpecs);
+
+      const groupsToRun = opts.group
+         ? openApiSpecs.filter((g) => g.name === opts.group)
+         : openApiSpecs;
+
+      if (groupsToRun.length === 0) {
+         console.error(`No open API spec config found with name "${opts.group}".`);
+         process.exit(1);
+      }
+
+      for (const group of groupsToRun) {
+         log.step(`Updating OpenAPI spec for group "${group.name}"`);
+         const finalGroupConfig = { ...group, ...opts };
+         await updateOpenapiSpec(finalGroupConfig.input, finalGroupConfig.output);
+      }
+      log.success('OpenAPI specs updated and references generated.');
+   });
+
+program
+   .command('generate-client-sdk')
+   .description(
+      'Create a client library based on the OpenAPI specification.'
+   )
+   .option('--group <name>', 'API group to update (e.g. Default)')
+   .option('--input-oas <file>', 'Input OpenAPI spec file')
+   .option('--output-dir <dir>', 'Output directory')
+   .action(async (opts) => {
+      const config = await loadConfig('xcc.config.js');
+      let { openApiSpecs } = config;
+      if (!Array.isArray(openApiSpecs)) openApiSpecs = Object.values(openApiSpecs);
+
+      const groupsToRun = opts.group
+         ? openApiSpecs.filter((g) => g.name === opts.group)
+         : openApiSpecs;
+
+      if (groupsToRun.length === 0) {
+         console.error(`No open API spec config found with name "${opts.group}".`);
+         process.exit(1);
+      }
+
+      for (const group of groupsToRun) {
+         log.step(`Updating OpenAPI spec for group "${group.name}"`);
+         const finalGroupConfig = { ...group, ...opts };
+         await generateClientSdk(finalGroupConfig.input, finalGroupConfig.output);
+      }
+      log.success('Client SDK generated successfully!');
    });
 
 program
@@ -117,7 +179,9 @@ program
 program
    .command('export-backup')
    .description('Backup Xano Workspace via Metadata API')
-   .action(() => { prettyLog('Not implemented yet', 'error')});
+   .action(() => {
+      prettyLog('Not implemented yet', 'error');
+   });
 
 program
    .command('import-backup')
@@ -134,9 +198,3 @@ program
    });
 
 program.parse();
-
-// Add this at the end:
-if (!process.argv.slice(2).length) {
-   program.outputHelp();
-   process.exit(0); // <-- success code, not error
-}

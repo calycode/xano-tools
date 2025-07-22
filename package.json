@@ -4,6 +4,10 @@
    "main": "src/xano-community-cli.js",
    "type": "module",
    "description": "A tool to improve dev experience with XANO, especially for teams where clarity, transparency, and version control is important. Furthermore, this cli should help automate currently manual apsects of XANO. Why a CLI when we have AI? I am bullish on the AI, but in all honesty using AI so much without proper human control can cause a lot of issues. The idea behind this CLI is to reduce the need of reliance on AI and that we have our most crucial parts (testing, documentation) in place in any case, environment, system, either in part of a git provider or local system. The goal is to make it flexible and if there's need, then obiously LLM-ready.",
+   "bin": {
+      "xano-community-cli": "src/xano-community-cli.js",
+      "xcc": "src/xano-community-cli.js"
+   },
    "scripts": {
       "xano-community-cli": "node src/xano-community-cli.js",
       "process-backend": "node src/xano-community-cli.js process",
@@ -39,6 +43,7 @@
       "uvu": "^0.5.6"
    },
    "devDependencies": {
+      "@hey-api/openapi-ts": "0.79.2",
       "eslint": "^9.12.0",
       "eslint-plugin-import": "^2.32.0"
    }

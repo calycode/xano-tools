@@ -78,6 +78,7 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 - [x] Linting with custom rulesets
 - [x] Processing Xano queries, functions, and tables into a browsable repo structure
 - [x] Automated test runner with assertion configuration
+- [x] Generate improved OpenAPI sepcification + Scalar Reference html (hostable anywhere and viewable locally).
 
 ---
 
