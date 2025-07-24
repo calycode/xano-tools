@@ -1,4 +1,4 @@
-import infrastructure from '../../../util-resources/xano_underlying_infrastructure.js';
+import infrastructure from '../../../../util-resources/xano_underlying_infrastructure.js';
 import { xanoQueryToSql } from '../adapters/xanoQueryToSql.js';
 
 /**

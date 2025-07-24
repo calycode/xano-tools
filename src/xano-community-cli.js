@@ -2,16 +2,20 @@
 import { Command } from 'commander';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { prettyLog } from './process-xano/utils/console/prettify.js';
+import { prettyLog } from './features/process-xano/utils/console/prettify.js';
 import { ensureSecretKeyInEnv } from './utils/crypto/index.js';
-import { processWorkspace } from './process-xano/index.js';
-import { runLintXano } from './lint-xano/index.js';
-import { runTestSuite } from './tests/index.js';
-import { setupWizard } from './utils/cli-walkthroughs/setup.js';
+import { processWorkspace } from './features/process-xano/index.js';
+import { runLintXano } from './features/lint-xano/index.js';
+import { runTestSuite } from './features/tests/index.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
-import { updateOpenapiSpec } from './oas/update/index.js';
-import { generateClientSdk } from '../src/oas/client-sdk/generate.js'
+import { updateOpenapiSpec } from './features/oas/update/index.js';
+import { generateClientSdk } from './features/oas/client-sdk/generate.js'
 import { log } from '@clack/prompts';
+import { getCurrentContextConfig } from './utils/context/index.js';
+
+// Import the commands:
+import { switchContextPrompt } from './commands/context.js';
+import { setupInstanceWizard } from './commands/setup-instance.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -58,8 +62,28 @@ program
    .command('setup')
    .description('Setup Xano Community CLI configurations')
    .action(async () => {
-      await setupWizard();
+      await setupInstanceWizard();
    });
+
+program
+   .command('switch-context')
+   .description('Switch instance/workspace context')
+   .option('--instance <instance>', 'The name of your instance')
+   .option('--workspace <workspace>', 'The name of your workspace')
+   .action(async (opts) => {
+      await switchContextPrompt(opts);
+   });
+
+program
+   .command('get-current-config')
+   .action(() => {
+      const { instanceConfig, workspaceConfig, apigroupConfig } = getCurrentContextConfig();
+      console.log(instanceConfig);
+      console.log(workspaceConfig);
+      console.log(apigroupConfig);
+   });
+
+   // ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
 
 program
    .command('process')
