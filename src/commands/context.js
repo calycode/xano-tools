@@ -1,11 +1,15 @@
 import { select, intro, outro, log, spinner } from '@clack/prompts';
 import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders.js';
 
-async function switchContextPrompt({ instance: cliInstance, workspace: cliWorkspace }) {
+async function switchContextPrompt({
+   instance: cliInstance,
+   workspace: cliWorkspace,
+   branch: cliBranch,
+}) {
    intro('🔄 Switch Xano Context');
    const config = loadGlobalConfig();
 
-   // 1. Select instance if not provided
+   // 1. Select instance
    let instance = cliInstance;
    if (!instance || !config.instances.includes(instance)) {
       if (!config.instances.length) {
@@ -19,7 +23,7 @@ async function switchContextPrompt({ instance: cliInstance, workspace: cliWorksp
       });
    }
 
-   // 2. Select workspace from that instance
+   // 2. Select workspace
    let workspace = cliWorkspace;
    let instanceConfig;
    try {
@@ -30,12 +34,12 @@ async function switchContextPrompt({ instance: cliInstance, workspace: cliWorksp
       return;
    }
    const workspaces = Array.isArray(instanceConfig.workspaces) ? instanceConfig.workspaces : [];
+   let wsObj = null;
 
-   // Try to resolve CLI workspace input (by id or name)
    if (workspace) {
-      let found = workspaces.find((ws) => ws.id == workspace || ws.name === workspace);
-      if (found) {
-         workspace = found.id;
+      wsObj = workspaces.find((ws) => ws.id == workspace || ws.name === workspace);
+      if (wsObj) {
+         workspace = wsObj.id;
       } else {
          log.error(`Workspace "${workspace}" not found in "${instance}".`);
          outro();
@@ -54,16 +58,50 @@ async function switchContextPrompt({ instance: cliInstance, workspace: cliWorksp
             label: ws.name,
          })),
       });
+      wsObj = workspaces.find((ws) => ws.id == workspace);
    }
 
-   // 3. Save and confirm
+   // 3. Select branch
+   let branch = cliBranch;
+   const branches = wsObj && Array.isArray(wsObj.branches) ? wsObj.branches : [];
+   let branchObj = null;
+
+   if (branch) {
+      branchObj = branches.find((b) => b.label === branch);
+      if (!branchObj) {
+         log.error(
+            `Branch "${branch}" not found in workspace "${wsObj ? wsObj.name : workspace}".`
+         );
+         outro();
+         return;
+      }
+   } else {
+      if (!branches.length) {
+         log.error(`No branches found in workspace "${wsObj ? wsObj.name : workspace}".`);
+         outro();
+         return;
+      }
+      branch = await select({
+         message: `Select a branch for workspace "${wsObj.name}":`,
+         options: branches.map((b) => ({
+            value: b.label,
+            label: b.label + (b.live ? ' (live)' : '') + (b.backup ? ' (backup)' : ''),
+         })),
+      });
+      branchObj = branches.find((b) => b.label === branch);
+   }
+
+   // 4. Save and confirm
    const s = spinner();
    s.start('Switching context...');
-   config.currentContext = { instance, workspace };
+   config.currentContext = { instance, workspace, branch };
    saveGlobalConfig(config);
    s.stop('Context switched!');
-   const wsObj = workspaces.find((ws) => ws.id == workspace);
-   outro(`✅ Now using instance "${instance}" and workspace "${wsObj ? wsObj.name : workspace}".`);
+   outro(
+      `✅ Now using instance "${instance}", workspace "${
+         wsObj ? wsObj.name : workspace
+      }", branch "${branchObj ? branchObj.label : branch}".`
+   );
 }
 
 export { switchContextPrompt };

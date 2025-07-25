@@ -74,15 +74,6 @@ program
       await switchContextPrompt(opts);
    });
 
-program
-   .command('get-current-config')
-   .action(() => {
-      const { instanceConfig, workspaceConfig, apigroupConfig } = getCurrentContextConfig();
-      console.log(instanceConfig);
-      console.log(workspaceConfig);
-      console.log(apigroupConfig);
-   });
-
    // ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
 
 program

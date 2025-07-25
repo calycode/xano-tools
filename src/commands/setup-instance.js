@@ -60,6 +60,20 @@ export async function setupInstanceWizard() {
 
    s.stop('Workspaces fetched!');
 
+   s.start('Fetching branch information for each workspace...');
+
+   for (const ws of workspaces) {
+      const branches = await metaApiGet({
+         baseUrl: url,
+         token: apiKey,
+         path: `/workspace/${ws.id}/branch`,
+      });
+      // Filter out backup branches
+      ws.branches = branches.filter((b) => !b.backup);
+   }
+
+   s.stop('Branch information fetched!');
+
    // Save instance config
    saveInstanceConfig(name, {
       name,
@@ -69,10 +83,10 @@ export async function setupInstanceWizard() {
          rules: defaultLintRules,
       },
       process: {
-         output: 'output/{instance}/repo/{workspace}',
+         output: 'output/{instance}/repo/{workspace}/{branch}',
       },
       openApiSpec: {
-         output: 'output/{instance}/oas/{workspace}/{api_group_normalized_name}.json',
+         output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}.json',
       },
       workspaces,
    });
@@ -83,18 +97,20 @@ export async function setupInstanceWizard() {
 
    // Optionally set as current context
    let setAsCurrent = true;
-   if (global.currentContext?.instance && global.currentContext.instance !== name) {
+   if (global.currentContext?.instance && global.currentContext.instance !== safeName) {
       setAsCurrent = await confirm({
          message: `Set "${name}" as your current context?`,
          initialValue: true,
       });
    }
    if (setAsCurrent) {
-      // Pick the first workspace as default, if available
-      const wsNames = Object.keys(workspaces);
       global.currentContext = {
-         instance: name,
-         workspace: wsNames.length ? wsNames[0] : null,
+         instance: safeName,
+         workspace: workspaces.length ? workspaces[0].id : null,
+         branch:
+            workspaces.length && workspaces[0].branches.length
+               ? workspaces[0].branches[0].label
+               : null,
       };
    }
    saveGlobalConfig(global);

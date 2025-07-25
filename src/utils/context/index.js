@@ -5,25 +5,21 @@ import { loadGlobalConfig, loadInstanceConfig } from '../../config/loaders.js';
  * Returns { instanceConfig, workspaceConfig, apigroupConfig }
  * If any level is not found, returns null for that level.
  */
-export function getCurrentContextConfig(globalConfig, { instance, workspace, apigroup } = {}) {
-   let instanceConfig = null;
-   let workspaceConfig = null;
-   let apigroupConfig = null;
+export function getCurrentContextConfig(globalConfig = null, context = null) {
+   if (!globalConfig) globalConfig = loadGlobalConfig();
+   if (!context) context = globalConfig.currentContext || {};
 
-   if (!instance) {
-      globalConfig = loadGlobalConfig();
-   }
-
-   instance = globalConfig.currentContext.instance ?? null;
-   workspace = globalConfig.currentContext.workspace ?? null;
-   apigroup = globalConfig.currentContext.apigroup ?? null;
+   let { instance, workspace, branch, apigroup } = context;
+   let instanceConfig = null,
+      workspaceConfig = null,
+      branchConfig = null,
+      apigroupConfig = null;
 
    if (instance) {
       try {
          instanceConfig = loadInstanceConfig(instance);
-      } catch (e) {
-         // Could log here: `console.warn('Instance not found:', instance)`
-         return { instanceConfig: null, workspaceConfig: null, apigroupConfig: null };
+      } catch {
+         return {};
       }
    }
 
@@ -34,11 +30,15 @@ export function getCurrentContextConfig(globalConfig, { instance, workspace, api
          ) || null;
    }
 
+   if (workspaceConfig && branch) {
+      branchConfig = (workspaceConfig.branches || []).find((b) => b.label === branch) || null;
+   }
+
    if (workspaceConfig && apigroup) {
       apigroupConfig =
          (workspaceConfig.apigroups || []).find((g) => g.id == apigroup || g.name === apigroup) ||
          null;
    }
 
-   return { instanceConfig, workspaceConfig, apigroupConfig };
+   return { instanceConfig, workspaceConfig, branchConfig, apigroupConfig };
 }
