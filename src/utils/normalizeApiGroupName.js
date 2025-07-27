@@ -1,4 +1,4 @@
-export function normalizeApiGroupName(name) {
+function normalizeApiGroupName(name) {
    return name
       .normalize('NFKD')
       .replace(/[\u0300-\u036F]/g, '')
@@ -7,3 +7,5 @@ export function normalizeApiGroupName(name) {
       .replace(/^-+|-+$/g, '')
       .toLowerCase();
 }
+
+export { normalizeApiGroupName }

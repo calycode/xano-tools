@@ -17,10 +17,9 @@ export function patchOasSpec(oas) {
 }
 
 // I/O: load, patch, save, and generate Scalar HTML
-export async function updateOpenapiSpec(inputOas, outputDir) {
+export async function doOasUpdate(inputOas, outputDir) {
    // Load and patch
-   const oasRaw = await fs.readFile(inputOas, 'utf8');
-   const originalOas = JSON.parse(oasRaw);
+   const originalOas = inputOas;
    const oas = patchOasSpec(originalOas);
 
    // Ensure output directories exist
@@ -52,8 +51,8 @@ export async function updateOpenapiSpec(inputOas, outputDir) {
         darkMode: false,
         searchHotKey: "k",
         favicon: "",
-        defaultHttpClient: { 
-          targetKey: "node", 
+        defaultHttpClient: {
+          targetKey: "node",
           clientKey: "fetch"
         },
         authentication: {

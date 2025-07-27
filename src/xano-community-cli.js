@@ -8,10 +8,10 @@ import { processWorkspace } from './features/process-xano/index.js';
 import { runLintXano } from './features/lint-xano/index.js';
 import { runTestSuite } from './features/tests/index.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
-import { updateOpenapiSpec } from './features/oas/update/index.js';
 import { generateClientSdk } from './features/oas/client-sdk/generate.js'
 import { log } from '@clack/prompts';
 import { getCurrentContextConfig } from './utils/context/index.js';
+import { updateOpenapiSpec } from './commands/generate-openapispec.js';
 
 // Import the commands:
 import { switchContextPrompt } from './commands/context.js';
@@ -72,6 +72,23 @@ program
    .option('--workspace <workspace>', 'The name of your workspace')
    .action(async (opts) => {
       await switchContextPrompt(opts);
+   });
+
+program
+   .command('regenerate-openapispec')
+   .description('Update and generate OpenAPI spec(s) for the current context.')
+   .option('--instance <instance>')
+   .option('--workspace <workspace>')
+   .option('--branch <branch>')
+   .option('--group <name>', 'API group to update')
+   .option('--all', 'Regenerate for all API groups in workspace/branch')
+   .action(async (opts) => {
+      await updateOpenapiSpec(opts.instance, opts.workspace, opts.branch, opts.group, opts.all);
+   });
+
+program.command('current-context').action(() => {
+      const currentContext = getCurrentContextConfig();
+      log.info(`Current context: ${JSON.stringify(currentContext)}`);
    });
 
    // ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //

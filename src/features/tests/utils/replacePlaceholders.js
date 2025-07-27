@@ -1,17 +1,24 @@
 // src/tests/utils/replacePlaceholders.js
-const replacePlaceholders = (obj, replacements) => {
-   if (typeof obj === 'string') {
-      return obj.replace(/{{ENVIRONMENT\.([A-Z0-9_]+)}}/g, (_, key) => replacements[key] || '');
+
+const replacePlaceholders = (template, replacements) => {
+   if (typeof template === 'string') {
+      return template.replace(/\{([^}]+)\}/g, (_, key) => {
+         // Support case-insensitive keys in replacements
+         const foundKey = Object.keys(replacements).find(
+            (k) => k.toLowerCase() === key.toLowerCase()
+         );
+         return foundKey ? replacements[foundKey] : '';
+      });
    }
-   if (Array.isArray(obj)) {
-      return obj.map((item) => replacePlaceholders(item, replacements));
+   if (Array.isArray(template)) {
+      return template.map((item) => replacePlaceholders(item, replacements));
    }
-   if (typeof obj === 'object' && obj !== null) {
+   if (typeof template === 'object' && template !== null) {
       return Object.fromEntries(
-         Object.entries(obj).map(([key, value]) => [key, replacePlaceholders(value, replacements)])
+         Object.entries(template).map(([key, value]) => [key, replacePlaceholders(value, replacements)])
       );
    }
-   return obj;
+   return template;
 };
 
 export { replacePlaceholders };

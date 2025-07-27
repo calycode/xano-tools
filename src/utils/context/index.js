@@ -5,10 +5,14 @@ import { loadGlobalConfig, loadInstanceConfig } from '../../config/loaders.js';
  * Returns { instanceConfig, workspaceConfig, apigroupConfig }
  * If any level is not found, returns null for that level.
  */
-export function getCurrentContextConfig(globalConfig = null, context = null) {
+export function getCurrentContextConfig(globalConfig = null, context = {}) {
    if (!globalConfig) globalConfig = loadGlobalConfig();
-   if (!context) context = globalConfig.currentContext || {};
 
+   context.instance = context.instance || globalConfig.currentContext?.instance || null;
+   context.workspace = context.workspace || globalConfig.currentContext?.workspace || null;
+   context.branch = context.branch || globalConfig.currentContext?.branch || null;
+   context.apigroup = context.apigroup || globalConfig.currentContext?.apigroup || null;
+   
    let { instance, workspace, branch, apigroup } = context;
    let instanceConfig = null,
       workspaceConfig = null,
