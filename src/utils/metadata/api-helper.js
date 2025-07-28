@@ -49,6 +49,43 @@ export async function metaApiRequest({
    return result;
 }
 
+export async function metaApiRequestBlob({
+   baseUrl,
+   token,
+   method = 'GET',
+   path = '',
+   pathParams = {},
+   query = {},
+   body = null,
+   headers = {},
+}) {
+   let fullPath = path;
+   for (const [key, value] of Object.entries(pathParams)) {
+      fullPath = fullPath.replace(`{${key}}`, encodeURIComponent(value));
+   }
+   let url = baseUrl.replace(/\/+$/, '') + '/api:meta' + fullPath;
+   const queryString = new URLSearchParams(query).toString();
+   if (queryString) url += '?' + queryString;
+
+   const fetchHeaders = {
+      ...headers,
+      Authorization: `Bearer ${token}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+   };
+
+   const res = await fetch(url, {
+      method,
+      headers: fetchHeaders,
+      ...(body ? { body: JSON.stringify(body) } : {}),
+   });
+
+   if (!res.ok) {
+      throw new Error(`Xano API ${method} ${url} failed: ${res.statusText} (${res.status})`);
+   }
+   const buffer = await res.arrayBuffer();
+   return Buffer.from(buffer); // Node.js Buffer
+}
+
 // Optional: helper for common GET
 export function metaApiGet(opts) {
    return metaApiRequest({ ...opts, method: 'GET' });

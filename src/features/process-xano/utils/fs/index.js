@@ -13,6 +13,7 @@ import { processItem } from '../../core/processItem.js';
 import { prettyLog } from '../console/prettify.js';
 import cliProgress from 'cli-progress';
 import chalk from 'chalk';
+import { outro } from '@clack/prompts';
 
 // Helper for padding keys
 function padRight(str, len) {
@@ -196,7 +197,7 @@ function rebuildDirectoryStructure(jsonData, outputDir) {
 
    generateStructureDiagrams(appQueries, appMapping, appDescriptions, outputDir);
 
-   prettyLog('Directory structure rebuilt successfully.', 'success');
+   outro('Directory structure rebuilt successfully!');
 }
 
 export { sanitizeFileName, rebuildDirectoryStructure };

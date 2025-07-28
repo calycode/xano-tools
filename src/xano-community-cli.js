@@ -12,6 +12,7 @@ import { generateClientSdk } from './commands/generate-client-sdk.js';
 import { log } from '@clack/prompts';
 import { getCurrentContextConfig } from './utils/context/index.js';
 import { updateOpenapiSpec } from './commands/generate-openapispec.js';
+import { generateRepo } from './commands/generate-repo.js';
 
 // Import the commands:
 import { switchContextPrompt } from './commands/context.js';
@@ -114,6 +115,19 @@ program
       await generateClientSdk(opts.instance, opts.workspace, opts.branch, opts.group, opts.all, stack, opts.debug);
    });
 
+program
+   .command('process')
+   .description('Process Xano workspace into repo structure')
+   .option('-i, --input <file>', 'workspace yaml file')
+   .option('-o, --output <dir>', 'output directory (overrides config)')
+   .option('--instance <instance>')
+   .option('--workspace <workspace>')
+   .option('--branch <branch>')
+   .option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano')
+   .action(async (opts) => {
+      await generateRepo(opts.instance, opts.workspace, opts.branch, opts.input, opts.output, opts.fetch);
+   });
+
 program.command('current-context').action(() => {
    const currentContext = getCurrentContextConfig();
    log.info(`Current context: ${JSON.stringify(currentContext)}`);
@@ -121,12 +135,6 @@ program.command('current-context').action(() => {
 
 // ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
 
-program
-   .command('process')
-   .description('Process Xano workspace into repo structure')
-   .option('-i, --input <file>', 'workspace yaml file')
-   .option('-o, --output <dir>', 'output directory')
-   .action((opts) => handleCommand('process', opts, processWorkspace));
 
 program
    .command('lint')
