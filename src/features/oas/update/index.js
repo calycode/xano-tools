@@ -31,7 +31,8 @@ export async function doOasUpdate(inputOas, outputDir) {
    await fs.writeFile(path.join(outputDir, 'html', 'spec.json'), JSON.stringify(oas, null, 2));
 
    // Write Scalar HTML
-   const html = `<!doctype html>
+   const html = `
+<!doctype html>
 <html>
   <head>
     <title>${oas.info?.title || 'API Reference'}</title>

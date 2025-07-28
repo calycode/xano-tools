@@ -8,7 +8,7 @@ import { processWorkspace } from './features/process-xano/index.js';
 import { runLintXano } from './features/lint-xano/index.js';
 import { runTestSuite } from './features/tests/index.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
-import { generateClientSdk } from './features/oas/client-sdk/generate.js'
+import { generateClientSdk } from './commands/generate-client-sdk.js';
 import { log } from '@clack/prompts';
 import { getCurrentContextConfig } from './utils/context/index.js';
 import { updateOpenapiSpec } from './commands/generate-openapispec.js';
@@ -86,12 +86,40 @@ program
       await updateOpenapiSpec(opts.instance, opts.workspace, opts.branch, opts.group, opts.all);
    });
 
-program.command('current-context').action(() => {
-      const currentContext = getCurrentContextConfig();
-      log.info(`Current context: ${JSON.stringify(currentContext)}`);
+program
+   .command('generate-client-sdk')
+   .description('Create a client library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.')
+   .option('--instance <instance>')
+   .option('--workspace <workspace>')
+   .option('--branch <branch>')
+   .option('--group <name>', 'API group to update')
+   .option('--all', 'Regenerate for all API groups in workspace/branch')
+   .option(
+      '--generator <generator>',
+      'SDK generator to use, see all options at: https://openapi-generator.tech/docs/generators'
+   )
+   .option(
+      '--args <args>',
+      'Additional arguments to pass to the generator. See https://openapi-generator.tech/docs/usage#generate'
+   )
+   .option('--debug', 'Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false')
+   .action(async (opts) => {
+      const stack = {};
+      if (opts.generator) {
+         stack.generator = opts.generator;
+      }
+      if (opts.args) {
+         stack.args = opts.args.split(',');
+      }
+      await generateClientSdk(opts.instance, opts.workspace, opts.branch, opts.group, opts.all, stack, opts.debug);
    });
 
-   // ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
+program.command('current-context').action(() => {
+   const currentContext = getCurrentContextConfig();
+   log.info(`Current context: ${JSON.stringify(currentContext)}`);
+});
+
+// ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
 
 program
    .command('process')
@@ -141,66 +169,7 @@ program
       log.success('All tests completed');
    });
 
-program
-   .command('update-oas')
-   .description(
-      'Update the OpenAPI specification for newer version and generate Scalar API reference html'
-   )
-   .option('--group <name>', 'API group to update (e.g. Default)')
-   .option('--input-oas <file>', 'Input OpenAPI spec file')
-   .option('--output-dir <dir>', 'Output directory')
-   .action(async (opts) => {
-      const config = await loadConfig('xcc.config.js');
-      let { openApiSpecs } = config;
-      if (!Array.isArray(openApiSpecs)) openApiSpecs = Object.values(openApiSpecs);
-
-      const groupsToRun = opts.group
-         ? openApiSpecs.filter((g) => g.name === opts.group)
-         : openApiSpecs;
-
-      if (groupsToRun.length === 0) {
-         console.error(`No open API spec config found with name "${opts.group}".`);
-         process.exit(1);
-      }
-
-      for (const group of groupsToRun) {
-         log.step(`Updating OpenAPI spec for group "${group.name}"`);
-         const finalGroupConfig = { ...group, ...opts };
-         await updateOpenapiSpec(finalGroupConfig.input, finalGroupConfig.output);
-      }
-      log.success('OpenAPI specs updated and references generated.');
-   });
-
-program
-   .command('generate-client-sdk')
-   .description(
-      'Create a client library based on the OpenAPI specification.'
-   )
-   .option('--group <name>', 'API group to update (e.g. Default)')
-   .option('--input-oas <file>', 'Input OpenAPI spec file')
-   .option('--output-dir <dir>', 'Output directory')
-   .action(async (opts) => {
-      const config = await loadConfig('xcc.config.js');
-      let { openApiSpecs } = config;
-      if (!Array.isArray(openApiSpecs)) openApiSpecs = Object.values(openApiSpecs);
-
-      const groupsToRun = opts.group
-         ? openApiSpecs.filter((g) => g.name === opts.group)
-         : openApiSpecs;
-
-      if (groupsToRun.length === 0) {
-         console.error(`No open API spec config found with name "${opts.group}".`);
-         process.exit(1);
-      }
-
-      for (const group of groupsToRun) {
-         log.step(`Updating OpenAPI spec for group "${group.name}"`);
-         const finalGroupConfig = { ...group, ...opts };
-         await generateClientSdk(finalGroupConfig.input, finalGroupConfig.output);
-      }
-      log.success('Client SDK generated successfully!');
-   });
-
+// ----------------- [ ] TODO: to implement these commands or discard them -------------------- //
 program
    .command('generate-schemas-from-examples')
    .description('Generate json-schema compliant schemas from OAS examples')
