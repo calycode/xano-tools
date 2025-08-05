@@ -4,7 +4,6 @@ import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { prettyLog } from './features/process-xano/utils/console/prettify.js';
 import { ensureSecretKeyInEnv } from './utils/crypto/index.js';
-import { processWorkspace } from './features/process-xano/index.js';
 import { runLintXano } from './features/lint-xano/index.js';
 import { runTestSuite } from './features/tests/index.js';
 import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
@@ -13,6 +12,7 @@ import { log } from '@clack/prompts';
 import { getCurrentContextConfig } from './utils/context/index.js';
 import { updateOpenapiSpec } from './commands/generate-openapispec.js';
 import { generateRepo } from './commands/generate-repo.js';
+import { testRunner } from './commands/run-tests.js';
 
 // Import the commands:
 import { switchContextPrompt } from './commands/context.js';
@@ -89,7 +89,9 @@ program
 
 program
    .command('generate-client-sdk')
-   .description('Create a client library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.')
+   .description(
+      'Create a client library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.'
+   )
    .option('--instance <instance>')
    .option('--workspace <workspace>')
    .option('--branch <branch>')
@@ -103,7 +105,10 @@ program
       '--args <args>',
       'Additional arguments to pass to the generator. See https://openapi-generator.tech/docs/usage#generate'
    )
-   .option('--debug', 'Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false')
+   .option(
+      '--debug',
+      'Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false'
+   )
    .action(async (opts) => {
       const stack = {};
       if (opts.generator) {
@@ -112,7 +117,15 @@ program
       if (opts.args) {
          stack.args = opts.args.split(',');
       }
-      await generateClientSdk(opts.instance, opts.workspace, opts.branch, opts.group, opts.all, stack, opts.debug);
+      await generateClientSdk(
+         opts.instance,
+         opts.workspace,
+         opts.branch,
+         opts.group,
+         opts.all,
+         stack,
+         opts.debug
+      );
    });
 
 program
@@ -125,7 +138,22 @@ program
    .option('--branch <branch>')
    .option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano')
    .action(async (opts) => {
-      await generateRepo(opts.instance, opts.workspace, opts.branch, opts.input, opts.output, opts.fetch);
+      await generateRepo(
+         opts.instance,
+         opts.workspace,
+         opts.branch,
+         opts.input,
+         opts.output,
+         opts.fetch
+      );
+   });
+
+program
+   .command('test-through-oas')
+   .description('Run an API test suite through the OpenAPI spec')
+   .option('--output <dir>', 'test results output')
+   .action(async (opts) => {
+      await testRunner();
    });
 
 program.command('current-context').action(() => {
@@ -135,7 +163,6 @@ program.command('current-context').action(() => {
 
 // ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
 
-
 program
    .command('lint')
    .description('Lint backend logic')
@@ -143,39 +170,6 @@ program
    .option('-c, --config <file>', 'lint rules config')
    .option('-o, --output <file>', 'lint output file')
    .action((opts) => handleCommand('lint', opts, runLintXano));
-
-program
-   .command('test')
-   .description('Run an API test suite')
-   .option('--group <name>', 'Test group to run (e.g. Default, public, admin)')
-   .option('--test-config <file>', 'Custom test config file')
-   .option('--oas <file>', 'OpenAPI spec file')
-   .option('--setup <file>', 'test setup file')
-   .option('--secrets <file>', 'secrets/config file')
-   .option('--output <file>', 'test results output')
-   .option('--base-url <url>', 'API base URL')
-   .action(async (opts) => {
-      // Load config (custom file, or default)
-      const config = await loadConfig(opts.testConfig || 'xcc.config.js');
-      let testGroups = config.test;
-      if (!Array.isArray(testGroups)) testGroups = Object.values(testGroups);
-
-      // If a group is specified, filter; else run all
-      const groupsToRun = opts.group ? testGroups.filter((g) => g.name === opts.group) : testGroups;
-
-      if (groupsToRun.length === 0) {
-         console.error(`No test group found with name "${opts.group}".`);
-         process.exit(1);
-      }
-
-      for (const group of groupsToRun) {
-         log.step(`Running tests for group "${group.name}"`);
-         // Merge CLI overrides into group config (if provided)
-         const finalGroupConfig = { ...group, ...opts };
-         await runTestSuite(finalGroupConfig);
-      }
-      log.success('All tests completed');
-   });
 
 // ----------------- [ ] TODO: to implement these commands or discard them -------------------- //
 program
@@ -201,7 +195,8 @@ program
 
 program
    .command('create-xano-workspace')
-   .description('Create a XANO instance from a template.')
+   .description('Create a XANO workspace. Optionally provide an OpenAPI spec to generate paths, models, auth etc according to specs.')
+   .option('--openapispec <file>', 'The origin openapi spec that we need to recreate in Xano')
    .action(() => {
       prettyLog('Not implemented yet', 'error');
    });

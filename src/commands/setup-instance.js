@@ -17,6 +17,12 @@ const defaultLintRules = {
    'is-description-present': 'warn',
 };
 
+const defaultAsserts = {
+   "statusOk": "error",
+   "responseDefined": "error",
+   "responseSchema": "warn"
+}
+
 export async function setupInstanceWizard() {
    intro('✨ Xano CLI Instance Setup ✨');
    ensureDirs();
@@ -81,6 +87,14 @@ export async function setupInstanceWizard() {
       tokenFile: `../tokens/${name}.token`,
       lint: {
          rules: defaultLintRules,
+      },
+      test: {
+         output: "output/{instance}/tests/{workspace}/{branch}/{group}",
+         headers: {
+            "X-Branch": "{branch}",
+            "X-Data-Source": "test"
+         },
+         defaultAsserts
       },
       process: {
          output: 'output/{instance}/repo/{workspace}/{branch}',
