@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { prettyLog } from '../../process-xano/utils/console/prettify.js';
+import { log } from '@clack/prompts';
 
 const PROJECT_ROOT = process.cwd();
 const GITIGNORE_PATH = path.join(PROJECT_ROOT, '.gitignore');
@@ -50,9 +50,9 @@ export function ensureGitignore() {
    if (missing.length > 0) {
       gitignoreContent += '\n' + missing.join('\n') + '\n';
       fs.writeFileSync(GITIGNORE_PATH, gitignoreContent.trim() + '\n');
-      prettyLog('[MAINTENANCE]: .gitignore updated with missing recommended ignores.', 'success')
+      log.success('[MAINTENANCE]: .gitignore updated with missing recommended ignores.');
    } else if (needsWrite) {
       fs.writeFileSync(GITIGNORE_PATH, gitignoreContent.trim() + '\n');
-      prettyLog('[MAINTENANCE]: .gitignore created from example.', 'success');
+      log.success('[MAINTENANCE]: .gitignore created from example.');
    }
 }

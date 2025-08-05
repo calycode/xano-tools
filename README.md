@@ -2,7 +2,7 @@
 
 # xano-community-cli
 
-**A tool to improve dev experience with XANO, especially for teams where clarity, transparency, and version control is important. Furthermore, this cli should help automate currently manual apsects of XANO. Why a CLI when we have AI? I am bullish on the AI, but in all honesty using AI so much without proper human control can cause a lot of issues. The idea behind this CLI is to reduce the need of reliance on AI and that we have our most crucial parts (testing, documentation) in place in any case, environment, system, either in part of a git provider or local system. The goal is to make it flexible and if there's need, then obiously LLM-ready.**  
+**A tool to improve dev experience with XANO, especially for teams where clarity, transparency, and version control is important. Furthermore, this cli should help automate currently manual apsects of XANO. Why a CLI when we have AI? I am bullish on the AI, but in all honesty using AI so much without proper human control can cause a lot of issues. The idea behind this CLI is to reduce the need of reliance on AI and that we have our most crucial parts (testing, documentation) in place in any case, environment, system, either in part of a git provider or local system. The goal is to make it flexible and if there's need, then obiously LLM-ready.**
 _(Work In Progress)_
 
 ---
@@ -42,9 +42,9 @@ _(Work In Progress)_
 
 XANO visual UI is extremely helpful for the lesser technical people, who are willing to read through and click through each step.
 However, the UX of XANO in terms of navigating through each step and in the meantime potentially loosing context can become
-cumbersome in some more complex logic and make it more difficult to grasp what's going on. 
-This is the reason why we try to traverse the XANO instance into a Github-like repo structure, which makes it 
-much more consumable in Code editors and IDEs. This may also result with a much easier integration with LLMs, which tend to 
+cumbersome in some more complex logic and make it more difficult to grasp what's going on.
+This is the reason why we try to traverse the XANO instance into a Github-like repo structure, which makes it
+much more consumable in Code editors and IDEs. This may also result with a much easier integration with LLMs, which tend to
 understand markdown or yaml (xanoscript) better than extremely verbose json objects.
 
 ---
@@ -59,8 +59,8 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 
 ## 🚧 Status
 
-> **WORK IN PROGRESS:**  
-> Expect frequent changes!  
+> **WORK IN PROGRESS:**
+> Expect frequent changes!
 > - Main entities (queries, functions, tables) are now parsed into their own paths and documented.
 > - Plans to support dynamic setup
 > - !!! The Github Actions workflows are copies from our live system, so they are not at all refactored to this new cli-like repo. They depend on a much less clear and messy node script implementation that fetches workspace files from GCP and then processes them as Github Action.
@@ -75,10 +75,13 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 
 ## ✔️ What Works Now?
 
-- [x] Linting with custom rulesets
-- [x] Processing Xano queries, functions, and tables into a browsable repo structure
-- [x] Automated test runner with assertion configuration
+- [x] Allow multi-user multi workspace setup.
+- [x] Add context-switching to the configuration options.
 - [x] Generate improved OpenAPI sepcification + Scalar Reference html (hostable anywhere and viewable locally).
+- [x] Generate client libraries of the backend API groups, powered by openapi tools generator cli (Note, that this can be used to generate servers as well, not just clients..., however, I didn't plan for that, so now it would put them as well into the client-sdk output directory.)
+- [x] Processing Xano queries, functions, and tables into a browsable repo structure
+- [ ] (under refactoring) Automated test runner with assertion configuration
+- [ ] (under refactoring) Linting with custom rulesets
 
 ---
 
