@@ -1,53 +1,16 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { dirname, join } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
-import { prettyLog } from './features/process-xano/utils/console/prettify.js';
-import { ensureSecretKeyInEnv } from './utils/crypto/index.js';
-import { runLintXano } from './features/lint-xano/index.js';
-import { runTestSuite } from './features/tests/index.js';
-import { loadEnvToProcess } from './utils/crypto/handleEnv.js';
-import { generateClientSdk } from './commands/generate-client-sdk.js';
 import { log } from '@clack/prompts';
 import { getCurrentContextConfig } from './utils/context/index.js';
-import { updateOpenapiSpec } from './commands/generate-openapispec.js';
-import { generateRepo } from './commands/generate-repo.js';
-import { testRunner } from './commands/run-tests.js';
 
 // Import the commands:
 import { switchContextPrompt } from './commands/context.js';
 import { setupInstanceWizard } from './commands/setup-instance.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// ---------- UTILITIES -------------- //
-async function loadConfig(configFileName = 'xcc.config.js', configSection = null) {
-   ensureSecretKeyInEnv();
-   loadEnvToProcess();
-   try {
-      const userConfigPath = join(process.cwd(), configFileName);
-      const config = (await import(pathToFileURL(userConfigPath))).default;
-      return configSection ? config[configSection] || {} : config;
-   } catch {
-      try {
-         const internalConfigPath = join(__dirname, 'config', configFileName);
-         const config = (await import(pathToFileURL(internalConfigPath))).default;
-         return configSection ? config[configSection] || {} : config;
-      } catch {
-         prettyLog(
-            `No config file (${configFileName}) found and no internal default config present!`,
-            'error'
-         );
-         process.exit(1);
-      }
-   }
-}
-
-async function handleCommand(section, opts, runner, configFile = 'xcc.config.js') {
-   const defaultConfig = await loadConfig(configFile, section);
-   const finalConfig = { ...defaultConfig, ...opts };
-   await runner(finalConfig);
-}
+import { updateOpenapiSpec } from './commands/generate-openapispec.js';
+import { generateClientSdk } from './commands/generate-client-sdk.js';
+import { generateRepo } from './commands/generate-repo.js';
+import { testRunner } from './commands/run-tests.js';
+import { runLinter } from './commands/run-lint.js';
 
 const program = new Command();
 
@@ -150,10 +113,16 @@ program
 
 program
    .command('test-through-oas')
-   .description('Run an API test suite through the OpenAPI spec')
-   .option('--output <dir>', 'test results output')
-   .action(async (opts) => {
+   .description('Run an API test suite through the OpenAPI spec. WIP...')
+   .action(async () => {
       await testRunner();
+   });
+
+program
+   .command('lint')
+   .description('Lint backend logic, based on provided local file. Remote and dynamic sources are WIP...')
+   .action(async () => {
+      await runLinter()
    });
 
 program.command('current-context').action(() => {
@@ -161,36 +130,26 @@ program.command('current-context').action(() => {
    log.info(`Current context: ${JSON.stringify(currentContext)}`);
 });
 
-// ---------------------------- TO REFACTOR FOR THE NEW CONFIG APPROACH ---------------------------- //
-
-program
-   .command('lint')
-   .description('Lint backend logic')
-   .option('-i, --input <file>', 'workspace yaml file')
-   .option('-c, --config <file>', 'lint rules config')
-   .option('-o, --output <file>', 'lint output file')
-   .action((opts) => handleCommand('lint', opts, runLintXano));
-
 // ----------------- [ ] TODO: to implement these commands or discard them -------------------- //
 program
    .command('generate-schemas-from-examples')
    .description('Generate json-schema compliant schemas from OAS examples')
    .action(() => {
-      prettyLog('Not implemented yet', 'error');
+      log.warn('Not implemented yet');
    });
 
 program
    .command('export-backup')
    .description('Backup Xano Workspace via Metadata API')
    .action(() => {
-      prettyLog('Not implemented yet', 'error');
+      log.warn('Not implemented yet');
    });
 
 program
    .command('import-backup')
    .description('Backup Xano Workspace via Metadata API')
    .action(() => {
-      prettyLog('Not implemented yet', 'error');
+      log.warn('Not implemented yet');
    });
 
 program
@@ -198,7 +157,7 @@ program
    .description('Create a XANO workspace. Optionally provide an OpenAPI spec to generate paths, models, auth etc according to specs.')
    .option('--openapispec <file>', 'The origin openapi spec that we need to recreate in Xano')
    .action(() => {
-      prettyLog('Not implemented yet', 'error');
+      log.warn('Not implemented yet');
    });
 
 program.parse();

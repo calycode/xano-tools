@@ -2,7 +2,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import XanoLinter from './XanoLinter.js';
-import { prettyLog } from '../process-xano/utils/console/prettify.js';
+import { log, spinner } from '@clack/prompts';
 
 async function runLinterOnJsonFiles({ dirPath, lintResults, ruleConfig }) {
    const files = await fs.readdir(dirPath);
@@ -27,15 +27,15 @@ async function runLinterOnJsonFiles({ dirPath, lintResults, ruleConfig }) {
                });
             }
          } catch (err) {
-            console.error(`Error processing file ${filePath}: ${err}`);
+            log.error(`Error processing file ${filePath}: ${err}`);
          }
       }
    }
 }
 
 async function main({ inputDir, outputFile, ruleConfig }) {
-   
-   prettyLog(`Linting started`, 'info');
+   const s = spinner();
+   s.start('Linting in progress...');
    try {
       const tempDir = path.dirname(outputFile);
       await fs.mkdir(tempDir, { recursive: true });
@@ -49,12 +49,14 @@ async function main({ inputDir, outputFile, ruleConfig }) {
       // Write linting results to file
       if (lintResults.length > 0) {
          await fs.writeFile(outputFile, JSON.stringify(lintResults, null, 2));
-         prettyLog(`Linting results written to ${outputFile}`, 'success');
+         s.stop(`Linting results written -> ${outputFile}`);
       } else {
-         console.log('No linting issues found.');
+         s.stop('No linting issues found.');
       }
    } catch (err) {
-      console.error('Error during linting process:', err);
+      s.stop('Linting resulted in error:')
+      log.error('Error during linting process:', err);
+   } finally {
    }
 }
 

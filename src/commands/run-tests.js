@@ -10,6 +10,7 @@ import { metaApiGet } from '../utils/metadata/api-helper.js';
 import { doOasUpdate } from '../features/oas/update/index.js';
 import { isEmptySchema } from '../utils/testing/is-empty-schema.js';
 import { prepareRequest } from '../utils/testing/prepare-request.js';
+// [ ] TODO: bring back the schema validation!
 import { validateSchema } from '../features/tests/utils/schemaValidation.js';
 import { availableAsserts } from '../features/tests/utils/customAssertions.js';
 

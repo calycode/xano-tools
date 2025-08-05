@@ -4,7 +4,7 @@ import { replacePlaceholders } from './utils/replacePlaceholders.js';
 import { generateMockDataForSchema } from './utils/mockData.js';
 import { validateSchema } from './utils/schemaValidation.js';
 import { availableAsserts } from './utils/customAssertions.js';
-import { prettyLog } from '../process-xano/utils/console/prettify.js';
+import { log } from '@clack/prompts';
 import path from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 
@@ -22,7 +22,7 @@ export async function runOasApiTests({
    },
 }) {
 
-   prettyLog('Starting tests...', 'info');
+   log.info('Starting tests...');
    const runtimeValues = { ...secrets };
 
    const results = [];
@@ -99,7 +99,7 @@ export async function runOasApiTests({
                assertFn(assertContext);
             } catch (e) {
                if (level === 'error') throw e;
-               if (level === 'warn') prettyLog(e.message, 'warn');
+               if (level === 'warn') log.warn(e.message);
             }
          }
 
@@ -134,7 +134,7 @@ if (output) {
    await writeFile(output, JSON.stringify(results, null, 2));
 }
 
-   prettyLog(`Tests completed. Report is at -> ${output}`, 'success');
+   log.success(`Tests completed. Report is at -> ${output}`);
 
    return results;
 }

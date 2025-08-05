@@ -86,6 +86,7 @@ export async function setupInstanceWizard() {
       url,
       tokenFile: `../tokens/${name}.token`,
       lint: {
+         output: "output/{instance}/lint/{workspace}/{branch}",
          rules: defaultLintRules,
       },
       test: {
