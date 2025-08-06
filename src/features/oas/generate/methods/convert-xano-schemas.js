@@ -1,11 +1,7 @@
-import { metaApiGet, getCurrentContextConfig } from '../../../utils/index.js';
-
-import { loadToken } from '../../../config/loaders.js';
-
 /**
  * Maps Xano field types to JSON Schema types
  */
-const typeMap = {
+const TYPE_MAP = {
    int: 'integer',
    decimal: 'number',
    text: 'string',
@@ -17,13 +13,15 @@ const typeMap = {
 };
 
 /**
- * Recursively converts Xano schema field to JSON Schema property
+ * Recursively converts a Xano schema field to JSON Schema property.
+ * @param {object} field - Xano field descriptor.
+ * @returns {object} - JSON Schema property.
  */
 function convertField(field) {
    const jsonSchema = {};
 
    // Basic type mapping
-   const baseType = typeMap[field.type] || 'string';
+   const baseType = TYPE_MAP[field.type] || 'string';
 
    // Handle lists
    if (field.style === 'list') {
@@ -82,7 +80,10 @@ function convertField(field) {
 }
 
 /**
- * Converts full schema
+ * Converts a full Xano schema to JSON Schema.
+ * @param {Array} xanoSchema - Array of field descriptors.
+ * @param {object} [options]
+ * @returns {object} - JSON Schema object.
  */
 function convertXanoSchemaToJsonSchema(xanoSchema, { includeInternal = false } = {}) {
    const jsonSchema = {
@@ -108,46 +109,4 @@ function convertXanoSchemaToJsonSchema(xanoSchema, { includeInternal = false } =
    return jsonSchema;
 }
 
-async function generateTableSchemas() {
-   const { instanceConfig, workspaceConfig } = getCurrentContextConfig();
-
-   const tableSchemas = {};
-
-   const workspaceTablesRaw = await metaApiGet({
-      baseUrl: instanceConfig.url,
-      path: `/workspace/${workspaceConfig.id}/table`,
-      query: {
-         sort: 'name',
-         order: 'asc',
-         page: 1,
-         per_page: 500,
-      },
-      token: loadToken(instanceConfig.name),
-   });
-
-   const workspaceTables = workspaceTablesRaw.items;
-
-   for (const table of workspaceTables) {
-      const workspaceTableSchemaRaw = await metaApiGet({
-         baseUrl: instanceConfig.url,
-         path: `/workspace/${workspaceConfig.id}/table/${table.id}/schema`,
-         token: loadToken(instanceConfig.name),
-      });
-
-      const workspaceTableSchema = workspaceTableSchemaRaw;
-
-      tableSchemas[`Table.${table.name.replace(' ', '_')}`] = {
-         title: `Table.${table.name.replace(' ', '_')}`,
-         description: `#### Table id: ${table.id}. ${
-            table.auth ? '\n\n **This table is used for AUTH.**' : ''
-         }`,
-         type: 'object',
-         properties: convertXanoSchemaToJsonSchema(workspaceTableSchema, { includeInternal: true })
-            .properties,
-      };
-   }
-
-   return tableSchemas;
-}
-
-export { generateTableSchemas };
+export { convertField, convertXanoSchemaToJsonSchema };

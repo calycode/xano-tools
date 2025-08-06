@@ -4,7 +4,7 @@ import { Command } from 'commander';
 // Import commands:
 import { registerSetupCommand } from './commands/setup-instance.js';
 import { registerCurrentContextCommand, registerSwitchContextCommand } from './commands/context.js';
-import { registerGenerateOasCommand } from './commands/generate-openapispec.js';
+import { registerGenerateOasCommand } from './commands/generate-oas.js';
 import { registerGenerateCodeCommand } from './commands/generate-client-sdk.js';
 import { registerGenerateRepoCommand } from './commands/generate-repo.js';
 import { registerTestViaOasCommand } from './commands/run-tests.js';

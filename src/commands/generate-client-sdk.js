@@ -1,18 +1,16 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 import {
+   chooseApiGroupOrAll,
    getCurrentContextConfig,
    metaApiGet,
-   chooseApiGroupOrAll,
-   withErrorHandler,
    normalizeApiGroupName,
+   replacePlaceholders,
+   withErrorHandler,
 } from '../utils/index.js';
 
-import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
-
-import { doOasUpdate } from '../features/oas/update/index.js';
+import { doOasUpdate } from '../features/oas/generate/index.js';
 import { runOpenApiGenerator } from '../features/oas/client-sdk/open-api-generator.js';
-
 
 async function generateClientSdk(
    instance,
@@ -92,9 +90,7 @@ async function generateClientSdk(
             additionalArgs,
             logger,
          });
-         s.stop(
-            `Code generated for group "${group.name}" → ${outputPath}/codegen/${generator}`
-         );
+         s.stop(`Code generated for group "${group.name}" → ${outputPath}/codegen/${generator}`);
       } catch (err) {
          s.stop();
          log.error(err.message);

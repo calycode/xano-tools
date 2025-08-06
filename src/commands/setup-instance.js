@@ -1,4 +1,4 @@
-import { intro, text, password, spinner, outro, log, confirm } from '@clack/prompts';
+import { intro, text, password, outro, log, confirm } from '@clack/prompts';
 import {
    ensureDirs,
    loadGlobalConfig,
@@ -7,21 +7,21 @@ import {
    saveToken,
 } from '../config/loaders.js';
 import {
-   metaApiGet,
-   withErrorHandler,
    ensureGitignore,
+   fetchWorkspacesAndBranches,
    sanitizeInstanceName,
+   withErrorHandler,
+   withSpinner,
 } from '../utils/index.js';
 
-
 // DEFAULT SETTINGS:
-const defaultLintRules = {
+const DEFAULT_LINT_RULES = {
    'is-valid-verb': 'error',
    'is-camel-case': 'warn',
    'is-description-present': 'warn',
 };
 
-const defaultAsserts = {
+const DEFAULT_ASSERTS = {
    statusOk: 'error',
    responseDefined: 'error',
    responseSchema: 'warn',
@@ -29,10 +29,12 @@ const defaultAsserts = {
 
 async function setupInstanceWizard() {
    intro('✨ Xano CLI Instance Setup ✨');
+
+   // 1. Make sure the core repo setup is healthy:
    ensureDirs();
    ensureGitignore();
 
-   // Gather info
+   // 2. Gather info
    const name = (
       await text({ message: 'Name this Xano instance (e.g. prod, staging, client-a):' })
    ).trim();
@@ -52,46 +54,23 @@ async function setupInstanceWizard() {
    const url = (await text({ message: `What's the base URL for "${name}"?` })).trim();
    const apiKey = await password({ message: `Enter the Metadata API key for "${name}":` });
 
-   log.step('Storing credentials...');
-
-   // Save token
+   // 3. Store credentials.
    saveToken(name, apiKey);
+   log.step('Stored credentials.');
 
-   // Prepare spinner for workspace fetch
-   const s = spinner();
-   s.start('Fetching workspaces from Xano...');
+   // 4. Fetch workspaces and branches with spinner
+   const workspaces = await withSpinner('Fetching workspaces and branches from Xano.', () =>
+      fetchWorkspacesAndBranches({ url, apiKey })
+   );
 
-   // Fetch workspaces using Meta API
-   const workspaces = await metaApiGet({
-      baseUrl: url,
-      token: apiKey,
-      path: '/workspace',
-   });
-
-   s.stop('Workspaces fetched!');
-
-   s.start('Fetching branch information for each workspace...');
-
-   for (const ws of workspaces) {
-      const branches = await metaApiGet({
-         baseUrl: url,
-         token: apiKey,
-         path: `/workspace/${ws.id}/branch`,
-      });
-      // Filter out backup branches
-      ws.branches = branches.filter((b) => !b.backup);
-   }
-
-   s.stop('Branch information fetched!');
-
-   // Save instance config
+   // 5. Save instance config
    saveInstanceConfig(name, {
       name,
       url,
       tokenFile: `../tokens/${name}.token`,
       lint: {
          output: 'output/{instance}/lint/{workspace}/{branch}',
-         rules: defaultLintRules,
+         rules: DEFAULT_LINT_RULES,
       },
       test: {
          output: 'output/{instance}/tests/{workspace}/{branch}/{group}',
@@ -99,7 +78,7 @@ async function setupInstanceWizard() {
             'X-Branch': '{branch}',
             'X-Data-Source': 'test',
          },
-         defaultAsserts,
+         DEFAULT_ASSERTS,
       },
       process: {
          output: 'output/{instance}/repo/{workspace}/{branch}',
@@ -112,14 +91,16 @@ async function setupInstanceWizard() {
       },
       workspaces,
    });
+   log.step('Stored instance configuration.');
 
-   // Register in global config
+   // 6. Register in global config
    const global = loadGlobalConfig();
+   const { currentContext } = global;
    if (!global.instances.includes(name)) global.instances.push(name);
 
-   // Optionally set as current context
+   // 7. Optionally set as current context
    let setAsCurrent = true;
-   if (global.currentContext?.instance && global.currentContext.instance !== safeName) {
+   if (currentContext?.instance && currentContext.instance !== safeName) {
       setAsCurrent = await confirm({
          message: `Set "${name}" as your current context?`,
          initialValue: true,

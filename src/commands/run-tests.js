@@ -2,22 +2,20 @@ import fs from 'fs/promises';
 import path from 'path';
 import { intro, log } from '@clack/prompts';
 import {
-   getCurrentContextConfig,
-   chooseApiGroupOrAll,
-   metaApiGet,
-   withErrorHandler,
    availableAsserts,
-   normalizeApiGroupName,
+   chooseApiGroupOrAll,
+   getCurrentContextConfig,
    isEmptySchema,
+   metaApiGet,
+   normalizeApiGroupName,
    prepareRequest,
+   replacePlaceholders,
+   withErrorHandler,
 } from '../utils/index.js';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 
-import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
-
-import { doOasUpdate } from '../features/oas/update/index.js';
+import { doOasUpdate } from '../features/oas/generate/index.js';
 // [ ] TODO: bring back the schema validation!
-
 
 async function testRunner(instance, workspace, branch, group, isAll = false) {
    intro('☣️   Stating up the testing...');

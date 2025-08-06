@@ -1,10 +1,12 @@
 import { mkdir } from 'fs/promises';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig , fetchAndExtractYaml , withErrorHandler } from '../utils/index.js';
-import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
+import {
+   getCurrentContextConfig,
+   fetchAndExtractYaml,
+   withErrorHandler,
+   replacePlaceholders,
+} from '../utils/index.js';
 import { processWorkspace } from '../features/process-xano/index.js';
-
-
 
 async function generateRepo(instance, workspace, branch, input, output, fetch = false) {
    const globalConfig = loadGlobalConfig();
