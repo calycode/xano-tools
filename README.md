@@ -80,8 +80,8 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 - [x] Generate improved OpenAPI sepcification + Scalar Reference html (hostable anywhere and viewable locally).
 - [x] Generate client libraries of the backend API groups, powered by openapi tools generator cli (Note, that this can be used to generate servers as well, not just clients..., however, I didn't plan for that, so now it would put them as well into the client-sdk output directory.)
 - [x] Processing Xano queries, functions, and tables into a browsable repo structure
-- [ ] (under refactoring) Automated test runner with assertion configuration
-- [ ] (under refactoring) Linting with custom rulesets
+- [x] Automated test runner with assertion configuration
+- [x] Linting with custom rulesets
 
 ---
 
