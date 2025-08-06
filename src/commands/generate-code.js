@@ -1,8 +1,8 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+import {  loadToken } from '../config/loaders.js';
 import {
    chooseApiGroupOrAll,
-   getCurrentContextConfig,
+   loadAndValidateContext,
    metaApiGet,
    normalizeApiGroupName,
    replacePlaceholders,
@@ -10,9 +10,9 @@ import {
 } from '../utils/index.js';
 
 import { doOasUpdate } from '../features/oas/generate/index.js';
-import { runOpenApiGenerator } from '../features/oas/client-sdk/open-api-generator.js';
+import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator.js';
 
-async function generateClientSdk(
+async function generateCodeFromOas(
    instance,
    workspace,
    branch,
@@ -24,31 +24,19 @@ async function generateClientSdk(
    },
    logger = false
 ) {
-   intro('🔄 Starting to generate client SDK');
 
-   const globalConfig = loadGlobalConfig();
-   const context = {
-      ...globalConfig.currentContext,
+   const startTime = new Date;
+   intro('🔄 Starting to generate code');
+
+   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
       instance,
       workspace,
       branch,
       group,
-   };
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
-      globalConfig,
-      context
-   );
-
+   });
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';
    const additionalArgs = stack.args || [];
-
-   if (!instanceConfig || !workspaceConfig || !branchConfig) {
-      log.error(
-         'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
-      );
-      process.exit(1);
-   }
 
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
@@ -63,6 +51,10 @@ async function generateClientSdk(
 
    // 3. For each group selected, regenerate OpenAPI spec
    for (const group of groups) {
+
+      const s = spinner();
+      s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
+
       const apiGroupNameNorm = normalizeApiGroupName(group.name);
       const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
          instance: instanceConfig.name,
@@ -80,9 +72,7 @@ async function generateClientSdk(
       // Prepare for better usability
       await doOasUpdate(openapiRaw, outputPath);
 
-      const s = spinner();
       try {
-         s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
          await runOpenApiGenerator({
             input: `${outputPath}/spec.json`,
             output: `${outputPath}/codegen/${generator}`,
@@ -97,7 +87,9 @@ async function generateClientSdk(
       }
    }
 
-   outro('All client SDKs generated!');
+   const endTime = new Date();
+   const duration = endTime - startTime;
+   outro(`Code successfully generated! Process took: ${duration}ms`);
 }
 
 function registerGenerateCodeCommand(program) {
@@ -132,7 +124,7 @@ function registerGenerateCodeCommand(program) {
             if (opts.args) {
                stack.args = opts.args.split(',');
             }
-            await generateClientSdk(
+            await generateCodeFromOas(
                opts.instance,
                opts.workspace,
                opts.branch,
