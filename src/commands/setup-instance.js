@@ -103,6 +103,9 @@ export async function setupInstanceWizard() {
       openApiSpec: {
          output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
       },
+      backups: {
+         output: "output/{instance}/backups/{workspace}/{branch}"
+      },
       workspaces,
    });
 

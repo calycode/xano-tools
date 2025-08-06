@@ -11,6 +11,7 @@ import { generateClientSdk } from './commands/generate-client-sdk.js';
 import { generateRepo } from './commands/generate-repo.js';
 import { testRunner } from './commands/run-tests.js';
 import { runLinter } from './commands/run-lint.js';
+import { exportBackup } from './commands/backups.js';
 
 const program = new Command();
 
@@ -119,10 +120,19 @@ program
    });
 
 program
-   .command('lint')
-   .description('Lint backend logic, based on provided local file. Remote and dynamic sources are WIP...')
+   .command('export-backup')
+   .description('Backup Xano Workspace via Metadata API')
    .action(async () => {
-      await runLinter()
+      await exportBackup();
+   });
+
+program
+   .command('lint')
+   .description(
+      'Lint backend logic, based on provided local file. Remote and dynamic sources are WIP...'
+   )
+   .action(async () => {
+      await runLinter();
    });
 
 program.command('current-context').action(() => {
@@ -139,13 +149,6 @@ program
    });
 
 program
-   .command('export-backup')
-   .description('Backup Xano Workspace via Metadata API')
-   .action(() => {
-      log.warn('Not implemented yet');
-   });
-
-program
    .command('import-backup')
    .description('Backup Xano Workspace via Metadata API')
    .action(() => {
@@ -154,7 +157,9 @@ program
 
 program
    .command('create-xano-workspace')
-   .description('Create a XANO workspace. Optionally provide an OpenAPI spec to generate paths, models, auth etc according to specs.')
+   .description(
+      'Create a XANO workspace. Optionally provide an OpenAPI spec to generate paths, models, auth etc according to specs.'
+   )
    .option('--openapispec <file>', 'The origin openapi spec that we need to recreate in Xano')
    .action(() => {
       log.warn('Not implemented yet');
