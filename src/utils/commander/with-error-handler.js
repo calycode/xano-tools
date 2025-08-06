@@ -1,3 +1,5 @@
+import { log } from "@clack/prompts";
+
 function withErrorHandler(fn) {
   return async (...args) => {
     try {
