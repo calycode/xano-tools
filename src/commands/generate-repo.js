@@ -1,9 +1,9 @@
+import { mkdir } from 'fs/promises';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 import { getCurrentContextConfig } from '../utils/context/index.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { processWorkspace } from '../features/process-xano/index.js';
 import { fetchAndExtractYaml } from '../utils/zip-manager/index.js';
-import { mkdir } from 'fs/promises';
 import { withErrorHandler } from '../utils/commander/with-error-handler.js';
 
 async function generateRepo(instance, workspace, branch, input, output, fetch = false) {

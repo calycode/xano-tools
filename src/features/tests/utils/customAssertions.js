@@ -1,4 +1,4 @@
-import * as assert from 'uvu/assert';
+import * as assert from 'uvu/assert/index.js';
 
 /**
  * Assert that the response status is OK.

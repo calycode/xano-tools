@@ -1,8 +1,8 @@
 // src/process-xano/core/parseYamlFile.js
 import { readFileSync } from 'fs';
 import { load } from 'js-yaml';
-import { rebuildDirectoryStructure } from '../utils/fs/index.js';
 import { log } from '@clack/prompts';
+import { rebuildDirectoryStructure } from '../utils/fs/index.js';
 
 /**
  * Reads and parses the YAML file, then rebuilds the directory structure.

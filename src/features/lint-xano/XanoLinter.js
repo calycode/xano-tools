@@ -1,7 +1,7 @@
 // src/lint-xano/XanoLinter.js
+import { ESLint } from 'eslint';
 import infrastructure from '../../../util-resources/xano_underlying_infrastructure.js';
 import { availableRules } from './rules/index.js';
-import { ESLint } from 'eslint';
 import { isNotEmpty } from './utils/index.js';
 
 // ----- Utilities -----

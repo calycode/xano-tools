@@ -1,10 +1,10 @@
+import { log, outro, intro, spinner } from '@clack/prompts';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 import { getCurrentContextConfig } from '../utils/context/index.js';
 import { metaApiGet } from '../utils/metadata/api-helper.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
 import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
-import { log, outro, intro, spinner } from '@clack/prompts';
 import { doOasUpdate } from '../features/oas/update/index.js';
 import { runOpenApiGenerator } from '../features/oas/client-sdk/open-api-generator.js';
 import { withErrorHandler } from '../utils/commander/with-error-handler.js';
@@ -80,7 +80,7 @@ async function generateClientSdk(
       const s = spinner();
       try {
          s.start(`Generating client SDK for group "${group.name}" with generator "${generator}"`);
-         const { logPath } = await runOpenApiGenerator({
+         await runOpenApiGenerator({
             input: `${outputPath}/spec.json`,
             output: `${outputPath}/client-sdk/${generator}`,
             generator,

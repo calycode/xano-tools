@@ -14,7 +14,7 @@ function isCamelCase(key, parentKey) {
 }
 
 function isValidRouteName(route) {
-   if (!/^\/[a-z0-9\-\/]*$/.test(route)) {
+   if (!/^\/[a-z0-9\-/]*$/.test(route)) {
       return {
          message: `Route name "${route}" does not follow the naming convention.`,
          rule: 'validRouteName',

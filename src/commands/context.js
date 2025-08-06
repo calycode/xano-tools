@@ -30,7 +30,7 @@ async function switchContextPrompt({
    let instanceConfig;
    try {
       instanceConfig = loadInstanceConfig(instance);
-   } catch (e) {
+   } catch {
       log.error(`Instance "${instance}" not found.`);
       outro();
       return;

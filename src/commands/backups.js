@@ -1,10 +1,10 @@
+import { join } from 'path';
+import { writeFileSync } from 'fs';
+import { mkdir } from 'fs/promises';
 import { spinner } from '@clack/prompts';
 import { loadToken } from '../config/loaders.js';
 import { getCurrentContextConfig } from '../utils/context/index.js';
 import { metaApiRequestBlob } from '../utils/metadata/api-helper.js';
-import { join } from 'path';
-import { writeFileSync } from 'fs';
-import { mkdir } from 'fs/promises';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { withErrorHandler } from '../utils/commander/with-error-handler.js';
 

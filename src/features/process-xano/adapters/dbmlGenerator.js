@@ -114,7 +114,7 @@ function convertSchemaToSql(schema) {
 function jsonToDbmlAndSql(jsonSchema) {
    const tables = [];
 
-   function processTable(schema, parentTableName = null) {
+   function processTable(schema) {
       schema = ensurePrimaryKey(schema);
 
       tables.push({

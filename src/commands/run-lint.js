@@ -1,6 +1,6 @@
+import { log } from '@clack/prompts';
 import { loadGlobalConfig } from '../config/loaders.js';
 import { getCurrentContextConfig } from '../utils/context/index.js';
-import { log } from '@clack/prompts';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { runLintXano } from '../features/lint-xano/index.js';
 import { withErrorHandler } from '../utils/commander/with-error-handler.js';

@@ -1,7 +1,6 @@
 import { metaApiGet } from '../../../utils/metadata/api-helper.js';
 import { getCurrentContextConfig } from '../../../utils/context/index.js';
 import { loadToken } from '../../../config/loaders.js';
-import { load } from 'js-yaml';
 
 /**
  * Maps Xano field types to JSON Schema types

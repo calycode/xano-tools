@@ -1,17 +1,16 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { intro, log } from '@clack/prompts';
 import { getCurrentContextConfig } from '../utils/context/index.js';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
 import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
-import fs from 'fs/promises';
-import path from 'path';
 import { metaApiGet } from '../utils/metadata/api-helper.js';
 import { doOasUpdate } from '../features/oas/update/index.js';
 import { isEmptySchema } from '../utils/testing/is-empty-schema.js';
 import { prepareRequest } from '../utils/testing/prepare-request.js';
 // [ ] TODO: bring back the schema validation!
-import { validateSchema } from '../features/tests/utils/schemaValidation.js';
 import { availableAsserts } from '../features/tests/utils/customAssertions.js';
 import { withErrorHandler } from '../utils/commander/with-error-handler.js';
 
@@ -65,7 +64,7 @@ async function testRunner(instance, workspace, branch, group, isAll = false) {
       let oasSpec;
       try {
          oasSpec = JSON.parse(await fs.readFile(localOasPath, 'utf8'));
-      } catch (error) {
+      } catch {
          // [ ] TODO: Log event to the temp logs.
          if (!oasSpec) {
             log.warn(
@@ -120,8 +119,8 @@ async function testRunner(instance, workspace, branch, group, isAll = false) {
       for (const endpoint of endpointsToTest) {
          const testStart = Date.now();
 
+         const { path, method, headers, parameters, requestBody, customAsserts } = endpoint;
          try {
-            const { path, method, headers, parameters, requestBody, customAsserts } = endpoint;
             const mergedAsserts = {
                ...defaultTestSetup.defaultAsserts,
                ...customAsserts,

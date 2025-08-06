@@ -48,9 +48,9 @@ function mockFromSchema(schema) {
    if (schema.example !== undefined) return schema.example;
 
    // Handle types
+   const obj = {};
    switch (schema.type) {
       case 'object':
-         const obj = {};
          if (schema.properties) {
             for (const [k, v] of Object.entries(schema.properties)) {
                obj[k] = mockFromSchema(v);

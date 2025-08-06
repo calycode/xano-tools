@@ -1,10 +1,10 @@
+import { log, outro, intro } from '@clack/prompts';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 import { getCurrentContextConfig } from '../utils/context/index.js';
 import { metaApiGet } from '../utils/metadata/api-helper.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
 import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
-import { log, outro, intro } from '@clack/prompts';
 import { doOasUpdate } from '../features/oas/update/index.js';
 import { withErrorHandler } from '../utils/commander/with-error-handler.js';
 
