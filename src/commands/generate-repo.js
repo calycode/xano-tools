@@ -3,6 +3,7 @@ import { getCurrentContextConfig } from '../utils/context/index.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { processWorkspace } from '../features/process-xano/index.js';
 import { fetchAndExtractYaml } from '../utils/zip-manager/index.js';
+import { mkdir } from 'fs/promises';
 
 async function generateRepo(instance, workspace, branch, input, output, fetch = false) {
    const globalConfig = loadGlobalConfig();
@@ -33,6 +34,10 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
       branch: branchConfig.label,
    });
 
+   // Make sure the dir exists.
+   await mkdir(outputDir, { recursive: true });
+
+   // Ensure we have the input file, default to local, but override if --fetch
    let inputFile = input;
    if (fetch) {
       inputFile = await fetchAndExtractYaml({
@@ -47,7 +52,7 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
    if (!inputFile) throw new Error('Input YAML file is required');
 
    await processWorkspace({
-      inputFile: input,
+      inputFile,
       outputDir,
    });
 }

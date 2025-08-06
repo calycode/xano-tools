@@ -1,22 +1,24 @@
-import { log, spinner } from '@clack/prompts';
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+import { spinner } from '@clack/prompts';
+import { loadToken } from '../config/loaders.js';
 import { getCurrentContextConfig } from '../utils/context/index.js';
 import { metaApiRequestBlob } from '../utils/metadata/api-helper.js';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
+import { mkdir } from 'fs/promises';
+import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 
 async function exportBackup() {
-   const globalConfig = loadGlobalConfig();
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
-      globalConfig,
-      {}
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig();
 
    if (!instanceConfig || !workspaceConfig || !branchConfig) {
       throw new Error(
          'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
       );
    }
+
+   const s = spinner();
+
+   s.start('Fetching and saving backup...')
 
    // Resolve output dir
    const outputDir = replacePlaceholders(instanceConfig.backups.output, {
@@ -25,20 +27,23 @@ async function exportBackup() {
       branch: branchConfig.label,
    });
 
-   spinner().start('Fetching workspace export...');
-   const zipBuffer = await metaApiRequestBlob({
-      baseUrl,
+   // Ensure outputDir exists:
+   await mkdir(outputDir, { recursive: true });
+
+   const backupBuffer = await metaApiRequestBlob({
+      baseUrl: instanceConfig.url,
       token: loadToken(instanceConfig.name),
       method: 'POST',
-      path: `/workspace/${workspaceId}/export`,
+      path: `/workspace/${workspaceConfig.id}/export`,
       body: { branch: branchConfig.label },
    });
 
    const now = new Date();
    const ts = now.toISOString().replace(/[:.]/g, '-');
-   const zipPath = join(outputDir, `backup-${ts}.zip`);
-   writeFileSync(zipPath, zipBuffer);
-   spinner().stop(`Workspace backup exported -> ${zipPath}`);
+   const backupPath = join(outputDir, `backup-${ts}.tar.gz`);
+   writeFileSync(backupPath, backupBuffer);
+
+   s.stop(`Workspace backup saved -> ${backupPath}`)
 }
 
-export { exportBackup }
+export { exportBackup };

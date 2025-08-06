@@ -1,13 +1,14 @@
-import AdmZip from 'adm-zip';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { metaApiRequestBlob } from '../metadata/api-helper.js';
 import { spinner } from '@clack/prompts';
+import { x } from 'tar';
+import fs from 'fs/promises';
 
 export async function fetchAndExtractYaml({ baseUrl, token, workspaceId, branchLabel, outDir }) {
-   // 1. Download the zip blob
-   spinner().start('Fetching workspace schema...')
-   const zipBuffer = await metaApiRequestBlob({
+   const s = spinner();
+   s.start('Fetching workspace schema...');
+   const tarGzBuffer = await metaApiRequestBlob({
       baseUrl,
       token,
       method: 'POST',
@@ -15,19 +16,23 @@ export async function fetchAndExtractYaml({ baseUrl, token, workspaceId, branchL
       body: { branch: branchLabel },
    });
 
-   // 2. Write zip to temp file
-   const zipPath = join(outDir, `workspace-export-${Date.now()}.zip`);
-   writeFileSync(zipPath, zipBuffer);
+   const tarGzPath = join(outDir, `workspace-schema-export-${Date.now()}.tar.gz`);
 
-   // 3. Extract .yaml from zip
-   const zip = new AdmZip(zipPath);
-   const zipEntries = zip.getEntries();
-   const yamlEntry = zipEntries.find((e) => e.entryName.endsWith('.yaml'));
-   if (!yamlEntry) throw new Error('No .yaml found in the exported zip!');
-   const yamlFilePath = join(outDir, yamlEntry.entryName);
-   zip.extractEntryTo(yamlEntry.entryName, outDir, false, true);
+   writeFileSync(tarGzPath, tarGzBuffer);
 
-   spinner().stop('Workspace schema fetched!');
+   // Extract .tar.gz using tar
+   await x({
+      file: tarGzPath,
+      cwd: outDir,
+   });
+
+   // Find the .yaml file inside outDir
+   const files = await fs.readdir(outDir);
+   const yamlFile = files.find((f) => f.endsWith('.yaml'));
+   if (!yamlFile) throw new Error('No .yaml found in the exported archive!');
+   const yamlFilePath = join(outDir, yamlFile);
+
+   s.stop('Workspace schema fetched!');
 
    return yamlFilePath;
 }
