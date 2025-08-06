@@ -6,10 +6,10 @@ import {
    saveInstanceConfig,
    saveToken,
 } from '../config/loaders.js';
-import { ensureGitignore } from '../utils/version-control/safeVersionControl.js';
-import { sanitizeInstanceName } from '../utils/sanitize.js';
-import { metaApiGet } from '../utils/metadata/api-helper.js';
-import { withErrorHandler } from '../utils/commander/with-error-handler.js';
+import { ensureGitignore } from '../utils/methods/safe-version-control.js';
+import { sanitizeInstanceName } from '../utils/methods/sanitize-instance-name.js';
+import { metaApiGet , withErrorHandler } from '../utils/index.js';
+
 
 // DEFAULT SETTINGS:
 const defaultLintRules = {

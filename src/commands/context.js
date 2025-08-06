@@ -1,7 +1,7 @@
 import { select, intro, outro, log, spinner } from '@clack/prompts';
 import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
-import { withErrorHandler } from '../utils/commander/with-error-handler.js';
+import { getCurrentContextConfig , withErrorHandler } from '../utils/index.js';
+
 
 async function switchContextPrompt({
    instance: cliInstance,

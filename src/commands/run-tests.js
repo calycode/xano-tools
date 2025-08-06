@@ -1,18 +1,18 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { intro, log } from '@clack/prompts';
-import { getCurrentContextConfig } from '../utils/context/index.js';
+import { getCurrentContextConfig , chooseApiGroupOrAll , metaApiGet , withErrorHandler } from '../utils/index.js';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
-import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
+
+import { normalizeApiGroupName } from '../utils/methods/normalize-api-group-name.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
-import { metaApiGet } from '../utils/metadata/api-helper.js';
+
 import { doOasUpdate } from '../features/oas/update/index.js';
-import { isEmptySchema } from '../utils/testing/is-empty-schema.js';
-import { prepareRequest } from '../utils/testing/prepare-request.js';
+import { isEmptySchema } from '../utils/methods/is-empty-schema.js';
+import { prepareRequest } from '../utils/methods/prepare-request.js';
 // [ ] TODO: bring back the schema validation!
 import { availableAsserts } from '../features/tests/utils/customAssertions.js';
-import { withErrorHandler } from '../utils/commander/with-error-handler.js';
+
 
 async function testRunner(instance, workspace, branch, group, isAll = false) {
    intro('☣️   Stating up the testing...');

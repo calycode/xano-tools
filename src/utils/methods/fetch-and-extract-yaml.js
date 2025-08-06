@@ -3,7 +3,7 @@ import { join } from 'path';
 import fs from 'fs/promises';
 import { spinner } from '@clack/prompts';
 import { x } from 'tar';
-import { metaApiRequestBlob } from '../metadata/api-helper.js';
+import { metaApiRequestBlob } from './api-helper.js';
 
 export async function fetchAndExtractYaml({ baseUrl, token, workspaceId, branchLabel, outDir }) {
    const s = spinner();

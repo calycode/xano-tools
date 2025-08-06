@@ -1,9 +1,9 @@
 import { log } from '@clack/prompts';
 import { loadGlobalConfig } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
+import { getCurrentContextConfig , withErrorHandler } from '../utils/index.js';
 import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import { runLintXano } from '../features/lint-xano/index.js';
-import { withErrorHandler } from '../utils/commander/with-error-handler.js';
+
 
 async function runLinter() {
    const globalConfig = loadGlobalConfig();

@@ -1,5 +1,5 @@
-import { metaApiGet } from '../../../utils/metadata/api-helper.js';
-import { getCurrentContextConfig } from '../../../utils/context/index.js';
+import { metaApiGet, getCurrentContextConfig } from '../../../utils/index.js';
+
 import { loadToken } from '../../../config/loaders.js';
 
 /**

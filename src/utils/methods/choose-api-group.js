@@ -1,5 +1,5 @@
 import { select, log } from '@clack/prompts';
-import { metaApiGet } from '../metadata/api-helper.js';
+import { metaApiGet } from '../index.js';
 
 export async function chooseApiGroupOrAll({
    baseUrl,
