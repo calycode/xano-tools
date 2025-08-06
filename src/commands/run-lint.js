@@ -1,10 +1,11 @@
-import { loadGlobalConfig } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
 import { log } from '@clack/prompts';
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
+import { loadGlobalConfig } from '../config/loaders.js';
+import { getCurrentContextConfig , withErrorHandler } from '../utils/index.js';
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
 import { runLintXano } from '../features/lint-xano/index.js';
 
-export async function runLinter() {
+
+async function runLinter() {
    const globalConfig = loadGlobalConfig();
    const context = globalConfig.currentContext;
 
@@ -39,7 +40,24 @@ export async function runLinter() {
 
    const ruleConfig = instanceConfig.lint.rules;
 
-   log.info(`Lint ${instanceConfig.name} > ${workspaceConfig.name} > ${branchConfig.label} in progress.`)
+   log.info(
+      `Lint ${instanceConfig.name} > ${workspaceConfig.name} > ${branchConfig.label} in progress.`
+   );
 
-   await runLintXano({inputDir, ruleConfig, outputFile: outputPath});
+   await runLintXano({ inputDir, ruleConfig, outputFile: outputPath });
 }
+
+function registerLintCommand(program) {
+   program
+      .command('lint')
+      .description(
+         'Lint backend logic, based on provided local file. Remote and dynamic sources are WIP...'
+      )
+      .action(
+         withErrorHandler(async () => {
+            await runLinter();
+         })
+      );
+}
+
+export { registerLintCommand };

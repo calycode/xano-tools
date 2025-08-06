@@ -9,10 +9,10 @@ import {
    mkdirSync,
 } from 'fs';
 import { join } from 'path';
-import { processItem } from '../../core/processItem.js';
 import cliProgress from 'cli-progress';
 import chalk from 'chalk';
 import { outro } from '@clack/prompts';
+import { processItem } from '../../core/processItem.js';
 
 // Helper for padding keys
 function padRight(str, len) {
@@ -79,7 +79,7 @@ function generateStructureDiagrams(appQueries, appMapping, appDescriptions, outp
 
 function sanitizeFileName(fileName) {
    return fileName
-      .replace(/[:\s\[\]\(\)]+/g, '_') // Replace invalid characters with underscores
+      .replace(/[:\s[\]()]+/g, '_') // Replace invalid characters with underscores
       .replace(/_+/g, '_') // Replace multiple underscores with a single underscore
       .replace(/^_+|_+$/g, '') // Remove leading and trailing underscores
       .replace(/[?,]+/g, '_'); // Replace ? and , with underscores
@@ -165,7 +165,7 @@ function rebuildDirectoryStructure(jsonData, outputDir) {
 
          bar.start(value.length, 0, { itemName: '' });
 
-         value.forEach((item, idx) => {
+         value.forEach((item) => {
             processItem({
                key,
                item,

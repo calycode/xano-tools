@@ -1,5 +1,5 @@
 // src/lint-xano/rules/index.js
-import { isNotEmpty } from "../utils/index.js";
+import { isNotEmpty } from "../../../utils/index.js";
 
 const VALID_HEADERS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD']);
 
@@ -14,7 +14,7 @@ function isCamelCase(key, parentKey) {
 }
 
 function isValidRouteName(route) {
-   if (!/^\/[a-z0-9\-\/]*$/.test(route)) {
+   if (!/^\/[a-z0-9\-/]*$/.test(route)) {
       return {
          message: `Route name "${route}" does not follow the naming convention.`,
          rule: 'validRouteName',
@@ -58,4 +58,4 @@ const availableRules = {
 };
 
 
-export { isCamelCase, isValidRouteName, isValidVerb, isDescriptionPresent, availableRules };
+export { availableRules };

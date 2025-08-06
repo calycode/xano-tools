@@ -1,18 +1,15 @@
 {
    "name": "xano-community-cli",
-   "version": "0.0.1",
-   "main": "src/xano-community-cli.js",
+   "version": "0.1.0",
+   "main": "src/index.js",
    "type": "module",
    "description": "A tool to improve dev experience with XANO, especially for teams where clarity, transparency, and version control is important. Furthermore, this cli should help automate currently manual apsects of XANO. Why a CLI when we have AI? I am bullish on the AI, but in all honesty using AI so much without proper human control can cause a lot of issues. The idea behind this CLI is to reduce the need of reliance on AI and that we have our most crucial parts (testing, documentation) in place in any case, environment, system, either in part of a git provider or local system. The goal is to make it flexible and if there's need, then obiously LLM-ready.",
    "bin": {
-      "xano-community-cli": "src/xano-community-cli.js",
-      "xcc": "src/xano-community-cli.js"
+      "xano-community-cli": "src/index.js",
+      "xcc": "src/index.js"
    },
    "scripts": {
-      "xano-community-cli": "node src/xano-community-cli.js",
-      "process-backend": "node src/xano-community-cli.js process",
-      "lint-backend": "node src/xano-community-cli.js lint",
-      "test-backend": "node src/xano-community-cli.js testing"
+      "xano-community-cli": "node src/index.js"
    },
    "keywords": [
       "XANO",
@@ -23,28 +20,21 @@
    "author": "Mihály Tóth",
    "dependencies": {
       "@clack/prompts": "^0.11.0",
-      "@faker-js/faker": "^9.9.0",
-      "adm-zip": "^0.5.16",
+      "@openapitools/openapi-generator-cli": "^2.21.4",
       "ajv": "^8.17.1",
       "ajv-errors": "^3.0.0",
-      "axios": "^1.7.7",
       "chalk": "^5.4.1",
-      "chokidar": "^4.0.1",
       "cli-progress": "^3.12.0",
       "commander": "^14.0.0",
-      "dotenv": "^17.2.0",
-      "fs": "^0.0.1-security",
       "js-yaml": "^4.1.0",
-      "node-fetch": "^3.3.2",
-      "openapi-types": "^12.1.3",
-      "simple-git": "^3.27.0",
-      "swagger-client": "^3.34.4",
       "tar": "^7.4.3",
       "uvu": "^0.5.6"
    },
    "devDependencies": {
-      "@openapitools/openapi-generator-cli": "^2.21.4",
+      "@eslint/js": "^9.32.0",
       "eslint": "^9.12.0",
-      "eslint-plugin-import": "^2.32.0"
+      "eslint-plugin-filenames": "~1.3.2",
+      "eslint-plugin-import": "^2.32.0",
+      "knip": "^5.62.0"
    }
 }

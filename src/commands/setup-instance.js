@@ -6,9 +6,10 @@ import {
    saveInstanceConfig,
    saveToken,
 } from '../config/loaders.js';
-import { ensureGitignore } from '../utils/version-control/safeVersionControl.js';
-import { sanitizeInstanceName } from '../utils/sanitize.js';
-import { metaApiGet } from '../utils/metadata/api-helper.js';
+import { ensureGitignore } from '../utils/methods/safe-version-control.js';
+import { sanitizeInstanceName } from '../utils/methods/sanitize-instance-name.js';
+import { metaApiGet , withErrorHandler } from '../utils/index.js';
+
 
 // DEFAULT SETTINGS:
 const defaultLintRules = {
@@ -18,12 +19,12 @@ const defaultLintRules = {
 };
 
 const defaultAsserts = {
-   "statusOk": "error",
-   "responseDefined": "error",
-   "responseSchema": "warn"
-}
+   statusOk: 'error',
+   responseDefined: 'error',
+   responseSchema: 'warn',
+};
 
-export async function setupInstanceWizard() {
+async function setupInstanceWizard() {
    intro('✨ Xano CLI Instance Setup ✨');
    ensureDirs();
    ensureGitignore();
@@ -86,16 +87,16 @@ export async function setupInstanceWizard() {
       url,
       tokenFile: `../tokens/${name}.token`,
       lint: {
-         output: "output/{instance}/lint/{workspace}/{branch}",
+         output: 'output/{instance}/lint/{workspace}/{branch}',
          rules: defaultLintRules,
       },
       test: {
-         output: "output/{instance}/tests/{workspace}/{branch}/{group}",
+         output: 'output/{instance}/tests/{workspace}/{branch}/{group}',
          headers: {
-            "X-Branch": "{branch}",
-            "X-Data-Source": "test"
+            'X-Branch': '{branch}',
+            'X-Data-Source': 'test',
          },
-         defaultAsserts
+         defaultAsserts,
       },
       process: {
          output: 'output/{instance}/repo/{workspace}/{branch}',
@@ -104,7 +105,7 @@ export async function setupInstanceWizard() {
          output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
       },
       backups: {
-         output: "output/{instance}/backups/{workspace}/{branch}"
+         output: 'output/{instance}/backups/{workspace}/{branch}',
       },
       workspaces,
    });
@@ -136,4 +137,15 @@ export async function setupInstanceWizard() {
    outro(
       `🚀 Instance "${name}" added! Workspaces fetched from Xano. Use switch-context to change.\n`
    );
+}
+
+export function registerSetupCommand(program) {
+   program
+      .command('setup')
+      .description('Setup Xano Community CLI configurations')
+      .action(
+         withErrorHandler(async () => {
+            await setupInstanceWizard();
+         })
+      );
 }

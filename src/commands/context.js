@@ -1,5 +1,7 @@
 import { select, intro, outro, log, spinner } from '@clack/prompts';
 import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders.js';
+import { getCurrentContextConfig , withErrorHandler } from '../utils/index.js';
+
 
 async function switchContextPrompt({
    instance: cliInstance,
@@ -28,7 +30,7 @@ async function switchContextPrompt({
    let instanceConfig;
    try {
       instanceConfig = loadInstanceConfig(instance);
-   } catch (e) {
+   } catch {
       log.error(`Instance "${instance}" not found.`);
       outro();
       return;
@@ -104,4 +106,24 @@ async function switchContextPrompt({
    );
 }
 
-export { switchContextPrompt };
+function registerSwitchContextCommand(program) {
+   program
+      .command('switch-context')
+      .description('Switch instance/workspace context')
+      .option('--instance <instance>', 'The name of your instance')
+      .option('--workspace <workspace>', 'The name of your workspace')
+      .action(
+         withErrorHandler(async (opts) => {
+            await switchContextPrompt(opts);
+         })
+      );
+}
+
+function registerCurrentContextCommand(program) {
+   program.command('current-context').action(() => {
+      const currentContext = getCurrentContextConfig();
+      log.info(`Current context: ${JSON.stringify(currentContext)}`);
+   });
+}
+
+export { registerSwitchContextCommand, registerCurrentContextCommand };

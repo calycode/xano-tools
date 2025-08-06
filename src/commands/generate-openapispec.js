@@ -1,14 +1,14 @@
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
-import { metaApiGet } from '../utils/metadata/api-helper.js';
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
-import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
-import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
 import { log, outro, intro } from '@clack/prompts';
+import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+import { getCurrentContextConfig , metaApiGet , chooseApiGroupOrAll , withErrorHandler } from '../utils/index.js';
+
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
+import { normalizeApiGroupName } from '../utils/methods/normalize-api-group-name.js';
+
 import { doOasUpdate } from '../features/oas/update/index.js';
 
-async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
 
+async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
    intro('🔄 Starting to update OpenAPI Spec');
 
    const globalConfig = loadGlobalConfig();
@@ -55,7 +55,7 @@ async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
       const openapiRaw = await metaApiGet({
          baseUrl: instanceConfig.url,
          token: loadToken(instanceConfig.name),
-         path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`
+         path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
       });
 
       // Prepare for better usability
@@ -66,4 +66,26 @@ async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
    outro('All OpenAPI specs updated!');
 }
 
-export { updateOpenapiSpec };
+function registerGenerateOasCommand(program) {
+   program
+      .command('generate-oas')
+      .description('Update and generate OpenAPI spec(s) for the current context.')
+      .option('--instance <instance>')
+      .option('--workspace <workspace>')
+      .option('--branch <branch>')
+      .option('--group <name>', 'API group to update')
+      .option('--all', 'Regenerate for all API groups in workspace/branch')
+      .action(
+         withErrorHandler(async (opts) => {
+            await updateOpenapiSpec(
+               opts.instance,
+               opts.workspace,
+               opts.branch,
+               opts.group,
+               opts.all
+            );
+         })
+      );
+}
+
+export { registerGenerateOasCommand };

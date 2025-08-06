@@ -1,11 +1,12 @@
-import { spinner } from '@clack/prompts';
-import { loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
-import { metaApiRequestBlob } from '../utils/metadata/api-helper.js';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { mkdir } from 'fs/promises';
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
+import { spinner } from '@clack/prompts';
+import { loadToken } from '../config/loaders.js';
+import { getCurrentContextConfig , metaApiRequestBlob , withErrorHandler } from '../utils/index.js';
+
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
+
 
 async function exportBackup() {
    const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig();
@@ -18,7 +19,7 @@ async function exportBackup() {
 
    const s = spinner();
 
-   s.start('Fetching and saving backup...')
+   s.start('Fetching and saving backup...');
 
    // Resolve output dir
    const outputDir = replacePlaceholders(instanceConfig.backups.output, {
@@ -43,7 +44,18 @@ async function exportBackup() {
    const backupPath = join(outputDir, `backup-${ts}.tar.gz`);
    writeFileSync(backupPath, backupBuffer);
 
-   s.stop(`Workspace backup saved -> ${backupPath}`)
+   s.stop(`Workspace backup saved -> ${backupPath}`);
 }
 
-export { exportBackup };
+function registerExportBackupCommand(program) {
+   program
+      .command('export-backup')
+      .description('Backup Xano Workspace via Metadata API')
+      .action(
+         withErrorHandler(async () => {
+            await exportBackup();
+         })
+      );
+}
+
+export { registerExportBackupCommand };

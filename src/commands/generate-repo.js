@@ -1,9 +1,10 @@
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
-import { processWorkspace } from '../features/process-xano/index.js';
-import { fetchAndExtractYaml } from '../utils/zip-manager/index.js';
 import { mkdir } from 'fs/promises';
+import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+import { getCurrentContextConfig , fetchAndExtractYaml , withErrorHandler } from '../utils/index.js';
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
+import { processWorkspace } from '../features/process-xano/index.js';
+
+
 
 async function generateRepo(instance, workspace, branch, input, output, fetch = false) {
    const globalConfig = loadGlobalConfig();
@@ -24,15 +25,14 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
       );
    }
 
-
    // Resolve output dir
    const outputDir = output
-   ? output
-   : replacePlaceholders(instanceConfig.process.output, {
-      instance: instanceConfig.name,
-      workspace: workspaceConfig.name,
-      branch: branchConfig.label,
-   });
+      ? output
+      : replacePlaceholders(instanceConfig.process.output, {
+           instance: instanceConfig.name,
+           workspace: workspaceConfig.name,
+           branch: branchConfig.label,
+        });
 
    // Make sure the dir exists.
    await mkdir(outputDir, { recursive: true });
@@ -57,4 +57,28 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
    });
 }
 
-export { generateRepo }
+function registerGenerateRepoCommand(program) {
+   program
+      .command('generate-repo')
+      .description('Process Xano workspace into repo structure')
+      .option('-i, --input <file>', 'workspace yaml file')
+      .option('-o, --output <dir>', 'output directory (overrides config)')
+      .option('--instance <instance>')
+      .option('--workspace <workspace>')
+      .option('--branch <branch>')
+      .option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano')
+      .action(
+         withErrorHandler(async (opts) => {
+            await generateRepo(
+               opts.instance,
+               opts.workspace,
+               opts.branch,
+               opts.input,
+               opts.output,
+               opts.fetch
+            );
+         })
+      );
+}
+
+export { registerGenerateRepoCommand };

@@ -1,5 +1,5 @@
 // ESM style
-export async function metaApiRequest({
+async function metaApiRequest({
    baseUrl,
    token,
    method = 'GET',

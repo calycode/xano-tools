@@ -12,7 +12,7 @@ export function getCurrentContextConfig(globalConfig = null, context = {}) {
    context.workspace = context.workspace || globalConfig.currentContext?.workspace || null;
    context.branch = context.branch || globalConfig.currentContext?.branch || null;
    context.apigroup = context.apigroup || globalConfig.currentContext?.apigroup || null;
-   
+
    let { instance, workspace, branch, apigroup } = context;
    let instanceConfig = null,
       workspaceConfig = null,

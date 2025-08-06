@@ -4,7 +4,7 @@ import { cleanupResponseSchemas } from './cleanup-response-schemas.js';
 import { generateTableSchemas } from './generate-table-schemas.js';
 
 // Pure function: patch OAS object in-memory
-export async function patchOasSpec(oas) {
+async function patchOasSpec(oas) {
    const newOas = { ...oas };
    const tableSchemas = await generateTableSchemas();
    newOas.openapi = '3.1.1';

@@ -1,18 +1,23 @@
-import { intro, log } from '@clack/prompts';
-import { getCurrentContextConfig } from '../utils/context/index.js';
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
-import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { metaApiGet } from '../utils/metadata/api-helper.js';
+import { intro, log } from '@clack/prompts';
+import {
+   getCurrentContextConfig,
+   chooseApiGroupOrAll,
+   metaApiGet,
+   withErrorHandler,
+   availableAsserts,
+} from '../utils/index.js';
+import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+
+import { normalizeApiGroupName } from '../utils/methods/normalize-api-group-name.js';
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
+
 import { doOasUpdate } from '../features/oas/update/index.js';
-import { isEmptySchema } from '../utils/testing/is-empty-schema.js';
-import { prepareRequest } from '../utils/testing/prepare-request.js';
+import { isEmptySchema } from '../utils/methods/is-empty.js';
+import { prepareRequest } from '../utils/methods/prepare-request.js';
 // [ ] TODO: bring back the schema validation!
-import { validateSchema } from '../features/tests/utils/schemaValidation.js';
-import { availableAsserts } from '../features/tests/utils/customAssertions.js';
+
 
 async function testRunner(instance, workspace, branch, group, isAll = false) {
    intro('☣️   Stating up the testing...');
@@ -64,7 +69,7 @@ async function testRunner(instance, workspace, branch, group, isAll = false) {
       let oasSpec;
       try {
          oasSpec = JSON.parse(await fs.readFile(localOasPath, 'utf8'));
-      } catch (error) {
+      } catch {
          // [ ] TODO: Log event to the temp logs.
          if (!oasSpec) {
             log.warn(
@@ -119,8 +124,8 @@ async function testRunner(instance, workspace, branch, group, isAll = false) {
       for (const endpoint of endpointsToTest) {
          const testStart = Date.now();
 
+         const { path, method, headers, parameters, requestBody, customAsserts } = endpoint;
          try {
-            const { path, method, headers, parameters, requestBody, customAsserts } = endpoint;
             const mergedAsserts = {
                ...defaultTestSetup.defaultAsserts,
                ...customAsserts,
@@ -253,4 +258,15 @@ ${'-'.repeat(60)}`
    );
 }
 
-export { testRunner };
+function registerTestViaOasCommand(program) {
+   program
+      .command('test-via-oas')
+      .description('Run an API test suite via the OpenAPI spec. WIP...')
+      .action(
+         withErrorHandler(async () => {
+            await testRunner();
+         })
+      );
+}
+
+export { registerTestViaOasCommand };

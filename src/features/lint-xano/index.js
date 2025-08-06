@@ -1,8 +1,8 @@
 // src/lint-xano/index.js
 import fs from 'fs/promises';
 import path from 'path';
-import XanoLinter from './XanoLinter.js';
 import { log, spinner } from '@clack/prompts';
+import XanoLinter from './XanoLinter.js';
 
 async function runLinterOnJsonFiles({ dirPath, lintResults, ruleConfig }) {
    const files = await fs.readdir(dirPath);
@@ -56,7 +56,6 @@ async function main({ inputDir, outputFile, ruleConfig }) {
    } catch (err) {
       s.stop('Linting resulted in error:')
       log.error('Error during linting process:', err);
-   } finally {
    }
 }
 

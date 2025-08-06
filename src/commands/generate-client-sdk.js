@@ -1,12 +1,13 @@
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig } from '../utils/context/index.js';
-import { metaApiGet } from '../utils/metadata/api-helper.js';
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
-import { normalizeApiGroupName } from '../utils/normalizeApiGroupName.js';
-import { chooseApiGroupOrAll } from '../utils/api-group-selection/index.js';
 import { log, outro, intro, spinner } from '@clack/prompts';
+import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+import { getCurrentContextConfig , metaApiGet , chooseApiGroupOrAll , withErrorHandler } from '../utils/index.js';
+
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
+import { normalizeApiGroupName } from '../utils/methods/normalize-api-group-name.js';
+
 import { doOasUpdate } from '../features/oas/update/index.js';
 import { runOpenApiGenerator } from '../features/oas/client-sdk/open-api-generator.js';
+
 
 async function generateClientSdk(
    instance,
@@ -78,13 +79,13 @@ async function generateClientSdk(
 
       const s = spinner();
       try {
-        s.start(`Generating client SDK for group "${group.name}" with generator "${generator}"`);
-         const { logPath } = await runOpenApiGenerator({
+         s.start(`Generating client SDK for group "${group.name}" with generator "${generator}"`);
+         await runOpenApiGenerator({
             input: `${outputPath}/spec.json`,
             output: `${outputPath}/client-sdk/${generator}`,
             generator,
             additionalArgs,
-            logger
+            logger,
          });
          s.stop(
             `Client SDK generated for group "${group.name}" → ${outputPath}/client-sdk/${generator}`
@@ -97,4 +98,49 @@ async function generateClientSdk(
    outro('All client SDKs generated!');
 }
 
-export { generateClientSdk };
+function registerGenerateCodeCommand(program) {
+   program
+      .command('generate-code')
+      .description(
+         'Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.'
+      )
+      .option('--instance <instance>')
+      .option('--workspace <workspace>')
+      .option('--branch <branch>')
+      .option('--group <name>', 'API group to update')
+      .option('--all', 'Regenerate for all API groups in workspace/branch')
+      .option(
+         '--generator <generator>',
+         'Generator to use, see all options at: https://openapi-generator.tech/docs/generators'
+      )
+      .option(
+         '--args <args>',
+         'Additional arguments to pass to the generator. See https://openapi-generator.tech/docs/usage#generate'
+      )
+      .option(
+         '--debug',
+         'Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false'
+      )
+      .action(
+         withErrorHandler(async (opts) => {
+            const stack = {};
+            if (opts.generator) {
+               stack.generator = opts.generator;
+            }
+            if (opts.args) {
+               stack.args = opts.args.split(',');
+            }
+            await generateClientSdk(
+               opts.instance,
+               opts.workspace,
+               opts.branch,
+               opts.group,
+               opts.all,
+               stack,
+               opts.debug
+            );
+         })
+      );
+}
+
+export { registerGenerateCodeCommand };
