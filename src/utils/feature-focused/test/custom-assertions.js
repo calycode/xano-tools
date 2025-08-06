@@ -1,4 +1,5 @@
-import * as assert from 'uvu/assert/index.js';
+// eslint-disable-next-line import/extensions
+import * as assert from 'uvu/assert';
 
 /**
  * Assert that the response status is OK.
