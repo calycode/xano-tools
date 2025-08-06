@@ -3,7 +3,6 @@
 workspace.yaml
 
 # Config files
-xcc.config.js
 xcc.test.setup.json
 
 # Generated folders:

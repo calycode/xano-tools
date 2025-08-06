@@ -13,6 +13,7 @@ import { prepareRequest } from '../utils/testing/prepare-request.js';
 // [ ] TODO: bring back the schema validation!
 import { validateSchema } from '../features/tests/utils/schemaValidation.js';
 import { availableAsserts } from '../features/tests/utils/customAssertions.js';
+import { withErrorHandler } from '../utils/commander/with-error-handler.js';
 
 async function testRunner(instance, workspace, branch, group, isAll = false) {
    intro('☣️   Stating up the testing...');
@@ -253,4 +254,15 @@ ${'-'.repeat(60)}`
    );
 }
 
-export { testRunner };
+function registerTestViaOasCommand(program) {
+   program
+      .command('test-via-oas')
+      .description('Run an API test suite via the OpenAPI spec. WIP...')
+      .action(
+         withErrorHandler(async () => {
+            await testRunner();
+         })
+      );
+}
+
+export { registerTestViaOasCommand };
