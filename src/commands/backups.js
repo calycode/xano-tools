@@ -5,7 +5,7 @@ import { spinner } from '@clack/prompts';
 import { loadToken } from '../config/loaders.js';
 import { getCurrentContextConfig , metaApiRequestBlob , withErrorHandler } from '../utils/index.js';
 
-import { replacePlaceholders } from '../features/tests/utils/replacePlaceholders.js';
+import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
 
 
 async function exportBackup() {

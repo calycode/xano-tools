@@ -15,4 +15,8 @@ function isEmptySchema(schema) {
    return false;
 }
 
-export { isEmptySchema };
+function isNotEmpty(value) {
+   return value !== null && value !== undefined && value !== '';
+}
+
+export { isEmptySchema, isNotEmpty };
