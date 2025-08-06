@@ -79,18 +79,19 @@ async function generateClientSdk(
 
       const s = spinner();
       try {
-         s.start(`Generating client SDK for group "${group.name}" with generator "${generator}"`);
+         s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
          await runOpenApiGenerator({
             input: `${outputPath}/spec.json`,
-            output: `${outputPath}/client-sdk/${generator}`,
+            output: `${outputPath}/codegen/${generator}`,
             generator,
             additionalArgs,
             logger,
          });
          s.stop(
-            `Client SDK generated for group "${group.name}" → ${outputPath}/client-sdk/${generator}`
+            `Code generated for group "${group.name}" → ${outputPath}/codegen/${generator}`
          );
       } catch (err) {
+         s.stop();
          log.error(err.message);
       }
    }
