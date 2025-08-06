@@ -7,15 +7,15 @@ import {
    metaApiGet,
    withErrorHandler,
    availableAsserts,
+   normalizeApiGroupName,
+   isEmptySchema,
+   prepareRequest,
 } from '../utils/index.js';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
 
-import { normalizeApiGroupName } from '../utils/methods/normalize-api-group-name.js';
 import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
 
 import { doOasUpdate } from '../features/oas/update/index.js';
-import { isEmptySchema } from '../utils/methods/is-empty.js';
-import { prepareRequest } from '../utils/methods/prepare-request.js';
 // [ ] TODO: bring back the schema validation!
 
 

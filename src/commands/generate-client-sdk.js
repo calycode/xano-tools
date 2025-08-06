@@ -1,9 +1,14 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
 import { loadGlobalConfig, loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig , metaApiGet , chooseApiGroupOrAll , withErrorHandler } from '../utils/index.js';
+import {
+   getCurrentContextConfig,
+   metaApiGet,
+   chooseApiGroupOrAll,
+   withErrorHandler,
+   normalizeApiGroupName,
+} from '../utils/index.js';
 
 import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
-import { normalizeApiGroupName } from '../utils/methods/normalize-api-group-name.js';
 
 import { doOasUpdate } from '../features/oas/update/index.js';
 import { runOpenApiGenerator } from '../features/oas/client-sdk/open-api-generator.js';

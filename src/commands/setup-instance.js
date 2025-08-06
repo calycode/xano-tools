@@ -6,9 +6,12 @@ import {
    saveInstanceConfig,
    saveToken,
 } from '../config/loaders.js';
-import { ensureGitignore } from '../utils/methods/safe-version-control.js';
-import { sanitizeInstanceName } from '../utils/methods/sanitize-instance-name.js';
-import { metaApiGet , withErrorHandler } from '../utils/index.js';
+import {
+   metaApiGet,
+   withErrorHandler,
+   ensureGitignore,
+   sanitizeInstanceName,
+} from '../utils/index.js';
 
 
 // DEFAULT SETTINGS:

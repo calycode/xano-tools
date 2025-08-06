@@ -5,8 +5,9 @@ export default [
    js.configs.recommended,
    importPlugin.flatConfigs.recommended,
    {
+      basePath: 'src/',
       files: ['**/*.js'],
-      ignores: ['node_modules/'],
+      ignores: ['node_modules/**', 'output/**'],
       languageOptions: {
          ecmaVersion: 'latest',
          sourceType: 'module',
