@@ -7,7 +7,6 @@ const instancesDir = path.join(baseDir, 'instances');
 const tokensDir = path.join(baseDir, 'tokens');
 
 export {
-   baseDir,
    configPath,
    instancesDir,
    tokensDir,

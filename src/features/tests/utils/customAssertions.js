@@ -55,4 +55,4 @@ const availableAsserts = {
    responseSchema: assertResponseSchema,
 };
 
-export { availableAsserts, assertResponseStatus, assertResponseDefined, assertResponseSchema };
+export { availableAsserts };

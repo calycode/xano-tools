@@ -58,4 +58,4 @@ const availableRules = {
 };
 
 
-export { isCamelCase, isValidRouteName, isValidVerb, isDescriptionPresent, availableRules };
+export { availableRules };
