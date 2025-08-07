@@ -14,9 +14,7 @@ _(Work In Progress)_
   ```
   pnpm install
   ```
-- check the `src/config/xcc.config.js` file and adjust to your liking
-- place a workspace.yaml (downloaded and extracted from XANO Metadata API) into the path which you specified in the config.
-- run the default command to see available options
+- run the default command to see available options (you can use the shorthand alias: xcc)
 
   ```
   pnpm run xano-community-cli
@@ -34,7 +32,7 @@ _(Work In Progress)_
   pnpm run xano-community-cli process
   ```
 
-- see the output in the path specified in your config.
+- see the output in the `output/` directory.
 
 ---
 
@@ -54,6 +52,7 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 - Each **`app`** in [`repo/`](repo/) is an API group (see [`repo/app/`](repo/app/)).
 - **Functions** (service-like logic) are in [`repo/function/`](repo/function).
 - Every major entity is parsed into its own path with a descriptive `.json` file and a README.
+- WIP: we will be extracting the Xano Script versions of each endpoint after figuring out how to actually map the exports to the required metadata api inputs
 
 ---
 
@@ -78,7 +77,7 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 - [x] Allow multi-user multi workspace setup.
 - [x] Add context-switching to the configuration options.
 - [x] Generate improved OpenAPI sepcification + Scalar Reference html (hostable anywhere and viewable locally).
-- [x] Generate client libraries of the backend API groups, powered by openapi tools generator cli (Note, that this can be used to generate servers as well, not just clients..., however, I didn't plan for that, so now it would put them as well into the client-sdk output directory.)
+- [x] Generate code fron the backend API groups, powered by openapi tools generator CLI.
 - [x] Processing Xano queries, functions, and tables into a browsable repo structure
 - [x] Automated test runner with assertion configuration
 - [x] Linting with custom rulesets
