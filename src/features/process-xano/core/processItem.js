@@ -2,8 +2,8 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { generateQueryLogicDescription } from '../core/generateRunReadme.js';
-import { jsonToDbmlAndSql, allDbmlAndSqlToString } from '../adapters/dbmlGenerator.js';
-import { sanitizeFileName } from '../utils/fs/index.js';
+import { convertXanoDBDescription } from '../adapters/dbmlGenerator.js';
+import { sanitizeFileName } from '../../../utils/index.js';
 
 /**
  * Processes an individual item and writes it to the appropriate directory.
@@ -32,10 +32,13 @@ function processItem({
    // Check if the item is a query and has an app.id
    if (key === 'query' && item.app && item.app.id) {
       const appName = appMapping[item.app.id] || `app_${item.app.id}`;
+
+      // create the appDir if it doesn't exist yet.
       const appDir = join(outputDir, 'app', appName);
       if (!existsSync(appDir)) {
          mkdirSync(appDir, { recursive: true });
       }
+      
       itemDir = join(appDir, sanitizeFileName(itemName));
 
       // Add query to appQueries for structure diagram
@@ -86,12 +89,18 @@ function processItem({
 
    // Generate DBML and SQL for dbo
    if (key === 'dbo') {
-      const processedTableDescription = allDbmlAndSqlToString(jsonToDbmlAndSql(item));
+      const processedTableDescription = convertXanoDBDescription(item);
 
       // Write DBML and SQL to README
       writeFileSync(
          readmePath,
-         `# ${itemName}\n\n${description}\n\n${processedTableDescription}\n`
+         `
+# ${itemName}
+
+${description}
+
+${processedTableDescription}
+`
       );
    }
 }

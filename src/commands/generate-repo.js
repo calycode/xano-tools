@@ -1,31 +1,19 @@
 import { mkdir } from 'fs/promises';
-import { loadGlobalConfig, loadToken } from '../config/loaders.js';
+import { loadToken } from '../config/loaders.js';
 import {
-   getCurrentContextConfig,
    fetchAndExtractYaml,
-   withErrorHandler,
+   loadAndValidateContext,
    replacePlaceholders,
+   withErrorHandler,
 } from '../utils/index.js';
 import { processWorkspace } from '../features/process-xano/index.js';
 
 async function generateRepo(instance, workspace, branch, input, output, fetch = false) {
-   const globalConfig = loadGlobalConfig();
-   // Merge CLI context with config
-   const context = {
-      instance: instance || globalConfig.currentContext.instance,
-      workspace: workspace || globalConfig.currentContext.workspace,
-      branch: branch || globalConfig.currentContext.branch,
-   };
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
-      globalConfig,
-      context
-   );
-
-   if (!instanceConfig || !workspaceConfig || !branchConfig) {
-      throw new Error(
-         'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
-      );
-   }
+   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+      instance,
+      workspace,
+      branch,
+   });
 
    // Resolve output dir
    const outputDir = output
@@ -53,7 +41,7 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
 
    if (!inputFile) throw new Error('Input YAML file is required');
 
-   await processWorkspace({
+   processWorkspace({
       inputFile,
       outputDir,
    });

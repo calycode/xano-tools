@@ -1,3 +1,4 @@
+export * from './feature-focused/generate-repo/generate-structure-diagrams.js'
 export * from './feature-focused/setup/fetch-workspaces-branches.js'
 export * from './feature-focused/test/custom-assertions.js'
 export * from './feature-focused/test/schema-validation.js';
@@ -11,6 +12,7 @@ export * from './methods/normalize-api-group-name.js';
 export * from './methods/prepare-request.js';
 export * from './methods/replace-placeholders.js';
 export * from './methods/safe-version-control.js';
+export * from './methods/sanitize-filename.js'
 export * from './methods/sanitize-instance-name.js';
 export * from './methods/with-error-handler.js';
 export * from './methods/with-spinner.js'
