@@ -38,7 +38,7 @@ function processItem({
       if (!existsSync(appDir)) {
          mkdirSync(appDir, { recursive: true });
       }
-      
+
       itemDir = join(appDir, sanitizeFileName(itemName));
 
       // Add query to appQueries for structure diagram
@@ -83,7 +83,14 @@ function processItem({
       );
       writeFileSync(
          readmePath,
-         `# ${itemName}\n\n${description}\n\n## Query logic description\n\n${queryLogicDescription}`
+         `
+# ${itemName}
+
+${description}
+
+## Steps
+
+${queryLogicDescription}`
       );
    }
 

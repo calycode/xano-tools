@@ -84,6 +84,7 @@ function rebuildDirectoryStructure(jsonData, outputDir) {
          functionMapping[func.guid] = {
             name: func.name,
             path: `function/${sanitizeFileName(func.name)}`,
+            description: func.description ?? '',
          };
       });
    }
@@ -94,6 +95,7 @@ function rebuildDirectoryStructure(jsonData, outputDir) {
          dboMapping[dbo.guid] = {
             name: dbo.name,
             path: `dbo/${sanitizeFileName(dbo.name)}`,
+            description: dbo.description ?? '',
          };
       });
    }

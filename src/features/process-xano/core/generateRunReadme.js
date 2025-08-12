@@ -23,8 +23,34 @@ function generateQueryLogicDescription(runList, level = 0, functionMapping = {},
          return '';
       }
 
+      let methodType = 'general';
+      if (
+         method.name == 'mvp:function' &&
+         method.context &&
+         method.context.function &&
+         method.context.function.id
+      ) {
+         methodType = 'function';
+      }
+      if (method.context && method.context.dbo && method.context.dbo.id) {
+         methodType = 'dbo';
+      }
+      const methodId = method.context[methodType]?.id ?? null;
+      let methodDescription = '';
+      if (methodId) {
+         methodDescription = `${methodType}Mapping`[methodId]?.description || '//...';
+      } else {
+         methodDescription = method.description || '//...';
+      }
+
+      // Identify functions:
       let functionLink = '';
-      if (method.context && method.context.function && method.context.function.id) {
+      if (
+         method.name == 'mvp:function' &&
+         method.context &&
+         method.context.function &&
+         method.context.function.id
+      ) {
          const functionId = method.context.function.id;
          if (functionMapping[functionId]) {
             const functionName = functionMapping[functionId].name;
@@ -33,6 +59,7 @@ function generateQueryLogicDescription(runList, level = 0, functionMapping = {},
          }
       }
 
+      // Identify tables:
       let dboLink = '';
       if (method.context && method.context.dbo && method.context.dbo.id) {
          const dboId = method.context.dbo.id;
@@ -44,16 +71,19 @@ function generateQueryLogicDescription(runList, level = 0, functionMapping = {},
       }
 
       // Use the display name instead of Xano's mvp:method syntax.
-      const usedXanoMethod = infrastructure.statement.find(statement => statement.name === method.name);
+      const usedXanoMethod = infrastructure.statement.find(
+         (statement) => statement.name === method.name
+      );
       description += `${indent}- **${
          usedXanoMethod ? usedXanoMethod.display : method.name
       }** ${functionLink} ${dboLink}\n`;
-      description += `${indent}  *Description*: ${method.description || '//....'}\n\n`;
+      description += `${indent}  *Description*: ${methodDescription}\n\n`;
 
       // if dbo_view then we can also say what's the type single or list or stream or... etc
       let returnedValueKind = '';
       if (method.context && method.context.dbo && method.name.includes('dbo_view')) {
          returnedValueKind = method.context?.return?.type ?? '';
+         returnedValueKind = `**${returnedValueKind.toUpperCase()}**`;
       }
 
       // Add return variable information if 'method.as' is not empty
@@ -61,7 +91,7 @@ function generateQueryLogicDescription(runList, level = 0, functionMapping = {},
          description += `${indent}  *Returns value as*: _**${method.as}**_ ${returnedValueKind}\n\n`;
       }
 
-      // If method is dbo and has a search expression then convert it to SQL
+      // If method is dbo and has a search expression then convert it to SQL Select sentence
       if (
          method.context &&
          method.context.dbo &&
