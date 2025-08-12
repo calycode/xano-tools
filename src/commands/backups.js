@@ -1,12 +1,14 @@
 import { join } from 'path';
-import { writeFileSync } from 'fs';
 import { mkdir } from 'fs/promises';
+import { writeFileSync } from 'fs';
 import { spinner } from '@clack/prompts';
 import { loadToken } from '../config/loaders.js';
-import { getCurrentContextConfig , metaApiRequestBlob , withErrorHandler } from '../utils/index.js';
-
-import { replacePlaceholders } from '../utils/feature-focused/test/replace-placeholders.js';
-
+import {
+   getCurrentContextConfig,
+   metaApiRequestBlob,
+   replacePlaceholders,
+   withErrorHandler,
+} from '../utils/index.js';
 
 async function exportBackup() {
    const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig();

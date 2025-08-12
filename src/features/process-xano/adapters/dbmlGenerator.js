@@ -1,25 +1,31 @@
+function splitTableDefinition(tableDefinition) {
+   const tableName = tableDefinition.name;
+   const columns = tableDefinition.schema;
+
+   return { tableName, columns };
+}
+
 /**
  * Ensures that each table has a primary key column.
  */
-function ensurePrimaryKey(jsonSchema) {
-   const hasPrimaryKey = jsonSchema.schema.some((column) => column.name === 'id');
+function ensurePrimaryKey(tableDefinition) {
+   const hasPrimaryKey = tableDefinition.schema.some((column) => column.name === 'id');
    if (!hasPrimaryKey) {
-      jsonSchema.schema.unshift({
+      tableDefinition.schema.unshift({
          name: 'id',
          type: 'int',
          nullable: false,
          default: null,
       });
    }
-   return jsonSchema;
+   return tableDefinition;
 }
 
 /**
  * Converts a single table schema to DBML format.
  */
-function convertSchemaToDbml(schema) {
-   const tableName = schema.name;
-   const columns = schema.schema;
+function convertSchemaToDbml(tableDefinition) {
+   const { tableName, columns } = splitTableDefinition(tableDefinition);
 
    let dbml = `Table ${tableName} {\n`;
 
@@ -28,8 +34,9 @@ function convertSchemaToDbml(schema) {
       const columnType = column.type;
       const isNullable = column.nullable ? null : 'not null';
       const isPrimaryKey = columnName === 'id' ? 'pk' : null;
-      let defaultValue = null;
 
+      // Set up default values for the table columns
+      let defaultValue = null;
       if (column.default !== undefined && column.default !== null) {
          if (typeof column.default === 'string') {
             defaultValue = `default: "${column.default}"`;
@@ -38,6 +45,7 @@ function convertSchemaToDbml(schema) {
          }
       }
 
+      // Set up internal subrefernces references for the table columns
       let refSetting = null;
       if (column.type === 'obj') {
          const subTableName = `${tableName}_${column.name}`;
@@ -45,12 +53,13 @@ function convertSchemaToDbml(schema) {
          refSetting = `ref: ${relationshipType} ${subTableName}.id`;
       }
 
+      // Combine nullability, key-information, defaultvalue and references into a single setting
       const settings = [isNullable, isPrimaryKey, defaultValue, refSetting].filter(
          (setting) => setting !== null
       );
-      const columnSettings = settings.length > 0 ? ` [${settings.join(', ')}]` : '';
+      const columnSettings = settings.length > 0 ? `[(${settings.join(', ')})]` : '';
 
-      dbml += `  ${columnName} ${columnType}${columnSettings}\n`;
+      dbml += `  ${columnName} ${columnType} ${columnSettings}\n`;
    });
 
    dbml += '}\n';
@@ -61,9 +70,8 @@ function convertSchemaToDbml(schema) {
 /**
  * Converts a single table schema to SQL CREATE TABLE statement.
  */
-function convertSchemaToSql(schema) {
-   const tableName = schema.name;
-   const columns = schema.schema;
+function convertSchemaToSql(tableDefinition) {
+   const { tableName, columns } = splitTableDefinition(tableDefinition);
 
    const sqlColumns = columns.map((column) => {
       let sqlType;
@@ -90,6 +98,7 @@ function convertSchemaToSql(schema) {
 
       const nullable = column.nullable ? '' : 'NOT NULL';
       const primaryKey = column.name === 'id' ? 'PRIMARY KEY' : '';
+
       let defaultValue = '';
       if (column.default !== undefined && column.default !== null) {
          if (typeof column.default === 'string') {
@@ -111,32 +120,32 @@ function convertSchemaToSql(schema) {
  * Converts a JSON schema to both DBML and SQL.
  * Returns an array of { name, dbml, sql } for each table.
  */
-function jsonToDbmlAndSql(jsonSchema) {
+function jsonToDbmlAndSql(tableDefinition) {
    const tables = [];
 
-   function processTable(schema) {
-      schema = ensurePrimaryKey(schema);
+   function processTable(tableDefinition) {
+      tableDefinition = ensurePrimaryKey(tableDefinition);
 
       tables.push({
-         name: schema.name,
-         dbml: convertSchemaToDbml(schema),
-         sql: convertSchemaToSql(schema),
+         name: tableDefinition.name,
+         dbml: convertSchemaToDbml(tableDefinition),
+         sql: convertSchemaToSql(tableDefinition),
       });
 
       // Recursively process nested objects to create subtables
-      schema.schema.forEach((column) => {
+      tableDefinition.schema.forEach((column) => {
          if (column.type === 'obj') {
-            const subTableName = `${schema.name}_${column.name}`;
-            const subTableSchema = {
+            const subTableName = `${tableDefinition.name}_${column.name}`;
+            const subTableDefinition = {
                name: subTableName,
                schema: column.children || [],
             };
-            processTable(subTableSchema, schema.name);
+            processTable(subTableDefinition);
          }
       });
    }
 
-   processTable(jsonSchema);
+   processTable(tableDefinition);
 
    return tables;
 }
@@ -144,14 +153,34 @@ function jsonToDbmlAndSql(jsonSchema) {
 /**
  * Returns a pretty string with all DBML and SQL statements.
  */
-function allDbmlAndSqlToString(tables) {
+function convertXanoDBDescription(tableDefinition) {
+   const tables = jsonToDbmlAndSql(tableDefinition);
+
    let result = '';
+
    tables.forEach((table) => {
-      result += `\n---\n# Table: ${table.name}\n\n## DBML\n\`\`\`dbml\n${table.dbml}\`\`\`\n`;
-      result += `\n## SQL\n\`\`\`sql\n${table.sql}\n\`\`\`\n`;
+      result += `
+---
+
+# Table: ${table.name}
+
+## DBML
+
+\`\`\`dbml
+${table.dbml}
+\`\`\`
+                 `;
+      result += `
+
+## SQL
+\`\`\`sql
+${table.sql}
+\`\`\`
+                `;
    });
+
    return result;
 }
 
 // Export both the structured and string versions
-export { jsonToDbmlAndSql, allDbmlAndSqlToString };
+export { convertXanoDBDescription };

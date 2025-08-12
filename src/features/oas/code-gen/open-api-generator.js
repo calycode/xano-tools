@@ -17,28 +17,33 @@ export function runOpenApiGenerator({
       const localBin = process.platform === 'win32' ? winBin : cliBase;
       const useLocalBin = existsSync(localBin);
 
+      const inputPath = resolve(input).replace(/\\/g, '/');
+      const outputPath = resolve(output);
+
       // Fallback to npx if local bin doesn't exist
       const cliBin = useLocalBin ? localBin : process.platform === 'win32' ? 'npx.cmd' : 'npx';
+      // DO NOT use pathToFileURL for CLI args!
+
       const cliArgs = useLocalBin
          ? [
               'generate',
               '-i',
-              resolve(input),
+              inputPath,
               '-g',
               generator,
               '-o',
-              resolve(output),
+              outputPath,
               ...additionalArgs,
            ].filter(Boolean)
          : [
               'openapi-generator-cli',
               'generate',
               '-i',
-              resolve(input),
+              inputPath,
               '-g',
               generator,
               '-o',
-              resolve(output),
+              outputPath,
               ...additionalArgs,
            ].filter(Boolean);
 
