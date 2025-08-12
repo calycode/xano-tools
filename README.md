@@ -20,13 +20,19 @@ _(Work In Progress)_
   pnpm run xano-community-cli
   ```
 
+- run the `xcc help` command to get more insight what is available so far.
+
+  ```
+  pnpm run xcc help
+  ```
+
 - run the `setup` command to setup the CLI and connect your XANO Instance (+ metadata API)
 
   ```
   pnpm run xano-community-cli setup
   ```
 
-- run the `process` to generate a 'repo' from your XANO workspace
+- run the `generate-repo` to generate a 'repo' from your XANO workspace
 
   ```
   pnpm run xano-community-cli process
@@ -93,7 +99,7 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 - [x] Add the automated testing also to the configurable features
 - [ ] Improve output handling (support custom output: `.zip`, directories, etc.)
 - [ ] Bring the XANO default docs to the future with ajv. (AJV create schema from the Examples set in XANO + updated the OAS to v3.1, clean up the tags)
-- [ ] improve test runner and assertions to return a pretty (.md, .html, .json?) report with useful runtime information (duration, errors, etc)
+- [ ] Improve test runner and assertions to return a pretty (.md, .html, .json?) report with useful runtime information (duration, errors, etc)
 
 ---
 
