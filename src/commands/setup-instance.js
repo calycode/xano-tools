@@ -83,6 +83,9 @@ async function setupInstanceWizard() {
       process: {
          output: 'output/{instance}/repo/{workspace}/{branch}',
       },
+      'xano-script': {
+         output: 'output/{instance}/xano-script/{workspace}/{branch}',
+      },
       openApiSpec: {
          output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
       },
