@@ -1,14 +1,15 @@
 {
    "name": "xano-community-cli",
-   "version": "0.1.0",
+   "version": "0.1.1",
    "main": "src/index.js",
    "type": "module",
-   "description": "A tool to improve dev experience with XANO, especially for teams where clarity, transparency, and version control is important. Furthermore, this cli should help automate currently manual apsects of XANO. Why a CLI when we have AI? I am bullish on the AI, but in all honesty using AI so much without proper human control can cause a lot of issues. The idea behind this CLI is to reduce the need of reliance on AI and that we have our most crucial parts (testing, documentation) in place in any case, environment, system, either in part of a git provider or local system. The goal is to make it flexible and if there's need, then obiously LLM-ready.",
+   "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
    "bin": {
-      "xano-community-cli": "src/index.js",
-      "xcc": "src/index.js"
+      "xcc": "src/index.js",
+      "xano-community-cli": "src/index.js"
    },
    "scripts": {
+      "xcc": "node src/index.js",
       "xano-community-cli": "node src/index.js"
    },
    "keywords": [
@@ -23,9 +24,12 @@
       "@openapitools/openapi-generator-cli": "^2.21.4",
       "ajv": "^8.17.1",
       "ajv-errors": "^3.0.0",
+      "axios": "^1.11.0",
       "chalk": "^5.4.1",
       "cli-progress": "^3.12.0",
       "commander": "^14.0.0",
+      "figlet": "^1.8.2",
+      "form-data": "^4.0.4",
       "js-yaml": "^4.1.0",
       "tar": "^7.4.3",
       "uvu": "^0.5.6"
