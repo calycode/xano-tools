@@ -8,6 +8,7 @@ async function metaApiRequest({
    query = {}, // {page: 1, per_page: 100}
    body = null, // arbitrary object, for POST/PUT
    headers = {}, // additional headers if needed
+   allowError = false // wether the request should allow progress if error
 }) {
    // Expand path params (e.g. /workspace/{workspace_id} -> /workspace/123)
    let fullPath = path;
@@ -42,7 +43,7 @@ async function metaApiRequest({
       result = await res.text();
    }
 
-   if (!res.ok) {
+   if (!res.ok && !allowError) {
       const msg = result && result.message ? result.message : res.statusText;
       throw new Error(`Xano API ${method} ${url} failed: ${msg} (${res.status})`);
    }

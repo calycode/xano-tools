@@ -2,14 +2,15 @@
 import { Command } from 'commander';
 
 // Import commands:
-import { registerSetupCommand } from './commands/setup-instance.js';
+import { registerFetchFunctionsInXanoScript } from './commands/analyze.js';
 import { registerCurrentContextCommand, registerSwitchContextCommand } from './commands/context.js';
-import { registerGenerateOasCommand } from './commands/generate-oas.js';
-import { registerGenerateCodeCommand } from './commands/generate-code.js';
-import { registerGenerateRepoCommand } from './commands/generate-repo.js';
-import { registerTestViaOasCommand } from './commands/run-tests.js';
 import { registerExportBackupCommand } from './commands/backups.js';
+import { registerGenerateCodeCommand } from './commands/generate-code.js';
+import { registerGenerateOasCommand } from './commands/generate-oas.js';
+import { registerGenerateRepoCommand } from './commands/generate-repo.js';
 import { registerLintCommand } from './commands/run-lint.js';
+import { registerSetupCommand } from './commands/setup-instance.js';
+import { registerTestViaOasCommand } from './commands/run-tests.js';
 
 const program = new Command();
 
@@ -29,9 +30,10 @@ registerSwitchContextCommand(program);
 registerGenerateOasCommand(program);
 registerGenerateCodeCommand(program);
 registerGenerateRepoCommand(program);
-registerTestViaOasCommand(program);
+registerFetchFunctionsInXanoScript(program);
 registerExportBackupCommand(program);
 registerLintCommand(program);
+registerTestViaOasCommand(program);
 registerCurrentContextCommand(program);
 
 program.parse();
@@ -39,7 +41,6 @@ program.parse();
 /**
  * Future goals are:
  *
- * [ ] generate schemas / models from openapi spec examples
  * [ ] import backup via metadata api
  * [ ] create xano workspaces from openapi specs or via ai
  */
