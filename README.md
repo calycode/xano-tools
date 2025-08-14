@@ -59,40 +59,37 @@ You can use this CLI as a GitHub Action to automate your Xano workflows.
 
 ### Using with a Private NPM Package
 
-Our XCC is published to a private npm registry, so you need to configure your workflow to authenticate before calling the action.
-Here is an example Github Action workflow that sets up an expected node environment.
+To use your private CLI in a GitHub Actions workflow, you need to configure the workflow to authenticate with the npm registry.
+
+Here is an example job that checks out your repository and uses the local composite action (`./src/actions/action-with-cli-as-npm-package.yml`), which in turn securely downloads and runs your private CLI package from npm.
 
 ```yaml
 jobs:
   sync:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read # Required for GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Setup Node.js and authenticate to the private registry
+      # 1. Setup Node.js and authenticate to the npm registry
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          # [ ] TODO: update the registry url to the actual registry...
-          registry-url: 'https://your-private-registry.com'
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org' # This is the default, but being explicit is good practice
 
-      # 2. Use the Xano CLI Action
+      # 2. Use the Xano CLI Action from your repository
+      # This composite action handles setup and command execution by calling the published npm package.
       - name: Run Xano Commands
-        uses: MihalyToth20/xano-community-cli@v1
+        uses: ./src/actions/action-with-cli-as-npm-package.yml
         with:
-          # Choose the instance name as you wish:
           instance-name: 'production'
           instance-url: ${{ secrets.XANO_URL }}
           api-token: ${{ secrets.XANO_API_TOKEN }}
-          version: '0.1.1'
+          version: 'latest' # or a specific version like '0.1.1'
           run: |
             generate-oas --all
         env:
-          # For npm registries, use a personal access token (PAT) stored as a secret
+          # This token must be a personal access token for the npm registry, stored as a secret.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 

@@ -21,6 +21,7 @@ yaml-files/
 oas.json
 
 # Other
+dist/
 debug_requests.json
 .VSCodeCounter/
 project-plan.md

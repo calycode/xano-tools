@@ -32,7 +32,7 @@ runs:
            # This step uses npx to download and run the setup command.
            # For private packages, the consuming workflow must configure node-auth prior to this step.
            echo "::group::Configuring Xano CLI Instance"
-           npx --yes xano-community-cli@${{ inputs.version }} setup \
+           npx --yes @mihalytoth20/xano-community-cli@${{ inputs.version }} setup \
              --name "${{ inputs.instance-name }}" \
              --url "${{ inputs.instance-url }}" \
              --token "${{ inputs.api-token }}" \
@@ -49,6 +49,6 @@ runs:
                continue # Skip empty lines
              fi
              echo "::group::Running: xcc $command_line"
-             npx --yes xano-community-cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }}
+             npx --yes @mihalytoth20/xano-community-cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }}
              echo "::endgroup::"
            done <<< "${{ inputs.run }}"
