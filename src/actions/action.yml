@@ -1,0 +1,53 @@
+# This assumes the action is run from a repo that has the CLI as a dependency
+# or is the CLI repo itself.
+name: 'Xano Community CLI Action'
+description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow.'
+author: 'Xano Community'
+
+inputs:
+   run:
+      description: 'One or more xcc commands to run, each on a new line. e.g., "generate-oas --all"'
+      required: true
+   instance-name:
+      description: 'The name for the Xano instance (e.g., "prod").'
+      required: true
+   instance-url:
+      description: 'The base URL of the Xano instance.'
+      required: true
+   api-token:
+      description: 'The Xano Metadata API token. Should be stored as a GitHub secret.'
+      required: true
+
+runs:
+   using: 'composite'
+   steps:
+      - name: Install Dependencies
+        shell: bash
+        run: npm install
+
+      - name: Configure Xano CLI Instance
+        shell: bash
+        run: |
+           node src/index.js setup \
+             --name "${{ inputs.instance-name }}" \
+             --url "${{ inputs.instance-url }}" \
+             --token "${{ inputs.api-token }}" \
+             --no-set-current
+
+      - name: Run Xano CLI Commands
+        shell: bash
+        run: |
+           # Ensure the script exits immediately if any command fails.
+           set -e
+
+           # The user provides a multi-line string of commands.
+           # We execute them one by one. The 'set -e' default for shell steps
+           # will cause the script to exit on the first failure.
+           while IFS= read -r command_line; do
+             if [ -z "$command_line" ]; then
+               continue # Skip empty lines
+             fi
+             echo "::group::Running: xcc $command_line"
+             node src/index.js $command_line --instance=${{ inputs.instance-name }}
+             echo "::endgroup::"
+           done <<< "${{ inputs.run }}"

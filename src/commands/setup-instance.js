@@ -27,61 +27,57 @@ const DEFAULT_ASSERTS = {
    responseSchema: 'warn',
 };
 
-async function setupInstanceWizard() {
-   intro('✨ Xano CLI Instance Setup ✨');
-
-   // 1. Make sure the core repo setup is healthy:
-   ensureDirs();
-   ensureGitignore();
-
-   // 2. Gather info
-   const name = (
-      await text({ message: 'Name this Xano instance (e.g. prod, staging, client-a):' })
-   ).trim();
-
+/**
+ * The core, non-interactive logic for setting up an instance.
+ * Can be called by the interactive wizard or directly for CI/CD.
+ * @param {object} options
+ * @param {string} options.name - The user-provided name for the instance.
+ * @param {string} options.url - The instance base URL.
+ * @param {string} options.apiKey - The Metadata API key.
+ * @param {boolean} [options.setAsCurrent=true] - Whether to set this as the current context.
+ */
+async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
+   // 1. Sanitize and validate name
    const safeName = sanitizeInstanceName(name);
-
    if (!safeName) {
-      log.error('Instance name must contain at least one letter or number.');
-      outro();
-      return;
+      throw new Error('Instance name must contain at least one letter or number.');
    }
-
    if (safeName !== name) {
       log.info(`Using "${safeName}" as the instance key.`);
    }
 
-   const url = (await text({ message: `What's the base URL for "${name}"?` })).trim();
-   const apiKey = await password({ message: `Enter the Metadata API key for "${name}":` });
+   // 2. Health checks and setup
+   ensureDirs();
+   ensureGitignore();
 
-   // 3. Store credentials.
-   saveToken(name, apiKey);
-   log.step('Stored credentials.');
+   // 3. Store credentials
+   saveToken(safeName, apiKey);
+   log.step(`Stored credentials for "${safeName}".`);
 
-   // 4. Fetch workspaces and branches with spinner
-   const workspaces = await withSpinner('Fetching workspaces and branches from Xano.', () =>
-      fetchWorkspacesAndBranches({ url, apiKey })
+   // 4. Fetch workspaces and branches
+   const workspaces = await withSpinner(
+      `Fetching workspaces and branches for "${safeName}"...`,
+      () => fetchWorkspacesAndBranches({ url, apiKey })
    );
 
    // 5. Save instance config
-   saveInstanceConfig(name, {
-      name,
+   saveInstanceConfig(safeName, {
+      name: safeName,
       url,
-      tokenFile: `../tokens/${name}.token`,
       lint: {
          output: 'output/{instance}/lint/{workspace}/{branch}',
          rules: DEFAULT_LINT_RULES,
       },
       test: {
-         output: 'output/{instance}/tests/{workspace}/{branch}/{group}',
+         output: 'output/{instance}/tests/{workspace}/{branch}/{api_group_normalized_name}',
          headers: {
             'X-Branch': '{branch}',
             'X-Data-Source': 'test',
          },
-         DEFAULT_ASSERTS,
+         defaultAsserts: DEFAULT_ASSERTS,
       },
       process: {
-         output: 'output/{instance}/repo/{workspace}/{branch}',
+         output: 'output/repo/{instance}/{workspace}/{branch}',
       },
       'xano-script': {
          output: 'output/{instance}/xano-script/{workspace}/{branch}',
@@ -98,17 +94,11 @@ async function setupInstanceWizard() {
 
    // 6. Register in global config
    const global = loadGlobalConfig();
-   const { currentContext } = global;
-   if (!global.instances.includes(name)) global.instances.push(name);
+   if (!global.instances.includes(safeName)) {
+      global.instances.push(safeName);
+   }
 
    // 7. Optionally set as current context
-   let setAsCurrent = true;
-   if (currentContext?.instance && currentContext.instance !== safeName) {
-      setAsCurrent = await confirm({
-         message: `Set "${name}" as your current context?`,
-         initialValue: true,
-      });
-   }
    if (setAsCurrent) {
       global.currentContext = {
          instance: safeName,
@@ -118,21 +108,60 @@ async function setupInstanceWizard() {
                ? workspaces[0].branches[0].label
                : null,
       };
+      log.step(`Set "${safeName}" as the current context.`);
    }
    saveGlobalConfig(global);
 
-   outro(
-      `🚀 Instance "${name}" added! Workspaces fetched from Xano. Use switch-context to change.\n`
-   );
+   outro(`🚀 Instance "${safeName}" configured! Use 'xcc switch-context' to change.`);
+}
+
+async function setupInstanceWizard() {
+   intro('✨ Xano CLI Instance Setup ✨');
+
+   // Gather info from user
+   const name = (
+      await text({ message: 'Name this Xano instance (e.g. prod, staging, client-a):' })
+   ).trim();
+   const url = (await text({ message: `What's the base URL for "${name}"?` })).trim();
+   const apiKey = await password({ message: `Enter the Metadata API key for "${name}":` });
+
+   // Check if we should set it as the current context
+   const global = loadGlobalConfig();
+   const { currentContext } = global;
+   let setAsCurrent = true;
+   if (currentContext?.instance && currentContext.instance !== sanitizeInstanceName(name)) {
+      setAsCurrent = await confirm({
+         message: `Set "${name}" as your current context?`,
+         initialValue: true,
+      });
+   }
+
+   // Run the core setup logic
+   await setupInstance({ name, url, apiKey, setAsCurrent });
 }
 
 export function registerSetupCommand(program) {
    program
       .command('setup')
-      .description('Setup Xano Community CLI configurations')
+      .description('Setup Xano instance configurations (interactively or via flags)')
+      .option('--name <name>', 'Instance name (for non-interactive setup)')
+      .option('--url <url>', 'Instance base URL (for non-interactive setup)')
+      .option('--token <token>', 'Metadata API token (for non-interactive setup)')
+      .option('--no-set-current', 'Do not set this instance as the current context')
       .action(
-         withErrorHandler(async () => {
-            await setupInstanceWizard();
+         withErrorHandler(async (opts) => {
+            if (opts.name && opts.url && opts.token) {
+               // Non-interactive mode for CI/CD
+               await setupInstance({
+                  name: opts.name,
+                  url: opts.url,
+                  apiKey: opts.token,
+                  setAsCurrent: opts.setCurrent, // commander turns --no-set-current to setCurrent: false
+               });
+            } else {
+               // Interactive wizard for local development
+               await setupInstanceWizard();
+            }
          })
       );
 }

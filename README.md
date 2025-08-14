@@ -53,6 +53,49 @@ understand markdown or yaml (xanoscript) better than extremely verbose json obje
 
 ---
 
+## 🤖 Using in GitHub Actions
+
+You can use this CLI as a GitHub Action to automate your Xano workflows.
+
+### Using with a Private NPM Package
+
+Our XCC is published to a private npm registry, so you need to configure your workflow to authenticate before calling the action.
+Here is an example Github Action workflow that sets up an expected node environment.
+
+```yaml
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read # Required for GitHub Packages
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Setup Node.js and authenticate to the private registry
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          # [ ] TODO: update the registry url to the actual registry...
+          registry-url: 'https://your-private-registry.com'
+
+      # 2. Use the Xano CLI Action
+      - name: Run Xano Commands
+        uses: MihalyToth20/xano-community-cli@v1
+        with:
+          # Choose the instance name as you wish:
+          instance-name: 'production'
+          instance-url: ${{ secrets.XANO_URL }}
+          api-token: ${{ secrets.XANO_API_TOKEN }}
+          version: '0.1.1'
+          run: |
+            generate-oas --all
+        env:
+          # For npm registries, use a personal access token (PAT) stored as a secret
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
 ### 🗂️ Structure of exports
 
 - Each **`app`** in [`repo/`](repo/) is an API group (see [`repo/app/`](repo/app/)).

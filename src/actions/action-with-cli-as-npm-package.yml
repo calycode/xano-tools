@@ -1,0 +1,54 @@
+name: 'Xano Community CLI Action'
+description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow.'
+author: 'Xano Community'
+
+inputs:
+   run:
+      description: 'One or more xcc commands to run, each on a new line. e.g., "generate-oas --all"'
+      required: true
+   instance-name:
+      description: 'The name for the Xano instance (e.g., "prod").'
+      required: true
+   instance-url:
+      description: 'The base URL of the Xano instance.'
+      required: true
+   api-token:
+      description: 'The Xano Metadata API token. Should be stored as a GitHub secret.'
+      required: true
+   version:
+      description: 'The version of xano-community-cli to use from npm (e.g., 0.1.1, latest).'
+      required: false
+      default: 'latest'
+
+runs:
+   using: 'composite'
+   steps:
+      - name: Configure Xano CLI Instance
+        shell: bash
+        run: |
+           # Ensure the script exits immediately if any command fails.
+           set -e
+
+           # This step uses npx to download and run the setup command.
+           # For private packages, the consuming workflow must configure node-auth prior to this step.
+           echo "::group::Configuring Xano CLI Instance"
+           npx --yes xano-community-cli@${{ inputs.version }} setup \
+             --name "${{ inputs.instance-name }}" \
+             --url "${{ inputs.instance-url }}" \
+             --token "${{ inputs.api-token }}" \
+             --no-set-current
+           echo "::endgroup::"
+
+      - name: Run Xano CLI Commands
+        shell: bash
+        run: |
+           set -e
+           # The setup command has created the config files. Now, run the user-provided commands.
+           while IFS= read -r command_line; do
+             if [ -z "$command_line" ]; then
+               continue # Skip empty lines
+             fi
+             echo "::group::Running: xcc $command_line"
+             npx --yes xano-community-cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }}
+             echo "::endgroup::"
+           done <<< "${{ inputs.run }}"
