@@ -51,8 +51,8 @@ function registerGenerateRepoCommand(program) {
    program
       .command('generate-repo')
       .description('Process Xano workspace into repo structure')
-      .option('-i, --input <file>', 'workspace yaml file')
-      .option('-o, --output <dir>', 'output directory (overrides config)')
+      .option('--input <file>', 'workspace yaml file')
+      .option('--output <dir>', 'output directory (overrides config)')
       .option('--instance <instance>')
       .option('--workspace <workspace>')
       .option('--branch <branch>')
