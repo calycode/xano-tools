@@ -6,7 +6,7 @@
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
    "private": true,
    "bin": {
-      "xcc": "src/index.js"
+      "xcc": "dist/index.cjs"
    },
    "files": [
       "dist/index.js",
@@ -40,9 +40,10 @@
    },
    "devDependencies": {
       "@eslint/js": "^9.32.0",
+      "esbuild": "^0.23.1",
+      "esbuild-plugin-replace": "^1.4.0",
       "eslint": "^9.12.0",
       "eslint-plugin-import": "^2.32.0",
-      "esbuild": "^0.23.1",
       "knip": "^5.62.0",
       "uvu": "^0.5.6"
    }

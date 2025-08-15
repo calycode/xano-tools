@@ -1,4 +1,4 @@
-import { join, path } from 'path';
+import path, { join } from 'path';
 import { mkdir } from 'fs/promises';
 import { writeFileSync, readdirSync, createReadStream } from 'fs';
 import axios from 'axios';

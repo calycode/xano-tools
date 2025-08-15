@@ -11,8 +11,9 @@ export function runOpenApiGenerator({
    logger = false, // If true, log to file, else discard logs
 }) {
    return new Promise((resolvePromise, reject) => {
-      const __dirname = fileURLToPath(new URL('.', import.meta.url));
-      const cliBase = join(__dirname, '../../../../node_modules/.bin/openapi-generator-cli');
+      const myDirname =
+         typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
+      const cliBase = join(myDirname, '../../../../node_modules/.bin/openapi-generator-cli');
       const winBin = `${cliBase}.cmd`;
       const localBin = process.platform === 'win32' ? winBin : cliBase;
       const useLocalBin = existsSync(localBin);
