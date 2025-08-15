@@ -1,5 +1,25 @@
-import infrastructure from '../../../../util-resources/xano_underlying_infrastructure.js';
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { xanoQueryToSql } from '../adapters/xanoQueryToSql.js';
+
+// This reliably gets the directory of the current file, even in the bundle.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+let infrastructure;
+try {
+   // Path for bundled/production environment (inside dist)
+   let infrastructurePath = resolve(__dirname, 'util-resources/xano_underlying_infrastructure.json');
+
+   // If it doesn't exist, we are likely in development mode (running from src)
+   if (!existsSync(infrastructurePath)) {
+      // Path from src/features/process-xano/core -> project root
+      infrastructurePath = resolve(__dirname, '../../../../util-resources/xano_underlying_infrastructure.json');
+   }
+   const fileContent = readFileSync(infrastructurePath, 'utf-8');
+   infrastructure = JSON.parse(fileContent);
+} catch (error) {
+   throw new Error(`Failed to load or parse xano_underlying_infrastructure.json. Error: ${error.message}`);
+}
 
 /**
  * Recursively generates a description of the query logic.

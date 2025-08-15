@@ -109,4 +109,4 @@ function convertXanoSchemaToJsonSchema(xanoSchema, { includeInternal = false } =
    return jsonSchema;
 }
 
-export { convertField, convertXanoSchemaToJsonSchema };
+export { convertXanoSchemaToJsonSchema };
