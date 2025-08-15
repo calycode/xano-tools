@@ -1,25 +1,7 @@
 // src/lint-xano/XanoLinter.js
-import { ESLint } from 'eslint';
 import infrastructure from '../../../util-resources/xano_underlying_infrastructure.json' with { type: 'json' };
 import { availableRules } from './rules/index.js';
 import { isNotEmpty } from '../../utils/index.js';
-
-// ----- Utilities -----
-const eslint = new ESLint({
-   overrideConfig: [
-      {
-         languageOptions: {
-            ecmaVersion: 2021,
-            sourceType: 'module',
-         },
-         rules: {
-            'no-unused-vars': 'warn',
-            'no-console': 'off',
-            camelcase: 'warn',
-         },
-      },
-   ],
-});
 
 // ----- Linting rule functions -----
 async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = obj) {
@@ -74,54 +56,6 @@ async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = o
             message: `Disabled logic step found in "${parentObj.name}" as "${obj.index} ${obj.name} ${obj.as}".`,
             rule: 'Good practice: remove commented code',
          });
-      }
-
-      // [ ] TODO: Check if eslint rules need to be changed since XANO now uses DENO!
-      // Lint JavaScript if it is a 'lambda' function
-      if (key === 'value' && parentObj?.name === 'code' && typeof value === 'string') {
-         try {
-            const results = await eslint.lintText(value);
-            results.forEach((result) => {
-               result.messages.forEach((msg) => {
-                  errors.push({
-                     message: `${obj.index ?? ''} ${obj.name} Lint error in code: ${
-                        msg.message
-                     } (at line ${msg.line}, column ${msg.column})`,
-                     rule: 'ESLint: JavaScript Linting',
-                  });
-               });
-            });
-         } catch (err) {
-            errors.push({
-               message: `Error linting JavaScript code: ${err.message}`,
-               rule: 'ESLint: JavaScript Linting',
-            });
-         }
-      }
-
-      // Lint Javascript if it is a 'lambda' or 'map' filter:
-      if (key === 'name' && (value === 'lambda' || value === 'map')) {
-         const code = obj?.arg[0]?.value ?? '';
-         if (typeof code === 'string') {
-            try {
-               const results = await eslint.lintText(code);
-               results.forEach((result) => {
-                  result.messages.forEach((msg) => {
-                     errors.push({
-                        message: `${obj.index ?? ''} ${obj.name} Lint error in code: ${
-                           msg.message
-                        } (at line ${msg.line}, column ${msg.column})`,
-                        rule: 'ESLint: JavaScript Linting',
-                     });
-                  });
-               });
-            } catch (err) {
-               errors.push({
-                  message: `Error linting JavaScript code: ${err.message}`,
-                  rule: 'ESLint: JavaScript Linting',
-               });
-            }
-         }
       }
 
       // Recurse if value is an object

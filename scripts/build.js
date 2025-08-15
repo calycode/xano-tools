@@ -29,8 +29,11 @@ const distDir = resolve(rootDir, 'dist');
          format: 'esm',
          outfile: resolve(distDir, 'index.js'),
          minify: true,
+         // Mark heavy dependencies as external to reduce bundle size.
+         // Node.js will resolve these from node_modules at runtime.
+         // This is a standard practice for CLI tools.
+         external: ['figlet', 'tar', 'axios', 'js-yaml'],
          sourcemap: true,
-         external: ['@openapitools/openapi-generator-cli'],
          metafile: true,
       });
       console.log('esbuild bundling complete.');
