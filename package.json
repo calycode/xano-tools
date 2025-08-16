@@ -14,8 +14,8 @@
       "xcc": "node src/index.js",
       "xano-community-cli": "node src/index.js",
       "update-xcc-docs": "node scripts/generate-xcc-docs.js",
-      "build": "node scripts/build.js",
-      "prepublishOnly": "npm run build"
+      "build": "pnpm update-xcc-docs && node scripts/build.js",
+      "prepublishOnly": "pnpm run build"
    },
    "private": true,
    "publishConfig": {
