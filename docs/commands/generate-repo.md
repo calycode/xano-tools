@@ -10,8 +10,8 @@ Options:
                            configuration. The value provided at the setup command.
   --workspace <workspace>  The workspace name. This is used to fetch the workspace
                            configuration. Same as on Xano interface.
-  --branch <branch>        The branch name. This is used to select the branch
-                           configuration. Same as on Xano Interface.
+  --branch <branch>        The branch name. This is used to select the branch configuration.
+                           Same as on Xano Interface.
   --fetch                  Specify this if you want to fetch the workspace schema from Xano
   -h, --help               display help for command
 ```

@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import figlet from 'figlet';
 import pkg from '../package.json' with {type: "json"};
 
 // Import commands:
@@ -22,7 +21,18 @@ program
   .version(version, '-v, --version', 'output the version number')
   .usage('<command> [options]')
   .description(
-    chalk.cyan(figlet.textSync('Xano CLI', { horizontalLayout: 'full' })) +
+    chalk.cyan(`
++----------------------------------------------------------------+
+|                                                                |
+|   ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
+|   ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
+|    ╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
+|    ██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
+|   ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
+|   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
+|                                                                |
++----------------------------------------------------------------+
+`) +
     '\n\n' +
     chalk.yellowBright('Supercharge your Xano workflow: ') +
     chalk.white('automate ') + chalk.bold.cyan('backups') + chalk.white(', ') +
