@@ -12,6 +12,7 @@ import { registerGenerateRepoCommand } from './commands/generate-repo.js';
 import { registerLintCommand } from './commands/run-lint.js';
 import { registerSetupCommand } from './commands/setup-instance.js';
 import { registerTestViaOasCommand } from './commands/run-tests.js';
+import { registerRegistryAddCommand } from './commands/registry.js';
 
 const { version } = pkg;
 const program = new Command();
@@ -50,6 +51,7 @@ registerGenerateOasCommand(program);
 registerGenerateCodeCommand(program);
 registerGenerateRepoCommand(program);
 registerFetchFunctionsInXanoScript(program);
+registerRegistryAddCommand(program);
 registerExportBackupCommand(program);
 registerRestoreBackupCommand(program);
 registerLintCommand(program);
