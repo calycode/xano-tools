@@ -13,6 +13,7 @@
    "scripts": {
       "xcc": "node src/index.js",
       "xano-community-cli": "node src/index.js",
+      "update-xcc-docs": "node scripts/generate-xcc-docs.js",
       "build": "node scripts/build.js",
       "prepublishOnly": "npm run build"
    },
@@ -46,6 +47,7 @@
       "eslint": "^9.12.0",
       "eslint-plugin-import": "^2.32.0",
       "knip": "^5.62.0",
+      "strip-ansi": "^7.1.0",
       "uvu": "^0.5.6"
    }
 }
