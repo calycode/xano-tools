@@ -11,8 +11,9 @@ export function runOpenApiGenerator({
    logger = false, // If true, log to file, else discard logs
 }) {
    return new Promise((resolvePromise, reject) => {
-      const __dirname = fileURLToPath(new URL('.', import.meta.url));
-      const cliBase = join(__dirname, '../../../../node_modules/.bin/openapi-generator-cli');
+      const myDirname =
+         typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
+      const cliBase = join(myDirname, '../../../../node_modules/.bin/openapi-generator-cli');
       const winBin = `${cliBase}.cmd`;
       const localBin = process.platform === 'win32' ? winBin : cliBase;
       const useLocalBin = existsSync(localBin);
@@ -20,32 +21,28 @@ export function runOpenApiGenerator({
       const inputPath = resolve(input).replace(/\\/g, '/');
       const outputPath = resolve(output);
 
-      // Fallback to npx if local bin doesn't exist
-      const cliBin = useLocalBin ? localBin : process.platform === 'win32' ? 'npx.cmd' : 'npx';
-      // DO NOT use pathToFileURL for CLI args!
+      const baseArgs = [
+         'generate',
+         '-i',
+         inputPath,
+         '-g',
+         generator,
+         '-o',
+         outputPath,
+         ...additionalArgs,
+      ].filter(Boolean);
 
-      const cliArgs = useLocalBin
-         ? [
-              'generate',
-              '-i',
-              inputPath,
-              '-g',
-              generator,
-              '-o',
-              outputPath,
-              ...additionalArgs,
-           ].filter(Boolean)
-         : [
-              'openapi-generator-cli',
-              'generate',
-              '-i',
-              inputPath,
-              '-g',
-              generator,
-              '-o',
-              outputPath,
-              ...additionalArgs,
-           ].filter(Boolean);
+      let cliBin;
+      let cliArgs;
+
+      if (useLocalBin) {
+         cliBin = localBin;
+         cliArgs = baseArgs;
+      } else {
+         // Fallback to npx if local bin doesn't exist
+         cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+         cliArgs = ['openapi-generator-cli', ...baseArgs];
+      }
 
       let logStream = null;
       let logPath = null;

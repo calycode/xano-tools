@@ -1,29 +1,36 @@
 {
-   "name": "xano-community-cli",
+   "name": "@mihalytoth20/xano-community-cli",
    "version": "0.1.1",
-   "main": "src/index.js",
+   "main": "dist/index.cjs",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
    "bin": {
-      "xcc": "src/index.js",
-      "xano-community-cli": "src/index.js"
+      "xcc": "dist/index.cjs"
    },
+   "files": [
+      "dist"
+   ],
    "scripts": {
       "xcc": "node src/index.js",
-      "xano-community-cli": "node src/index.js"
+      "xano-community-cli": "node src/index.js",
+      "update-xcc-docs": "node scripts/generate-xcc-docs.js",
+      "build": "pnpm update-xcc-docs && node scripts/build.js",
+      "prepublishOnly": "pnpm run build"
+   },
+   "private": true,
+   "publishConfig": {
+      "access": "restricted"
    },
    "keywords": [
-      "XANO",
+      "Xano",
       "cli",
       "xano-community-cli",
       "dev-tool"
    ],
-   "author": "Mihály Tóth",
+   "author": "Mihály Tóth <hello@nextcurve.hu>",
+   "license": "MIT",
    "dependencies": {
       "@clack/prompts": "^0.11.0",
-      "@openapitools/openapi-generator-cli": "^2.21.4",
-      "ajv": "^8.17.1",
-      "ajv-errors": "^3.0.0",
       "axios": "^1.11.0",
       "chalk": "^5.4.1",
       "cli-progress": "^3.12.0",
@@ -31,14 +38,16 @@
       "figlet": "^1.8.2",
       "form-data": "^4.0.4",
       "js-yaml": "^4.1.0",
-      "tar": "^7.4.3",
-      "uvu": "^0.5.6"
+      "tar": "^7.4.3"
    },
    "devDependencies": {
       "@eslint/js": "^9.32.0",
+      "esbuild": "^0.23.1",
+      "esbuild-plugin-replace": "^1.4.0",
       "eslint": "^9.12.0",
-      "eslint-plugin-filenames": "~1.3.2",
       "eslint-plugin-import": "^2.32.0",
-      "knip": "^5.62.0"
+      "knip": "^5.62.0",
+      "strip-ansi": "^7.1.0",
+      "uvu": "^0.5.6"
    }
 }

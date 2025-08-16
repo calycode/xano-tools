@@ -1,7 +1,6 @@
 export * from './feature-focused/generate-repo/generate-structure-diagrams.js'
 export * from './feature-focused/setup/fetch-workspaces-branches.js'
 export * from './feature-focused/test/custom-assertions.js'
-export * from './feature-focused/test/schema-validation.js';
 export * from './methods/api-helper.js';
 export * from './methods/choose-api-group.js';
 export * from './methods/fetch-and-extract-yaml.js';

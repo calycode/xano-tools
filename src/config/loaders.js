@@ -31,8 +31,22 @@ function saveInstanceConfig(instance, data) {
 }
 
 function loadToken(instance) {
+   // 1. Check for environment variable first.
+   // This allows for non-interactive use in CI/CD environments.
+   // e.g., for instance 'prod', it checks for XANO_TOKEN_PROD
+   const envVarName = `XANO_TOKEN_${instance.toUpperCase().replace(/-/g, '_')}`;
+   const envToken = process.env[envVarName];
+   if (envToken) {
+      return envToken;
+   }
+
+   // 2. Fallback to file-based token for local development
    const p = path.join(tokensDir, `${instance}.token`);
-   if (!fs.existsSync(p)) throw new Error(`Token not found for instance: ${instance}`);
+   if (!fs.existsSync(p)) {
+      throw new Error(
+         `Token not found for instance: ${instance}. Please provide it via the ${envVarName} environment variable or run 'xcc setup'.`
+      );
+   }
    return fs.readFileSync(p, 'utf-8').trim();
 }
 
