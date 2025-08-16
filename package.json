@@ -1,22 +1,22 @@
 {
    "name": "@mihalytoth20/xano-community-cli",
    "version": "0.1.1",
-   "main": "src/index.js",
+   "main": "dist/index.cjs",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
-   "private": true,
    "bin": {
       "xcc": "dist/index.cjs"
    },
    "files": [
-      "dist/index.js",
-      "dist/util-resources"
+      "dist"
    ],
    "scripts": {
       "xcc": "node src/index.js",
       "xano-community-cli": "node src/index.js",
-      "build": "node scripts/build.js"
+      "build": "node scripts/build.js",
+      "prepublishOnly": "npm run build"
    },
+   "private": true,
    "publishConfig": {
       "access": "restricted"
    },
@@ -26,7 +26,8 @@
       "xano-community-cli",
       "dev-tool"
    ],
-   "author": "Mihály Tóth",
+   "author": "Mihály Tóth <hello@nextcurve.hu>",
+   "license": "MIT",
    "dependencies": {
       "@clack/prompts": "^0.11.0",
       "axios": "^1.11.0",

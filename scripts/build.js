@@ -18,8 +18,12 @@ const distDir = resolve(rootDir, 'dist');
       await mkdir(distDir, { recursive: true });
       log.step('Cleaned and recreated dist directory.');
 
-      // Copy runtime assets to the dist folder
+      // Copy util-resources (xano-grammar)
       await cp(resolve(rootDir, 'util-resources'), resolve(distDir, 'util-resources'), {
+         recursive: true,
+      });
+      // Copy github actions
+      await cp(resolve(rootDir, 'src/actions'), resolve(distDir, 'actions'), {
          recursive: true,
       });
       await minifyJsonInDir(resolve(distDir, 'util-resources'));

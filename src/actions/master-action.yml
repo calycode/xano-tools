@@ -1,3 +1,5 @@
+# This action assumes that the XCC is already an NPM package and can be used
+# from a registry. Which is not the case yet.
 name: 'Xano Community CLI Action'
 description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow.'
 author: 'Xano Community'
