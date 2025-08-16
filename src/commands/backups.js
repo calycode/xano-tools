@@ -6,6 +6,8 @@ import FormData from 'form-data';
 import { spinner, select, confirm, outro, log } from '@clack/prompts';
 import { loadToken } from '../config/loaders.js';
 import {
+   addPartialContextOptions,
+   addFullContextOptions,
    loadAndValidateContext,
    metaApiRequestBlob,
    replacePlaceholders,
@@ -163,26 +165,27 @@ async function restoreBackup(instance, workspace, sourceBackup = null, forceConf
 }
 
 function registerExportBackupCommand(program) {
-   program
+   const cmd = program
       .command('export-backup')
-      .description('Backup Xano Workspace via Metadata API')
-      .option('--instance <instance>')
-      .option('--workspace <workspace>')
-      .option('--branch <branch>')
-      .action(
-         withErrorHandler(async (options) => {
-            await exportBackup(options.instance, options.workspace, options.branch);
-         })
-      );
+      .description('Backup Xano Workspace via Metadata API');
+
+   addFullContextOptions(cmd);
+
+   cmd.action(
+      withErrorHandler(async (options) => {
+         await exportBackup(options.instance, options.workspace, options.branch);
+      })
+   );
 }
 
 function registerRestoreBackupCommand(program) {
-   program
+   const cmd = program
       .command('restore-backup')
-      .description('Restore a backup to a Xano Workspace via Metadata API')
-      .option('--instance <instance>')
-      .option('--workspace <workspace>')
-      .option('--source-backup <file>', 'Path to the backup file to restore')
+      .description('Restore a backup to a Xano Workspace via Metadata API');
+
+   addPartialContextOptions(cmd);
+
+   cmd.option('--source-backup <file>', 'Path to the backup file to restore')
       .option('--force', 'Force restoration without confirmation')
       .action(
          withErrorHandler(async (options) => {

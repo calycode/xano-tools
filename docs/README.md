@@ -18,4 +18,4 @@ Supercharge your Xano workflow: automate backups, docs, testing, and version con
 - [test-via-oas](commands/test-via-oas.md)
 - [current-context](commands/current-context.md)
 
-Need further help? Visit https://github.com/MihalyToth20/xano-community-cli or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Skool](https://www.skool.com/snappy)
+Need further help? Visit https://github.com/MihalyToth20/xano-community-cli or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/snappy)

@@ -1,6 +1,8 @@
 import { log, outro, intro } from '@clack/prompts';
 import { loadToken } from '../config/loaders.js';
 import {
+   addApiGroupOptions,
+   addFullContextOptions,
    chooseApiGroupOrAll,
    loadAndValidateContext,
    withErrorHandler,
@@ -44,25 +46,18 @@ async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
 }
 
 function registerGenerateOasCommand(program) {
-   program
+   const cmd = program
       .command('generate-oas')
-      .description('Update and generate OpenAPI spec(s) for the current context.')
-      .option('--instance <instance>')
-      .option('--workspace <workspace>')
-      .option('--branch <branch>')
-      .option('--group <name>', 'API group to update')
-      .option('--all', 'Regenerate for all API groups in workspace/branch')
-      .action(
-         withErrorHandler(async (opts) => {
-            await updateOpenapiSpec(
-               opts.instance,
-               opts.workspace,
-               opts.branch,
-               opts.group,
-               opts.all
-            );
-         })
-      );
+      .description('Update and generate OpenAPI spec(s) for the current context.');
+
+   addFullContextOptions(cmd);
+   addApiGroupOptions(cmd);
+
+   cmd.action(
+      withErrorHandler(async (opts) => {
+         await updateOpenapiSpec(opts.instance, opts.workspace, opts.branch, opts.group, opts.all);
+      })
+   );
 }
 
 export { registerGenerateOasCommand };

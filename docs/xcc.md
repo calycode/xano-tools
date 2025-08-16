@@ -10,6 +10,8 @@ Usage: xcc <command> [options]
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
 
+Current version: 0.1.1
+
 Options:
   -v, --version   output the version number
   -h, --help      display help for command

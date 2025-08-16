@@ -1,6 +1,7 @@
 import { mkdir } from 'fs/promises';
 import { loadToken } from '../config/loaders.js';
 import {
+   addFullContextOptions,
    fetchAndExtractYaml,
    loadAndValidateContext,
    replacePlaceholders,
@@ -48,27 +49,26 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
 }
 
 function registerGenerateRepoCommand(program) {
-   program
+   const cmd = program
       .command('generate-repo')
       .description('Process Xano workspace into repo structure')
       .option('--input <file>', 'workspace yaml file')
-      .option('--output <dir>', 'output directory (overrides config)')
-      .option('--instance <instance>')
-      .option('--workspace <workspace>')
-      .option('--branch <branch>')
-      .option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano')
-      .action(
-         withErrorHandler(async (opts) => {
-            await generateRepo(
-               opts.instance,
-               opts.workspace,
-               opts.branch,
-               opts.input,
-               opts.output,
-               opts.fetch
-            );
-         })
-      );
+      .option('--output <dir>', 'output directory (overrides config)');
+
+   addFullContextOptions(cmd);
+
+   cmd.option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano').action(
+      withErrorHandler(async (opts) => {
+         await generateRepo(
+            opts.instance,
+            opts.workspace,
+            opts.branch,
+            opts.input,
+            opts.output,
+            opts.fetch
+         );
+      })
+   );
 }
 
 export { registerGenerateRepoCommand };

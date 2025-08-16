@@ -28,7 +28,9 @@ program
     chalk.white('automate ') + chalk.bold.cyan('backups') + chalk.white(', ') +
     chalk.bold.cyan('docs') + chalk.white(', ') +
     chalk.bold.cyan('testing') + chalk.white(', and ') +
-    chalk.bold.cyan('version control') + chalk.white(' — no AI guesswork, just reliable, transparent dev tools.')
+    chalk.bold.cyan('version control') + chalk.white(' — no AI guesswork, just reliable, transparent dev tools.') +
+    '\n\n' +
+    `Current version: ${version}`
   );
 
 // --- Register your commands here ---
