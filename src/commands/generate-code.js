@@ -1,6 +1,8 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
-import {  loadToken } from '../config/loaders.js';
+import { loadToken } from '../config/loaders.js';
 import {
+   addApiGroupOptions,
+   addFullContextOptions,
    chooseApiGroupOrAll,
    loadAndValidateContext,
    metaApiGet,
@@ -24,8 +26,7 @@ async function generateCodeFromOas(
    },
    logger = false
 ) {
-
-   const startTime = new Date;
+   const startTime = new Date();
    intro('🔄 Starting to generate code');
 
    const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
@@ -51,7 +52,6 @@ async function generateCodeFromOas(
 
    // 3. For each group selected, regenerate OpenAPI spec
    for (const group of groups) {
-
       const s = spinner();
       s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
 
@@ -93,20 +93,19 @@ async function generateCodeFromOas(
 }
 
 function registerGenerateCodeCommand(program) {
-   program
+   const cmd = program
       .command('generate-code')
       .description(
          'Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.'
-      )
-      .option('--instance <instance>')
-      .option('--workspace <workspace>')
-      .option('--branch <branch>')
-      .option('--group <name>', 'API group to update')
-      .option('--all', 'Regenerate for all API groups in workspace/branch')
-      .option(
-         '--generator <generator>',
-         'Generator to use, see all options at: https://openapi-generator.tech/docs/generators'
-      )
+      );
+
+   addFullContextOptions(cmd);
+   addApiGroupOptions(cmd);
+
+   cmd.option(
+      '--generator <generator>',
+      'Generator to use, see all options at: https://openapi-generator.tech/docs/generators'
+   )
       .option(
          '--args <args>',
          'Additional arguments to pass to the generator. See https://openapi-generator.tech/docs/usage#generate'

@@ -9,6 +9,7 @@ import {
    withErrorHandler,
    replacePlaceholders,
    sanitizeFileName,
+   addFullContextOptions,
 } from '../utils/index.js';
 
 async function fetchFunctionsInXanoScript(instance, workspace, branch) {
@@ -94,17 +95,17 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch) {
 }
 
 function registerFetchFunctionsInXanoScript(program) {
-   program
+   const cmd = program
       .command('generate-functions')
-      .description('Analyze the functions available in the current (or provided) context.')
-      .option('--instance <instance>')
-      .option('--workspace <workspace>')
-      .option('--branch <branch>')
-      .action(
-         withErrorHandler(async (opts) => {
-            await fetchFunctionsInXanoScript(opts.instance, opts.workspace, opts.branch);
-         })
-      );
+      .description('Analyze the functions available in the current (or provided) context.');
+
+   addFullContextOptions(cmd);
+
+   cmd.action(
+      withErrorHandler(async (opts) => {
+         await fetchFunctionsInXanoScript(opts.instance, opts.workspace, opts.branch);
+      })
+   );
 }
 
 export { registerFetchFunctionsInXanoScript };

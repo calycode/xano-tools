@@ -1,6 +1,10 @@
 import { select, intro, outro, log } from '@clack/prompts';
 import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders.js';
-import { getCurrentContextConfig, withErrorHandler } from '../utils/index.js';
+import {
+   getCurrentContextConfig,
+   withErrorHandler,
+   addFullContextOptions,
+} from '../utils/index.js';
 
 /**
  * Helper to select or validate an option from a list
@@ -86,17 +90,13 @@ async function switchContextPrompt({
 }
 
 function registerSwitchContextCommand(program) {
-   program
-      .command('switch-context')
-      .description('Switch instance/workspace context')
-      .option('--instance <instance>', 'The name of your instance')
-      .option('--workspace <workspace>', 'The name of your workspace')
-      .option('--branch <branch>', 'The name of your branch')
-      .action(
-         withErrorHandler(async (opts) => {
-            await switchContextPrompt(opts);
-         })
-      );
+   const cmd = program.command('switch-context').description('Switch instance/workspace context');
+   addFullContextOptions(cmd);
+   cmd.action(
+      withErrorHandler(async (opts) => {
+         await switchContextPrompt(opts);
+      })
+   );
 }
 
 function registerCurrentContextCommand(program) {
