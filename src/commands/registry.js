@@ -1,10 +1,12 @@
-import { multiselect, intro, log } from '@clack/prompts';
+import { intro, log } from '@clack/prompts';
 import {
    addFullContextOptions,
    fetchRegistryFileContent,
-   getRegistryIndex,
    getRegistryItem,
    loadAndValidateContext,
+   promptForComponents,
+   scaffoldRegistry,
+   sortFilesByType,
    withErrorHandler,
 } from '../utils/index.js';
 import { loadToken } from '../config/loaders.js';
@@ -25,8 +27,9 @@ async function addToXano(componentNames, context = {}) {
    for (const componentName of componentNames) {
       try {
          const registryItem = await getRegistryItem(componentName);
-         // [ ] TODO: add sorting of registry item files where the table is the first, function comes second and queries come las
-         for (const file of registryItem.files) {
+         // [ ] TODO: add sorting of registry item files where the table is the first, function comes second and queries come last
+         const sortedFiles = sortFilesByType(registryItem.files);
+         for (const file of sortedFiles) {
             const success = await installComponentToXano(file, {
                instanceConfig,
                workspaceConfig,
@@ -105,33 +108,16 @@ async function installComponentToXano(file, resolvedContext) {
    }
 }
 
-async function promptForComponents() {
-   try {
-      const registry = await getRegistryIndex();
-      const selectedComponents = await multiselect({
-         message: 'Select components to install:',
-         options: (registry.items || []).map((item) => ({
-            value: item.name,
-            label: `[${item.type.split(':').pop()}] ${item.title}`,
-         })),
-      });
-      return selectedComponents;
-   } catch (error) {
-      console.error('Failed to fetch available components:', error);
-      return [];
-   }
-}
-
 function registerRegistryAddCommand(program) {
    const cmd = program
       .command('registry-add')
-      .description('Add a component to the current Xano context.');
+      .description('Add a prebuilt component to the current Xano context.');
 
    addFullContextOptions(cmd);
    cmd.option('--components', 'Comma-separated list of components to add')
       .option(
          '--registry <url>',
-         'URL to the component registry. Default: http://localhost:3000/registry-definitions'
+         'URL to the component registry. Default: http://localhost:5500/registry-definitions'
       )
       .action(
          withErrorHandler(async (options) => {
@@ -148,4 +134,25 @@ function registerRegistryAddCommand(program) {
       );
 }
 
-export { registerRegistryAddCommand };
+function registerRegistryScaffoldCommand(program) {
+   program
+      .command('registry-scaffold')
+      .description(
+         'Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://nextcurve.hu/schemas/registry/registry.json) and [registry item](https://nextcurve.hu/schemas/registry/registry-item.json) schemas.'
+      )
+      .option('--output <path>', 'Output path for the registry')
+      .option(
+         '--instance <instance>',
+         'The instance name. This is used to fetch the instance configuration. The value provided at the setup command.'
+      )
+      .action(
+         withErrorHandler(async (options) => {
+            await scaffoldRegistry({
+               outputPath: options.output,
+               instance: options.instance,
+            });
+         })
+      );
+}
+
+export { registerRegistryAddCommand, registerRegistryScaffoldCommand };
