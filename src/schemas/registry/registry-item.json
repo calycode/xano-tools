@@ -1,0 +1,138 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "The name of the item. This is used to identify the item in the registry. It should be unique for your registry. It can contain '/' to indicate hieararchy."
+        },
+        "type": {
+            "type": "string",
+            "enum": [
+                "registry:table",
+                "registry:function",
+                "registry:query",
+                "registry:snippet",
+                "registry:file",
+                "registry:item"
+            ],
+            "description": "The type of the item. This is used to determine the type and target path of the item when resolved for a Xano instance."
+        },
+        "description": {
+            "type": "string",
+            "description": "The description of the item. This is used to provide a **brief** overview of the item."
+        },
+        "title": {
+            "type": "string",
+            "description": "The human-readable title for your registry item. Keep it short and descriptive. This can be used for searching or selecting in the CLI."
+        },
+        "author": {
+            "type": "string",
+            "description": "The author of the item. Recommended format: username \u003Curl\u003E"
+        },
+        "registryDependencies": {
+            "type": "array",
+            "description": "An array of registry items that this item depends on. Use the name of the item to reference it. Referencing items in external registries is NOT supported.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "files": {
+            "type": "array",
+            "description": "The main payload of the registry item. This is an array of files that are part of the registry item. Each file is an object with a path, content, type, and target.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The path to the file relative to the registry root."
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The content of the file. Optional."
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "registry:table",
+                            "registry:function",
+                            "registry:query",
+                            "registry:snippet",
+                            "registry:file",
+                            "registry:item"
+                        ],
+                        "description": "The type of the file. This is used to determine the type of the file when resolved for a Xano instance and is also used to determine the required Metadata API path for resolution."
+                    },
+                    "target": {
+                        "type": "string",
+                        "description": "The target path of the file. This is the path to the file in the project."
+                    },
+                    "api-group-name": {
+                        "type": "string",
+                        "description": "The name of the api group into which a specific registry:query should be added. Only required for registry:query."
+                    }
+                },
+                "if": {
+                    "properties": {
+                        "type": {
+                            "enum": [
+                                "registry:file"
+                            ]
+                        }
+                    }
+                },
+                "then": {
+                    "required": [
+                        "path",
+                        "type",
+                        "target"
+                    ]
+                },
+                "else": {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "enum": [
+                                    "registry:query"
+                                ]
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "path",
+                            "type",
+                            "api-group-name"
+                        ]
+                    },
+                    "else": {
+                        "required": [
+                            "path",
+                            "type"
+                        ]
+                    }
+                }
+            },
+            "meta": {
+                "type": "object",
+                "description": "Additional metadata for the registry item. This is an object with any key value pairs. Put here anything that Xano can meaningfully accept or that helps you identify the current item. e.g. updated_at or similar.",
+                "additionalProperties": true
+            },
+            "docs": {
+                "type": "string",
+                "description": "The documentation for the registry item. This is a markdown string."
+            },
+            "categories": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "description": "The categories of the registry item. This is an array of strings. Helps in search and categorisation."
+                }
+            }
+        }
+    },
+    "required": [
+        "name",
+        "type"
+    ]
+}

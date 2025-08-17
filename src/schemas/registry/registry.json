@@ -1,0 +1,26 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "description": "A Xano registry of tables, functions, queries, snippets, etc...",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "homepage": {
+            "type": "string"
+        },
+        "items": {
+            "type": "array",
+            "items": {
+                "$ref": "https://nextcurve.hu/schemas/registry/registry-item.json"
+            }
+        }
+    },
+    "required": [
+        "name",
+        "homepage",
+        "items"
+    ],
+    "uniqueItems": true,
+    "minItems": 1
+}
