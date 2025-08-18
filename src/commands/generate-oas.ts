@@ -16,7 +16,6 @@ async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
          instance,
          workspace,
          branch,
-         group,
       });
 
       // 2. Get API groups (prompt or all)

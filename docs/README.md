@@ -9,6 +9,7 @@ Supercharge your Xano workflow: automate backups, docs, testing, and version con
 - [setup](commands/setup.md)
 - [switch-context](commands/switch-context.md)
 - [generate-oas](commands/generate-oas.md)
+- [oas-serve](commands/oas-serve.md)
 - [generate-code](commands/generate-code.md)
 - [generate-repo](commands/generate-repo.md)
 - [generate-functions](commands/generate-functions.md)

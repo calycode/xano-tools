@@ -35,6 +35,9 @@ Code Generation:
   generate-oas        -h, --help
     Update and generate OpenAPI spec(s) for the current context.
 
+  oas-serve           -h, --help
+    Serve the Open API specification locally for quick visual check.
+
   generate-code       -h, --help
     Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.
 
@@ -51,6 +54,9 @@ Registry:
 
   registry-scaffold   -h, --help
     Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://nextcurve.hu/schemas/registry/registry.json) and [registry item](https://nextcurve.hu/schemas/registry/registry-item.json) schemas.
+
+  registry-serve      -h, --help
+    Serve the registry locally. This allows you to actually use your registry without deploying it.
 
 
 Backup & Restore:

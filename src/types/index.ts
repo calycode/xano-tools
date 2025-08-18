@@ -12,6 +12,9 @@ export interface InstanceConfig {
    url: string;
    tokenFile: string;
    workspaces?: WorkspaceConfig[];
+   openApiSpec?: {
+      output: string;
+   };
    // ... other fields
 }
 
