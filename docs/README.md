@@ -14,6 +14,7 @@ Supercharge your Xano workflow: automate backups, docs, testing, and version con
 - [generate-functions](commands/generate-functions.md)
 - [registry-add](commands/registry-add.md)
 - [registry-scaffold](commands/registry-scaffold.md)
+- [registry-serve](commands/registry-serve.md)
 - [export-backup](commands/export-backup.md)
 - [restore-backup](commands/restore-backup.md)
 - [lint](commands/lint.md)

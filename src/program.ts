@@ -13,6 +13,7 @@ import { registerLintCommand } from './commands/run-lint';
 import { registerSetupCommand } from './commands/setup-instance';
 import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
+import { registerRegistryServeCommand } from './commands/serve';
 
 const { version } = pkg;
 const program = new Command();
@@ -53,6 +54,7 @@ registerGenerateRepoCommand(program);
 registerFetchFunctionsInXanoScript(program);
 registerRegistryAddCommand(program);
 registerRegistryScaffoldCommand(program);
+registerRegistryServeCommand(program);
 registerExportBackupCommand(program);
 registerRestoreBackupCommand(program);
 registerLintCommand(program);
