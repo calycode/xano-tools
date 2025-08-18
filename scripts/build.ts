@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { intro, outro, log } from '@clack/prompts';
-import { minifyJsonInDir } from './minify-json-in-dir.js';
+import { minifyJsonInDir } from './minify-json-in-dir';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
@@ -53,7 +53,7 @@ const distDir = resolve(rootDir, 'dist');
          'Build complete. You can analyze the bundle with https://esbuild.github.io/analyze/ by uploading dist/meta.json'
       );
    } catch (error) {
-      log.error('Build failed:', error);
+      log.error(`Build failed: ${JSON.stringify(error, null, 2)}`);
       process.exit(1);
    }
 })();

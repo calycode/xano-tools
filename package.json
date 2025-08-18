@@ -14,7 +14,7 @@
       "xcc": "tsx src/index.ts",
       "xano-community-cli": "tsx src/index.ts",
       "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
-      "build": "pnpm update-xcc-docs && node scripts/build.js",
+      "build": "pnpm update-xcc-docs && tsx scripts/build.ts",
       "prepublishOnly": "pnpm run build",
       "serve-registry": "npx serve registry --listen 3030"
    },
