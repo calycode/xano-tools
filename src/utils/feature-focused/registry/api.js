@@ -1,5 +1,5 @@
 const registryCache = new Map();
-const REGISTRY_URL = process.env.XCC_REGISTRY_URL || 'http://localhost:5500/registry-definitions';
+const REGISTRY_URL = process.env.XCC_REGISTRY_URL || 'http://localhost:5500/registry/definitions';
 
 /**
  * Fetch one or more registry paths, with caching.

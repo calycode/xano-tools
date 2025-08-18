@@ -15,7 +15,8 @@
       "xano-community-cli": "node src/index.js",
       "update-xcc-docs": "node scripts/generate-xcc-docs.js",
       "build": "pnpm update-xcc-docs && node scripts/build.js",
-      "prepublishOnly": "pnpm run build"
+      "prepublishOnly": "pnpm run build",
+      "serve-registry": "npx serve registry --listen 3030"
    },
    "private": true,
    "publishConfig": {

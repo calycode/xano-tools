@@ -2,6 +2,7 @@ import { intro, log } from '@clack/prompts';
 import {
    addFullContextOptions,
    fetchRegistryFileContent,
+   getApiGroupByName,
    getRegistryItem,
    loadAndValidateContext,
    promptForComponents,
@@ -54,7 +55,6 @@ async function addToXano(componentNames, context = {}) {
 
 /**
  * Function that creates the required components in Xano.
- * WIP: queries are to be done.
  *
  * @param {*} file
  * @param {*} resolvedContext
@@ -63,31 +63,29 @@ async function addToXano(componentNames, context = {}) {
 async function installComponentToXano(file, resolvedContext) {
    const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
 
-   //[ ] TODO: add 'registry:query' url, but that needs to also take into account the existence of a target api group.
-   // So in order to add 'query' we need to also do a 'check existing api groups > find the currently provided name > select the id || create new api group with provided name > select id' and then proceed.
-   // When query is added, remove the if()
-   if (file.type === 'registry:query') return false;
    const urlMapping = {
       'registry:function': `workspace/${workspaceConfig.id}/function?branch=${branchConfig.label}`,
       'registry:table': `workspace/${workspaceConfig.id}/table`,
    };
+
+   // If query, extend the default urlMapping with the populated query creation API group.
+   if (file.type === 'registry:query') {
+      const targetApiGroup = await getApiGroupByName(file['api-group-name'], {
+         instanceConfig,
+         workspaceConfig,
+         branchConfig,
+      });
+
+      urlMapping[
+         'registry:query'
+      ] = `workspace/${workspaceConfig.id}/apigroup/${targetApiGroup.id}/api?branch=${branchConfig.label}`;
+   }
+
    const xanoToken = loadToken(instanceConfig.name);
    const xanoApiUrl = `${instanceConfig.url}/api:meta`;
 
    try {
       // [ ] TODO: implement override checking. For now just try the POST and Xano will throw error anyways...
-      /*
-      if (!overwrite) {
-         const existsResponse = await fetch(`${xanoApiUrl}/metadata/${file.target || file.path}`, {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${xanoToken}`, 'Content-Type': 'application/json' },
-         });
-         if (existsResponse.ok) {
-            console.log(`File ${file.target || file.path} already exists, skipping...`);
-            return false;
-         }
-      }
-*/
 
       // Fetch the text content of the registry file (xano-script)
       const content = await fetchRegistryFileContent(file.path);
@@ -117,7 +115,7 @@ function registerRegistryAddCommand(program) {
    cmd.option('--components', 'Comma-separated list of components to add')
       .option(
          '--registry <url>',
-         'URL to the component registry. Default: http://localhost:5500/registry-definitions'
+         'URL to the component registry. Default: http://localhost:5500/registry/definitions'
       )
       .action(
          withErrorHandler(async (options) => {
