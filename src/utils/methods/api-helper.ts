@@ -46,7 +46,7 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
 }
 
 // Main JSON request
-export async function metaApiRequest({
+async function metaApiRequest({
    baseUrl,
    token,
    method = 'GET',
@@ -115,5 +115,3 @@ function makeMetaApiMethod<M extends HTTPMethod>(method: M) {
 // Exported helpers
 export const metaApiGet = makeMetaApiMethod('GET');
 export const metaApiPost = makeMetaApiMethod('POST');
-export const metaApiPut = makeMetaApiMethod('PUT');
-export const metaApiDelete = makeMetaApiMethod('DELETE');

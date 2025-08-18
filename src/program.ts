@@ -13,6 +13,7 @@ import { registerLintCommand } from './commands/run-lint';
 import { registerSetupCommand } from './commands/setup-instance';
 import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
+import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 
 const { version } = pkg;
 const program = new Command();
@@ -48,11 +49,13 @@ program
 registerSetupCommand(program);
 registerSwitchContextCommand(program);
 registerGenerateOasCommand(program);
+registerOasServeCommand(program);
 registerGenerateCodeCommand(program);
 registerGenerateRepoCommand(program);
 registerFetchFunctionsInXanoScript(program);
 registerRegistryAddCommand(program);
 registerRegistryScaffoldCommand(program);
+registerRegistryServeCommand(program);
 registerExportBackupCommand(program);
 registerRestoreBackupCommand(program);
 registerLintCommand(program);
@@ -79,11 +82,11 @@ program.configureHelp({
       },
       {
         title: chalk.bold.cyan('Code Generation:'),
-        commands: ['generate-oas', 'generate-code', 'generate-repo', 'generate-functions'],
+        commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-functions'],
       },
       {
         title: chalk.bold.cyan('Registry:'),
-        commands: ['registry-add', 'registry-scaffold'],
+        commands: ['registry-add', 'registry-scaffold', 'registry-serve'],
       },
       {
         title: chalk.bold.cyan('Backup & Restore:'),
