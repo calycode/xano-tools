@@ -88,6 +88,9 @@ async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
       backups: {
          output: 'output/{instance}/backups/{workspace}/{branch}',
       },
+      registry: {
+         output: 'registry'
+      },
       workspaces,
    });
    log.step('Stored instance configuration.');

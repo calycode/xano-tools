@@ -12,6 +12,7 @@ import { registerGenerateRepoCommand } from './commands/generate-repo.js';
 import { registerLintCommand } from './commands/run-lint.js';
 import { registerSetupCommand } from './commands/setup-instance.js';
 import { registerTestViaOasCommand } from './commands/run-tests.js';
+import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry.js';
 
 const { version } = pkg;
 const program = new Command();
@@ -50,6 +51,8 @@ registerGenerateOasCommand(program);
 registerGenerateCodeCommand(program);
 registerGenerateRepoCommand(program);
 registerFetchFunctionsInXanoScript(program);
+registerRegistryAddCommand(program);
+registerRegistryScaffoldCommand(program);
 registerExportBackupCommand(program);
 registerRestoreBackupCommand(program);
 registerLintCommand(program);
@@ -77,6 +80,10 @@ program.configureHelp({
       {
         title: chalk.bold.cyan('Code Generation:'),
         commands: ['generate-oas', 'generate-code', 'generate-repo', 'generate-functions'],
+      },
+      {
+        title: chalk.bold.cyan('Registry:'),
+        commands: ['registry-add', 'registry-scaffold'],
       },
       {
         title: chalk.bold.cyan('Backup & Restore:'),

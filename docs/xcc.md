@@ -45,6 +45,14 @@ Code Generation:
     Analyze the functions available in the current (or provided) context.
 
 
+Registry:
+  registry-add        -h, --help
+    Add a prebuilt component to the current Xano context.
+
+  registry-scaffold   -h, --help
+    Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://nextcurve.hu/schemas/registry/registry.json) and [registry item](https://nextcurve.hu/schemas/registry/registry-item.json) schemas.
+
+
 Backup & Restore:
   export-backup       -h, --help
     Backup Xano Workspace via Metadata API
