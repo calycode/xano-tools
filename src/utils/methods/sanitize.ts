@@ -13,7 +13,7 @@ const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
    toLowerCase: true,
 };
 
-export function sanitizeString(input: string, options: SanitizeOptions = {}): string {
+function sanitizeString(input: string, options: SanitizeOptions = {}): string {
    // Merge user options with defaults
    const opts = { ...defaultOptions, ...options };
 

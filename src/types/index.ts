@@ -106,9 +106,9 @@ export type TableSchemaItem = Schema;
 
 // ---- OpenAPI Parameter Types ----
 
-export type ParamLocation = 'path' | 'query' | 'header' | 'cookie';
+type ParamLocation = 'path' | 'query' | 'header' | 'cookie';
 
-export interface Parameter {
+interface Parameter {
    name: string;
    in: ParamLocation;
    schema?: Schema;

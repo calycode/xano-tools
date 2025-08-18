@@ -1,9 +1,6 @@
 import importPlugin from 'eslint-plugin-import';
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-// If you want Prettier integration, uncomment below:
-// import prettier from 'eslint-config-prettier';
 
 export default [
    js.configs.recommended,
@@ -43,7 +40,7 @@ export default [
       files: ['**/*.ts'],
       ignores: ['node_modules/**', 'dist/**', 'output/**'],
       languageOptions: {
-         parser: tsParser,
+         parser: '@typescript-eslint/parser',
          parserOptions: {
             project: './tsconfig.json',
             sourceType: 'module',
@@ -86,6 +83,4 @@ export default [
          },
       },
    },
-   // Optional: Prettier integration at the end, uncomment if using Prettier
-   // prettier,
 ];
