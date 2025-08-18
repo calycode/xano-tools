@@ -1,50 +1,74 @@
 import { loadGlobalConfig, loadInstanceConfig } from '../../config/loaders';
+import {
+   Context,
+   InstanceConfig,
+   WorkspaceConfig,
+   BranchConfig,
+   ApiGroupConfig,
+   CurrentContextConfig,
+} from '../../types';
 
 /**
  * Safely loads the config for the current context.
- * Returns { instanceConfig, workspaceConfig, apigroupConfig }
+ * Returns { instanceConfig, workspaceConfig, branchConfig, apigroupConfig }
  * If any level is not found, returns null for that level.
  */
 export function getCurrentContextConfig(
-   globalConfig = null,
-   context: { instance?: string; workspace?: string; branch?: string; apigroup?: string } = {}
-) {
+   globalConfig?: any,
+   context: Context = {}
+): CurrentContextConfig {
    if (!globalConfig) globalConfig = loadGlobalConfig();
 
-   context.instance = context.instance || globalConfig.currentContext?.instance || null;
-   context.workspace = context.workspace || globalConfig.currentContext?.workspace || null;
-   context.branch = context.branch || globalConfig.currentContext?.branch || null;
-   context.apigroup = context.apigroup || globalConfig.currentContext?.apigroup || null;
+   const resolvedContext: Context = {
+      instance: context.instance ?? globalConfig.currentContext?.instance ?? null,
+      workspace: context.workspace ?? globalConfig.currentContext?.workspace ?? null,
+      branch: context.branch ?? globalConfig.currentContext?.branch ?? null,
+      apigroup: context.apigroup ?? globalConfig.currentContext?.apigroup ?? null,
+   };
 
-   let { instance, workspace, branch, apigroup } = context;
-   let instanceConfig = null,
-      workspaceConfig = null,
-      branchConfig = null,
-      apigroupConfig = null;
+   const { instance, workspace, branch, apigroup } = resolvedContext;
 
-   if (instance) {
-      try {
-         instanceConfig = loadInstanceConfig(instance);
-      } catch {
-         return {};
-      }
+   let instanceConfig: InstanceConfig | null = null;
+   let workspaceConfig: WorkspaceConfig | null = null;
+   let branchConfig: BranchConfig | null = null;
+   let apigroupConfig: ApiGroupConfig | null = null;
+
+   if (!instance) {
+      return {
+         instanceConfig: null,
+         workspaceConfig: null,
+         branchConfig: null,
+         apigroupConfig: null,
+      };
+   }
+
+   try {
+      instanceConfig = loadInstanceConfig(instance);
+   } catch {
+      return {
+         instanceConfig: null,
+         workspaceConfig: null,
+         branchConfig: null,
+         apigroupConfig: null,
+      };
    }
 
    if (instanceConfig && workspace) {
       workspaceConfig =
-         (instanceConfig.workspaces || []).find(
-            (ws) => ws.id == workspace || ws.name === workspace
-         ) || null;
+         (instanceConfig.workspaces ?? []).find(
+            (ws) => String(ws.id) === String(workspace) || ws.name === workspace
+         ) ?? null;
    }
 
    if (workspaceConfig && branch) {
-      branchConfig = (workspaceConfig.branches || []).find((b) => b.label === branch) || null;
+      branchConfig = (workspaceConfig.branches ?? []).find((b) => b.label === branch) ?? null;
    }
 
    if (workspaceConfig && apigroup) {
       apigroupConfig =
-         (workspaceConfig.apigroups || []).find((g) => g.id == apigroup || g.name === apigroup) ||
-         null;
+         (workspaceConfig.apigroups ?? []).find(
+            (g) => String(g.id) === String(apigroup) || g.name === apigroup
+         ) ?? null;
    }
 
    return { instanceConfig, workspaceConfig, branchConfig, apigroupConfig };

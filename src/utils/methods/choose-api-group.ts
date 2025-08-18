@@ -1,5 +1,6 @@
-import { select, log } from '@clack/prompts';
+import { select } from '@clack/prompts';
 import { metaApiGet } from '../index';
+import { ApiGroup, ChooseApiGroupOrAllOptions } from '../../types';
 
 export async function chooseApiGroupOrAll({
    baseUrl,
@@ -9,49 +10,49 @@ export async function chooseApiGroupOrAll({
    promptUser = true,
    groupName = null,
    all = false,
-}) {
-   // Fetch API groups for this workspace/branch
+}: ChooseApiGroupOrAllOptions): Promise<ApiGroup[]> {
    const apiGroupsResponse = await metaApiGet({
       baseUrl,
       token,
       path: `/workspace/${workspace_id}/apigroup`,
       query: {
-        page: 1,
-        per_page: 99,
-        sort: "name",
-        order: "asc",
+         page: 1,
+         per_page: 99,
+         sort: 'name',
+         order: 'asc',
          ...(branchLabel ? { branch: branchLabel } : {}),
-      }
+      },
    });
 
-   const groups = apiGroupsResponse.items ?? [];
+   const groups: ApiGroup[] = apiGroupsResponse.items ?? [];
 
    if (!Array.isArray(groups) || groups.length === 0) {
-      log.error('No API groups found for this workspace/branch.');
-      process.exit(1);
+      throw new Error('No API groups found for this workspace/branch.');
    }
 
    if (all) return groups;
 
-   // If groupName provided, find it
    if (groupName) {
       const found = groups.find((g) => g.name === groupName);
       if (!found) {
-         log.error(`API group "${groupName}" not found.`);
-         process.exit(1);
+         throw new Error(`API group "${groupName}" not found.`);
       }
       return [found];
    }
-   // Otherwise, prompt user
+
    if (promptUser) {
       const chosen = await select({
          message: 'Select an API group:',
          options: groups.map((g) => ({
-            value: g.id,
+            value: String(g.id),
             label: g.name,
          })),
       });
-      return [groups.find((g) => g.id == chosen)];
+      if (!chosen) throw new Error('User cancelled group selection.');
+      const selected = groups.find((g) => String(g.id) === String(chosen));
+      if (!selected) throw new Error('Selected API group not found.');
+      return [selected];
    }
-   return [];
+
+   return [groups[0]];
 }

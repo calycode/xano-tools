@@ -11,7 +11,7 @@ Options:
   --branch <branch>        The branch name. This is used to select the branch
                            configuration. Same as on Xano Interface.
   --group <name>           API group name. Same as on Xano Interface.
-  --all                    Regenerate for all API groups in the workspace / branch of
-                           the current context.
+  --all                    Regenerate for all API groups in the workspace / branch
+                           of the current context.
   -h, --help               display help for command
 ```

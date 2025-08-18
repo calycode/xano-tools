@@ -1,5 +1,6 @@
 import { loadGlobalConfig } from '../../config/loaders';
 import { getCurrentContextConfig } from '../index';
+import { Context, InstanceConfig, WorkspaceConfig, BranchConfig } from '../../types';
 
 /**
  * Loads and validates the context needed for OpenAPI spec update.
@@ -7,7 +8,12 @@ import { getCurrentContextConfig } from '../index';
  * @returns {object} - { instanceConfig, workspaceConfig, branchConfig, globalConfig }
  * @throws {Error} - If any required context is missing.
  */
-function loadAndValidateContext(overrides) {
+function loadAndValidateContext(overrides: Partial<Context>): {
+   instanceConfig: InstanceConfig;
+   workspaceConfig: WorkspaceConfig;
+   branchConfig: BranchConfig;
+   globalConfig: any;
+} {
    const globalConfig = loadGlobalConfig();
    const context = { ...globalConfig.currentContext, ...overrides };
    const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(

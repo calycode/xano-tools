@@ -1,13 +1,24 @@
-import { writeFileSync } from 'fs';
-import { join } from 'path';
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
+import { join, resolve } from 'path';
 import { spinner } from '@clack/prompts';
 import { x } from 'tar';
 import { metaApiRequestBlob } from './api-helper';
+import { FetchAndExtractYamlArgs } from '../../types';
 
-export async function fetchAndExtractYaml({ baseUrl, token, workspaceId, branchLabel, outDir }) {
+/**
+ * Fetches a workspace schema archive from the API,
+ * extracts it, and returns the path to the YAML file.
+ */
+export async function fetchAndExtractYaml({
+   baseUrl,
+   token,
+   workspaceId,
+   branchLabel,
+   outDir,
+}: FetchAndExtractYamlArgs): Promise<string> {
    const s = spinner();
    s.start('Fetching workspace schema...');
+
    const tarGzBuffer = await metaApiRequestBlob({
       baseUrl,
       token,
@@ -16,15 +27,17 @@ export async function fetchAndExtractYaml({ baseUrl, token, workspaceId, branchL
       body: { branch: branchLabel },
    });
 
-   const tarGzPath = join(outDir, `workspace-schema-export-${Date.now()}.tar.gz`);
-
-   writeFileSync(tarGzPath, tarGzBuffer);
+   const tarGzPath = resolve(outDir, `workspace-schema-export-${Date.now()}.tar.gz`);
+   await fs.writeFile(tarGzPath, tarGzBuffer);
 
    // Extract .tar.gz using tar
    await x({
       file: tarGzPath,
       cwd: outDir,
    });
+
+   // Optionally clean up the archive file
+   await fs.unlink(tarGzPath).catch(() => {});
 
    // Find the .yaml file inside outDir
    const files = await fs.readdir(outDir);

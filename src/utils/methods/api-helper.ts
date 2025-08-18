@@ -1,32 +1,51 @@
-type PathParams = Record<string, string | number>;
-type QueryParams = Record<string, string | number | boolean | undefined>;
-type Headers = Record<string, string>;
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+import {
+   MetaApiRequestBlobOptions,
+   MetaApiRequestOptions,
+   PathParams,
+   QueryParams,
+   Headers,
+   HTTPMethod,
+} from '../../types';
 
-interface MetaApiRequestOptions {
-   baseUrl: string;
-   token: string;
-   method?: HTTPMethod;
-   path?: string;
-   pathParams?: PathParams;
-   query?: QueryParams;
-   body?: unknown;
-   headers?: Headers;
-   allowError?: boolean;
+// Internal shared helper for building URLs
+function buildMetaApiUrl(
+   baseUrl: string,
+   path: string = '',
+   pathParams: PathParams = {},
+   query: QueryParams = {}
+): string {
+   // Expand path params
+   let fullPath = path;
+   for (const [key, value] of Object.entries(pathParams)) {
+      fullPath = fullPath.replace(`{${key}}`, encodeURIComponent(String(value)));
+   }
+
+   // Compose base URL
+   let url = baseUrl.replace(/\/+$/, '') + '/api:meta' + fullPath;
+
+   // Query string
+   const queryString = new URLSearchParams(
+      Object.fromEntries(
+         Object.entries(query)
+            .filter(([_, v]) => v !== undefined)
+            .map(([k, v]) => [k, String(v)])
+      )
+   ).toString();
+
+   if (queryString) url += '?' + queryString;
+   return url;
 }
 
-interface MetaApiRequestBlobOptions {
-   baseUrl: string;
-   token: string;
-   method?: HTTPMethod;
-   path?: string;
-   pathParams?: PathParams;
-   query?: QueryParams;
-   body?: unknown;
-   headers?: Headers;
+// Internal shared helper for headers
+function buildHeaders(token: string, headers: Headers = {}, body: unknown = null): Headers {
+   return {
+      ...headers,
+      Authorization: `Bearer ${token}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+   };
 }
 
-// ESM style
+// Main JSON request
 export async function metaApiRequest({
    baseUrl,
    token,
@@ -38,31 +57,9 @@ export async function metaApiRequest({
    headers = {},
    allowError = false,
 }: MetaApiRequestOptions): Promise<any> {
-   // Expand path params (e.g. /workspace/{workspace_id} -> /workspace/123)
-   let fullPath = path;
-   for (const [key, value] of Object.entries(pathParams)) {
-      fullPath = fullPath.replace(`{${key}}`, encodeURIComponent(String(value)));
-   }
+   const url = buildMetaApiUrl(baseUrl, path, pathParams, query);
+   const fetchHeaders = buildHeaders(token, headers, body);
 
-   // Add query string
-   let url = baseUrl.replace(/\/+$/, '') + '/api:meta' + fullPath;
-   const queryString = new URLSearchParams(
-      Object.fromEntries(
-         Object.entries(query)
-            .filter(([_, v]) => v !== undefined)
-            .map(([k, v]) => [k, String(v)])
-      )
-   ).toString();
-   if (queryString) url += '?' + queryString;
-
-   // Compose headers
-   const fetchHeaders: Headers = {
-      ...headers,
-      Authorization: `Bearer ${token}`,
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-   };
-
-   // Make the request
    const res = await fetch(url, {
       method,
       headers: fetchHeaders,
@@ -83,6 +80,7 @@ export async function metaApiRequest({
    return result;
 }
 
+// Main blob request
 export async function metaApiRequestBlob({
    baseUrl,
    token,
@@ -93,25 +91,8 @@ export async function metaApiRequestBlob({
    body = null,
    headers = {},
 }: MetaApiRequestBlobOptions): Promise<Buffer> {
-   let fullPath = path;
-   for (const [key, value] of Object.entries(pathParams)) {
-      fullPath = fullPath.replace(`{${key}}`, encodeURIComponent(String(value)));
-   }
-   let url = baseUrl.replace(/\/+$/, '') + '/api:meta' + fullPath;
-   const queryString = new URLSearchParams(
-      Object.fromEntries(
-         Object.entries(query)
-            .filter(([_, v]) => v !== undefined)
-            .map(([k, v]) => [k, String(v)])
-      )
-   ).toString();
-   if (queryString) url += '?' + queryString;
-
-   const fetchHeaders: Headers = {
-      ...headers,
-      Authorization: `Bearer ${token}`,
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-   };
+   const url = buildMetaApiUrl(baseUrl, path, pathParams, query);
+   const fetchHeaders = buildHeaders(token, headers, body);
 
    const res = await fetch(url, {
       method,
@@ -123,24 +104,16 @@ export async function metaApiRequestBlob({
       throw new Error(`Xano API ${method} ${url} failed: ${res.statusText} (${res.status})`);
    }
    const buffer = await res.arrayBuffer();
-   return Buffer.from(buffer); // Node.js Buffer
-}
-// Optional: helper for common GET
-export function metaApiGet(opts) {
-   return metaApiRequest({ ...opts, method: 'GET' });
+   return Buffer.from(buffer);
 }
 
-// Optional: helper for common POST
-export function metaApiPost(opts) {
-   return metaApiRequest({ ...opts, method: 'POST' });
+// Factory for HTTP method helpers
+function makeMetaApiMethod<M extends HTTPMethod>(method: M) {
+   return (opts: Omit<MetaApiRequestOptions, 'method'>) => metaApiRequest({ ...opts, method });
 }
 
-// Optional: helper for common PUT
-export function metaApiPut(opts) {
-   return metaApiRequest({ ...opts, method: 'PUT' });
-}
-
-// Optional: helper for common DELETE
-export function metaApiDelete(opts) {
-   return metaApiRequest({ ...opts, method: 'DELETE' });
-}
+// Exported helpers
+export const metaApiGet = makeMetaApiMethod('GET');
+export const metaApiPost = makeMetaApiMethod('POST');
+export const metaApiPut = makeMetaApiMethod('PUT');
+export const metaApiDelete = makeMetaApiMethod('DELETE');

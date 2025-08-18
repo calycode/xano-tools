@@ -1,14 +1,5 @@
 // src/utils/sanitize.ts
-
-export type SanitizeOptions = {
-   normalizeUnicode?: boolean; // NFKD normalization (default: true)
-   removeDiacritics?: boolean; // (default: true)
-   allowedCharsRegex?: RegExp; // (default: /a-zA-Z0-9_-/)
-   replacementChar?: string; // (default: '-')
-   collapseRepeats?: boolean; // (default: true)
-   trimReplacement?: boolean; // (default: true)
-   toLowerCase?: boolean; // (default: true)
-};
+import { SanitizeOptions } from '../../types';
 
 const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
    allowedCharsRegex: RegExp;
