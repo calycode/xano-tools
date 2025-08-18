@@ -11,9 +11,9 @@
       "dist"
    ],
    "scripts": {
-      "xcc": "node src/index.js",
-      "xano-community-cli": "node src/index.js",
-      "update-xcc-docs": "node scripts/generate-xcc-docs.js",
+      "xcc": "tsx src/index.ts",
+      "xano-community-cli": "tsx src/index.ts",
+      "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
       "build": "pnpm update-xcc-docs && node scripts/build.js",
       "prepublishOnly": "pnpm run build",
       "serve-registry": "npx serve registry --listen 3030"
@@ -42,12 +42,16 @@
    },
    "devDependencies": {
       "@eslint/js": "^9.32.0",
+      "@typescript-eslint/eslint-plugin": "^8.39.1",
+      "@typescript-eslint/parser": "^8.39.1",
       "esbuild": "^0.25.9",
       "esbuild-plugin-replace": "^1.4.0",
       "eslint": "^9.12.0",
+      "eslint-config-prettier": "^10.1.8",
       "eslint-plugin-import": "^2.32.0",
       "knip": "^5.62.0",
       "strip-ansi": "^7.1.0",
+      "tsx": "^4.20.4",
       "uvu": "^0.5.6"
    }
 }

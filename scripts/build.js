@@ -1,8 +1,7 @@
-import { build } from 'esbuild';
-import { replace } from 'esbuild-plugin-replace';
 import { cp, rm, mkdir, writeFile } from 'fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
 import { intro, outro, log } from '@clack/prompts';
 import { minifyJsonInDir } from './minify-json-in-dir.js';
 
@@ -31,15 +30,10 @@ const distDir = resolve(rootDir, 'dist');
 
       // Bundle the application with esbuild
       const result = await build({
-         entryPoints: [resolve(rootDir, 'src/index.js')],
+         entryPoints: [resolve(rootDir, 'src/index.ts')],
          bundle: true,
          platform: 'node',
-         plugins: [
-            replace({
-               // Replace the whole expression everywhere!
-               'fileURLToPath(import.meta.url)': '__filename',
-            }),
-         ],
+         plugins: [],
          target: 'node20',
          format: 'cjs',
          outfile: resolve(distDir, 'index.cjs'),
@@ -47,7 +41,7 @@ const distDir = resolve(rootDir, 'dist');
          // Mark heavy dependencies as external to reduce bundle size.
          // Node.js will resolve these from node_modules at runtime.
          // This is a standard practice for CLI tools.
-         external: ['figlet', 'tar', 'axios', 'js-yaml'],
+         external: ['tar', 'axios', 'js-yaml'],
          sourcemap: true,
          metafile: true,
       });
