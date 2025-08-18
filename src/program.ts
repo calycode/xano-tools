@@ -85,7 +85,7 @@ program.configureHelp({
       },
       {
         title: chalk.bold.cyan('Registry:'),
-        commands: ['registry-add', 'registry-scaffold'],
+        commands: ['registry-add', 'registry-scaffold', 'registry-serve'],
       },
       {
         title: chalk.bold.cyan('Backup & Restore:'),
