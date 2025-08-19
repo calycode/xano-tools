@@ -15,6 +15,9 @@ export interface InstanceConfig {
    openApiSpec?: {
       output: string;
    };
+   registry?: {
+      output: string;
+   };
    // ... other fields
 }
 

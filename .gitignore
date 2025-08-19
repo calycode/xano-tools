@@ -11,7 +11,7 @@ output/
 repo/
 reports/
 src/helpers/temp.dbml
-registry/
+/registry/
 
 # Node modules:
 node_modules/
