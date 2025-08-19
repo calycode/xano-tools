@@ -1,4 +1,5 @@
-import { getRegistryIndex } from '../../index';
+import { loadToken } from '../../../config/loaders';
+import { getRegistryIndex, metaApiGet, metaApiPost } from '../../index';
 
 const typePriority = {
    'registry:table': 1,
@@ -30,4 +31,38 @@ async function promptForComponents() {
    }
 }
 
-export { sortFilesByType, promptForComponents };
+async function getApiGroupByName(
+   groupName,
+   { instanceConfig, workspaceConfig, branchConfig }: any
+) {
+   const foundGroup = await metaApiGet({
+      baseUrl: instanceConfig.url,
+      token: loadToken(instanceConfig.name),
+      path: `/workspace/${workspaceConfig.id}/apigroup`,
+      query: {
+         branch: branchConfig.label,
+         per_page: 100,
+         page: 1,
+      },
+   });
+
+   let selectedGroup = foundGroup.items.find((group) => group.name === groupName);
+
+   if (selectedGroup) {
+      return selectedGroup;
+   } else {
+      selectedGroup = await metaApiPost({
+         baseUrl: instanceConfig.url,
+         token: loadToken(instanceConfig.name),
+         path: `/workspace/${workspaceConfig.id}/apigroup`,
+         body: {
+            name: groupName,
+            branch: branchConfig.label,
+            swagger: false,
+            docs: '',
+         },
+      });
+   }
+}
+
+export { sortFilesByType, promptForComponents, getApiGroupByName };
