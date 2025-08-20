@@ -18,7 +18,24 @@ export interface InstanceConfig {
    registry?: {
       output: string;
    };
-   // ... other fields
+   backups: {
+      output: string;
+   };
+   process?: {
+      output: string;
+   };
+   lint?: {
+      output: string;
+      rules: Record<string, 'error' | 'warn' | 'off'>;
+   };
+   test?: {
+      output: string;
+      headers: Record<string, string>;
+      defaultAsserts: Record<string, 'error' | 'warn' | 'off'>;
+   };
+   'xano-script'?: {
+      output: string;
+   };
 }
 
 export interface WorkspaceConfig {
