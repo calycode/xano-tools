@@ -15,7 +15,27 @@ export interface InstanceConfig {
    openApiSpec?: {
       output: string;
    };
-   // ... other fields
+   registry?: {
+      output: string;
+   };
+   backups: {
+      output: string;
+   };
+   process?: {
+      output: string;
+   };
+   lint?: {
+      output: string;
+      rules: Record<string, 'error' | 'warn' | 'off'>;
+   };
+   test?: {
+      output: string;
+      headers: Record<string, string>;
+      defaultAsserts: Record<string, 'error' | 'warn' | 'off'>;
+   };
+   'xano-script'?: {
+      output: string;
+   };
 }
 
 export interface WorkspaceConfig {
