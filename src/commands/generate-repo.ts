@@ -2,14 +2,24 @@ import { mkdir } from 'fs/promises';
 import { loadToken } from '../config/loaders';
 import {
    addFullContextOptions,
+   addPrintOutputFlag,
    fetchAndExtractYaml,
    loadAndValidateContext,
+   printOutputDir,
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
 import { processWorkspace } from '../features/process-xano/index';
 
-async function generateRepo(instance, workspace, branch, input, output, fetch = false) {
+async function generateRepo(
+   instance,
+   workspace,
+   branch,
+   input,
+   output,
+   fetch = false,
+   printOutput = false
+) {
    const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
       instance,
       workspace,
@@ -46,6 +56,7 @@ async function generateRepo(instance, workspace, branch, input, output, fetch = 
       inputFile,
       outputDir,
    });
+   printOutputDir(printOutput, outputDir);
 }
 
 function registerGenerateRepoCommand(program) {
@@ -56,6 +67,7 @@ function registerGenerateRepoCommand(program) {
       .option('--output <dir>', 'output directory (overrides config)');
 
    addFullContextOptions(cmd);
+   addPrintOutputFlag(cmd);
 
    cmd.option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano').action(
       withErrorHandler(async (opts) => {
@@ -65,7 +77,8 @@ function registerGenerateRepoCommand(program) {
             opts.branch,
             opts.input,
             opts.output,
-            opts.fetch
+            opts.fetch,
+            opts.printOutput
          );
       })
    );

@@ -3,10 +3,12 @@ import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
+   addPrintOutputFlag,
    chooseApiGroupOrAll,
    loadAndValidateContext,
    metaApiGet,
    normalizeApiGroupName,
+   printOutputDir,
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
@@ -18,13 +20,14 @@ async function generateCodeFromOas(
    instance,
    workspace,
    branch,
-   group,
-   isAll = false,
-   stack = {
+   group: string,
+   isAll: boolean = false,
+   stack: { generator: string; args: string[] } = {
       generator: 'typescript-fetch',
       args: ['--additional-properties=supportsES6=true'],
    },
-   logger = false
+   logger: boolean = false,
+   printOutput: boolean = false
 ) {
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
@@ -33,7 +36,6 @@ async function generateCodeFromOas(
       instance,
       workspace,
       branch,
-      group,
    });
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';
@@ -81,6 +83,7 @@ async function generateCodeFromOas(
             logger,
          });
          s.stop(`Code generated for group "${group.name}" → ${outputPath}/codegen/${generator}`);
+         printOutputDir(printOutput, outputPath);
       } catch (err) {
          s.stop();
          log.error(err.message);
@@ -101,6 +104,7 @@ function registerGenerateCodeCommand(program) {
 
    addFullContextOptions(cmd);
    addApiGroupOptions(cmd);
+   addPrintOutputFlag(cmd);
 
    cmd.option(
       '--generator <generator>',
@@ -133,7 +137,8 @@ function registerGenerateCodeCommand(program) {
                opts.group,
                opts.all,
                stack,
-               opts.debug
+               opts.debug,
+               opts.printOutput
             );
          })
       );

@@ -3,13 +3,21 @@ import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
+   addPrintOutputFlag,
    chooseApiGroupOrAll,
    loadAndValidateContext,
    withErrorHandler,
 } from '../utils/index';
 import { updateSpecForGroup } from '../features/oas/generate/index';
 
-async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
+async function updateOpenapiSpec(
+   instance: string,
+   workspace: string,
+   branch: string,
+   group: string,
+   isAll: boolean,
+   printOutput: boolean = false
+) {
    intro('🔄 Starting to generate OpenAPI specifications.');
    try {
       const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
@@ -36,6 +44,7 @@ async function updateOpenapiSpec(instance, workspace, branch, group, isAll) {
             instanceConfig,
             workspaceConfig,
             branchConfig,
+            printOutput,
          });
       }
       outro('All OpenAPI specifications generated.');
@@ -51,6 +60,7 @@ function registerGenerateOasCommand(program) {
 
    addFullContextOptions(cmd);
    addApiGroupOptions(cmd);
+   addPrintOutputFlag(cmd);
 
    cmd.action(
       withErrorHandler(async (opts) => {

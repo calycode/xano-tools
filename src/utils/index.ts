@@ -11,6 +11,7 @@ export * from './methods/fetch-and-extract-yaml';
 export * from './methods/get-current-context';
 export * from './methods/is-empty';
 export * from './methods/load-and-validate-context';
+export * from './methods/print-output-dir';
 export * from './methods/prepare-request';
 export * from './methods/replace-placeholders';
 export * from './methods/safe-version-control';

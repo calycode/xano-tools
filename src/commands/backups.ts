@@ -12,9 +12,11 @@ import {
    metaApiRequestBlob,
    replacePlaceholders,
    withErrorHandler,
+   printOutputDir,
+   addPrintOutputFlag,
 } from '../utils/index';
 
-async function exportBackup(instance, workspace, branch) {
+async function exportBackup(instance, workspace, branch, printOutput = false) {
    const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
       instance,
       workspace,
@@ -55,6 +57,7 @@ async function exportBackup(instance, workspace, branch) {
    writeFileSync(backupPath, backupBuffer);
 
    s.stop(`Workspace backup saved -> ${backupPath}`);
+   printOutputDir(printOutput, outputDir);
 }
 
 async function restoreBackup(instance, workspace, sourceBackup = null, forceConfirm = false) {
@@ -170,6 +173,7 @@ function registerExportBackupCommand(program) {
       .description('Backup Xano Workspace via Metadata API');
 
    addFullContextOptions(cmd);
+   addPrintOutputFlag(cmd);
 
    cmd.action(
       withErrorHandler(async (options) => {
