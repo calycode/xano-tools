@@ -1,7 +1,8 @@
-# This assumes the action is run from a repo that has the CLI as a dependency
-# or is the CLI repo itself.
-name: 'Xano Community CLI Action'
-description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow.'
+# This assumes the action is run from a repo that has the CLI as a dependency,
+# or is the CLI repo itself (not npm-installed).
+
+name: 'Xano Community CLI Dev Action'
+description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow (dev/local version).'
 author: 'Xano Community'
 
 inputs:
@@ -18,6 +19,10 @@ inputs:
       description: 'The Xano Metadata API token. Should be stored as a GitHub secret.'
       required: true
 
+outputs:
+   output-dirs:
+      description: 'Newline-separated list of output directories'
+
 runs:
    using: 'composite'
    steps:
@@ -26,28 +31,45 @@ runs:
         run: npm install
 
       - name: Configure Xano CLI Instance
+        id: configure_cli
         shell: bash
         run: |
+           set -e
+           echo "::group::Configuring Xano CLI Instance"
            node src/index.js setup \
              --name "${{ inputs.instance-name }}" \
              --url "${{ inputs.instance-url }}" \
              --token "${{ inputs.api-token }}" \
              --no-set-current
+           echo "::endgroup::"
 
-      - name: Run Xano CLI Commands
+      - name: Run Xano CLI Commands and Collect Outputs
+        id: run_cli
         shell: bash
         run: |
-           # Ensure the script exits immediately if any command fails.
            set -e
-
-           # The user provides a multi-line string of commands.
-           # We execute them one by one. The 'set -e' default for shell steps
-           # will cause the script to exit on the first failure.
+           OUTPUT_DIRS=""
            while IFS= read -r command_line; do
              if [ -z "$command_line" ]; then
                continue # Skip empty lines
              fi
              echo "::group::Running: xcc $command_line"
-             node src/index.js $command_line --instance=${{ inputs.instance-name }}
+             OUTPUT=$(node src/index.js $command_line --instance="${{ inputs.instance-name }}" --print-output-dir)
+             DIRS=$(echo "$OUTPUT" | grep 'OUTPUT_DIR=' | cut -d'=' -f2-)
+             if [ -n "$DIRS" ]; then
+               OUTPUT_DIRS="${OUTPUT_DIRS}${DIRS}"$'\n'
+             fi
              echo "::endgroup::"
            done <<< "${{ inputs.run }}"
+           OUTPUT_DIRS=$(echo -n "$OUTPUT_DIRS")
+           echo "output-dirs<<EOF" >> $GITHUB_OUTPUT
+           echo "$OUTPUT_DIRS" >> $GITHUB_OUTPUT
+           echo "EOF" >> $GITHUB_OUTPUT
+
+      # Example usage in your workflow:
+      # - name: Upload all generated code as artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: generated-code
+      #     path: |
+      #       ${{ steps.xano.outputs.output-dirs }}

@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { intro, log } from '@clack/prompts';
 import {
+   addPrintOutputFlag,
    availableAsserts,
    chooseApiGroupOrAll,
    getCurrentContextConfig,
@@ -9,6 +10,7 @@ import {
    metaApiGet,
    normalizeApiGroupName,
    prepareRequest,
+   printOutputDir,
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
@@ -17,7 +19,14 @@ import { loadGlobalConfig, loadToken } from '../config/loaders';
 import { doOasUpdate } from '../features/oas/generate/index';
 // [ ] TODO: bring back the schema validation!
 
-async function testRunner(instance, workspace, branch, group, isAll = false) {
+async function testRunner(
+   instance,
+   workspace,
+   branch,
+   group,
+   isAll = false,
+   printOutput: boolean = false
+) {
    intro('☣️   Stating up the testing...');
 
    // 1. Get the current context.
@@ -221,7 +230,8 @@ async function testRunner(instance, workspace, branch, group, isAll = false) {
 
       printTestSummary(results);
 
-      log.step(`Tests for ${group.name} completed. Results -> ${testOutputPath}${testFileName}`);
+      log.step(`Tests for ${group.name} completed. Results -> ${testOutputPath}/${testFileName}`);
+      printOutputDir(printOutput, testOutputPath);
    }
 }
 
@@ -258,15 +268,18 @@ ${'-'.repeat(60)}`
 }
 
 function registerTestViaOasCommand(program) {
-   program
+   const cmd = program
       .command('test-via-oas')
-      .description('Run an API test suite via the OpenAPI spec. WIP...')
-      .action(
-         withErrorHandler(async () => {
-            //@ts-expect-error We need to make sure to allow context override here and proper arguments coming from the command.
-            await testRunner();
-         })
-      );
+      .description('Run an API test suite via the OpenAPI spec. WIP...');
+
+   addPrintOutputFlag(cmd);
+
+   cmd.action(
+      withErrorHandler(async () => {
+         //@ts-expect-error We need to make sure to allow context override here and proper arguments coming from the command.
+         await testRunner();
+      })
+   );
 }
 
 export { registerTestViaOasCommand };

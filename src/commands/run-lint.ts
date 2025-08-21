@@ -1,9 +1,15 @@
 import { log } from '@clack/prompts';
 import { loadGlobalConfig } from '../config/loaders';
-import { getCurrentContextConfig, withErrorHandler, replacePlaceholders } from '../utils/index';
+import {
+   addPrintOutputFlag,
+   getCurrentContextConfig,
+   printOutputDir,
+   replacePlaceholders,
+   withErrorHandler,
+} from '../utils/index';
 import { runLintXano } from '../features/lint-xano/index';
 
-async function runLinter() {
+async function runLinter(printOutput: boolean = false) {
    const globalConfig = loadGlobalConfig();
    const context = globalConfig.currentContext;
 
@@ -43,19 +49,22 @@ async function runLinter() {
    );
 
    await runLintXano({ inputDir, ruleConfig, outputFile: outputPath });
+   printOutputDir(printOutput, outputDir);
 }
 
 function registerLintCommand(program) {
-   program
+   const cmd = program
       .command('lint')
       .description(
          'Lint backend logic, based on provided local file. Remote and dynamic sources are WIP...'
-      )
-      .action(
-         withErrorHandler(async () => {
-            await runLinter();
-         })
       );
+
+   addPrintOutputFlag(cmd);
+   cmd.action(
+      withErrorHandler(async (opts) => {
+         await runLinter(opts.printOutput);
+      })
+   );
 }
 
 export { registerLintCommand };

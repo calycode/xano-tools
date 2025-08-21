@@ -1,12 +1,23 @@
 import { spinner } from '@clack/prompts';
-import { normalizeApiGroupName, replacePlaceholders, metaApiGet } from '../../../../utils/index';
+import {
+   normalizeApiGroupName,
+   replacePlaceholders,
+   metaApiGet,
+   printOutputDir,
+} from '../../../../utils/index';
 import { loadToken } from '../../../../config/loaders';
 import { doOasUpdate } from '../index';
 
 /**
  * Updates the OpenAPI spec for a single group.
  */
-async function updateSpecForGroup({ group, instanceConfig, workspaceConfig, branchConfig }) {
+async function updateSpecForGroup({
+   group,
+   instanceConfig,
+   workspaceConfig,
+   branchConfig,
+   printOutput,
+}) {
    const s = spinner();
    s.start(`Generating OpenAPI spec for group "${group.name}"`);
 
@@ -28,6 +39,7 @@ async function updateSpecForGroup({ group, instanceConfig, workspaceConfig, bran
    await doOasUpdate(openapiRaw, outputPath);
 
    s.stop(`OpenAPI spec generated for group "${group.name}" → ${outputPath}`);
+   printOutputDir(printOutput, outputPath);
 }
 
 export { updateSpecForGroup };

@@ -1,5 +1,5 @@
 # This action assumes that the XCC is already an NPM package and can be used
-# from a registry. Which is not the case yet.
+# from a registry. Which is not the case yet.name: 'Xano Community CLI Action'
 name: 'Xano Community CLI Action'
 description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow.'
 author: 'Xano Community'
@@ -22,10 +22,15 @@ inputs:
       required: false
       default: 'latest'
 
+outputs:
+   output-dirs:
+      description: 'Newline-separated list of output directories'
+
 runs:
    using: 'composite'
    steps:
       - name: Configure Xano CLI Instance
+        id: configure_cli
         shell: bash
         run: |
            # Ensure the script exits immediately if any command fails.
@@ -41,16 +46,36 @@ runs:
              --no-set-current
            echo "::endgroup::"
 
-      - name: Run Xano CLI Commands
+      - name: Run Xano CLI Commands and Collect Outputs
+        id: run_cli
         shell: bash
         run: |
            set -e
+           # Prepare the output collection variable.
+           OUTPUT_DIRS=""
            # The setup command has created the config files. Now, run the user-provided commands.
            while IFS= read -r command_line; do
              if [ -z "$command_line" ]; then
                continue # Skip empty lines
              fi
              echo "::group::Running: xcc $command_line"
-             npx --yes @mihalytoth20/xano-community-cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }}
+             OUTPUT=$(npx --yes @mihalytoth20/xano-community-cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }} --print-output-dir)
+             DIRS=$(echo "$OUTPUT" | grep 'OUTPUT_DIR=' | cut -d'=' -f2-)
+             if [ -n "$DIRS" ]; then
+               OUTPUT_DIRS="${OUTPUT_DIRS}${DIRS}"$'\n'
+             fi
              echo "::endgroup::"
            done <<< "${{ inputs.run }}"
+           # Remove trailing newline for clean output
+           OUTPUT_DIRS=$(echo -n "$OUTPUT_DIRS")
+           echo "output-dirs<<EOF" >> $GITHUB_OUTPUT
+           echo "$OUTPUT_DIRS" >> $GITHUB_OUTPUT
+           echo "EOF" >> $GITHUB_OUTPUT
+
+      # Example usage in your workflow:
+      # - name: Upload all generated code as artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: generated-code
+      #     path: |
+      #       ${{ steps.xano.outputs.output-dirs }}

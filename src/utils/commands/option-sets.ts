@@ -45,3 +45,7 @@ export function addApiGroupOptions(cmd) {
          'Regenerate for all API groups in the workspace / branch of the current context.'
       );
 }
+
+export function addPrintOutputFlag(cmd) {
+   return cmd.option('--print-output-dir', 'Expose usable output path for further reuse.');
+}

@@ -10,9 +10,11 @@ import {
    replacePlaceholders,
    sanitizeFileName,
    addFullContextOptions,
+   addPrintOutputFlag,
+   printOutputDir,
 } from '../utils/index';
 
-async function fetchFunctionsInXanoScript(instance, workspace, branch) {
+async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
    const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
@@ -92,6 +94,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch) {
    }
 
    outro('Analysis completed.');
+   printOutputDir(printOutput, outputDir);
 }
 
 function registerFetchFunctionsInXanoScript(program) {
@@ -100,10 +103,15 @@ function registerFetchFunctionsInXanoScript(program) {
       .description('Analyze the functions available in the current (or provided) context.');
 
    addFullContextOptions(cmd);
-
+   addPrintOutputFlag(cmd);
    cmd.action(
       withErrorHandler(async (opts) => {
-         await fetchFunctionsInXanoScript(opts.instance, opts.workspace, opts.branch);
+         await fetchFunctionsInXanoScript(
+            opts.instance,
+            opts.workspace,
+            opts.branch,
+            opts.printOutputDir
+         );
       })
    );
 }
