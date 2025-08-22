@@ -2,7 +2,7 @@ import { mkdir } from 'fs/promises';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { loadToken } from '../../config/loaders';
+import { loadToken } from '../config/loaders';
 import {
    loadAndValidateContext,
    metaApiGet,
@@ -12,7 +12,7 @@ import {
    addFullContextOptions,
    addPrintOutputFlag,
    printOutputDir,
-} from '../../utils/index';
+} from '../utils/index';
 
 // [ ] CORE, but needs fs access.
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false) {

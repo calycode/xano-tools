@@ -5,14 +5,14 @@ import {
    saveGlobalConfig,
    saveInstanceConfig,
    saveToken,
-} from '../../config/loaders';
+} from '../config/loaders';
 import {
    ensureGitignore,
    fetchWorkspacesAndBranches,
    sanitizeInstanceName,
    withErrorHandler,
    withSpinner,
-} from '../../utils/index';
+} from '../utils/index';
 
 // DEFAULT SETTINGS:
 const DEFAULT_LINT_RULES = {

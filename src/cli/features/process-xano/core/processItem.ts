@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { generateQueryLogicDescription } from './generateRunReadme';
 import { convertXanoDBDescription } from '../../../../core/features/process-xano/adapters/dbmlGenerator';
-import { sanitizeFileName } from '../../../../utils';
+import { sanitizeFileName } from '../../../utils';
 
 /**
  * Processes an individual item and writes it to the appropriate directory.

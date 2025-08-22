@@ -1,5 +1,5 @@
 import { mkdir } from 'fs/promises';
-import { loadToken } from '../../config/loaders';
+import { loadToken } from '../config/loaders';
 import {
    addFullContextOptions,
    addPrintOutputFlag,
@@ -8,7 +8,7 @@ import {
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
-} from '../../utils/index';
+} from '../utils/index';
 import { processWorkspace } from '../features/process-xano';
 
 // [ ] CORE, needs fs

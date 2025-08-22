@@ -13,8 +13,8 @@ import {
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
-} from '../../utils/index';
-import { loadGlobalConfig, loadToken } from '../../config/loaders';
+} from '../utils/index';
+import { loadGlobalConfig, loadToken } from '../config/loaders';
 
 import { doOasUpdate } from '../features/oas/generate';
 

@@ -9,8 +9,8 @@ import {
    scaffoldRegistry,
    sortFilesByType,
    withErrorHandler,
-} from '../../utils/index';
-import { loadToken } from '../../config/loaders';
+} from '../utils/index';
+import { loadToken } from '../config/loaders';
 
 // [ ] CORE
 async function addToXano(

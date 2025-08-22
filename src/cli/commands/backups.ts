@@ -4,7 +4,7 @@ import { writeFileSync, readdirSync, createReadStream } from 'fs';
 import axios from 'axios';
 import FormData from 'form-data';
 import { spinner, select, confirm, outro, log } from '@clack/prompts';
-import { loadToken } from '../../config/loaders';
+import { loadToken } from '../config/loaders';
 import {
    addPartialContextOptions,
    addFullContextOptions,
@@ -14,7 +14,7 @@ import {
    withErrorHandler,
    printOutputDir,
    addPrintOutputFlag,
-} from '../../utils/index';
+} from '../utils/index';
 
 // [ ] CORE, needs fs
 async function exportBackup(instance, workspace, branch, printOutput = false) {

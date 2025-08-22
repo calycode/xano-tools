@@ -1,5 +1,5 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { loadToken } from '../../config/loaders';
+import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -11,7 +11,7 @@ import {
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
-} from '../../utils/index';
+} from '../utils/index';
 
 import { doOasUpdate } from '../features/oas/generate';
 import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';

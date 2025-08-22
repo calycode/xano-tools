@@ -1,6 +1,6 @@
 import { select } from '@clack/prompts';
 import { metaApiGet } from '../index';
-import { ApiGroup, ChooseApiGroupOrAllOptions } from '../../types';
+import { ApiGroup, ChooseApiGroupOrAllOptions } from '../../../types';
 
 // [ ] CLI
 export async function chooseApiGroupOrAll({

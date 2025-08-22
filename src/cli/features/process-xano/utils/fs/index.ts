@@ -5,7 +5,7 @@ import cliProgress from 'cli-progress';
 import chalk from 'chalk';
 import { outro } from '@clack/prompts';
 import { processItem } from '../../core/processItem';
-import { sanitizeFileName, generateStructureDiagrams } from '../../../../../utils';
+import { sanitizeFileName, generateStructureDiagrams } from '../../../../utils';
 
 // Helper for padding keys
 function padRight(str, len) {

@@ -3,8 +3,8 @@ import { join, resolve } from 'path';
 import { spinner } from '@clack/prompts';
 // [ ] Refactor to use js-untar or untar.js to allow for use in non-node environments
 import { x } from 'tar';
-import { metaApiRequestBlob } from '../../core/utils/methods/api-helper';
-import { FetchAndExtractYamlArgs } from '../../types';
+import { metaApiRequestBlob } from '../../../core/utils/methods/api-helper';
+import { FetchAndExtractYamlArgs } from '../../../types';
 
 // [ ] CORE
 /**

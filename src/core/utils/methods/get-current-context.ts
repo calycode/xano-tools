@@ -1,4 +1,4 @@
-import { loadGlobalConfig, loadInstanceConfig } from '../../../config/loaders';
+import { loadGlobalConfig, loadInstanceConfig } from '../../../cli/config/loaders';
 import {
    Context,
    InstanceConfig,

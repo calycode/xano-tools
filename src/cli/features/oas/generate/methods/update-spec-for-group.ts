@@ -4,8 +4,8 @@ import {
    replacePlaceholders,
    metaApiGet,
    printOutputDir,
-} from '../../../../../utils';
-import { loadToken } from '../../../../../config/loaders';
+} from '../../../../utils';
+import { loadToken } from '../../../../config/loaders';
 import { doOasUpdate } from '../index';
 
 // [ ] CORE

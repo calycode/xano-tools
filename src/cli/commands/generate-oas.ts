@@ -1,5 +1,5 @@
 import { log, outro, intro } from '@clack/prompts';
-import { loadToken } from '../../config/loaders';
+import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -7,7 +7,7 @@ import {
    chooseApiGroupOrAll,
    loadAndValidateContext,
    withErrorHandler,
-} from '../../utils/index';
+} from '../utils/index';
 import { updateSpecForGroup } from '../features/oas/generate';
 
 // [ ] CORE

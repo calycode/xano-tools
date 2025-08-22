@@ -1,6 +1,6 @@
 import { select, intro, outro, log } from '@clack/prompts';
-import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../../config/loaders';
-import { getCurrentContextConfig, withErrorHandler, addFullContextOptions } from '../../utils/index';
+import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders';
+import { getCurrentContextConfig, withErrorHandler, addFullContextOptions } from '../utils/index';
 
 // [ ] CLI
 /**

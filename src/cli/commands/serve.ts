@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { loadToken } from '../../config/loaders';
+import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -7,7 +7,7 @@ import {
    loadAndValidateContext,
    normalizeApiGroupName,
    replacePlaceholders,
-} from '../../utils/index';
+} from '../utils/index';
 
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false }) {

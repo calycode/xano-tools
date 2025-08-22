@@ -1,6 +1,6 @@
 import { loadGlobalConfig } from '../../config/loaders';
 import { getCurrentContextConfig } from '../index';
-import { Context, InstanceConfig, WorkspaceConfig, BranchConfig } from '../../types';
+import { Context, InstanceConfig, WorkspaceConfig, BranchConfig } from '../../../types';
 
 // [ ] CORE, needs fs
 /**

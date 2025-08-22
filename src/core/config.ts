@@ -1,6 +1,6 @@
 // core/config.ts
 import { ConfigStorage, InstanceConfig, WorkspaceConfig, BranchConfig, Context } from '../types';
-import { getCurrentContextConfig } from '../utils';
+import { getCurrentContextConfig } from '../cli/utils';
 
 export async function loadAndValidateContext(
    storage: ConfigStorage,

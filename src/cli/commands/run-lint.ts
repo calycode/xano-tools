@@ -1,12 +1,12 @@
 import { log } from '@clack/prompts';
-import { loadGlobalConfig } from '../../config/loaders';
+import { loadGlobalConfig } from '../config/loaders';
 import {
    addPrintOutputFlag,
    getCurrentContextConfig,
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
-} from '../../utils/index';
+} from '../utils/index';
 import { runLintXano } from '../features/lint-xano';
 
 // [ ] CORE
