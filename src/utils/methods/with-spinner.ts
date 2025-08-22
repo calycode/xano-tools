@@ -1,5 +1,6 @@
 import { spinner } from '@clack/prompts';
 
+// [ ] CORE, needs yielding
 /**
  * Runs a function with a spinner and returns its result.
  */

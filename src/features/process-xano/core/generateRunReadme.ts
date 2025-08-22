@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { xanoQueryToSql } from '../adapters/xanoQueryToSql';
+import { xanoQueryToSql } from '../../../core/features/process-xano/adapters/xanoQueryToSql';
 
 // This reliably gets the directory of the current file, even in the bundle.
 const myDirname =

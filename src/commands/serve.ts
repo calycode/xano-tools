@@ -9,6 +9,7 @@ import {
    replacePlaceholders,
 } from '../utils/index';
 
+// [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false }) {
    const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
       instance,
@@ -59,6 +60,7 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
    });
 }
 
+// [ ] CLI
 function serveRegistry({ root = 'registry', listen = 5000, cors = false }) {
    return new Promise<void>((resolve, reject) => {
       const serveArgs = [String(root), '-l', String(listen)];
@@ -81,6 +83,7 @@ function serveRegistry({ root = 'registry', listen = 5000, cors = false }) {
    });
 }
 
+// [ ] CLI
 function registerRegistryServeCommand(program) {
    program
       .command('registry-serve')
@@ -102,6 +105,7 @@ function registerRegistryServeCommand(program) {
       });
 }
 
+// [ ] CLI
 function registerOasServeCommand(program) {
    const cmd = program
       .command('oas-serve')

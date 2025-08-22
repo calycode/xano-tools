@@ -16,6 +16,7 @@ import {
    addPrintOutputFlag,
 } from '../utils/index';
 
+// [ ] CORE, needs fs
 async function exportBackup(instance, workspace, branch, printOutput = false) {
    const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
       instance,
@@ -60,6 +61,7 @@ async function exportBackup(instance, workspace, branch, printOutput = false) {
    printOutputDir(printOutput, outputDir);
 }
 
+// [ ] CORE, needs fs
 async function restoreBackup(instance, workspace, sourceBackup = null, forceConfirm = false) {
    const { instanceConfig, workspaceConfig } = loadAndValidateContext({
       instance,
@@ -182,6 +184,7 @@ function registerExportBackupCommand(program) {
    );
 }
 
+// CLI
 function registerRestoreBackupCommand(program) {
    const cmd = program
       .command('restore-backup')

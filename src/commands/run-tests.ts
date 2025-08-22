@@ -18,7 +18,7 @@ import { loadGlobalConfig, loadToken } from '../config/loaders';
 
 import { doOasUpdate } from '../features/oas/generate/index';
 // [ ] TODO: bring back the schema validation!
-
+// [ ] CORE, needs fs
 async function testRunner(
    instance,
    workspace,
@@ -235,6 +235,7 @@ async function testRunner(
    }
 }
 
+// [ ] CLI
 function printTestSummary(results) {
    const total = results.length;
    const succeeded = results.filter((r) => r.success).length;
@@ -267,6 +268,7 @@ ${'-'.repeat(60)}`
    );
 }
 
+// [ ] CLI
 function registerTestViaOasCommand(program) {
    const cmd = program
       .command('test-via-oas')

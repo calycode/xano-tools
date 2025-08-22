@@ -12,6 +12,7 @@ import {
 } from '../utils/index';
 import { loadToken } from '../config/loaders';
 
+// [ ] CORE
 async function addToXano(
    componentNames: string[],
    context: { instance?: string; workspace?: string; branch?: string } = {}
@@ -56,6 +57,7 @@ async function addToXano(
    return results;
 }
 
+// [ ] CORE
 /**
  * Function that creates the required components in Xano.
  *
@@ -109,6 +111,7 @@ async function installComponentToXano(file, resolvedContext) {
    }
 }
 
+// [ ] CLI
 function registerRegistryAddCommand(program) {
    const cmd = program
       .command('registry-add')
@@ -135,6 +138,7 @@ function registerRegistryAddCommand(program) {
       );
 }
 
+// [ ] CLI
 function registerRegistryScaffoldCommand(program) {
    program
       .command('registry-scaffold')

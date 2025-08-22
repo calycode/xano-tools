@@ -7,6 +7,7 @@ async function ensureDirForFile(filePath) {
    await fs.mkdir(dir, { recursive: true });
 }
 
+// [ ] CLI
 async function scaffoldRegistry(
    { outputPath, instance } = { outputPath: 'registry', instance: null }
 ) {

@@ -15,6 +15,7 @@ import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 
+// [ ] CLI
 const { version } = pkg;
 const program = new Command();
 

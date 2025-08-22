@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { log } from '@clack/prompts';
 
+// [ ] CLI
 const PROJECT_ROOT = process.cwd();
 const GITIGNORE_PATH = path.join(PROJECT_ROOT, '.gitignore');
 const EXAMPLE_GITIGNORE_PATH = path.join(PROJECT_ROOT, 'src', 'config', 'gitignore.example');

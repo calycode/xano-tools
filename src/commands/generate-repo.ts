@@ -11,6 +11,7 @@ import {
 } from '../utils/index';
 import { processWorkspace } from '../features/process-xano/index';
 
+// [ ] CORE, needs fs
 async function generateRepo(
    instance,
    workspace,
@@ -59,6 +60,7 @@ async function generateRepo(
    printOutputDir(printOutput, outputDir);
 }
 
+// [ ] CLI
 function registerGenerateRepoCommand(program) {
    const cmd = program
       .command('generate-repo')

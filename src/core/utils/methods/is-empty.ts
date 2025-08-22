@@ -1,5 +1,5 @@
 // Minimal schema type (customize as needed)
-import { TableSchemaItem } from '../../types';
+import { TableSchemaItem } from '../../../types';
 
 /**
  * Checks if a schema is "empty".

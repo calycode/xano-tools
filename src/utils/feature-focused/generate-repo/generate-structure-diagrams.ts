@@ -1,6 +1,8 @@
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 
+// [ ] CORE
+
 type Query = Partial<{ name: string; verb: string }>;
 
 type AppQueries = Record<string, Query[]>;

@@ -3,6 +3,7 @@ import { resolve, join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, mkdirSync, createWriteStream } from 'fs';
 
+// [ ] CLI only feature
 export function runOpenApiGenerator({
    input,
    output,
@@ -11,7 +12,7 @@ export function runOpenApiGenerator({
    logger = false, // If true, log to file, else discard logs
 }) {
    return new Promise((resolvePromise, reject) => {
-   
+
       const myDirname =
          typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
       const cliBase = join(myDirname, '../../../../node_modules/.bin/openapi-generator-cli');

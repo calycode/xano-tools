@@ -1,6 +1,7 @@
 // --- Types ---
-import { Schema, PrepareRequestArgs, PreparedRequest } from '../../types';
+import { Schema, PrepareRequestArgs, PreparedRequest } from '../../../types';
 
+// [ ] CORE
 // --- Main Function ---
 export function prepareRequest({
    baseUrl,

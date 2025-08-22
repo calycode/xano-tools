@@ -2,6 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { patchOasSpec } from './index';
 
+// [ ] CORE
+
 export default async function doOasUpdate(inputOas, outputDir) {
    // Load and patch
    const originalOas = inputOas;

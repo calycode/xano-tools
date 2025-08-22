@@ -8,6 +8,7 @@ import {
 import { loadToken } from '../../../../config/loaders';
 import { doOasUpdate } from '../index';
 
+// [ ] CORE
 /**
  * Updates the OpenAPI spec for a single group.
  */

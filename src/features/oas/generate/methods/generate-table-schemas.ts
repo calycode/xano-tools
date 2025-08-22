@@ -2,6 +2,8 @@ import { convertXanoSchemaToJsonSchema } from './index';
 import { getCurrentContextConfig, metaApiGet } from '../../../../utils/index';
 import { loadToken } from '../../../../config/loaders';
 
+
+// [ ] CORE
 async function generateTableSchemas() {
    const { instanceConfig, workspaceConfig } = getCurrentContextConfig();
 

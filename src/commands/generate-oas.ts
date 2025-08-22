@@ -10,6 +10,7 @@ import {
 } from '../utils/index';
 import { updateSpecForGroup } from '../features/oas/generate/index';
 
+// [ ] CORE
 async function updateOpenapiSpec(
    instance: string,
    workspace: string,
@@ -53,6 +54,7 @@ async function updateOpenapiSpec(
    }
 }
 
+// [ ] CLI
 function registerGenerateOasCommand(program) {
    const cmd = program
       .command('generate-oas')

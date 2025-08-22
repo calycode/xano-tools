@@ -16,6 +16,7 @@ import {
 import { doOasUpdate } from '../features/oas/generate/index';
 import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';
 
+// [ ] CLI only feature
 async function generateCodeFromOas(
    instance,
    workspace,

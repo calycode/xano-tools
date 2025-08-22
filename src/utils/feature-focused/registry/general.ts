@@ -1,6 +1,8 @@
 import { loadToken } from '../../../config/loaders';
 import { getRegistryIndex, metaApiGet, metaApiPost } from '../../index';
 
+// [ ] CLI, whole file
+
 const typePriority = {
    'registry:table': 1,
    'registry:function': 2,

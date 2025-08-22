@@ -1,8 +1,9 @@
 // src/lint-xano/XanoLinter.js
-import infrastructure from '../../../util-resources/xano_underlying_infrastructure.json' with { type: 'json' };
+import infrastructure from '../../../../util-resources/xano_underlying_infrastructure.json' with { type: 'json' };
 import { availableRules } from './rules/index';
-import { isNotEmpty } from '../../utils/index';
+import { isNotEmpty } from '../../../utils/index';
 
+// [ ] CORE,
 // ----- Linting rule functions -----
 async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = obj) {
    for (const key in obj) {

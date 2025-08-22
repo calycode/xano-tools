@@ -27,6 +27,7 @@ const DEFAULT_ASSERTS = {
    responseSchema: 'warn',
 };
 
+// [ ] CORE, needs fs
 /**
  * The core, non-interactive logic for setting up an instance.
  * Can be called by the interactive wizard or directly for CI/CD.
@@ -118,6 +119,7 @@ async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
    outro(`🚀 Instance "${safeName}" configured! Use 'xcc switch-context' to change.`);
 }
 
+// [ ] CLI
 async function setupInstanceWizard() {
    intro('✨ Xano CLI Instance Setup ✨');
 
@@ -147,6 +149,7 @@ async function setupInstanceWizard() {
    await setupInstance({ name, url, apiKey, setAsCurrent });
 }
 
+// [ ] CLI
 export function registerSetupCommand(program) {
    program
       .command('setup')

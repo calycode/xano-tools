@@ -1,5 +1,6 @@
-import { cleanupResponseSchemas, generateTableSchemas } from './index';
+import { cleanupResponseSchemas, generateTableSchemas } from '../../../../../features/oas/generate/methods/index';
 
+// [ ] CORE
 export default async function patchOasSpec(oas) {
    const newOas = { ...oas };
    const tableSchemas = await generateTableSchemas();

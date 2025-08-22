@@ -12,6 +12,7 @@ const TYPE_MAP = {
    vector: 'number',
 };
 
+// [ ] CORE
 /**
  * Recursively converts a Xano schema field to JSON Schema property.
  * @param {object} field - Xano field descriptor.

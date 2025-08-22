@@ -9,6 +9,7 @@ import {
 } from '../utils/index';
 import { runLintXano } from '../features/lint-xano/index';
 
+// [ ] CORE
 async function runLinter(printOutput: boolean = false) {
    const globalConfig = loadGlobalConfig();
    const context = globalConfig.currentContext;
@@ -52,6 +53,7 @@ async function runLinter(printOutput: boolean = false) {
    printOutputDir(printOutput, outputDir);
 }
 
+// [ ] CLI
 function registerLintCommand(program) {
    const cmd = program
       .command('lint')

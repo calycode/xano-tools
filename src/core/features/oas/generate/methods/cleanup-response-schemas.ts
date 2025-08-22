@@ -1,4 +1,5 @@
 // TODO: add in the [path][method]['200'] to expected schemas mapping...
+// [ ] CORE, needs yielding
 /**
  * Recursively normalize an old OAS schema to JSON Schema 2020-12 compliance.
  * @param schema The input (possibly legacy) schema object.

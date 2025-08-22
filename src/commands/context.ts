@@ -2,6 +2,7 @@ import { select, intro, outro, log } from '@clack/prompts';
 import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders';
 import { getCurrentContextConfig, withErrorHandler, addFullContextOptions } from '../utils/index';
 
+// [ ] CLI
 /**
  * Helper to select or validate an option from a list
  */
@@ -30,6 +31,7 @@ async function selectOrValidate({
    });
 }
 
+// [ ] CORE, needs fs
 async function switchContextPrompt({
    instance: cliInstance,
    workspace: cliWorkspace,
@@ -85,6 +87,7 @@ async function switchContextPrompt({
    );
 }
 
+// [ ] CLI
 function registerSwitchContextCommand(program) {
    const cmd = program.command('switch-context').description('Switch instance/workspace context');
    addFullContextOptions(cmd);
@@ -95,6 +98,7 @@ function registerSwitchContextCommand(program) {
    );
 }
 
+// [ ] CLI
 function registerCurrentContextCommand(program) {
    program.command('current-context').action(() => {
       const currentContext = getCurrentContextConfig();

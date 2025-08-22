@@ -14,6 +14,7 @@ import {
    printOutputDir,
 } from '../utils/index';
 
+// [ ] CORE, but needs fs access.
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
@@ -97,6 +98,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
    printOutputDir(printOutput, outputDir);
 }
 
+// [ ] CLI
 function registerFetchFunctionsInXanoScript(program) {
    const cmd = program
       .command('generate-functions')

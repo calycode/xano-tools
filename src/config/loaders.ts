@@ -2,6 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import { configPath, instancesDir, tokensDir } from './paths';
 
+/**
+ * This is the crucial part to be rewritten to allow use of consumers. So this is part of the core
+ */
+// [ ] CORE
 function ensureDirs() {
    [instancesDir, tokensDir].forEach((dir) => {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

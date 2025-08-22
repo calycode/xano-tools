@@ -5,7 +5,7 @@ import {
    QueryParams,
    Headers,
    HTTPMethod,
-} from '../../types';
+} from '../../../types';
 
 // Internal shared helper for building URLs
 function buildMetaApiUrl(
@@ -90,7 +90,7 @@ export async function metaApiRequestBlob({
    query = {},
    body = null,
    headers = {},
-}: MetaApiRequestBlobOptions): Promise<Buffer> {
+}: MetaApiRequestBlobOptions): Promise<Uint8Array> {
    const url = buildMetaApiUrl(baseUrl, path, pathParams, query);
    const fetchHeaders = buildHeaders(token, headers, body);
 
@@ -103,8 +103,8 @@ export async function metaApiRequestBlob({
    if (!res.ok) {
       throw new Error(`Xano API ${method} ${url} failed: ${res.statusText} (${res.status})`);
    }
-   const buffer = await res.arrayBuffer();
-   return Buffer.from(buffer);
+   const arrayBuffer = await res.arrayBuffer();
+   return new Uint8Array(arrayBuffer);
 }
 
 // Factory for HTTP method helpers

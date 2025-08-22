@@ -2,8 +2,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { log, spinner } from '@clack/prompts';
-import XanoLinter from './XanoLinter';
+import XanoLinter from '../../core/features/lint-xano/XanoLinter';
 
+// [ ] CORE, needs fs
 async function runLinterOnJsonFiles({ dirPath, lintResults, ruleConfig }) {
    const files = await fs.readdir(dirPath);
 

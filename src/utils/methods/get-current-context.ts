@@ -8,6 +8,7 @@ import {
    CurrentContextConfig,
 } from '../../types';
 
+// [ ] CORE, needs fs
 /**
  * Safely loads the config for the current context.
  * Returns { instanceConfig, workspaceConfig, branchConfig, apigroupConfig }
