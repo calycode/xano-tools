@@ -1,3 +1,8 @@
+// Barrel exports:
+
+// Export config storage abstraction interface.
+export * from './config/config-storage';
+
 // ---- Context Types ----
 
 export interface Context {

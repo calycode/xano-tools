@@ -1,7 +1,6 @@
 // src/lint-xano/rules/index.js
 import { isNotEmpty } from '../../../../utils/index';
 
-// [ ] CORE
 const VALID_HEADERS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD']);
 
 function isCamelCase(key, parentKey) {

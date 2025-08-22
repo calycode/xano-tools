@@ -4,5 +4,6 @@ Usage: xcc test-via-oas [options]
 Run an API test suite via the OpenAPI spec. WIP...
 
 Options:
-  -h, --help  display help for command
+  --print-output-dir  Expose usable output path for further reuse.
+  -h, --help          display help for command
 ```

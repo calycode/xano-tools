@@ -3,7 +3,6 @@ import infrastructure from '../../../../util-resources/xano_underlying_infrastru
 import { availableRules } from './rules/index';
 import { isNotEmpty } from '../../../utils/index';
 
-// [ ] CORE,
 // ----- Linting rule functions -----
 async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = obj) {
    for (const key in obj) {

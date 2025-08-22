@@ -30,7 +30,7 @@ const distDir = resolve(rootDir, 'dist');
 
       // Bundle the application with esbuild
       const result = await build({
-         entryPoints: [resolve(rootDir, 'src/index.ts')],
+         entryPoints: [resolve(rootDir, 'src/cli/index.ts')],
          bundle: true,
          platform: 'node',
          plugins: [],

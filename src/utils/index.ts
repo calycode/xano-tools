@@ -14,7 +14,7 @@ export * from './feature-focused/setup/fetch-workspaces-branches';
 export * from './feature-focused/test/custom-assertions';
 export * from './methods/choose-api-group';
 export * from './methods/fetch-and-extract-yaml';
-export * from './methods/get-current-context';
+export * from '../core/utils/methods/get-current-context';
 export * from './methods/load-and-validate-context';
 export * from './methods/print-output-dir';
 export * from './methods/safe-version-control';

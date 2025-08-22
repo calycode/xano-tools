@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync, rmSync, mkdirSync as mkdirSync2 } from 'fs';
 import path from 'path';
 import { intro, outro, log } from '@clack/prompts';
 import stripAnsi from 'strip-ansi';
-import { program } from '../src/program';
+import { program } from '../src/cli/program';
 
 // Helper to write docs for each command
 function writeDocForCommand(cmd, dir = 'docs/commands') {
