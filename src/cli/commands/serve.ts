@@ -4,18 +4,22 @@ import {
    addApiGroupOptions,
    addFullContextOptions,
    chooseApiGroupOrAll,
-   loadAndValidateContext,
    normalizeApiGroupName,
    replacePlaceholders,
 } from '../utils/index';
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false }) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+      nodeConfigStorage,
+      {
+         instance,
+         workspace,
+         branch,
+      }
+   );
 
    const apiGroups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,

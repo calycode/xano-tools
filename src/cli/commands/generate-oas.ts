@@ -5,11 +5,11 @@ import {
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
-   loadAndValidateContext,
    withErrorHandler,
 } from '../utils/index';
 import { updateSpecForGroup } from '../features/oas/generate';
-
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 // [ ] CORE
 async function updateOpenapiSpec(
    instance: string,
@@ -21,11 +21,14 @@ async function updateOpenapiSpec(
 ) {
    intro('🔄 Starting to generate OpenAPI specifications.');
    try {
-      const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-         instance,
-         workspace,
-         branch,
-      });
+      const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+         nodeConfigStorage,
+         {
+            instance,
+            workspace,
+            branch,
+         }
+      );
 
       // 2. Get API groups (prompt or all)
       const groups = await chooseApiGroupOrAll({

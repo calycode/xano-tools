@@ -4,24 +4,28 @@ import {
    fetchRegistryFileContent,
    getApiGroupByName,
    getRegistryItem,
-   loadAndValidateContext,
    promptForComponents,
    scaffoldRegistry,
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
 import { loadToken } from '../config/loaders';
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CORE
 async function addToXano(
    componentNames: string[],
    context: { instance?: string; workspace?: string; branch?: string } = {}
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-      instance: context.instance,
-      workspace: context.workspace,
-      branch: context.branch,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+      nodeConfigStorage,
+      {
+         instance: context.instance,
+         workspace: context.workspace,
+         branch: context.branch,
+      }
+   );
 
    intro('Add components to your Xano instance');
 

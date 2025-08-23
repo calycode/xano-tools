@@ -8,21 +8,25 @@ import { loadToken } from '../config/loaders';
 import {
    addPartialContextOptions,
    addFullContextOptions,
-   loadAndValidateContext,
    metaApiRequestBlob,
    replacePlaceholders,
    withErrorHandler,
    printOutputDir,
    addPrintOutputFlag,
 } from '../utils/index';
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CORE, needs fs
 async function exportBackup(instance, workspace, branch, printOutput = false) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+      nodeConfigStorage,
+      {
+         instance,
+         workspace,
+         branch,
+      }
+   );
 
    if (!instanceConfig || !workspaceConfig || !branchConfig) {
       throw new Error(
@@ -63,7 +67,7 @@ async function exportBackup(instance, workspace, branch, printOutput = false) {
 
 // [ ] CORE, needs fs
 async function restoreBackup(instance, workspace, sourceBackup = null, forceConfirm = false) {
-   const { instanceConfig, workspaceConfig } = await loadAndValidateContext({
+   const { instanceConfig, workspaceConfig } = await loadAndValidateContext(nodeConfigStorage, {
       instance,
       workspace,
    });

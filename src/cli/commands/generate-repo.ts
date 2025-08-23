@@ -4,13 +4,13 @@ import {
    addFullContextOptions,
    addPrintOutputFlag,
    fetchAndExtractYaml,
-   loadAndValidateContext,
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
 import { processWorkspace } from '../features/process-xano';
-
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 // [ ] CORE, needs fs
 async function generateRepo(
    instance,
@@ -21,11 +21,14 @@ async function generateRepo(
    fetch = false,
    printOutput = false
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+      nodeConfigStorage,
+      {
+         instance,
+         workspace,
+         branch,
+      }
+   );
 
    // Resolve output dir
    const outputDir = output

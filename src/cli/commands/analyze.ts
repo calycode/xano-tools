@@ -4,7 +4,6 @@ import { dirname, join } from 'path';
 import { log, outro, intro, spinner } from '@clack/prompts';
 import { loadToken } from '../config/loaders';
 import {
-   loadAndValidateContext,
    metaApiGet,
    withErrorHandler,
    replacePlaceholders,
@@ -13,16 +12,21 @@ import {
    addPrintOutputFlag,
    printOutputDir,
 } from '../utils/index';
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CORE, but needs fs access.
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+      nodeConfigStorage,
+      {
+         instance,
+         workspace,
+         branch,
+      }
+   );
 
    // Resolve output dir
    const outputDir = replacePlaceholders(instanceConfig['xano-script'].output, {

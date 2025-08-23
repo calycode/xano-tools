@@ -5,13 +5,14 @@ import {
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
-   loadAndValidateContext,
    metaApiGet,
    normalizeApiGroupName,
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
+import { loadAndValidateContext } from '../../core/config';
+import { nodeConfigStorage } from '../node-config-storage';
 
 import { doOasUpdate } from '../features/oas/generate';
 import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';
@@ -33,11 +34,14 @@ async function generateCodeFromOas(
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
+      nodeConfigStorage,
+      {
+         instance,
+         workspace,
+         branch,
+      }
+   );
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';
    const additionalArgs = stack.args || [];
