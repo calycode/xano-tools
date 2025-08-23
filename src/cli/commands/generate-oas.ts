@@ -1,4 +1,3 @@
-import { log, outro, intro } from '@clack/prompts';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -6,10 +5,16 @@ import {
    chooseApiGroupOrAll,
    withErrorHandler,
 } from '../utils/index';
-import { updateSpecForGroup } from '../features/oas/generate';
 
-// [ ] CORE
-async function updateOpenapiSpec(
+/*
+
+Refactor plan:
+- move the chooseApiGroupOrAll() into a wrapper wizard, like on the setup and context switching commands.
+- extend the storage implementation with required filesystem writes that are extracted from the submethods of this feature.
+
+ */
+
+async function updateOasWizard(
    instance: string,
    workspace: string,
    branch: string,
@@ -18,39 +23,30 @@ async function updateOpenapiSpec(
    printOutput: boolean = false,
    core
 ) {
-   intro('🔄 Starting to generate OpenAPI specifications.');
-   try {
-      const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-         instance,
-         workspace,
-         branch,
-      });
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      instance,
+      workspace,
+      branch,
+   });
 
-      // 2. Get API groups (prompt or all)
-      const groups = await chooseApiGroupOrAll({
-         baseUrl: instanceConfig.url,
-         token: await core.loadToken(instanceConfig.name),
-         workspace_id: workspaceConfig.id,
-         branchLabel: branchConfig.label,
-         promptUser: !isAll && !group,
-         groupName: group,
-         all: !!isAll,
-      });
+   // 2. Get API groups (prompt or all)
+   const groups = await chooseApiGroupOrAll({
+      baseUrl: instanceConfig.url,
+      token: await core.loadToken(instanceConfig.name),
+      workspace_id: workspaceConfig.id,
+      branchLabel: branchConfig.label,
+      promptUser: !isAll && !group,
+      groupName: group,
+      all: !!isAll,
+   });
 
-      // 3. For each group, update the spec
-      for (const grp of groups) {
-         await updateSpecForGroup({
-            group: grp,
-            instanceConfig,
-            workspaceConfig,
-            branchConfig,
-            printOutput,
-         });
-      }
-      outro('All OpenAPI specifications generated.');
-   } catch (err) {
-      log.error(err.message || err);
-   }
+   core.updateOpenapiSpec(
+      instanceConfig.name,
+      workspaceConfig.name,
+      branchConfig.label,
+      groups,
+      printOutput
+   );
 }
 
 // [ ] CLI
@@ -65,7 +61,7 @@ function registerGenerateOasCommand(program, core) {
 
    cmd.action(
       withErrorHandler(async (opts) => {
-         await updateOpenapiSpec(
+         await updateOasWizard(
             opts.instance,
             opts.workspace,
             opts.branch,

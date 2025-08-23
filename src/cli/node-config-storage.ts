@@ -57,4 +57,12 @@ export const nodeConfigStorage: ConfigStorage = {
       const p = path.join(tokensDir, `${instance}.token`);
       fs.writeFileSync(p, token, { mode: 0o600 });
    },
+
+   // ----- FILESYSTEM OPS -----
+   async mkdir(dirPath, options) {
+      await fs.promises.mkdir(dirPath, options);
+   },
+   async writeFile(filePath, data) {
+      await fs.promises.writeFile(filePath, data);
+   },
 };

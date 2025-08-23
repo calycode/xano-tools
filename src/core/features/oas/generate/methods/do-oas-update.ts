@@ -1,25 +1,24 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { joinPath } from '../../../../utils';
 import { patchOasSpec } from './index';
 
 // [ ] CORE
-
 export default async function doOasUpdate({
    inputOas,
    outputDir,
    instanceConfig,
    workspaceConfig,
+   storage,
 }) {
    // Load and patch
    const oas = await patchOasSpec({ oas: inputOas, instanceConfig, workspaceConfig });
 
    // Ensure output directories exist
-   await fs.mkdir(outputDir, { recursive: true });
-   await fs.mkdir(path.join(outputDir, 'html'), { recursive: true });
+   await storage.mkdir(outputDir, { recursive: true });
+   await storage.mkdir(joinPath(outputDir, 'html'), { recursive: true });
 
    // Write JSON specs
-   await fs.writeFile(path.join(outputDir, 'spec.json'), JSON.stringify(oas, null, 2));
-   await fs.writeFile(path.join(outputDir, 'html', 'spec.json'), JSON.stringify(oas, null, 2));
+   await storage.writeFile(joinPath(outputDir, 'spec.json'), JSON.stringify(oas, null, 2));
+   await storage.writeFile(joinPath(outputDir, 'html', 'spec.json'), JSON.stringify(oas, null, 2));
 
    // Write Scalar HTML
    const html = `
@@ -60,7 +59,7 @@ export default async function doOasUpdate({
   </body>
 </html>
 `;
-   await fs.writeFile(path.join(outputDir, 'html', 'index.html'), html);
+   await storage.writeFile(joinPath(outputDir, 'html', 'index.html'), html);
 
    return oas;
 }

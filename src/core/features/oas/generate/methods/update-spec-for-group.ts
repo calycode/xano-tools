@@ -4,8 +4,7 @@ import {
    replacePlaceholders,
    metaApiGet,
    printOutputDir,
-} from '../../../../utils';
-import { loadToken } from '../../../../config/loaders';
+} from '../../../../../cli/utils';
 import { doOasUpdate } from '../index';
 
 // [ ] CORE
@@ -18,6 +17,8 @@ async function updateSpecForGroup({
    workspaceConfig,
    branchConfig,
    printOutput,
+   storage,
+   core,
 }) {
    const s = spinner();
    s.start(`Generating OpenAPI spec for group "${group.name}"`);
@@ -33,7 +34,7 @@ async function updateSpecForGroup({
 
    const openapiRaw = await metaApiGet({
       baseUrl: instanceConfig.url,
-      token: await loadToken(instanceConfig.name),
+      token: await core.loadToken(instanceConfig.name),
       path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
    });
 
@@ -42,6 +43,7 @@ async function updateSpecForGroup({
       outputDir: outputPath,
       instanceConfig,
       workspaceConfig,
+      storage,
    });
 
    s.stop(`OpenAPI spec generated for group "${group.name}" → ${outputPath}`);

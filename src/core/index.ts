@@ -11,6 +11,7 @@ import { setupInstanceImplementation } from './implementations/setup';
 import { loadAndValidateContextImplementation } from './implementations/load-and-validate-context';
 import { getCurrentContextConfigImplementation } from './implementations/get-current-context';
 import { switchContextImplementation } from './implementations/switch-context';
+import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 
 export class XCC {
    constructor(private storage: ConfigStorage) {}
@@ -27,6 +28,23 @@ export class XCC {
 
    async switchContext({ instance, workspace, branch }: CoreContext): Promise<void> {
       return switchContextImplementation(this.storage, { instance, workspace, branch });
+   }
+
+   async updateOpenapiSpec(
+      instance: string,
+      workspace: string,
+      branch: string,
+      // groups have to be the proper api group array not just a string...
+      groups: any,
+      printOutput: boolean = false
+   ): Promise<void> {
+      return updateOpenapiSpecImplementation(this.storage, this, {
+         instance,
+         workspace,
+         branch,
+         groups,
+         printOutput,
+      });
    }
 
    // ----- UTIL METHODS -----

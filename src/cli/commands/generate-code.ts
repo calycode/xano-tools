@@ -11,7 +11,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-import { doOasUpdate } from '../features/oas/generate';
+import { doOasUpdate } from '../../core/features/oas/generate';
 import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';
 
 // [ ] CLI only feature
@@ -77,6 +77,7 @@ async function generateCodeFromOas(
          outputDir: outputPath,
          instanceConfig,
          workspaceConfig,
+         storage: core.storage,
       });
 
       try {

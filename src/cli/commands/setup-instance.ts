@@ -1,7 +1,6 @@
 import { intro, text, password, confirm } from '@clack/prompts';
 import { sanitizeInstanceName, withErrorHandler } from '../utils/index';
 
-// [ ] CLI
 async function setupInstanceWizard(core) {
    intro('✨ Xano CLI Instance Setup ✨');
 
@@ -29,7 +28,6 @@ async function setupInstanceWizard(core) {
    await core.setupInstance({ name, url, apiKey, setAsCurrent });
 }
 
-// [ ] CLI
 export function registerSetupCommand(program, core) {
    program
       .command('setup')

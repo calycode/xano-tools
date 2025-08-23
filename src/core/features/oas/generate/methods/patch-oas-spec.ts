@@ -1,5 +1,5 @@
 import { cleanupResponseSchemas } from './cleanup-response-schemas';
-import { generateTableSchemas } from '../../../../../cli/features/oas/generate';
+import { generateTableSchemas } from '..';
 
 // [ ] CORE
 export default async function patchOasSpec({ oas, instanceConfig, workspaceConfig }) {

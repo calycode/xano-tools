@@ -15,7 +15,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-import { doOasUpdate } from '../features/oas/generate';
+import { doOasUpdate } from '../../core/features/oas/generate';
 
 // [ ] TODO: bring back the schema validation!
 // [ ] CORE, needs fs
@@ -95,6 +95,7 @@ async function testRunner(
                outputDir: oasOutputPath,
                instanceConfig,
                workspaceConfig,
+               storage: core.storage,
             });
          }
 
