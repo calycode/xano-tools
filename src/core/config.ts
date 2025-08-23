@@ -13,7 +13,7 @@ export async function loadAndValidateContext(
 }> {
    const globalConfig = await storage.loadGlobalConfig();
    const context = { ...globalConfig.currentContext, ...overrides };
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
+   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
       globalConfig,
       context
    );

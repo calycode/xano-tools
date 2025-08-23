@@ -21,7 +21,7 @@ async function updateOpenapiSpec(
 ) {
    intro('🔄 Starting to generate OpenAPI specifications.');
    try {
-      const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+      const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
          instance,
          workspace,
          branch,
@@ -30,7 +30,7 @@ async function updateOpenapiSpec(
       // 2. Get API groups (prompt or all)
       const groups = await chooseApiGroupOrAll({
          baseUrl: instanceConfig.url,
-         token: loadToken(instanceConfig.name),
+         token: await loadToken(instanceConfig.name),
          workspace_id: workspaceConfig.id,
          branchLabel: branchConfig.label,
          promptUser: !isAll && !group,

@@ -15,13 +15,13 @@ import {
 } from '../utils/index';
 
 // DEFAULT SETTINGS:
-const DEFAULT_LINT_RULES = {
+const DEFAULT_LINT_RULES: Record<string, 'error' | 'warn' | 'off'> = {
    'is-valid-verb': 'error',
    'is-camel-case': 'warn',
    'is-description-present': 'warn',
 };
 
-const DEFAULT_ASSERTS = {
+const DEFAULT_ASSERTS: Record<string, 'error' | 'warn' | 'off'> = {
    statusOk: 'error',
    responseDefined: 'error',
    responseSchema: 'warn',
@@ -48,11 +48,11 @@ async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
    }
 
    // 2. Health checks and setup
-   ensureDirs();
+   await ensureDirs();
    ensureGitignore();
 
    // 3. Store credentials
-   saveToken(safeName, apiKey);
+   await saveToken(safeName, apiKey);
    log.step(`Stored credentials for "${safeName}".`);
 
    // 4. Fetch workspaces and branches
@@ -62,9 +62,10 @@ async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
    );
 
    // 5. Save instance config
-   saveInstanceConfig(safeName, {
+   await saveInstanceConfig(safeName, {
       name: safeName,
       url,
+      tokenFile: `../tokens/${safeName}.token`,
       lint: {
          output: 'output/{instance}/lint/{workspace}/{branch}',
          rules: DEFAULT_LINT_RULES,
@@ -97,7 +98,7 @@ async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
    log.step('Stored instance configuration.');
 
    // 6. Register in global config
-   const global = loadGlobalConfig();
+   const global = await loadGlobalConfig();
    if (!global.instances.includes(safeName)) {
       global.instances.push(safeName);
    }
@@ -114,7 +115,7 @@ async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
       };
       log.step(`Set "${safeName}" as the current context.`);
    }
-   saveGlobalConfig(global);
+   await saveGlobalConfig(global);
 
    outro(`🚀 Instance "${safeName}" configured! Use 'xcc switch-context' to change.`);
 }
@@ -135,7 +136,7 @@ async function setupInstanceWizard() {
    const apiKey = await password({ message: `Enter the Metadata API key for "${name}":` });
 
    // Check if we should set it as the current context
-   const global = loadGlobalConfig();
+   const global = await loadGlobalConfig();
    const { currentContext } = global;
    let setAsCurrent = true;
    if (currentContext?.instance && currentContext.instance !== sanitizeInstanceName(name)) {

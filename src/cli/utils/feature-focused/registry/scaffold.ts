@@ -11,7 +11,7 @@ async function ensureDirForFile(filePath) {
 async function scaffoldRegistry(
    { outputPath, instance } = { outputPath: 'registry', instance: null }
 ) {
-   const { instanceConfig } = loadAndValidateContext({ instance });
+   const { instanceConfig } = await loadAndValidateContext({ instance });
    const registryRoot =
       outputPath ||
       (instanceConfig && instanceConfig.registry && instanceConfig.registry.output) ||

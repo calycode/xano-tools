@@ -31,7 +31,7 @@ async function testRunner(
    intro('☣️   Stating up the testing...');
 
    // 1. Get the current context.
-   const globalConfig = loadGlobalConfig();
+   const globalConfig = await loadGlobalConfig();
    const context = {
       ...globalConfig.currentContext,
       instance,
@@ -39,7 +39,7 @@ async function testRunner(
       branch,
       group,
    };
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
+   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
       globalConfig,
       context
    );
@@ -54,7 +54,7 @@ async function testRunner(
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
-      token: loadToken(instanceConfig.name),
+      token: await loadToken(instanceConfig.name),
       workspace_id: workspaceConfig.id,
       branchLabel: branchConfig.label,
       promptUser: !isAll && !group,
@@ -86,7 +86,7 @@ async function testRunner(
 
             const openapiRaw = await metaApiGet({
                baseUrl: instanceConfig.url,
-               token: loadToken(instanceConfig.name),
+               token: await loadToken(instanceConfig.name),
                path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
             });
 

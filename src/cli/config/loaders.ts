@@ -1,11 +1,23 @@
 import fs from 'fs';
 import path from 'path';
 import { configPath, instancesDir, tokensDir } from './paths';
+import { nodeConfigStorage } from '../node-config-storage';
+
+const {
+   ensureDirs,
+   loadGlobalConfig,
+   saveGlobalConfig,
+   loadInstanceConfig,
+   saveInstanceConfig,
+   loadToken,
+   saveToken,
+} = nodeConfigStorage;
 
 /**
  * This is the crucial part to be rewritten to allow use of consumers. So this is part of the core
  */
 // [ ] CORE
+/*
 function ensureDirs() {
    [instancesDir, tokensDir].forEach((dir) => {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -58,7 +70,7 @@ function saveToken(instance, token) {
    const p = path.join(tokensDir, `${instance}.token`);
    fs.writeFileSync(p, token, { mode: 0o600 });
 }
-
+*/
 export {
    ensureDirs,
    loadGlobalConfig,

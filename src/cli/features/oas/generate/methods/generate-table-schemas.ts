@@ -4,7 +4,7 @@ import { loadToken } from '../../../../config/loaders';
 
 // [ ] CORE
 async function generateTableSchemas() {
-   const { instanceConfig, workspaceConfig } = getCurrentContextConfig();
+   const { instanceConfig, workspaceConfig } = await getCurrentContextConfig();
 
    const tableSchemas = {};
 
@@ -17,7 +17,7 @@ async function generateTableSchemas() {
          page: 1,
          per_page: 500,
       },
-      token: loadToken(instanceConfig.name),
+      token: await loadToken(instanceConfig.name),
    });
 
    const workspaceTables = workspaceTablesRaw.items;
@@ -26,7 +26,7 @@ async function generateTableSchemas() {
       const workspaceTableSchemaRaw = await metaApiGet({
          baseUrl: instanceConfig.url,
          path: `/workspace/${workspaceConfig.id}/table/${table.id}/schema`,
-         token: loadToken(instanceConfig.name),
+         token: await loadToken(instanceConfig.name),
       });
 
       const workspaceTableSchema = workspaceTableSchemaRaw;

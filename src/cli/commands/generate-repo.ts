@@ -21,7 +21,7 @@ async function generateRepo(
    fetch = false,
    printOutput = false
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
       instance,
       workspace,
       branch,
@@ -44,7 +44,7 @@ async function generateRepo(
    if (fetch) {
       inputFile = await fetchAndExtractYaml({
          baseUrl: instanceConfig.url,
-         token: loadToken(instanceConfig.name),
+         token: await loadToken(instanceConfig.name),
          workspaceId: workspaceConfig.id,
          branchLabel: branchConfig.label,
          outDir: outputDir,

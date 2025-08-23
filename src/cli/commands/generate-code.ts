@@ -33,7 +33,7 @@ async function generateCodeFromOas(
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
-   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
       instance,
       workspace,
       branch,
@@ -45,7 +45,7 @@ async function generateCodeFromOas(
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
-      token: loadToken(instanceConfig.name),
+      token: await loadToken(instanceConfig.name),
       workspace_id: workspaceConfig.id,
       branchLabel: branchConfig.label,
       promptUser: !isAll && !group,
@@ -68,7 +68,7 @@ async function generateCodeFromOas(
 
       const openapiRaw = await metaApiGet({
          baseUrl: instanceConfig.url,
-         token: loadToken(instanceConfig.name),
+         token: await loadToken(instanceConfig.name),
          path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
       });
 

@@ -18,7 +18,7 @@ import {
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
-   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
       instance,
       workspace,
       branch,
@@ -41,7 +41,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
       // 1. Fetch all functions for this workspace. Core data and ids (to allow for individual fetching.)
       const branchFunctionsResponse = await metaApiGet({
          baseUrl: instanceConfig.url,
-         token: loadToken(instanceConfig.name),
+         token: await loadToken(instanceConfig.name),
          path: `/workspace/${workspaceConfig.id}/function`,
          query: {
             page: 1,
@@ -64,7 +64,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
       for (const item of Object.keys(branchFunctions)) {
          const itemDefinition = await metaApiGet({
             baseUrl: instanceConfig.url,
-            token: loadToken(instanceConfig.name),
+            token: await loadToken(instanceConfig.name),
             path: `/beta/workspace/${workspaceConfig.id}/function/${item}`,
             query: {
                include_draft: false,

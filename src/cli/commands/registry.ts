@@ -17,7 +17,7 @@ async function addToXano(
    componentNames: string[],
    context: { instance?: string; workspace?: string; branch?: string } = {}
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
       instance: context.instance,
       workspace: context.workspace,
       branch: context.branch,

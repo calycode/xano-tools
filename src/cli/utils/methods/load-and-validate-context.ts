@@ -9,15 +9,17 @@ import { Context, InstanceConfig, WorkspaceConfig, BranchConfig } from '../../..
  * @returns {object} - { instanceConfig, workspaceConfig, branchConfig, globalConfig }
  * @throws {Error} - If any required context is missing.
  */
-function loadAndValidateContext(overrides: Partial<Context>): {
+async function loadAndValidateContext(
+   overrides: Partial<Context>
+): Promise<{
    instanceConfig: InstanceConfig;
    workspaceConfig: WorkspaceConfig;
    branchConfig: BranchConfig;
    globalConfig: any;
-} {
-   const globalConfig = loadGlobalConfig();
+}> {
+   const globalConfig = await loadGlobalConfig();
    const context = { ...globalConfig.currentContext, ...overrides };
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
+   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
       globalConfig,
       context
    );

@@ -38,7 +38,7 @@ async function switchContextPrompt({
    branch: cliBranch,
 }) {
    intro('🔄 Switch Xano Context');
-   const config = loadGlobalConfig();
+   const config = await loadGlobalConfig();
 
    // 1. Select instance
    const instance = await selectOrValidate({
@@ -50,7 +50,7 @@ async function switchContextPrompt({
    // 2. Select workspace
    let instanceConfig;
    try {
-      instanceConfig = loadInstanceConfig(instance);
+      instanceConfig = await loadInstanceConfig(instance);
    } catch {
       log.error(`Instance "${instance}" not found.`);
       outro();
@@ -78,7 +78,7 @@ async function switchContextPrompt({
 
    // 4. Save and confirm
    config.currentContext = { instance, workspace, branch };
-   saveGlobalConfig(config);
+   await saveGlobalConfig(config);
 
    outro(
       `✅ Now using instance "${instance}", workspace "${
@@ -100,8 +100,8 @@ function registerSwitchContextCommand(program) {
 
 // [ ] CLI
 function registerCurrentContextCommand(program) {
-   program.command('current-context').action(() => {
-      const currentContext = getCurrentContextConfig();
+   program.command('current-context').action(async () => {
+      const currentContext = await getCurrentContextConfig();
       log.info(`Current context: ${JSON.stringify(currentContext, null, 2)}`);
    });
 }

@@ -39,7 +39,7 @@ async function getApiGroupByName(
 ) {
    const foundGroup = await metaApiGet({
       baseUrl: instanceConfig.url,
-      token: loadToken(instanceConfig.name),
+      token: await loadToken(instanceConfig.name),
       path: `/workspace/${workspaceConfig.id}/apigroup`,
       query: {
          branch: branchConfig.label,
@@ -55,7 +55,7 @@ async function getApiGroupByName(
    } else {
       selectedGroup = await metaApiPost({
          baseUrl: instanceConfig.url,
-         token: loadToken(instanceConfig.name),
+         token: await loadToken(instanceConfig.name),
          path: `/workspace/${workspaceConfig.id}/apigroup`,
          body: {
             name: groupName,

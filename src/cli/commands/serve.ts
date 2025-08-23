@@ -11,7 +11,7 @@ import {
 
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false }) {
-   const { instanceConfig, workspaceConfig, branchConfig } = loadAndValidateContext({
+   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext({
       instance,
       workspace,
       branch,
@@ -19,7 +19,7 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
 
    const apiGroups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
-      token: loadToken(instanceConfig.name),
+      token: await loadToken(instanceConfig.name),
       workspace_id: workspaceConfig.id,
       branchLabel: branchConfig.label,
       promptUser: !group,

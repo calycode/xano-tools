@@ -33,7 +33,7 @@ async function updateSpecForGroup({
 
    const openapiRaw = await metaApiGet({
       baseUrl: instanceConfig.url,
-      token: loadToken(instanceConfig.name),
+      token: await loadToken(instanceConfig.name),
       path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
    });
 

@@ -4,11 +4,13 @@
 export * from './config/config-storage';
 
 // ---- Context Types ----
-
-export interface Context {
+export interface CoreContext {
    instance?: string | null;
    workspace?: string | null;
    branch?: string | null;
+}
+
+export interface Context extends CoreContext {
    apigroup?: string | null;
 }
 

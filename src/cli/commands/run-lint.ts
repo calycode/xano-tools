@@ -11,10 +11,10 @@ import { runLintXano } from '../features/lint-xano';
 
 // [ ] CORE
 async function runLinter(printOutput: boolean = false) {
-   const globalConfig = loadGlobalConfig();
+   const globalConfig = await loadGlobalConfig();
    const context = globalConfig.currentContext;
 
-   const { instanceConfig, workspaceConfig, branchConfig } = getCurrentContextConfig(
+   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
       globalConfig,
       context
    );
