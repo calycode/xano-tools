@@ -2,7 +2,6 @@ import { log } from '@clack/prompts';
 import { loadGlobalConfig } from '../config/loaders';
 import {
    addPrintOutputFlag,
-   getCurrentContextConfig,
    printOutputDir,
    replacePlaceholders,
    withErrorHandler,
@@ -10,11 +9,11 @@ import {
 import { runLintXano } from '../features/lint-xano';
 
 // [ ] CORE
-async function runLinter(printOutput: boolean = false) {
+async function runLinter(printOutput: boolean = false, core) {
    const globalConfig = await loadGlobalConfig();
    const context = globalConfig.currentContext;
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.getCurrentContextConfig(
       globalConfig,
       context
    );
@@ -54,7 +53,7 @@ async function runLinter(printOutput: boolean = false) {
 }
 
 // [ ] CLI
-function registerLintCommand(program) {
+function registerLintCommand(program, core) {
    const cmd = program
       .command('lint')
       .description(
@@ -64,7 +63,7 @@ function registerLintCommand(program) {
    addPrintOutputFlag(cmd);
    cmd.action(
       withErrorHandler(async (opts) => {
-         await runLinter(opts.printOutput);
+         await runLinter(opts.printOutput, core);
       })
    );
 }

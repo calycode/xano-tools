@@ -7,8 +7,6 @@ async function setupInstanceWizard(core) {
    intro('✨ Xano CLI Instance Setup ✨');
 
    // Gather info from user
-   // [ ] TODO: update the .trim() implementation in order to have clearer types.
-   // [ ] TODO: actually wrap the clack.cc methods into custom wrapper to return proper types and avoid .ts errors...
    const name = (
       (await text({
          message: 'Name this Xano instance (e.g. prod, staging, client-a):',

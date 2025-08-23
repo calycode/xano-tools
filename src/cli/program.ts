@@ -17,7 +17,6 @@ import { registerOasServeCommand, registerRegistryServeCommand } from './command
 import { XCC } from '../core';
 import { nodeConfigStorage } from './node-config-storage';
 
-// [ ] CLI
 const { version } = pkg;
 const program = new Command();
 const core = new XCC(nodeConfigStorage);
@@ -51,7 +50,7 @@ program
 
 // --- Register your commands here ---
 registerSetupCommand(program, core);
-registerSwitchContextCommand(program);
+registerSwitchContextCommand(program, core);
 registerGenerateOasCommand(program, core);
 registerOasServeCommand(program, core);
 registerGenerateCodeCommand(program, core);
@@ -62,9 +61,9 @@ registerRegistryScaffoldCommand(program, core);
 registerRegistryServeCommand(program);
 registerExportBackupCommand(program, core);
 registerRestoreBackupCommand(program, core);
-registerLintCommand(program);
-registerTestViaOasCommand(program);
-registerCurrentContextCommand(program);
+registerLintCommand(program, core);
+registerTestViaOasCommand(program, core);
+registerCurrentContextCommand(program, core);
 
 // --- Custom Help Formatter ---
 program.configureHelp({
@@ -152,9 +151,3 @@ program.configureHelp({
 });
 
 export { program };
-
-/**
- * Future goals are:
- *
- * [ ] create xano workspaces from openapi specs or via ai
- */

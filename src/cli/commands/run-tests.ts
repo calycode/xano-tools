@@ -2,10 +2,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import { intro, log } from '@clack/prompts';
 import {
+   addFullContextOptions,
    addPrintOutputFlag,
    availableAsserts,
    chooseApiGroupOrAll,
-   getCurrentContextConfig,
    isEmptySchema,
    metaApiGet,
    normalizeApiGroupName,
@@ -26,7 +26,8 @@ async function testRunner(
    branch,
    group,
    isAll = false,
-   printOutput: boolean = false
+   printOutput: boolean = false,
+   core
 ) {
    intro('☣️   Stating up the testing...');
 
@@ -39,7 +40,7 @@ async function testRunner(
       branch,
       group,
    };
-   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.getCurrentContextConfig(
       globalConfig,
       context
    );
@@ -270,17 +271,25 @@ ${'-'.repeat(60)}`
 }
 
 // [ ] CLI
-function registerTestViaOasCommand(program) {
+function registerTestViaOasCommand(program, core) {
    const cmd = program
       .command('test-via-oas')
       .description('Run an API test suite via the OpenAPI spec. WIP...');
 
+   addFullContextOptions(cmd);
    addPrintOutputFlag(cmd);
 
    cmd.action(
-      withErrorHandler(async () => {
+      withErrorHandler(async (options) => {
          //@ts-expect-error We need to make sure to allow context override here and proper arguments coming from the command.
-         await testRunner();
+         await testRunner(
+            options.instance,
+            options.workspace,
+            options.branch,
+            false,
+            options.printOutputDir,
+            core
+         );
       })
    );
 }

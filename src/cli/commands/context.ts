@@ -1,8 +1,11 @@
 import { select, intro, outro, log } from '@clack/prompts';
-import { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig } from '../config/loaders';
-import { getCurrentContextConfig, withErrorHandler, addFullContextOptions } from '../utils/index';
+import { withErrorHandler, addFullContextOptions } from '../utils/index';
 
 // [ ] CLI
+// [ ] TODO: refactor same as the setup command was. (main method to come from core + selection wizard be here)
+// So we need a async function contextSwitchWizard(core) {}
+// This context switch wizard would be the implementation of the cli selection. But the main save method should come from the core class!
+
 /**
  * Helper to select or validate an option from a list
  */
@@ -32,13 +35,12 @@ async function selectOrValidate({
 }
 
 // [ ] CORE, needs fs
-async function switchContextPrompt({
-   instance: cliInstance,
-   workspace: cliWorkspace,
-   branch: cliBranch,
-}) {
+async function switchContextWizard(
+   { instance: cliInstance, workspace: cliWorkspace, branch: cliBranch },
+   core
+) {
    intro('🔄 Switch Xano Context');
-   const config = await loadGlobalConfig();
+   const config = await core.loadGlobalConfig();
 
    // 1. Select instance
    const instance = await selectOrValidate({
@@ -50,7 +52,7 @@ async function switchContextPrompt({
    // 2. Select workspace
    let instanceConfig;
    try {
-      instanceConfig = await loadInstanceConfig(instance);
+      instanceConfig = await core.loadInstanceConfig(instance);
    } catch {
       log.error(`Instance "${instance}" not found.`);
       outro();
@@ -76,9 +78,7 @@ async function switchContextPrompt({
    });
    const branchObj = branches.find((b) => b.label === branch);
 
-   // 4. Save and confirm
-   config.currentContext = { instance, workspace, branch };
-   await saveGlobalConfig(config);
+   await core.switchContext(instance, workspace, branch);
 
    outro(
       `✅ Now using instance "${instance}", workspace "${
@@ -88,20 +88,24 @@ async function switchContextPrompt({
 }
 
 // [ ] CLI
-function registerSwitchContextCommand(program) {
+function registerSwitchContextCommand(program, core) {
    const cmd = program.command('switch-context').description('Switch instance/workspace context');
    addFullContextOptions(cmd);
    cmd.action(
       withErrorHandler(async (opts) => {
-         await switchContextPrompt(opts);
+         if (opts.instance && opts.workspace && opts.branch) {
+            await core.switchContext(opts.instance, opts.workspace, opts.branch);
+         } else {
+            await switchContextWizard(opts, core);
+         }
       })
    );
 }
 
 // [ ] CLI
-function registerCurrentContextCommand(program) {
+function registerCurrentContextCommand(program, core) {
    program.command('current-context').action(async () => {
-      const currentContext = await getCurrentContextConfig();
+      const currentContext = await core.getCurrentContextConfig();
       log.info(`Current context: ${JSON.stringify(currentContext, null, 2)}`);
    });
 }

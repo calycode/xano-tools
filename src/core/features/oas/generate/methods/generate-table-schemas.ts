@@ -1,6 +1,6 @@
-import { convertXanoSchemaToJsonSchema } from '../../../../../core/features/oas/generate/methods/convert-xano-schemas';
-import { getCurrentContextConfig, metaApiGet } from '../../../../utils';
-import { loadToken } from '../../../../config/loaders';
+import { convertXanoSchemaToJsonSchema } from './convert-xano-schemas';
+import { getCurrentContextConfig, metaApiGet } from '../../../../../cli/utils';
+import { loadToken } from '../../../../../cli/config/loaders';
 
 // [ ] CORE
 async function generateTableSchemas() {
