@@ -1,5 +1,7 @@
 import { nodeConfigStorage } from '../node-config-storage';
 
-const { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig, loadToken } = nodeConfigStorage;
+// [ ] TODO: move to user the XCC core class method!
 
-export { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig, loadToken };
+const { loadToken } = nodeConfigStorage;
+
+export { loadToken };

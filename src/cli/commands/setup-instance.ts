@@ -1,5 +1,4 @@
 import { intro, text, password, confirm } from '@clack/prompts';
-import { loadGlobalConfig } from '../config/loaders';
 import { sanitizeInstanceName, withErrorHandler } from '../utils/index';
 
 // [ ] CLI
@@ -16,7 +15,7 @@ async function setupInstanceWizard(core) {
    const apiKey = await password({ message: `Enter the Metadata API key for "${name}":` });
 
    // Check if we should set it as the current context
-   const global = await loadGlobalConfig();
+   const global = await core.loadGlobalConfig();
    const { currentContext } = global;
    let setAsCurrent = true;
    if (currentContext?.instance && currentContext.instance !== sanitizeInstanceName(name)) {

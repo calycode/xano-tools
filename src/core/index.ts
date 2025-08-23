@@ -53,4 +53,8 @@ export class XCC {
    async loadInstanceConfig(instance: string): Promise<InstanceConfig> {
       return this.storage.loadInstanceConfig(instance);
    }
+
+   async loadToken(instance: string): Promise<string> {
+      return this.storage.loadToken(instance);
+   }
 }

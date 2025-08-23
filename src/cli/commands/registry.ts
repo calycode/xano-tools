@@ -9,7 +9,6 @@ import {
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
-import { loadToken } from '../config/loaders';
 
 // [ ] CORE
 async function addToXano(
@@ -17,13 +16,11 @@ async function addToXano(
    context: { instance?: string; workspace?: string; branch?: string } = {},
    core
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {
-         instance: context.instance,
-         workspace: context.workspace,
-         branch: context.branch,
-      }
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      instance: context.instance,
+      workspace: context.workspace,
+      branch: context.branch,
+   });
 
    intro('Add components to your Xano instance');
 
@@ -37,11 +34,15 @@ async function addToXano(
          // [ ] TODO: add sorting of registry item files where the table is the first, function comes second and queries come last
          const sortedFiles = sortFilesByType(registryItem.files);
          for (const file of sortedFiles) {
-            const success = await installComponentToXano(file, {
-               instanceConfig,
-               workspaceConfig,
-               branchConfig,
-            });
+            const success = await installComponentToXano(
+               file,
+               {
+                  instanceConfig,
+                  workspaceConfig,
+                  branchConfig,
+               },
+               core
+            );
             if (success)
                results.installed.push({ component: componentName, file: file.target || file.path });
             else
@@ -67,7 +68,7 @@ async function addToXano(
  * @param {*} resolvedContext
  * @returns {Boolean} - success: true, failure: false
  */
-async function installComponentToXano(file, resolvedContext) {
+async function installComponentToXano(file, resolvedContext, core) {
    const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
 
    const urlMapping = {
@@ -88,7 +89,7 @@ async function installComponentToXano(file, resolvedContext) {
       ] = `workspace/${workspaceConfig.id}/apigroup/${targetApiGroup.id}/api?branch=${branchConfig.label}`;
    }
 
-   const xanoToken = loadToken(instanceConfig.name);
+   const xanoToken = await core.loadToken(instanceConfig.name);
    const xanoApiUrl = `${instanceConfig.url}/api:meta`;
 
    try {

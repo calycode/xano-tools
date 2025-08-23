@@ -1,5 +1,4 @@
 import { spawn } from 'child_process';
-import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -10,17 +9,15 @@ import {
 
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {
-         instance,
-         workspace,
-         branch,
-      }
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      instance,
+      workspace,
+      branch,
+   });
 
    const apiGroups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
-      token: await loadToken(instanceConfig.name),
+      token: await core.loadToken(instanceConfig.name),
       workspace_id: workspaceConfig.id,
       branchLabel: branchConfig.label,
       promptUser: !group,

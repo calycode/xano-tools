@@ -2,7 +2,6 @@ import { mkdir } from 'fs/promises';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { loadToken } from '../config/loaders';
 import {
    metaApiGet,
    withErrorHandler,
@@ -42,7 +41,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
       // 1. Fetch all functions for this workspace. Core data and ids (to allow for individual fetching.)
       const branchFunctionsResponse = await metaApiGet({
          baseUrl: instanceConfig.url,
-         token: await loadToken(instanceConfig.name),
+         token: await core.loadToken(instanceConfig.name),
          path: `/workspace/${workspaceConfig.id}/function`,
          query: {
             page: 1,
@@ -65,7 +64,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
       for (const item of Object.keys(branchFunctions)) {
          const itemDefinition = await metaApiGet({
             baseUrl: instanceConfig.url,
-            token: await loadToken(instanceConfig.name),
+            token: await core.loadToken(instanceConfig.name),
             path: `/beta/workspace/${workspaceConfig.id}/function/${item}`,
             query: {
                include_draft: false,

@@ -14,7 +14,6 @@ import {
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
-import { loadGlobalConfig, loadToken } from '../config/loaders';
 
 import { doOasUpdate } from '../features/oas/generate';
 
@@ -32,7 +31,7 @@ async function testRunner(
    intro('☣️   Stating up the testing...');
 
    // 1. Get the current context.
-   const globalConfig = await loadGlobalConfig();
+   const globalConfig = await core.loadGlobalConfig();
    const context = {
       ...globalConfig.currentContext,
       instance,
@@ -55,7 +54,7 @@ async function testRunner(
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
-      token: await loadToken(instanceConfig.name),
+      token: await core.loadToken(instanceConfig.name),
       workspace_id: workspaceConfig.id,
       branchLabel: branchConfig.label,
       promptUser: !isAll && !group,
@@ -87,7 +86,7 @@ async function testRunner(
 
             const openapiRaw = await metaApiGet({
                baseUrl: instanceConfig.url,
-               token: await loadToken(instanceConfig.name),
+               token: await core.loadToken(instanceConfig.name),
                path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
             });
 

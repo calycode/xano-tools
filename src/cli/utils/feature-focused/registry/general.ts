@@ -33,6 +33,7 @@ async function promptForComponents() {
    }
 }
 
+// [ ] Extract to core utilities
 async function getApiGroupByName(
    groupName,
    { instanceConfig, workspaceConfig, branchConfig }: any

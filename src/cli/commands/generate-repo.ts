@@ -1,5 +1,4 @@
 import { mkdir } from 'fs/promises';
-import { loadToken } from '../config/loaders';
 import {
    addFullContextOptions,
    addPrintOutputFlag,
@@ -46,7 +45,7 @@ async function generateRepo(
    if (fetch) {
       inputFile = await fetchAndExtractYaml({
          baseUrl: instanceConfig.url,
-         token: await loadToken(instanceConfig.name),
+         token: await core.loadToken(instanceConfig.name),
          workspaceId: workspaceConfig.id,
          branchLabel: branchConfig.label,
          outDir: outputDir,

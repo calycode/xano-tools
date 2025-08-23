@@ -1,5 +1,4 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { loadToken } from '../config/loaders';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -47,7 +46,7 @@ async function generateCodeFromOas(
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
-      token: await loadToken(instanceConfig.name),
+      token: await core.loadToken(instanceConfig.name),
       workspace_id: workspaceConfig.id,
       branchLabel: branchConfig.label,
       promptUser: !isAll && !group,
@@ -70,7 +69,7 @@ async function generateCodeFromOas(
 
       const openapiRaw = await metaApiGet({
          baseUrl: instanceConfig.url,
-         token: await loadToken(instanceConfig.name),
+         token: await core.loadToken(instanceConfig.name),
          path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
       });
 

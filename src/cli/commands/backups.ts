@@ -4,7 +4,6 @@ import { writeFileSync, readdirSync, createReadStream } from 'fs';
 import axios from 'axios';
 import FormData from 'form-data';
 import { spinner, select, confirm, outro, log } from '@clack/prompts';
-import { loadToken } from '../config/loaders';
 import {
    addPartialContextOptions,
    addFullContextOptions,
@@ -47,7 +46,7 @@ async function exportBackup(instance, workspace, branch, printOutput = false, co
 
    const backupBuffer = await metaApiRequestBlob({
       baseUrl: instanceConfig.url,
-      token: await loadToken(instanceConfig.name),
+      token: await core.loadToken(instanceConfig.name),
       method: 'POST',
       path: `/workspace/${workspaceConfig.id}/export`,
       body: { branch: branchConfig.label },
@@ -145,7 +144,7 @@ async function restoreBackup(instance, workspace, sourceBackup = null, forceConf
       });
 
       const headers = {
-         Authorization: `Bearer ${loadToken(instanceConfig.name)}`,
+         Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
          ...formData.getHeaders(),
       };
 

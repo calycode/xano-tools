@@ -1,5 +1,4 @@
 import { log } from '@clack/prompts';
-import { loadGlobalConfig } from '../config/loaders';
 import {
    addPrintOutputFlag,
    printOutputDir,
@@ -10,7 +9,7 @@ import { runLintXano } from '../features/lint-xano';
 
 // [ ] CORE
 async function runLinter(printOutput: boolean = false, core) {
-   const globalConfig = await loadGlobalConfig();
+   const globalConfig = await core.loadGlobalConfig();
    const context = globalConfig.currentContext;
 
    const { instanceConfig, workspaceConfig, branchConfig } = await core.getCurrentContextConfig(
