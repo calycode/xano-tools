@@ -1,4 +1,5 @@
 import { mkdir } from 'fs/promises';
+import { loadToken } from '../config/loaders';
 import {
    addFullContextOptions,
    addPrintOutputFlag,
@@ -20,13 +21,11 @@ async function generateRepo(
    printOutput = false,
    core
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {
-         instance,
-         workspace,
-         branch,
-      }
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      instance,
+      workspace,
+      branch,
+   });
 
    // Resolve output dir
    const outputDir = output

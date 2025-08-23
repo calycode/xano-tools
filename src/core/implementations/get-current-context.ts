@@ -14,11 +14,15 @@ import {
  * Returns { instanceConfig, workspaceConfig, branchConfig, apigroupConfig }
  * If any level is not found, returns null for that level.
  */
-export async function getCurrentContextConfigImplementation(
-   storage: ConfigStorage,
-   globalConfig?: any,
-   context: Context = {}
-): Promise<CurrentContextConfig> {
+export async function getCurrentContextConfigImplementation({
+   storage,
+   globalConfig = null,
+   context = {},
+}: {
+   storage: ConfigStorage;
+   globalConfig?: any;
+   context: Context;
+}): Promise<CurrentContextConfig> {
    if (!globalConfig) globalConfig = await storage.loadGlobalConfig();
 
    const resolvedContext: Context = {

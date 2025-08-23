@@ -60,20 +60,24 @@ export class XCC {
    }
 
    // ----- UTIL METHODS ----- //
-   async loadAndValidateContext(overrides: Partial<Context>): Promise<{
+   async loadAndValidateContext({ instance, workspace, branch }: Context): Promise<{
       instanceConfig: InstanceConfig;
       workspaceConfig: WorkspaceConfig;
       branchConfig: BranchConfig;
       globalConfig: any;
    }> {
-      return loadAndValidateContextImplementation(this.storage, overrides);
+      return loadAndValidateContextImplementation(this.storage, { instance, workspace, branch });
    }
 
    async getCurrentContextConfig(
       globalConfig?: any,
       context: Context = {}
    ): Promise<CurrentContextConfig> {
-      return getCurrentContextConfigImplementation(this.storage, globalConfig, context);
+      return getCurrentContextConfigImplementation({
+         storage: this.storage,
+         globalConfig,
+         context,
+      });
    }
 
    async loadGlobalConfig(): Promise<any> {
