@@ -1,6 +1,6 @@
 // core/config.ts
 import { ConfigStorage, InstanceConfig, WorkspaceConfig, BranchConfig, Context } from '../../types';
-import { getCurrentContextConfig } from '../../cli/utils';
+import { getCurrentContextConfigImplementation } from './get-current-context';
 
 export async function loadAndValidateContextImplementation(
    storage: ConfigStorage,
@@ -13,10 +13,8 @@ export async function loadAndValidateContextImplementation(
 }> {
    const globalConfig = await storage.loadGlobalConfig();
    const context = { ...globalConfig.currentContext, ...overrides };
-   const { instanceConfig, workspaceConfig, branchConfig } = await getCurrentContextConfig(
-      globalConfig,
-      context
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } =
+      await getCurrentContextConfigImplementation(storage, context);
    if (!instanceConfig || !workspaceConfig || !branchConfig) {
       throw new Error(
          'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'

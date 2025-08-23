@@ -37,7 +37,12 @@ async function updateSpecForGroup({
       path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
    });
 
-   await doOasUpdate(openapiRaw, outputPath);
+   await doOasUpdate({
+      inputOas: openapiRaw,
+      outputDir: outputPath,
+      instanceConfig,
+      workspaceConfig,
+   });
 
    s.stop(`OpenAPI spec generated for group "${group.name}" → ${outputPath}`);
    printOutputDir(printOutput, outputPath);

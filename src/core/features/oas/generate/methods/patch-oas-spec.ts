@@ -2,9 +2,9 @@ import { cleanupResponseSchemas } from './cleanup-response-schemas';
 import { generateTableSchemas } from '../../../../../cli/features/oas/generate';
 
 // [ ] CORE
-export default async function patchOasSpec(oas) {
+export default async function patchOasSpec({ oas, instanceConfig, workspaceConfig }) {
    const newOas = { ...oas };
-   const tableSchemas = await generateTableSchemas();
+   const tableSchemas = await generateTableSchemas(instanceConfig, workspaceConfig);
    newOas.openapi = '3.1.1';
    newOas.components = {
       ...(oas.components ?? {}),

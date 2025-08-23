@@ -32,13 +32,11 @@ async function generateCodeFromOas(
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {
-         instance,
-         workspace,
-         branch,
-      }
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      instance,
+      workspace,
+      branch,
+   });
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';
    const additionalArgs = stack.args || [];
@@ -74,7 +72,12 @@ async function generateCodeFromOas(
       });
 
       // Prepare for better usability
-      await doOasUpdate(openapiRaw, outputPath);
+      await doOasUpdate({
+         inputOas: openapiRaw,
+         outputDir: outputPath,
+         instanceConfig,
+         workspaceConfig,
+      });
 
       try {
          await runOpenApiGenerator({

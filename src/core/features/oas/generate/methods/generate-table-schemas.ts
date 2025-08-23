@@ -1,11 +1,9 @@
 import { convertXanoSchemaToJsonSchema } from './convert-xano-schemas';
-import { getCurrentContextConfig, metaApiGet } from '../../../../../cli/utils';
+import { metaApiGet } from '../../../../../cli/utils';
 import { loadToken } from '../../../../../cli/config/loaders';
 
 // [ ] CORE
-async function generateTableSchemas() {
-   const { instanceConfig, workspaceConfig } = await getCurrentContextConfig();
-
+async function generateTableSchemas(instanceConfig, workspaceConfig) {
    const tableSchemas = {};
 
    const workspaceTablesRaw = await metaApiGet({

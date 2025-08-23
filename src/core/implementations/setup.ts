@@ -1,6 +1,6 @@
 import { outro, log } from '@clack/prompts';
 import { ConfigStorage } from '../../types';
-import { sanitizeInstanceName, withSpinner, fetchWorkspacesAndBranches } from '../utils';
+import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '../utils';
 import { ensureGitignore } from '../../cli/utils';
 
 // DEFAULT SETTINGS:
@@ -54,10 +54,7 @@ export async function setupInstanceImplementation(
    log.step(`Stored credentials for "${safeName}".`);
 
    // 4. Fetch workspaces and branches
-   const workspaces = await withSpinner(
-      `Fetching workspaces and branches for "${safeName}"...`,
-      () => fetchWorkspacesAndBranches({ url, apiKey })
-   );
+   const workspaces = await fetchWorkspacesAndBranches({ url, apiKey });
 
    // 5. Save instance config
    await storage.saveInstanceConfig(safeName, {

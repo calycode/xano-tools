@@ -4,10 +4,14 @@ import { patchOasSpec } from './index';
 
 // [ ] CORE
 
-export default async function doOasUpdate(inputOas, outputDir) {
+export default async function doOasUpdate({
+   inputOas,
+   outputDir,
+   instanceConfig,
+   workspaceConfig,
+}) {
    // Load and patch
-   const originalOas = inputOas;
-   const oas = await patchOasSpec(originalOas);
+   const oas = await patchOasSpec({ oas: inputOas, instanceConfig, workspaceConfig });
 
    // Ensure output directories exist
    await fs.mkdir(outputDir, { recursive: true });

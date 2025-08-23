@@ -90,7 +90,12 @@ async function testRunner(
                path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
             });
 
-            oasSpec = await doOasUpdate(openapiRaw, oasOutputPath);
+            oasSpec = await doOasUpdate({
+               inputOas: openapiRaw,
+               outputDir: oasOutputPath,
+               instanceConfig,
+               workspaceConfig,
+            });
          }
 
          log.step(`Local OpenAPI spec for ${group.name} generated. Continuing to tests.`);

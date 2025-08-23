@@ -1,11 +1,6 @@
 import { select, intro, outro, log } from '@clack/prompts';
 import { withErrorHandler, addFullContextOptions } from '../utils/index';
 
-// [ ] CLI
-// [ ] TODO: refactor same as the setup command was. (main method to come from core + selection wizard be here)
-// So we need a async function contextSwitchWizard(core) {}
-// This context switch wizard would be the implementation of the cli selection. But the main save method should come from the core class!
-
 /**
  * Helper to select or validate an option from a list
  */
@@ -34,7 +29,6 @@ async function selectOrValidate({
    });
 }
 
-// [ ] CORE, needs fs
 async function switchContextWizard(
    { instance: cliInstance, workspace: cliWorkspace, branch: cliBranch },
    core
@@ -87,7 +81,6 @@ async function switchContextWizard(
    );
 }
 
-// [ ] CLI
 function registerSwitchContextCommand(program, core) {
    const cmd = program.command('switch-context').description('Switch instance/workspace context');
    addFullContextOptions(cmd);
@@ -102,7 +95,6 @@ function registerSwitchContextCommand(program, core) {
    );
 }
 
-// [ ] CLI
 function registerCurrentContextCommand(program, core) {
    program.command('current-context').action(async () => {
       const currentContext = await core.getCurrentContextConfig();
