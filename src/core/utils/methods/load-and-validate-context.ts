@@ -1,8 +1,7 @@
-import { loadGlobalConfig } from '../../config/loaders';
-import { getCurrentContextConfig } from '../index';
+import { loadGlobalConfig } from '../../../cli/config/loaders';
+import { getCurrentContextConfig } from '../../../cli/utils/index';
 import { Context, InstanceConfig, WorkspaceConfig, BranchConfig } from '../../../types';
 
-// [ ] CORE, needs fs
 /**
  * Loads and validates the context needed for OpenAPI spec update.
  * @param {object} overrides - Optional instance/workspace/branch/group overrides from CLI.

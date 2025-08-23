@@ -1,4 +1,4 @@
-import { metaApiGet } from '../../index';
+import { metaApiGet } from '../../../cli/utils/index';
 
 // [ ] CORE
 async function fetchWorkspacesAndBranches({ url, apiKey }) {

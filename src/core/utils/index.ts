@@ -4,3 +4,8 @@ export * from './methods/prepare-request';
 export * from './methods/replace-placeholders';
 export * from './methods/sanitize';
 export * from './methods/get-current-context';
+export * from './methods/fetch-workspaces-branches';
+export * from './feature-focused/test/custom-assertions';
+export * from './methods/load-and-validate-context';
+export * from './methods/with-error-handler';
+export * from './methods/with-spinner';
