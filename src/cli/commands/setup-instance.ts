@@ -1,5 +1,5 @@
 import { intro, text, password, confirm } from '@clack/prompts';
-import { sanitizeInstanceName, withErrorHandler } from '../utils/index';
+import { ensureGitignore, sanitizeInstanceName, withErrorHandler } from '../utils/index';
 
 async function setupInstanceWizard(core) {
    intro('✨ Xano CLI Instance Setup ✨');
@@ -39,6 +39,8 @@ export function registerSetupCommand(program, core) {
       .action(
          withErrorHandler(async (opts) => {
             if (opts.name && opts.url && opts.token) {
+               // Ensure gitignore:
+               ensureGitignore();
                // Non-interactive mode for CI/CD
                await core.setupInstance({
                   name: opts.name,

@@ -1,7 +1,5 @@
 import { log } from '@clack/prompts';
 
-// [ ] CORE, needs removal of log
-
 /**
  * Wraps an async function with error handling and process exit.
  */

@@ -1,7 +1,6 @@
 import { outro, log } from '@clack/prompts';
 import { ConfigStorage } from '../../types';
 import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '../utils';
-import { ensureGitignore } from '../../cli/utils';
 
 // DEFAULT SETTINGS:
 const DEFAULT_LINT_RULES: Record<string, 'error' | 'warn' | 'off'> = {
@@ -47,7 +46,6 @@ export async function setupInstanceImplementation(
 
    // 2. Health checks and setup
    await storage.ensureDirs();
-   ensureGitignore();
 
    // 3. Store credentials
    await storage.saveToken(safeName, apiKey);
