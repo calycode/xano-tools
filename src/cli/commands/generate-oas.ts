@@ -6,14 +6,6 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-/*
-
-Refactor plan:
-- move the chooseApiGroupOrAll() into a wrapper wizard, like on the setup and context switching commands.
-- extend the storage implementation with required filesystem writes that are extracted from the submethods of this feature.
-
- */
-
 async function updateOasWizard(
    instance: string,
    workspace: string,

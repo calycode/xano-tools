@@ -11,8 +11,6 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-// [ ] TODO: expose the doOasUpdate() to the core methods to be reusable here and not as an import
-import { doOasUpdate } from '../../core/features/oas/generate';
 import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';
 
 // [ ] CLI only feature
@@ -73,7 +71,7 @@ async function generateCodeFromOas(
       });
 
       // Prepare for better usability
-      await doOasUpdate({
+      await core.doOasUpdate({
          inputOas: openapiRaw,
          outputDir: outputPath,
          instanceConfig,

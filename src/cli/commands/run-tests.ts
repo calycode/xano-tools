@@ -15,9 +15,6 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-// [ ] TODO: expose the doOasUpdate() to the core methods to be reusable here and not as an import
-import { doOasUpdate } from '../../core/features/oas/generate';
-
 // [ ] TODO: bring back the schema validation!
 // [ ] CORE, needs fs
 async function testRunner(
@@ -91,7 +88,7 @@ async function testRunner(
                path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
             });
 
-            oasSpec = await doOasUpdate({
+            oasSpec = await core.doOasUpdate({
                inputOas: openapiRaw,
                outputDir: oasOutputPath,
                instanceConfig,

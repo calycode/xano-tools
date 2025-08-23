@@ -19,7 +19,7 @@ import { nodeConfigStorage } from './node-config-storage';
 
 const { version } = pkg;
 const program = new Command();
-const core = new XCC(nodeConfigStorage);
+const core: XCC = new XCC(nodeConfigStorage);
 
 program
   .name('xcc')

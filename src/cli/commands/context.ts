@@ -72,7 +72,7 @@ async function switchContextWizard(
    });
    const branchObj = branches.find((b) => b.label === branch);
 
-   await core.switchContext(instance, workspace, branch);
+   await core.switchContext({ instance, workspace, branch });
 
    outro(
       `✅ Now using instance "${instance}", workspace "${
@@ -87,7 +87,11 @@ function registerSwitchContextCommand(program, core) {
    cmd.action(
       withErrorHandler(async (opts) => {
          if (opts.instance && opts.workspace && opts.branch) {
-            await core.switchContext(opts.instance, opts.workspace, opts.branch);
+            await core.switchContext({
+               instance: opts.instance,
+               workspace: opts.workspace,
+               branch: opts.branch,
+            });
          } else {
             await switchContextWizard(opts, core);
          }

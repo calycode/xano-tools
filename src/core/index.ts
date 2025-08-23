@@ -12,11 +12,12 @@ import { loadAndValidateContextImplementation } from './implementations/load-and
 import { getCurrentContextConfigImplementation } from './implementations/get-current-context';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
+import { doOasUpdate } from './features/oas/generate';
 
 export class XCC {
    constructor(private storage: ConfigStorage) {}
 
-   // ----- MAIN FEATURES -----
+   // ----- MAIN FEATURES ----- //
    async setupInstance(options: {
       name: string;
       url: string;
@@ -47,7 +48,18 @@ export class XCC {
       });
    }
 
-   // ----- UTIL METHODS -----
+   // ----- SEMI-UTIL METHODS ----- //
+   async doOasUpdate({ inputOas, outputDir, instanceConfig, workspaceConfig }): Promise<any> {
+      return doOasUpdate({
+         inputOas,
+         outputDir,
+         instanceConfig,
+         workspaceConfig,
+         storage: this.storage,
+      });
+   }
+
+   // ----- UTIL METHODS ----- //
    async loadAndValidateContext(overrides: Partial<Context>): Promise<{
       instanceConfig: InstanceConfig;
       workspaceConfig: WorkspaceConfig;
