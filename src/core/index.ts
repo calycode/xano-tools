@@ -1,18 +1,20 @@
 import {
+   BranchConfig,
    ConfigStorage,
    Context,
+   CoreContext,
+   CurrentContextConfig,
    InstanceConfig,
    WorkspaceConfig,
-   BranchConfig,
-   CurrentContextConfig,
-   CoreContext,
 } from '../types';
-import { setupInstanceImplementation } from './implementations/setup';
-import { loadAndValidateContextImplementation } from './implementations/load-and-validate-context';
+import { doOasUpdate } from './features/oas/generate';
+import { exportBackupImplementation, restoreBackupImplementation } from './implementations/backups';
 import { getCurrentContextConfigImplementation } from './implementations/get-current-context';
+import { loadAndValidateContextImplementation } from './implementations/load-and-validate-context';
+import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
-import { doOasUpdate } from './features/oas/generate';
+import type { AxiosResponse } from 'axios';
 
 export class XCC {
    constructor(private storage: ConfigStorage) {}
@@ -45,6 +47,31 @@ export class XCC {
          branch,
          groups,
          printOutput,
+      });
+   }
+
+   async exportBackup({ instance, workspace, branch }): Promise<Record<string, string>> {
+      return exportBackupImplementation({
+         instance,
+         workspace,
+         branch,
+         core: this,
+      });
+   }
+
+   /**
+    *
+    * Expexts the prepared FORMDATA that will only be uploaded by the axios
+    *
+    * @param
+    * @returns Axios response
+    */
+   async restoreBackup({ instance, workspace, formData }): Promise<AxiosResponse<string, any>> {
+      return restoreBackupImplementation({
+         instance,
+         workspace,
+         formData,
+         core: this,
       });
    }
 

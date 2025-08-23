@@ -1,98 +1,45 @@
 import path, { join } from 'path';
-import { mkdir } from 'fs/promises';
-import { writeFileSync, readdirSync, createReadStream } from 'fs';
-import axios from 'axios';
+import { readdirSync, createReadStream } from 'fs';
 import FormData from 'form-data';
 import { spinner, select, confirm, outro, log } from '@clack/prompts';
 import {
-   addPartialContextOptions,
    addFullContextOptions,
-   metaApiRequestBlob,
+   addPartialContextOptions,
+   addPrintOutputFlag,
+   printOutputDir,
    replacePlaceholders,
    withErrorHandler,
-   printOutputDir,
-   addPrintOutputFlag,
 } from '../utils/index';
 
-// [ ] CORE, needs fs
-async function exportBackup(instance, workspace, branch, printOutput = false, core) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {
-         instance,
-         workspace,
-         branch,
-      }
-   );
-
-   if (!instanceConfig || !workspaceConfig || !branchConfig) {
-      throw new Error(
-         'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
-      );
-   }
-
-   const s = spinner();
-
-   s.start('Fetching and saving backup...');
-
-   // Resolve output dir
-   const outputDir = replacePlaceholders(instanceConfig.backups.output, {
-      instance: instanceConfig.name,
-      workspace: workspaceConfig.name,
-      branch: branchConfig.label,
+async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
+   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
+      instance,
+      workspace,
    });
-
-   // Ensure outputDir exists:
-   await mkdir(outputDir, { recursive: true });
-
-   const backupBuffer = await metaApiRequestBlob({
-      baseUrl: instanceConfig.url,
-      token: await core.loadToken(instanceConfig.name),
-      method: 'POST',
-      path: `/workspace/${workspaceConfig.id}/export`,
-      body: { branch: branchConfig.label },
-   });
-
-   const now = new Date();
-   const ts = now.toISOString().replace(/[:.]/g, '-');
-   const backupPath = join(outputDir, `backup-${ts}.tar.gz`);
-   writeFileSync(backupPath, backupBuffer);
-
-   s.stop(`Workspace backup saved -> ${backupPath}`);
-   printOutputDir(printOutput, outputDir);
-}
-
-// [ ] CORE, needs fs
-async function restoreBackup(instance, workspace, sourceBackup = null, forceConfirm = false, core) {
-   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext(
-      {
-         instance,
-         workspace,
-      }
-   );
 
    const s = spinner();
 
    try {
-      // Select the branch to restore from
-      const branchConfigSelection = await select({
-         message: `Select which branch to use a backup from:`,
-         options: workspaceConfig.branches.map((branch) => ({
-            value: branch.label,
-            label: branch.label,
-         })),
-      });
+      let backupFilePath = sourceBackup;
+      if (!sourceBackup) {
+         // Select the branch to restore from
+         const branchConfigSelection = await select({
+            message: `Select which branch to use a backup from:`,
+            options: workspaceConfig.branches.map((branch) => ({
+               value: branch.label,
+               label: branch.label,
+            })),
+         });
 
-      const branchConfig = workspaceConfig.branches.find((b) => b.label === branchConfigSelection);
+         const branchConfig = workspaceConfig.branches.find(
+            (b) => b.label === branchConfigSelection
+         );
 
-      let backupFilePath;
-      if (sourceBackup) {
-         backupFilePath = sourceBackup;
-      } else {
          // Find available backups for the selected branch
          const backupsDir = replacePlaceholders(instanceConfig.backups.output, {
+            branch: branchConfig.label,
             instance: instanceConfig.name,
             workspace: workspaceConfig.name,
-            branch: branchConfig.label,
          });
 
          let availableBackups;
@@ -119,7 +66,6 @@ async function restoreBackup(instance, workspace, sourceBackup = null, forceConf
          backupFilePath = join(backupsDir, sourceBackupPath);
       }
 
-      // Only ask for confirmation if forced confirmation was false
       if (!forceConfirm) {
          const restorationConfirmation = await confirm({
             message: `You are about to restore "${instanceConfig.name} > ${workspaceConfig.name}" from backup "${backupFilePath}". Continue?`,
@@ -132,7 +78,7 @@ async function restoreBackup(instance, workspace, sourceBackup = null, forceConf
       }
 
       s.start(
-         `Uploading and importing backup to --> ${instanceConfig.name} > ${workspaceConfig.name} > ${branchConfig.label}`
+         `Uploading and importing backup to --> ${instanceConfig.name} > ${workspaceConfig.name}`
       );
 
       const startTime = Date.now();
@@ -143,17 +89,12 @@ async function restoreBackup(instance, workspace, sourceBackup = null, forceConf
          filename: path.basename(backupFilePath),
       });
 
-      const headers = {
-         Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
-         ...formData.getHeaders(),
-      };
-
-      log.info(`Starting upload of backup: ${backupFilePath}`);
-      const response = await axios.post(
-         `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/import`,
+      // Pass on the formdata to the core implementation
+      const response = await core.restoreBackup({
          formData,
-         { headers }
-      );
+         instance,
+         workspace,
+      });
 
       const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
       if (response.status === 200) {
@@ -181,13 +122,12 @@ function registerExportBackupCommand(program, core) {
 
    cmd.action(
       withErrorHandler(async (options) => {
-         await exportBackup(
-            options.instance,
-            options.workspace,
-            options.branch,
-            options.printOutputDir,
-            core
-         );
+         const outputObject = await core.exportBackup({
+            branch: options.branch,
+            instance: options.instance,
+            workspace: options.workspace,
+         });
+         printOutputDir(options.printOutput, outputObject.outputDir);
       })
    );
 }
@@ -204,13 +144,13 @@ function registerRestoreBackupCommand(program, core) {
       .option('--force', 'Force restoration without confirmation')
       .action(
          withErrorHandler(async (options) => {
-            await restoreBackup(
-               options.instance,
-               options.workspace,
-               options.sourceBackup,
-               options.force,
-               core
-            );
+            await restorationWizard({
+               instance: options.instance,
+               workspace: options.workspace,
+               sourceBackup: options.sourceBackup,
+               forceConfirm: options.force,
+               core: core,
+            });
          })
       );
 }

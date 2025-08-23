@@ -65,4 +65,15 @@ export const nodeConfigStorage: ConfigStorage = {
    async writeFile(filePath, data) {
       await fs.promises.writeFile(filePath, data);
    },
+   async readFile(filePath) {
+      return await fs.promises.readFile(filePath); // returns Buffer
+   },
+   async exists(filePath) {
+      try {
+         await fs.promises.access(filePath);
+         return true;
+      } catch {
+         return false;
+      }
+   },
 };
