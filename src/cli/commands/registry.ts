@@ -78,11 +78,15 @@ async function installComponentToXano(file, resolvedContext, core) {
 
    // If query, extend the default urlMapping with the populated query creation API group.
    if (file.type === 'registry:query') {
-      const targetApiGroup = await getApiGroupByName(file['api-group-name'], {
-         instanceConfig,
-         workspaceConfig,
-         branchConfig,
-      });
+      const targetApiGroup = await getApiGroupByName(
+         file['api-group-name'],
+         {
+            instanceConfig,
+            workspaceConfig,
+            branchConfig,
+         },
+         core
+      );
 
       urlMapping[
          'registry:query'

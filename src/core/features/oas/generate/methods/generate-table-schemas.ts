@@ -1,9 +1,8 @@
 import { convertXanoSchemaToJsonSchema } from './convert-xano-schemas';
-import { metaApiGet } from '../../../../../cli/utils';
-import { loadToken } from '../../../../../cli/config/loaders';
+import { metaApiGet } from '../../../../utils';
 
 // [ ] CORE
-async function generateTableSchemas(instanceConfig, workspaceConfig) {
+async function generateTableSchemas({ instanceConfig, workspaceConfig, storage }) {
    const tableSchemas = {};
 
    const workspaceTablesRaw = await metaApiGet({
@@ -15,7 +14,7 @@ async function generateTableSchemas(instanceConfig, workspaceConfig) {
          page: 1,
          per_page: 500,
       },
-      token: await loadToken(instanceConfig.name),
+      token: await storage.loadToken(instanceConfig.name),
    });
 
    const workspaceTables = workspaceTablesRaw.items;
@@ -24,7 +23,7 @@ async function generateTableSchemas(instanceConfig, workspaceConfig) {
       const workspaceTableSchemaRaw = await metaApiGet({
          baseUrl: instanceConfig.url,
          path: `/workspace/${workspaceConfig.id}/table/${table.id}/schema`,
-         token: await loadToken(instanceConfig.name),
+         token: await storage.loadToken(instanceConfig.name),
       });
 
       const workspaceTableSchema = workspaceTableSchemaRaw;

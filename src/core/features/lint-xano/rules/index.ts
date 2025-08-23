@@ -1,5 +1,5 @@
 // src/lint-xano/rules/index.js
-import { isNotEmpty } from '../../../../cli/utils/index';
+import { isNotEmpty } from '../../../utils';
 
 const VALID_HEADERS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD']);
 

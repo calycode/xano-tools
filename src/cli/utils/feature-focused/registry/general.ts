@@ -1,4 +1,3 @@
-import { loadToken } from '../../../config/loaders';
 import { getRegistryIndex, metaApiGet, metaApiPost } from '../../index';
 
 // [ ] CLI, whole file
@@ -36,11 +35,12 @@ async function promptForComponents() {
 // [ ] Extract to core utilities
 async function getApiGroupByName(
    groupName,
-   { instanceConfig, workspaceConfig, branchConfig }: any
+   { instanceConfig, workspaceConfig, branchConfig }: any,
+   core
 ) {
    const foundGroup = await metaApiGet({
       baseUrl: instanceConfig.url,
-      token: await loadToken(instanceConfig.name),
+      token: await core.loadToken(instanceConfig.name),
       path: `/workspace/${workspaceConfig.id}/apigroup`,
       query: {
          branch: branchConfig.label,
@@ -56,7 +56,7 @@ async function getApiGroupByName(
    } else {
       selectedGroup = await metaApiPost({
          baseUrl: instanceConfig.url,
-         token: await loadToken(instanceConfig.name),
+         token: await core.loadToken(instanceConfig.name),
          path: `/workspace/${workspaceConfig.id}/apigroup`,
          body: {
             name: groupName,

@@ -10,7 +10,7 @@ export default async function doOasUpdate({
    storage,
 }) {
    // Load and patch
-   const oas = await patchOasSpec({ oas: inputOas, instanceConfig, workspaceConfig });
+   const oas = await patchOasSpec({ oas: inputOas, instanceConfig, workspaceConfig, storage });
 
    // Ensure output directories exist
    await storage.mkdir(outputDir, { recursive: true });

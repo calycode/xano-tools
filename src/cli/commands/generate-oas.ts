@@ -21,7 +21,7 @@ async function updateOasWizard(
       branch,
    });
 
-   // 2. Get API groups (prompt or all)
+   // Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
       token: await core.loadToken(instanceConfig.name),
@@ -41,7 +41,6 @@ async function updateOasWizard(
    );
 }
 
-// [ ] CLI
 function registerGenerateOasCommand(program, core) {
    const cmd = program
       .command('generate-oas')

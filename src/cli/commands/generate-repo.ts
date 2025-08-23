@@ -1,5 +1,4 @@
 import { mkdir } from 'fs/promises';
-import { loadToken } from '../config/loaders';
 import {
    addFullContextOptions,
    addPrintOutputFlag,
