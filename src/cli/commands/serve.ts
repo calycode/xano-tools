@@ -7,13 +7,10 @@ import {
    normalizeApiGroupName,
    replacePlaceholders,
 } from '../utils/index';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CLI
-async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false }) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-      nodeConfigStorage,
+async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
       {
          instance,
          workspace,
@@ -110,7 +107,7 @@ function registerRegistryServeCommand(program) {
 }
 
 // [ ] CLI
-function registerOasServeCommand(program) {
+function registerOasServeCommand(program, core) {
    const cmd = program
       .command('oas-serve')
       .description('Serve the Open API specification locally for quick visual check.');
@@ -129,6 +126,7 @@ function registerOasServeCommand(program) {
             group: options.group,
             listen: options.listen,
             cors: options.cors,
+            core,
          });
       });
 }

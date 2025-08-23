@@ -10,16 +10,14 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { loadToken } from '../config/loaders';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CORE
 async function addToXano(
    componentNames: string[],
-   context: { instance?: string; workspace?: string; branch?: string } = {}
+   context: { instance?: string; workspace?: string; branch?: string } = {},
+   core
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-      nodeConfigStorage,
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
       {
          instance: context.instance,
          workspace: context.workspace,
@@ -116,7 +114,7 @@ async function installComponentToXano(file, resolvedContext) {
 }
 
 // [ ] CLI
-function registerRegistryAddCommand(program) {
+function registerRegistryAddCommand(program, core) {
    const cmd = program
       .command('registry-add')
       .description('Add a prebuilt component to the current Xano context.');
@@ -133,17 +131,21 @@ function registerRegistryAddCommand(program) {
                process.env.XCC_REGISTRY_URL = options.registry;
             }
 
-            await addToXano(options.components, {
-               instance: options.instance,
-               workspace: options.workspace,
-               branch: options.branch,
-            });
+            await addToXano(
+               options.components,
+               {
+                  instance: options.instance,
+                  workspace: options.workspace,
+                  branch: options.branch,
+               },
+               core
+            );
          })
       );
 }
 
 // [ ] CLI
-function registerRegistryScaffoldCommand(program) {
+function registerRegistryScaffoldCommand(program, core) {
    program
       .command('registry-scaffold')
       .description(
@@ -159,6 +161,7 @@ function registerRegistryScaffoldCommand(program) {
             await scaffoldRegistry({
                outputPath: options.output,
                instance: options.instance,
+               core,
             });
          })
       );

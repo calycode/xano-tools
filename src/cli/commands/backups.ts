@@ -14,13 +14,10 @@ import {
    printOutputDir,
    addPrintOutputFlag,
 } from '../utils/index';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CORE, needs fs
-async function exportBackup(instance, workspace, branch, printOutput = false) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-      nodeConfigStorage,
+async function exportBackup(instance, workspace, branch, printOutput = false, core) {
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
       {
          instance,
          workspace,
@@ -66,11 +63,13 @@ async function exportBackup(instance, workspace, branch, printOutput = false) {
 }
 
 // [ ] CORE, needs fs
-async function restoreBackup(instance, workspace, sourceBackup = null, forceConfirm = false) {
-   const { instanceConfig, workspaceConfig } = await loadAndValidateContext(nodeConfigStorage, {
-      instance,
-      workspace,
-   });
+async function restoreBackup(instance, workspace, sourceBackup = null, forceConfirm = false, core) {
+   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext(
+      {
+         instance,
+         workspace,
+      }
+   );
 
    const s = spinner();
 
@@ -173,7 +172,7 @@ async function restoreBackup(instance, workspace, sourceBackup = null, forceConf
    }
 }
 
-function registerExportBackupCommand(program) {
+function registerExportBackupCommand(program, core) {
    const cmd = program
       .command('export-backup')
       .description('Backup Xano Workspace via Metadata API');
@@ -183,13 +182,19 @@ function registerExportBackupCommand(program) {
 
    cmd.action(
       withErrorHandler(async (options) => {
-         await exportBackup(options.instance, options.workspace, options.branch);
+         await exportBackup(
+            options.instance,
+            options.workspace,
+            options.branch,
+            options.printOutputDir,
+            core
+         );
       })
    );
 }
 
 // CLI
-function registerRestoreBackupCommand(program) {
+function registerRestoreBackupCommand(program, core) {
    const cmd = program
       .command('restore-backup')
       .description('Restore a backup to a Xano Workspace via Metadata API');
@@ -204,7 +209,8 @@ function registerRestoreBackupCommand(program) {
                options.instance,
                options.workspace,
                options.sourceBackup,
-               options.force
+               options.force,
+               core
             );
          })
       );

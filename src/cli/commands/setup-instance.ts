@@ -1,127 +1,9 @@
-import { intro, text, password, outro, log, confirm } from '@clack/prompts';
-import {
-   ensureDirs,
-   loadGlobalConfig,
-   saveGlobalConfig,
-   saveInstanceConfig,
-   saveToken,
-} from '../config/loaders';
-import {
-   ensureGitignore,
-   fetchWorkspacesAndBranches,
-   sanitizeInstanceName,
-   withErrorHandler,
-   withSpinner,
-} from '../utils/index';
-
-// DEFAULT SETTINGS:
-const DEFAULT_LINT_RULES: Record<string, 'error' | 'warn' | 'off'> = {
-   'is-valid-verb': 'error',
-   'is-camel-case': 'warn',
-   'is-description-present': 'warn',
-};
-
-const DEFAULT_ASSERTS: Record<string, 'error' | 'warn' | 'off'> = {
-   statusOk: 'error',
-   responseDefined: 'error',
-   responseSchema: 'warn',
-};
-
-// [ ] CORE, needs fs
-/**
- * The core, non-interactive logic for setting up an instance.
- * Can be called by the interactive wizard or directly for CI/CD.
- * @param {object} options
- * @param {string} options.name - The user-provided name for the instance.
- * @param {string} options.url - The instance base URL.
- * @param {string} options.apiKey - The Metadata API key.
- * @param {boolean} [options.setAsCurrent=true] - Whether to set this as the current context.
- */
-async function setupInstance({ name, url, apiKey, setAsCurrent = true }) {
-   // 1. Sanitize and validate name
-   const safeName = sanitizeInstanceName(name);
-   if (!safeName) {
-      throw new Error('Instance name must contain at least one letter or number.');
-   }
-   if (safeName !== name) {
-      log.info(`Using "${safeName}" as the instance key.`);
-   }
-
-   // 2. Health checks and setup
-   await ensureDirs();
-   ensureGitignore();
-
-   // 3. Store credentials
-   await saveToken(safeName, apiKey);
-   log.step(`Stored credentials for "${safeName}".`);
-
-   // 4. Fetch workspaces and branches
-   const workspaces = await withSpinner(
-      `Fetching workspaces and branches for "${safeName}"...`,
-      () => fetchWorkspacesAndBranches({ url, apiKey })
-   );
-
-   // 5. Save instance config
-   await saveInstanceConfig(safeName, {
-      name: safeName,
-      url,
-      tokenFile: `../tokens/${safeName}.token`,
-      lint: {
-         output: 'output/{instance}/lint/{workspace}/{branch}',
-         rules: DEFAULT_LINT_RULES,
-      },
-      test: {
-         output: 'output/{instance}/tests/{workspace}/{branch}/{api_group_normalized_name}',
-         headers: {
-            'X-Branch': '{branch}',
-            'X-Data-Source': 'test',
-         },
-         defaultAsserts: DEFAULT_ASSERTS,
-      },
-      process: {
-         output: 'output/repo/{instance}/{workspace}/{branch}',
-      },
-      'xano-script': {
-         output: 'output/{instance}/xano-script/{workspace}/{branch}',
-      },
-      openApiSpec: {
-         output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
-      },
-      backups: {
-         output: 'output/{instance}/backups/{workspace}/{branch}',
-      },
-      registry: {
-         output: 'registry',
-      },
-      workspaces,
-   });
-   log.step('Stored instance configuration.');
-
-   // 6. Register in global config
-   const global = await loadGlobalConfig();
-   if (!global.instances.includes(safeName)) {
-      global.instances.push(safeName);
-   }
-
-   // 7. Optionally set as current context
-   if (setAsCurrent) {
-      global.currentContext = {
-         instance: safeName,
-         workspace: workspaces.length ? workspaces[0].id : null,
-         branch:
-            workspaces.length && workspaces[0].branches.length
-               ? workspaces[0].branches[0].label
-               : null,
-      };
-      log.step(`Set "${safeName}" as the current context.`);
-   }
-   await saveGlobalConfig(global);
-
-   outro(`🚀 Instance "${safeName}" configured! Use 'xcc switch-context' to change.`);
-}
+import { intro, text, password, confirm } from '@clack/prompts';
+import { loadGlobalConfig } from '../config/loaders';
+import { sanitizeInstanceName, withErrorHandler } from '../utils/index';
 
 // [ ] CLI
-async function setupInstanceWizard() {
+async function setupInstanceWizard(core) {
    intro('✨ Xano CLI Instance Setup ✨');
 
    // Gather info from user
@@ -147,11 +29,11 @@ async function setupInstanceWizard() {
    }
 
    // Run the core setup logic
-   await setupInstance({ name, url, apiKey, setAsCurrent });
+   await core.setupInstance({ name, url, apiKey, setAsCurrent });
 }
 
 // [ ] CLI
-export function registerSetupCommand(program) {
+export function registerSetupCommand(program, core) {
    program
       .command('setup')
       .description('Setup Xano instance configurations (interactively or via flags)')
@@ -163,7 +45,7 @@ export function registerSetupCommand(program) {
          withErrorHandler(async (opts) => {
             if (opts.name && opts.url && opts.token) {
                // Non-interactive mode for CI/CD
-               await setupInstance({
+               await core.setupInstance({
                   name: opts.name,
                   url: opts.url,
                   apiKey: opts.token,
@@ -171,7 +53,7 @@ export function registerSetupCommand(program) {
                });
             } else {
                // Interactive wizard for local development
-               await setupInstanceWizard();
+               await setupInstanceWizard(core);
             }
          })
       );

@@ -9,8 +9,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { processWorkspace } from '../features/process-xano';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
+
 // [ ] CORE, needs fs
 async function generateRepo(
    instance,
@@ -19,10 +18,10 @@ async function generateRepo(
    input,
    output,
    fetch = false,
-   printOutput = false
+   printOutput = false,
+   core
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-      nodeConfigStorage,
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
       {
          instance,
          workspace,
@@ -64,7 +63,7 @@ async function generateRepo(
 }
 
 // [ ] CLI
-function registerGenerateRepoCommand(program) {
+function registerGenerateRepoCommand(program, core) {
    const cmd = program
       .command('generate-repo')
       .description('Process Xano workspace into repo structure')
@@ -83,7 +82,8 @@ function registerGenerateRepoCommand(program) {
             opts.input,
             opts.output,
             opts.fetch,
-            opts.printOutput
+            opts.printOutput,
+            core
          );
       })
    );

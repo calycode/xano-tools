@@ -1,7 +1,5 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { loadAndValidateContext } from '../../../../core/config';
-import { nodeConfigStorage } from '../../../node-config-storage';
 
 async function ensureDirForFile(filePath) {
    const dir = path.dirname(filePath);
@@ -10,9 +8,13 @@ async function ensureDirForFile(filePath) {
 
 // [ ] CLI
 async function scaffoldRegistry(
-   { outputPath, instance } = { outputPath: 'registry', instance: null }
+   { outputPath, instance, core } = {
+      outputPath: 'registry',
+      instance: null,
+      core: null,
+   }
 ) {
-   const { instanceConfig } = await loadAndValidateContext(nodeConfigStorage, { instance });
+   const { instanceConfig } = await core.loadAndValidateContext({ instance });
    const registryRoot =
       outputPath ||
       (instanceConfig && instanceConfig.registry && instanceConfig.registry.output) ||

@@ -11,8 +11,6 @@ import {
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
 
 import { doOasUpdate } from '../features/oas/generate';
 import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';
@@ -29,13 +27,13 @@ async function generateCodeFromOas(
       args: ['--additional-properties=supportsES6=true'],
    },
    logger: boolean = false,
-   printOutput: boolean = false
+   printOutput: boolean = false,
+   core
 ) {
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-      nodeConfigStorage,
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
       {
          instance,
          workspace,
@@ -100,7 +98,7 @@ async function generateCodeFromOas(
    outro(`Code successfully generated! Process took: ${duration}ms`);
 }
 
-function registerGenerateCodeCommand(program) {
+function registerGenerateCodeCommand(program, core) {
    const cmd = program
       .command('generate-code')
       .description(
@@ -143,7 +141,8 @@ function registerGenerateCodeCommand(program) {
                opts.all,
                stack,
                opts.debug,
-               opts.printOutput
+               opts.printOutput,
+               core
             );
          })
       );

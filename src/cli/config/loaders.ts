@@ -1,21 +1,5 @@
 import { nodeConfigStorage } from '../node-config-storage';
 
-const {
-   ensureDirs,
-   loadGlobalConfig,
-   saveGlobalConfig,
-   loadInstanceConfig,
-   saveInstanceConfig,
-   loadToken,
-   saveToken,
-} = nodeConfigStorage;
+const { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig, loadToken } = nodeConfigStorage;
 
-export {
-   ensureDirs,
-   loadGlobalConfig,
-   saveGlobalConfig,
-   loadInstanceConfig,
-   saveInstanceConfig,
-   loadToken,
-   saveToken,
-};
+export { loadGlobalConfig, saveGlobalConfig, loadInstanceConfig, loadToken };

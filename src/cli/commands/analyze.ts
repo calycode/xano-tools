@@ -12,15 +12,12 @@ import {
    addPrintOutputFlag,
    printOutputDir,
 } from '../utils/index';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
 
 // [ ] CORE, but needs fs access.
-async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false) {
+async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false, core) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
-   const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-      nodeConfigStorage,
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
       {
          instance,
          workspace,
@@ -103,7 +100,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
 }
 
 // [ ] CLI
-function registerFetchFunctionsInXanoScript(program) {
+function registerFetchFunctionsInXanoScript(program, core) {
    const cmd = program
       .command('generate-functions')
       .description('Analyze the functions available in the current (or provided) context.');
@@ -116,7 +113,8 @@ function registerFetchFunctionsInXanoScript(program) {
             opts.instance,
             opts.workspace,
             opts.branch,
-            opts.printOutputDir
+            opts.printOutputDir,
+            core
          );
       })
    );

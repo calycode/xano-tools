@@ -14,10 +14,13 @@ import { registerSetupCommand } from './commands/setup-instance';
 import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
+import { XCC } from '../core';
+import { nodeConfigStorage } from './node-config-storage';
 
 // [ ] CLI
 const { version } = pkg;
 const program = new Command();
+const core = new XCC(nodeConfigStorage);
 
 program
   .name('xcc')
@@ -47,18 +50,18 @@ program
   );
 
 // --- Register your commands here ---
-registerSetupCommand(program);
+registerSetupCommand(program, core);
 registerSwitchContextCommand(program);
-registerGenerateOasCommand(program);
-registerOasServeCommand(program);
-registerGenerateCodeCommand(program);
-registerGenerateRepoCommand(program);
-registerFetchFunctionsInXanoScript(program);
-registerRegistryAddCommand(program);
-registerRegistryScaffoldCommand(program);
+registerGenerateOasCommand(program, core);
+registerOasServeCommand(program, core);
+registerGenerateCodeCommand(program, core);
+registerGenerateRepoCommand(program, core);
+registerFetchFunctionsInXanoScript(program, core);
+registerRegistryAddCommand(program, core);
+registerRegistryScaffoldCommand(program, core);
 registerRegistryServeCommand(program);
-registerExportBackupCommand(program);
-registerRestoreBackupCommand(program);
+registerExportBackupCommand(program, core);
+registerRestoreBackupCommand(program, core);
 registerLintCommand(program);
 registerTestViaOasCommand(program);
 registerCurrentContextCommand(program);

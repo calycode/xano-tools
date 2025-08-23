@@ -8,8 +8,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { updateSpecForGroup } from '../features/oas/generate';
-import { loadAndValidateContext } from '../../core/config';
-import { nodeConfigStorage } from '../node-config-storage';
+
 // [ ] CORE
 async function updateOpenapiSpec(
    instance: string,
@@ -17,18 +16,16 @@ async function updateOpenapiSpec(
    branch: string,
    group: string,
    isAll: boolean,
-   printOutput: boolean = false
+   printOutput: boolean = false,
+   core
 ) {
    intro('🔄 Starting to generate OpenAPI specifications.');
    try {
-      const { instanceConfig, workspaceConfig, branchConfig } = await loadAndValidateContext(
-         nodeConfigStorage,
-         {
-            instance,
-            workspace,
-            branch,
-         }
-      );
+      const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+         instance,
+         workspace,
+         branch,
+      });
 
       // 2. Get API groups (prompt or all)
       const groups = await chooseApiGroupOrAll({
@@ -58,7 +55,7 @@ async function updateOpenapiSpec(
 }
 
 // [ ] CLI
-function registerGenerateOasCommand(program) {
+function registerGenerateOasCommand(program, core) {
    const cmd = program
       .command('generate-oas')
       .description('Update and generate OpenAPI spec(s) for the current context.');
@@ -69,7 +66,15 @@ function registerGenerateOasCommand(program) {
 
    cmd.action(
       withErrorHandler(async (opts) => {
-         await updateOpenapiSpec(opts.instance, opts.workspace, opts.branch, opts.group, opts.all);
+         await updateOpenapiSpec(
+            opts.instance,
+            opts.workspace,
+            opts.branch,
+            opts.group,
+            opts.all,
+            opts.printOutputDir,
+            core
+         );
       })
    );
 }
