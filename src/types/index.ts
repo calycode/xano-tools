@@ -116,6 +116,7 @@ export interface FetchAndExtractYamlArgs {
    workspaceId: string | number;
    branchLabel: string;
    outDir: string;
+   core: any;
 }
 
 // ---- Schema Types ----

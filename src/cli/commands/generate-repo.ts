@@ -47,6 +47,7 @@ async function generateRepo(
          workspaceId: workspaceConfig.id,
          branchLabel: branchConfig.label,
          outDir: outputDir,
+         core,
       });
    }
 
@@ -55,6 +56,7 @@ async function generateRepo(
    processWorkspace({
       inputFile,
       outputDir,
+      core
    });
    printOutputDir(printOutput, outputDir);
 }

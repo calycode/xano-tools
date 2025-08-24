@@ -7,7 +7,7 @@ import { rebuildDirectoryStructure } from '../utils/fs/index';
 /**
  * Reads and parses the YAML file, then rebuilds the directory structure.
  */
-function parseYamlFile(inputFilePath, outputDir) {
+function parseYamlFile({ inputFilePath, outputDir, core }) {
    try {
       log.step(`Reading and parsing YAML file -> ${inputFilePath}`);
       const fileContents = readFileSync(inputFilePath, 'utf8');

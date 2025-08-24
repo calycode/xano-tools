@@ -1,8 +1,6 @@
 import { promises as fs } from 'fs';
-import { join, resolve } from 'path';
+import { join, dirname } from 'path';
 import { spinner } from '@clack/prompts';
-// [ ] Refactor to use js-untar or untar.js to allow for use in non-node environments
-import { x } from 'tar';
 import { metaApiRequestBlob } from '../../../core/utils/methods/api-helper';
 import { FetchAndExtractYamlArgs } from '../../../types';
 
@@ -17,6 +15,7 @@ export async function fetchAndExtractYaml({
    workspaceId,
    branchLabel,
    outDir,
+   core,
 }: FetchAndExtractYamlArgs): Promise<string> {
    const s = spinner();
    s.start('Fetching workspace schema...');
@@ -29,17 +28,15 @@ export async function fetchAndExtractYaml({
       body: { branch: branchLabel },
    });
 
-   const tarGzPath = resolve(outDir, `workspace-schema-export-${Date.now()}.tar.gz`);
-   await fs.writeFile(tarGzPath, tarGzBuffer);
-
-   // Extract .tar.gz using tar
-   await x({
-      file: tarGzPath,
-      cwd: outDir,
-   });
-
-   // Optionally clean up the archive file
-   await fs.unlink(tarGzPath).catch(() => {});
+   // Environment agnostic extract
+   const extractedTars = await core.storage.tarExtract(tarGzBuffer);
+   await Promise.all(
+      Object.keys(extractedTars).map(async (filePath) => {
+         const newPath = join(outDir, filePath);
+         await fs.mkdir(dirname(newPath), { recursive: true });
+         await fs.writeFile(newPath, extractedTars[filePath]);
+      })
+   );
 
    // Find the .yaml file inside outDir
    const files = await fs.readdir(outDir);

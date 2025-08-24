@@ -2,6 +2,10 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { x } from 'tar';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { gunzipSync } from 'zlib';
 import { ConfigStorage } from '../types/config/config-storage';
 
 const baseDir = path.join(os.homedir(), '.xano-community-cli');
@@ -75,5 +79,32 @@ export const nodeConfigStorage: ConfigStorage = {
       } catch {
          return false;
       }
+   },
+
+   // ----- TAR helper -----
+   async tarExtract(tarGzBuffer) {
+      const tempDir = await fs.promises.mkdtemp(join(tmpdir(), 'extract-'));
+      const tarGzPath = join(tempDir, `workspace-schema-export-${Date.now()}.tar.gz`);
+      let result: { [filename: string]: Uint8Array } = {};
+
+      try {
+         await fs.promises.writeFile(tarGzPath, tarGzBuffer);
+
+         // Extract with tar
+         await x({ file: tarGzPath, cwd: tempDir });
+
+         // Read all files in tempDir
+         const files = await fs.promises.readdir(tempDir);
+         for (const file of files) {
+            if (file.endsWith('.yaml')) {
+               result[file] = await fs.promises.readFile(join(tempDir, file));
+            }
+         }
+      } finally {
+         // Clean up tempDir here
+         await fs.promises.rm(tempDir, { recursive: true });
+      }
+
+      return result;
    },
 };

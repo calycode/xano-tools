@@ -15,5 +15,8 @@ export interface ConfigStorage {
    writeFile(path: string, data: string | Uint8Array): Promise<void>;
    readFile(path: string): Promise<string | Uint8Array>;
    exists(path: string): Promise<boolean>;
+
+   // Tar methods
+   tarExtract(tarGzBuffer: Uint8Array): Promise<{ [filename: string]: Uint8Array | string }>;
    // Optionally add readFile, exists, etc. as needed
 }

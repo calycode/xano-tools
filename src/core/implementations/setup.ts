@@ -72,7 +72,7 @@ export async function setupInstanceImplementation(
          defaultAsserts: DEFAULT_ASSERTS,
       },
       process: {
-         output: 'output/repo/{instance}/{workspace}/{branch}',
+         output: 'output/{instance}/repo/{workspace}/{branch}',
       },
       'xano-script': {
          output: 'output/{instance}/xano-script/{workspace}/{branch}',
