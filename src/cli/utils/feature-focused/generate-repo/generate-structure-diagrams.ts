@@ -1,5 +1,4 @@
-import { join } from 'path';
-import { writeFileSync } from 'fs';
+import { joinPath } from '../../../../core/utils';
 
 // [ ] CORE
 
@@ -13,11 +12,11 @@ type AppQueries = Record<string, Query[]>;
  * @param {object} appMapping - A mapping of app IDs to app names.
  * @param {object} appDescriptions - A mapping of app IDs to app descriptions.
  */
-function generateStructureDiagrams(appQueries: AppQueries, appMapping, appDescriptions, outputDir) {
+function generateStructureDiagrams(appQueries: AppQueries, appMapping, appDescriptions) {
    for (const [appId, queries] of Object.entries(appQueries)) {
       const appName = appMapping[appId] || `app_${appId}`;
-      const appDir = join(outputDir, 'app', appName);
-      const readmePath = join(appDir, 'README.md');
+      const appDir = joinPath('app', appName);
+      const readmePath = joinPath(appDir, 'README.md');
       const appDescription = appDescriptions[appId] || '//...';
 
       let structureDiagram = `# ${appName}\n\n${appDescription}\n\n## Structure\n\n`;
@@ -46,7 +45,7 @@ function generateStructureDiagrams(appQueries: AppQueries, appMapping, appDescri
          });
       }
 
-      writeFileSync(readmePath, structureDiagram);
+      return [{ path: readmePath, content: structureDiagram }];
    }
 }
 

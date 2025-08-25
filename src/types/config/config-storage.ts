@@ -12,6 +12,7 @@ export interface ConfigStorage {
 
    // Add generic file/directory methods:
    mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+   readdir(path: string): Promise<string[]>;
    writeFile(path: string, data: string | Uint8Array): Promise<void>;
    readFile(path: string): Promise<string | Uint8Array>;
    exists(path: string): Promise<boolean>;

@@ -5,7 +5,6 @@ import os from 'os';
 import { x } from 'tar';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { gunzipSync } from 'zlib';
 import { ConfigStorage } from '../types/config/config-storage';
 
 const baseDir = path.join(os.homedir(), '.xano-community-cli');
@@ -65,6 +64,9 @@ export const nodeConfigStorage: ConfigStorage = {
    // ----- FILESYSTEM OPS -----
    async mkdir(dirPath, options) {
       await fs.promises.mkdir(dirPath, options);
+   },
+   async readdir(dirPath): Promise<string[]> {
+      return await fs.promises.readdir(dirPath);
    },
    async writeFile(filePath, data) {
       await fs.promises.writeFile(filePath, data);

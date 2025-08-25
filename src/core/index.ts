@@ -15,6 +15,7 @@ import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import type { AxiosResponse } from 'axios';
+import { generateRepoImplementation } from './implementations/generate-repo';
 
 export class XCC {
    constructor(private storage: ConfigStorage) {}
@@ -57,6 +58,11 @@ export class XCC {
          branch,
          core: this,
       });
+   }
+
+   generateRepo(jsonData: any): { path: string; content: string }[] {
+      const response = generateRepoImplementation(jsonData);
+      return response;
    }
 
    /**

@@ -5,3 +5,11 @@ export function joinPath(...segments: string[]): string {
       .filter(Boolean)
       .join('/');
 }
+
+export function dirname(path: string): string {
+   path = path.replace(/\/+$/, '');
+   const idx = path.lastIndexOf('/');
+   if (idx === -1) return '.';
+   if (idx === 0) return '/';
+   return path.slice(0, idx);
+}

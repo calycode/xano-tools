@@ -1,5 +1,6 @@
 export * from './feature-focused/test/custom-assertions';
 export * from './methods/api-helper';
+export * from './methods/fetch-and-extract-yaml';
 export * from './methods/fetch-workspaces-branches';
 export * from './methods/is-empty';
 export * from './methods/path';

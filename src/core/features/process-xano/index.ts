@@ -1,11 +1,7 @@
-// src/process-xano/utils/fs/index.js
-import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync, mkdirSync } from 'fs';
-import { join } from 'path';
+// src/cli/features/process-xano/utils/fs/index.js
 import cliProgress from 'cli-progress';
-import chalk from 'chalk';
-import { outro } from '@clack/prompts';
-import { processItem } from '../../core/processItem';
-import { sanitizeFileName, generateStructureDiagrams } from '../../../../utils';
+import { processItem } from './core/processItem';
+import { sanitizeFileName, generateStructureDiagrams } from '../../../cli/utils';
 
 // Helper for padding keys
 function padRight(str, len) {
@@ -13,34 +9,11 @@ function padRight(str, len) {
 }
 
 /**
- * Clears the contents of a directory.
- * @param {string} directory - The directory to clear.
- */
-function clearDirectory(directory) {
-   if (existsSync(directory)) {
-      readdirSync(directory).forEach((file) => {
-         const curPath = join(directory, file);
-         if (lstatSync(curPath).isDirectory()) {
-            clearDirectory(curPath);
-            rmdirSync(curPath);
-         } else {
-            unlinkSync(curPath);
-         }
-      });
-   }
-}
-
-/**
  * Rebuilds the directory structure and splits JSON objects into separate files.
  * @param {object} jsonData - The JSON data parsed from the YAML file.
  */
-function rebuildDirectoryStructure(jsonData, outputDir) {
-   // Ensure the output directory exists and clear its contents
-   if (!existsSync(outputDir)) {
-      mkdirSync(outputDir, { recursive: true });
-   } else {
-      clearDirectory(outputDir);
-   }
+function rebuildDirectoryStructure(jsonData) {
+   let stagedProcessOutput: { path: string; content: string }[] = [];
 
    const structure = {
       dbo: jsonData.payload.dbo,
@@ -95,13 +68,12 @@ function rebuildDirectoryStructure(jsonData, outputDir) {
 
    // For each entity type, show a progress bar
    for (const [key, value] of Object.entries(structure)) {
-      const dirPath = join(outputDir, key);
-      if (!existsSync(dirPath)) mkdirSync(dirPath, { recursive: true });
+      const dirPath = key;
 
       if (Array.isArray(value) && value.length > 0) {
          // Setup progress bar for this type
          const bar = new cliProgress.SingleBar({
-            format: `⌛   ${chalk.blue(padRight(key, maxKeyLen))} |{bar}| {value}/{total}`,
+            format: `⌛   ${padRight(key, maxKeyLen)} |{bar}| {value}/{total}`,
             barCompleteChar: '=',
             barIncompleteChar: '-',
             barGlue: '',
@@ -113,37 +85,44 @@ function rebuildDirectoryStructure(jsonData, outputDir) {
          bar.start(value.length, 0, { itemName: '' });
 
          value.forEach((item) => {
-            processItem({
-               key,
-               item,
-               dirPath,
-               appMapping,
-               appQueries,
-               functionMapping,
-               dboMapping,
-               outputDir,
-            });
+            stagedProcessOutput = [
+               ...stagedProcessOutput,
+               ...processItem({
+                  key,
+                  item,
+                  dirPath,
+                  appMapping,
+                  appQueries,
+                  functionMapping,
+                  dboMapping,
+               }),
+            ];
             bar.increment(1, { itemName: item.name || '' });
          });
 
          bar.stop();
       } else if (value) {
-         processItem({
-            key,
-            item: value,
-            dirPath,
-            appMapping,
-            appQueries,
-            functionMapping,
-            dboMapping,
-            outputDir,
-         });
+         stagedProcessOutput = [
+            ...stagedProcessOutput,
+            ...processItem({
+               key,
+               item: value,
+               dirPath,
+               appMapping,
+               appQueries,
+               functionMapping,
+               dboMapping,
+            }),
+         ];
       }
    }
 
-   generateStructureDiagrams(appQueries, appMapping, appDescriptions, outputDir);
+   stagedProcessOutput = [
+      ...stagedProcessOutput,
+      ...generateStructureDiagrams(appQueries, appMapping, appDescriptions),
+   ];
 
-   outro('Directory structure rebuilt successfully!');
+   return stagedProcessOutput;
 }
 
 export { rebuildDirectoryStructure };

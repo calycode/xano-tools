@@ -1,9 +1,8 @@
-// src/process-xano/core/processItem.js
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
+// src/cli/features/process-xano/core/processItem.js
+import { joinPath } from '../../../utils';
 import { generateQueryLogicDescription } from './generateRunReadme';
-import { convertXanoDBDescription } from '../../../../core/features/process-xano/adapters/dbmlGenerator';
-import { sanitizeFileName } from '../../../utils';
+import { convertXanoDBDescription } from '../adapters/dbmlGenerator';
+import { sanitizeFileName } from '../../../../cli/utils';
 
 /**
  * Processes an individual item and writes it to the appropriate directory.
@@ -23,8 +22,9 @@ function processItem({
    appQueries,
    functionMapping,
    dboMapping,
-   outputDir,
-}) {
+}): { path: string; content: string }[] {
+   const processedContent: { path: string; content: string }[] = [];
+
    let itemName = item.name || 'unnamed';
    const itemGuid = item.guid || 'no-guid';
    let itemDir;
@@ -34,12 +34,9 @@ function processItem({
       const appName = appMapping[item.app.id] || `app_${item.app.id}`;
 
       // create the appDir if it doesn't exist yet.
-      const appDir = join(outputDir, 'app', appName);
-      if (!existsSync(appDir)) {
-         mkdirSync(appDir, { recursive: true });
-      }
+      const appDir = joinPath('app', appName);
 
-      itemDir = join(appDir, sanitizeFileName(itemName));
+      itemDir = joinPath(appDir, sanitizeFileName(itemName));
 
       // Add query to appQueries for structure diagram
       if (!appQueries[item.app.id]) {
@@ -51,26 +48,20 @@ function processItem({
          description: item.description,
       });
    } else {
-      itemDir = join(dirPath, sanitizeFileName(itemName)); // Create nested directories
-   }
-
-   if (!existsSync(itemDir)) {
-      mkdirSync(itemDir, { recursive: true });
+      itemDir = joinPath(dirPath, sanitizeFileName(itemName)); // Create nested directories
    }
 
    // Create subfolders for each HTTP verb
    if (key === 'query' && item.verb) {
-      const verbDir = join(itemDir, item.verb);
-      if (!existsSync(verbDir)) {
-         mkdirSync(verbDir, { recursive: true });
-      }
+      const verbDir = joinPath(itemDir, item.verb);
       itemDir = verbDir;
    }
 
-   const itemJsonPath = join(itemDir, `${itemGuid}.json`);
-   writeFileSync(itemJsonPath, JSON.stringify(item, null, 2));
+   const itemJsonPath = joinPath(itemDir, `${itemGuid}.json`);
 
-   const readmePath = join(itemDir, 'README.md');
+   processedContent.push({ path: itemJsonPath, content: JSON.stringify(item, null, 2) });
+
+   const readmePath = joinPath(itemDir, 'README.md');
    const description = item.description || '//...';
 
    // Generate query logic description for queries and functions only.
@@ -81,35 +72,41 @@ function processItem({
          functionMapping,
          dboMapping
       );
-      writeFileSync(
-         readmePath,
-         `
+
+      const readmeContent = `
 # ${itemName}
 
 ${description}
 
 ## Steps
 
-${queryLogicDescription}`
-      );
+${queryLogicDescription}
+      `;
+
+      processedContent.push({
+         path: readmePath,
+         content: readmeContent,
+      });
    }
 
    // Generate DBML and SQL for dbo
    if (key === 'dbo') {
       const processedTableDescription = convertXanoDBDescription(item);
-
-      // Write DBML and SQL to README
-      writeFileSync(
-         readmePath,
-         `
+      const readmeContent = `
 # ${itemName}
 
 ${description}
 
 ${processedTableDescription}
-`
-      );
+`;
+
+      processedContent.push({
+         path: readmePath,
+         content: readmeContent,
+      });
    }
+
+   return processedContent;
 }
 
 export { processItem };
