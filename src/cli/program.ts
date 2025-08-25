@@ -29,9 +29,20 @@ program.hook('preAction', (thisCommand) => {
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
-  const start = commandStartTimes.get(thisCommand) ?? 0;
+  const start = commandStartTimes.get(thisCommand);
+  if (!start) {
+    // Could happen if preAction failed, or if there's a bug
+    console.warn('⏱️  Command timer missing start time.');
+    return;
+  }
   const duration = ((Date.now() - start) / 1000).toFixed(2);
-  console.log(`\n⏱️  Command "${thisCommand.name()} ${actionCommand.name()}" completed in ${duration}s`);
+
+  // Show the full command path for clarity
+  const commandPath = actionCommand.parent
+    ? `${actionCommand.parent.name()} ${actionCommand.name()}`
+    : actionCommand.name();
+
+  console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
 });
 
 program

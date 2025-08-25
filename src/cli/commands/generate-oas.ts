@@ -1,8 +1,10 @@
+import { intro, log, outro } from '@clack/prompts';
 import {
    addApiGroupOptions,
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
+   printOutputDir,
    withErrorHandler,
 } from '../utils/index';
 
@@ -15,6 +17,29 @@ async function updateOasWizard(
    printOutput: boolean = false,
    core
 ) {
+   // Handle incoming events
+   core.on('info', (data) => {
+      if (data.name === 'output-dir') {
+         printOutputDir(printOutput, data.message);
+      }
+   });
+
+   core.on('start', () => {
+      intro('Generating OpenAPI specifications...');
+   });
+
+   core.on('end', () => {
+      outro('OpenAPI specs generated successfully!');
+   });
+
+   core.on('progress', (data) => {
+      log.step(`${data.step} / ${data.totalSteps} (${data.percent}%) - ${data.message}`);
+   });
+
+   core.on('error', (data) => {
+      log.error(`Error: ${data.message} \n Payload: ${JSON.stringify(data.payload, null, 2)}}`);
+   });
+
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
@@ -32,7 +57,7 @@ async function updateOasWizard(
       all: !!isAll,
    });
 
-   core.updateOpenapiSpec(
+   await core.updateOpenapiSpec(
       instanceConfig.name,
       workspaceConfig.name,
       branchConfig.label,

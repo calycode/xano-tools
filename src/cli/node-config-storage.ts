@@ -5,7 +5,7 @@ import os from 'os';
 import { x } from 'tar';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ConfigStorage } from '../types/config/config-storage';
+import { ConfigStorage } from '../types/storage';
 
 const baseDir = path.join(os.homedir(), '.xano-community-cli');
 const configPath = path.join(baseDir, 'config.json');

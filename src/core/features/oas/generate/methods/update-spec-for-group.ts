@@ -1,9 +1,7 @@
-import { spinner } from '@clack/prompts';
 import {
    normalizeApiGroupName,
    replacePlaceholders,
    metaApiGet,
-   printOutputDir,
 } from '../../../../../cli/utils';
 import { doOasUpdate } from '../index';
 
@@ -16,13 +14,9 @@ async function updateSpecForGroup({
    instanceConfig,
    workspaceConfig,
    branchConfig,
-   printOutput,
    storage,
    core,
 }) {
-   const s = spinner();
-   s.start(`Generating OpenAPI spec for group "${group.name}"`);
-
    const apiGroupNameNorm = normalizeApiGroupName(group.name);
 
    const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
@@ -46,8 +40,11 @@ async function updateSpecForGroup({
       storage,
    });
 
-   s.stop(`OpenAPI spec generated for group "${group.name}" → ${outputPath}`);
-   printOutputDir(printOutput, outputPath);
+   core.emit('info', {
+      name: 'output-dir',
+      payload: outputPath,
+      message: `OUTPUT_DIR=${outputPath}`,
+   });
 }
 
 export { updateSpecForGroup };

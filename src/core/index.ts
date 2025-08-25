@@ -4,20 +4,25 @@ import {
    Context,
    CoreContext,
    CurrentContextConfig,
+   EventMap,
    InstanceConfig,
    WorkspaceConfig,
 } from '../types';
+import { TypedEmitter } from './utils/event-handling/event-emitter';
 import { doOasUpdate } from './features/oas/generate';
 import { exportBackupImplementation, restoreBackupImplementation } from './implementations/backups';
+import { generateRepoImplementation } from './implementations/generate-repo';
 import { getCurrentContextConfigImplementation } from './implementations/get-current-context';
 import { loadAndValidateContextImplementation } from './implementations/load-and-validate-context';
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
-import { generateRepoImplementation } from './implementations/generate-repo';
 
-export class XCC {
-   constructor(private storage: ConfigStorage) {}
+export class XCC extends TypedEmitter<EventMap> {
+   constructor(private storage: ConfigStorage) {
+      super();
+      this.storage = storage;
+   }
 
    // ----- MAIN FEATURES ----- //
    async setupInstance(options: {
@@ -38,15 +43,13 @@ export class XCC {
       workspace: string,
       branch: string,
       // groups have to be the proper api group array not just a string...
-      groups: any,
-      printOutput: boolean = false
+      groups: any
    ): Promise<void> {
       return updateOpenapiSpecImplementation(this.storage, this, {
          instance,
          workspace,
          branch,
          groups,
-         printOutput,
       });
    }
 
@@ -59,8 +62,8 @@ export class XCC {
       });
    }
 
-   generateRepo(jsonData: any): { path: string; content: string }[] {
-      const response = generateRepoImplementation(jsonData);
+   async generateRepo(jsonData: any): Promise<{ path: string; content: string }[]> {
+      const response = await generateRepoImplementation(jsonData, this);
       return response;
    }
 

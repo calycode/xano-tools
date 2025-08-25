@@ -1,9 +1,7 @@
 import { processItem } from './core/processItem';
 import { sanitizeFileName, generateStructureDiagrams } from '../../../cli/utils';
+import type { XCC } from '../..';
 
-/**
- * Helper to build a lookup mapping for entities.
- */
 const buildMapping = (entities, keyBuilder) =>
    Array.isArray(entities)
       ? entities.reduce((acc, item) => {
@@ -13,8 +11,10 @@ const buildMapping = (entities, keyBuilder) =>
         }, {})
       : {};
 
-function rebuildDirectoryStructure(jsonData) {
+async function rebuildDirectoryStructure(jsonData, core: XCC) {
    const { dbo, app, query, function: func, addon, trigger, task, middleware } = jsonData.payload;
+
+   core.emit('start', { name: 'generate-repo', payload: null });
 
    // Mappings
    const appMapping = buildMapping(app, (a) => a.name.replace(/\//g, '_'));
@@ -33,10 +33,28 @@ function rebuildDirectoryStructure(jsonData) {
 
    const structure = { dbo, app, query, function: func, addon, trigger, task, middleware };
 
-   // Process all entity types in structure
-   const stagedProcessOutput = Object.entries(structure).flatMap(([key, value]) =>
-      (Array.isArray(value) ? value : [value]).filter(Boolean).flatMap((item) =>
-         processItem({
+   // Gather all items to process for progress tracking
+   const allItems = Object.entries(structure).flatMap(([key, value]) =>
+      (Array.isArray(value) ? value : [value]).filter(Boolean).map((item) => ({ key, item }))
+   );
+
+   const totalSteps = allItems.length;
+   let step = 0;
+   let stagedProcessOutput = [];
+
+   for (const { key, item } of allItems) {
+      step++;
+      core.emit('progress', {
+         name: 'generate-repo-progress',
+         message: `Processing ${key}: ${item.name || '[unnamed]'}`,
+         step,
+         totalSteps,
+         percent: Math.round((step / totalSteps) * 100),
+         payload: { key, item },
+      });
+      stagedProcessOutput = [
+         ...stagedProcessOutput,
+         ...processItem({
             key,
             item,
             dirPath: key,
@@ -44,9 +62,11 @@ function rebuildDirectoryStructure(jsonData) {
             appQueries,
             functionMapping,
             dboMapping,
-         })
-      )
-   );
+         }),
+      ];
+   }
+
+   core.emit('end', { name: 'generate-repo', payload: null });
 
    return [
       ...stagedProcessOutput,

@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync } from 'fs';
-import { log, intro, outro } from '@clack/prompts';
+import { log, intro, outro, spinner } from '@clack/prompts';
 import { load } from 'js-yaml';
 import { mkdir } from 'fs/promises';
 import { joinPath, dirname } from '../../core/utils';
@@ -40,6 +40,23 @@ async function generateRepo(
    printOutput = false,
    core
 ) {
+   let spin;
+   const s = spinner();
+   // Handle incoming events
+   core.on('progress', () => {
+      if (!spin) {
+         spin = true;
+         s.start('Processing workspace information...');
+      }
+   });
+   core.on('end', () => {
+      if (spin) s.stop('Processing done!');
+   });
+   core.on('error', (data) => {
+      if (spin) spin.stop('Error!');
+      log.error(data.message);
+   });
+
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
@@ -80,7 +97,8 @@ async function generateRepo(
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
    const jsonData = load(fileContents);
 
-   const plannedWrites: { path: string; content: string }[] = core.generateRepo(jsonData);
+   const plannedWrites: { path: string; content: string }[] = await core.generateRepo(jsonData);
+   log.step(`Writing Repository to the output directory -> ${outputDir}`);
    await Promise.all(
       plannedWrites.map(async ({ path, content }) => {
          const outputPath = joinPath(outputDir, path);
@@ -91,9 +109,9 @@ async function generateRepo(
          await core.storage.writeFile(outputPath, content);
       })
    );
-   outro('Directory structure rebuilt successfully!');
 
    printOutputDir(printOutput, outputDir);
+   outro('Directory structure rebuilt successfully!');
 }
 
 // [ ] CLI

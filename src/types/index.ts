@@ -1,7 +1,8 @@
 // Barrel exports:
 
 // Export config storage abstraction interface.
-export * from './config/config-storage';
+export * from './storage';
+export * from './events';
 
 // ---- Context Types ----
 export interface CoreContext {

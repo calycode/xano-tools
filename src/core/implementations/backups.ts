@@ -14,6 +14,7 @@ async function exportBackupImplementation({ instance, workspace, branch, core })
       );
    }
 
+   
    const s = spinner();
 
    s.start('Fetching and saving backup...');
