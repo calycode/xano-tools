@@ -1,6 +1,5 @@
 import { spinner } from '@clack/prompts';
 import { replacePlaceholders, metaApiRequestBlob, joinPath } from '../utils';
-import axios from 'axios';
 
 async function exportBackupImplementation({ instance, workspace, branch, core }) {
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
@@ -55,14 +54,19 @@ async function restoreBackupImplementation({ instance, workspace, formData, core
 
    const headers = {
       Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
-      ...formData.getHeaders(),
+      ...(formData.getHeaders ? formData.getHeaders() : {}),
    };
 
-   const response = await axios.post(
+   const response = await fetch(
       `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/import`,
-      formData,
-      { headers }
+      {
+         method: 'POST',
+         body: formData,
+         headers,
+      }
    );
+
+   console.log(response);
 
    return response;
 }

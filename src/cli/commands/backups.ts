@@ -1,6 +1,6 @@
 import path, { join } from 'path';
-import { readdirSync, createReadStream } from 'fs';
-import FormData from 'form-data';
+import { readdirSync } from 'fs';
+import { openAsBlob } from 'node:fs';
 import { spinner, select, confirm, outro, log } from '@clack/prompts';
 import {
    addFullContextOptions,
@@ -10,6 +10,7 @@ import {
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
+const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
    const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
@@ -84,10 +85,8 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
       const startTime = Date.now();
 
       const formData = new FormData();
+      formData.append('file', await openAsBlob(backupFilePath), path.basename(backupFilePath));
       formData.append('password', '');
-      formData.append('file', createReadStream(backupFilePath), {
-         filename: path.basename(backupFilePath),
-      });
 
       // Pass on the formdata to the core implementation
       const response = await core.restoreBackup({

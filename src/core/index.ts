@@ -14,7 +14,6 @@ import { loadAndValidateContextImplementation } from './implementations/load-and
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
-import type { AxiosResponse } from 'axios';
 import { generateRepoImplementation } from './implementations/generate-repo';
 
 export class XCC {
@@ -72,7 +71,7 @@ export class XCC {
     * @param
     * @returns Axios response
     */
-   async restoreBackup({ instance, workspace, formData }): Promise<AxiosResponse<string, any>> {
+   async restoreBackup({ instance, workspace, formData }): Promise<any> {
       return restoreBackupImplementation({
          instance,
          workspace,
