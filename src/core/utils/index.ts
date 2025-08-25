@@ -7,3 +7,4 @@ export * from './methods/path';
 export * from './methods/prepare-request';
 export * from './methods/replace-placeholders';
 export * from './methods/sanitize';
+export * from './methods/statements-map';

@@ -1,5 +1,4 @@
 // src/lint-xano/XanoLinter.js
-import infrastructure from '../../../../util-resources/xano_underlying_infrastructure.json' with { type: 'json' };
 import { availableRules } from './rules/index';
 import { isNotEmpty } from '../../utils';
 
@@ -81,12 +80,10 @@ async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = o
 class XanoLinter {
    ruleConfig: any;
    backendLogic: any;
-   xanoInfrastructure: any;
 
    constructor(config: any, backendLogic: any) {
       this.ruleConfig = config.rules || {};
       this.backendLogic = backendLogic;
-      this.xanoInfrastructure = infrastructure;
    }
 
    async lint() {

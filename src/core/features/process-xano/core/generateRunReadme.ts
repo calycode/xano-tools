@@ -1,7 +1,7 @@
 // src/cli/fetures/process-xano/core/generateRunReadme.ts
 
 import { xanoQueryToSql } from '../adapters/xanoQueryToSql';
-import infrastructure from '../../../../../util-resources/xano_underlying_infrastructure.json' with { type: "json"}
+import { statementsMap } from '../../../utils';
 
 /**
  * Recursively generates a description of the query logic.
@@ -74,9 +74,7 @@ function generateQueryLogicDescription(runList, level = 0, functionMapping = {},
       }
 
       // Use the display name instead of Xano's mvp:method syntax.
-      const usedXanoMethod = infrastructure.statement.find(
-         (statement) => statement.name === method.name
-      );
+      const usedXanoMethod = statementsMap.get(method.name);
       description += `${indent}- **${
          usedXanoMethod ? usedXanoMethod.display : method.name
       }** ${functionLink} ${dboLink}\n`;
