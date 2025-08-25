@@ -9,7 +9,7 @@ export * from '../../core/utils/methods/prepare-request';
 export * from '../../core/utils/methods/replace-placeholders';
 export * from '../../core/utils/methods/sanitize';
 export * from './commands/option-sets';
-export * from './feature-focused/generate-repo/generate-structure-diagrams';
+export * from '../../core/features/process-xano/core/generate-structure-diagrams';
 export * from './feature-focused/registry/api';
 export * from './feature-focused/registry/general';
 export * from './feature-focused/registry/scaffold';

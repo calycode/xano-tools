@@ -1,6 +1,4 @@
-import { joinPath } from '../../../../core/utils';
-
-// [ ] CORE
+import { joinPath } from '../../../utils';
 
 type Query = Partial<{ name: string; verb: string }>;
 
