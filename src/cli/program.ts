@@ -17,9 +17,22 @@ import { registerOasServeCommand, registerRegistryServeCommand } from './command
 import { XCC } from '../core';
 import { nodeConfigStorage } from './node-config-storage';
 
+const commandStartTimes = new WeakMap<Command, number>();
+
 const { version } = pkg;
 const program = new Command();
 const core = new XCC(nodeConfigStorage);
+
+// Store start time on the command object
+program.hook('preAction', (thisCommand) => {
+  commandStartTimes.set(thisCommand, Date.now());
+});
+
+program.hook('postAction', (thisCommand, actionCommand) => {
+  const start = commandStartTimes.get(thisCommand) ?? 0;
+  const duration = ((Date.now() - start) / 1000).toFixed(2);
+  console.log(`\n⏱️  Command "${thisCommand.name()} ${actionCommand.name()}" completed in ${duration}s`);
+});
 
 program
   .name('xcc')
