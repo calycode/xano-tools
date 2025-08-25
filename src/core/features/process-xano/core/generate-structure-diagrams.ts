@@ -1,16 +1,21 @@
 import { joinPath } from '../../../utils';
 
 type Query = Partial<{ name: string; verb: string }>;
-
 type AppQueries = Record<string, Query[]>;
 
 /**
- * Generates structure diagrams for each app and writes them to README.md files.
- * @param {object} appQueries - A mapping of app IDs to their queries.
- * @param {object} appMapping - A mapping of app IDs to app names.
- * @param {object} appDescriptions - A mapping of app IDs to app descriptions.
+ * Generates structure diagrams for each app and returns README.md file objects.
+ * @param appQueries - Mapping of app IDs to their queries.
+ * @param appMapping - Mapping of app IDs to app names.
+ * @param appDescriptions - Mapping of app IDs to app descriptions.
  */
-function generateStructureDiagrams(appQueries: AppQueries, appMapping, appDescriptions) {
+function generateStructureDiagrams(
+   appQueries: AppQueries,
+   appMapping: Record<string, string>,
+   appDescriptions: Record<string, string>
+): { path: string; content: string }[] {
+   const outputs: { path: string; content: string }[] = [];
+
    for (const [appId, queries] of Object.entries(appQueries)) {
       const appName = appMapping[appId] || `app_${appId}`;
       const appDir = joinPath('app', appName);
@@ -19,32 +24,29 @@ function generateStructureDiagrams(appQueries: AppQueries, appMapping, appDescri
 
       let structureDiagram = `# ${appName}\n\n${appDescription}\n\n## Structure\n\n`;
 
-      // Group queries by their common path parts
-      const groupedQueries: Record<string, Query[]> = queries.reduce<Record<string, Query[]>>(
-         (acc, query) => {
-            const parts = (query.name ?? '').split('/');
-            const basePath = parts.slice(0, -1).join('/');
-            if (!acc[basePath]) {
-               acc[basePath] = [];
-            }
-            acc[basePath].push(query);
-            return acc;
-         },
-         {}
-      );
-
-      // Generate the structure diagram
-      for (const [basePath, queries] of Object.entries(groupedQueries)) {
-         structureDiagram += `- **${basePath}**\n`;
-         queries.forEach((query) => {
-            const queryPath = `/${query.name}`;
-            const queryLink = `[${queryPath}](./${query.name}/${query.verb})`;
-            structureDiagram += `  - ${query.verb}: ${queryLink}\n`;
-         });
+      // Group queries by their base path
+      const grouped: Record<string, Query[]> = {};
+      for (const query of queries) {
+         const parts = (query.name ?? '').split('/');
+         const basePath = parts.length > 1 ? parts.slice(0, -1).join('/') : '/';
+         if (!grouped[basePath]) grouped[basePath] = [];
+         grouped[basePath].push(query);
       }
 
-      return [{ path: readmePath, content: structureDiagram }];
+      // Generate the diagram
+      for (const [basePath, queries] of Object.entries(grouped)) {
+         structureDiagram += basePath !== '/' ? `- **${basePath}**\n` : '';
+         for (const query of queries) {
+            const qPath = `/${query.name}`;
+            const qLink = `[${qPath}](./${query.name}/${query.verb})`;
+            structureDiagram += `${basePath !== '/' ? '  ' : ''}- ${query.verb}: ${qLink}\n`;
+         }
+      }
+
+      outputs.push({ path: readmePath, content: structureDiagram });
    }
+
+   return outputs;
 }
 
 export { generateStructureDiagrams };

@@ -1,22 +1,26 @@
-// Function to convert JSON expression to pseudo SQL
+// src/cli/features/process-xano/adapters/xanoQueryToSql.js
+
+// Converts a JSON-based query expression into pseudo-SQL WHERE clause.
+function xanoQueryToSql(expression) {
+   return convertExpressionToSQL(expression);
+}
+
 function convertExpressionToSQL(expression) {
-   if (!expression || !Array.isArray(expression)) {
-      return '';
-   }
+   if (!Array.isArray(expression)) return '';
 
    return expression
       .map((exp) => {
-         const { or, type, statement, group } = exp;
-         if (type === 'statement' && statement) {
-            const { op, left, right } = statement;
+         if (exp.type === 'statement' && exp.statement) {
+            const { op, left, right } = exp.statement;
             const leftOperand = convertOperandToSQL(left);
             const rightOperand = convertOperandToSQL(right);
             const operator = convertOperatorToSQL(op);
             const condition = `${leftOperand} ${operator} ${rightOperand}`;
-            return or ? `OR ${condition}` : `AND ${condition}`;
-         } else if (type === 'group' && group) {
-            const groupCondition = convertExpressionToSQL(group.expression);
-            return or ? `OR (${groupCondition})` : `AND (${groupCondition})`;
+            return (exp.or ? 'OR ' : 'AND ') + condition;
+         }
+         if (exp.type === 'group' && exp.group) {
+            const groupCondition = convertExpressionToSQL(exp.group.expression);
+            return (exp.or ? 'OR ' : 'AND ') + `(${groupCondition})`;
          }
          return '';
       })
@@ -24,48 +28,27 @@ function convertExpressionToSQL(expression) {
       .replace(/^(AND|OR)\s/, ''); // Remove leading AND/OR
 }
 
-// Function to convert operand to SQL
 function convertOperandToSQL(operand) {
-   if (!operand) {
-      return '';
-   }
-
+   if (!operand) return '';
    const { tag, operand: value } = operand;
-   switch (tag) {
-      case 'col':
-         return value;
-      case 'input':
-         return `:${value}`;
-      case 'const:epochms':
-         return 'CURRENT_TIMESTAMP';
-      default:
-         return value;
-   }
+   if (tag === 'col') return value;
+   if (tag === 'input') return `:${value}`;
+   if (tag === 'const:epochms') return 'CURRENT_TIMESTAMP';
+   return value;
 }
 
-// Function to convert operator to SQL
 function convertOperatorToSQL(op) {
    switch (op) {
       case '=':
-         return '=';
       case '>':
-         return '>';
       case '<':
-         return '<';
       case '>=':
-         return '>=';
       case '<=':
-         return '<=';
       case '!=':
-         return '!=';
+         return op;
       default:
          return op;
    }
-}
-
-// Main function to convert a search expression to pseudo SQL
-function xanoQueryToSql(searchExpression) {
-   return convertExpressionToSQL(searchExpression);
 }
 
 export { xanoQueryToSql };

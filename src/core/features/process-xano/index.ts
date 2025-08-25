@@ -1,128 +1,57 @@
-// src/cli/features/process-xano/utils/fs/index.js
-import cliProgress from 'cli-progress';
 import { processItem } from './core/processItem';
 import { sanitizeFileName, generateStructureDiagrams } from '../../../cli/utils';
 
-// Helper for padding keys
-function padRight(str, len) {
-   return str.padEnd(len, ' ');
-}
-
 /**
- * Rebuilds the directory structure and splits JSON objects into separate files.
- * @param {object} jsonData - The JSON data parsed from the YAML file.
+ * Helper to build a lookup mapping for entities.
  */
+const buildMapping = (entities, keyBuilder) =>
+   Array.isArray(entities)
+      ? entities.reduce((acc, item) => {
+           const key = item.guid;
+           if (key) acc[key] = keyBuilder(item);
+           return acc;
+        }, {})
+      : {};
+
 function rebuildDirectoryStructure(jsonData) {
-   let stagedProcessOutput: { path: string; content: string }[] = [];
+   const { dbo, app, query, function: func, addon, trigger, task, middleware } = jsonData.payload;
 
-   const structure = {
-      dbo: jsonData.payload.dbo,
-      app: jsonData.payload.app,
-      query: jsonData.payload.query,
-      function: jsonData.payload.function,
-      addon: jsonData.payload.addon,
-      trigger: jsonData.payload.trigger,
-      task: jsonData.payload.task,
-      middleware: jsonData.payload.middleware,
-   };
-
-   // Find the longest key for alignment
-   const maxKeyLen = Math.max(...Object.keys(structure).map((k) => k.length));
-
-   // Create a mapping of app.id to app.name and app.description
-   const appMapping = {};
-   const appDescriptions = {};
-   // Create a mapping of app.id to queries for structure diagrams
+   // Mappings
+   const appMapping = buildMapping(app, (a) => a.name.replace(/\//g, '_'));
+   const appDescriptions = buildMapping(app, (a) => a.description || '//...');
+   const functionMapping = buildMapping(func, (f) => ({
+      name: f.name,
+      path: `function/${sanitizeFileName(f.name)}`,
+      description: f.description ?? '',
+   }));
+   const dboMapping = buildMapping(dbo, (d) => ({
+      name: d.name,
+      path: `dbo/${sanitizeFileName(d.name)}`,
+      description: d.description ?? '',
+   }));
    const appQueries = {};
 
-   if (Array.isArray(structure.app)) {
-      structure.app.forEach((app) => {
-         if (app.guid && app.name) {
-            appMapping[app.guid] = app.name.replace(/\//g, '_'); // Replace "/" with "_" in app name
-            appDescriptions[app.guid] = app.description || '//...';
-         }
-      });
-   }
+   const structure = { dbo, app, query, function: func, addon, trigger, task, middleware };
 
-   const functionMapping = {};
-   if (Array.isArray(structure.function)) {
-      structure.function.forEach((func) => {
-         functionMapping[func.guid] = {
-            name: func.name,
-            path: `function/${sanitizeFileName(func.name)}`,
-            description: func.description ?? '',
-         };
-      });
-   }
+   // Process all entity types in structure
+   const stagedProcessOutput = Object.entries(structure).flatMap(([key, value]) =>
+      (Array.isArray(value) ? value : [value]).filter(Boolean).flatMap((item) =>
+         processItem({
+            key,
+            item,
+            dirPath: key,
+            appMapping,
+            appQueries,
+            functionMapping,
+            dboMapping,
+         })
+      )
+   );
 
-   const dboMapping = {};
-   if (Array.isArray(structure.dbo)) {
-      structure.dbo.forEach((dbo) => {
-         dboMapping[dbo.guid] = {
-            name: dbo.name,
-            path: `dbo/${sanitizeFileName(dbo.name)}`,
-            description: dbo.description ?? '',
-         };
-      });
-   }
-
-   // For each entity type, show a progress bar
-   for (const [key, value] of Object.entries(structure)) {
-      const dirPath = key;
-
-      if (Array.isArray(value) && value.length > 0) {
-         // Setup progress bar for this type
-         const bar = new cliProgress.SingleBar({
-            format: `⌛   ${padRight(key, maxKeyLen)} |{bar}| {value}/{total}`,
-            barCompleteChar: '=',
-            barIncompleteChar: '-',
-            barGlue: '',
-            barsize: 20, // thinner bar
-            hideCursor: true,
-            linewrap: false,
-         });
-
-         bar.start(value.length, 0, { itemName: '' });
-
-         value.forEach((item) => {
-            stagedProcessOutput = [
-               ...stagedProcessOutput,
-               ...processItem({
-                  key,
-                  item,
-                  dirPath,
-                  appMapping,
-                  appQueries,
-                  functionMapping,
-                  dboMapping,
-               }),
-            ];
-            bar.increment(1, { itemName: item.name || '' });
-         });
-
-         bar.stop();
-      } else if (value) {
-         stagedProcessOutput = [
-            ...stagedProcessOutput,
-            ...processItem({
-               key,
-               item: value,
-               dirPath,
-               appMapping,
-               appQueries,
-               functionMapping,
-               dboMapping,
-            }),
-         ];
-      }
-   }
-
-   stagedProcessOutput = [
+   return [
       ...stagedProcessOutput,
       ...generateStructureDiagrams(appQueries, appMapping, appDescriptions),
    ];
-
-   return stagedProcessOutput;
 }
 
 export { rebuildDirectoryStructure };

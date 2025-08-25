@@ -11,7 +11,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-import { runOpenApiGenerator } from '../features/oas/code-gen/open-api-generator';
+import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
 
 // [ ] CLI only feature
 async function generateCodeFromOas(
