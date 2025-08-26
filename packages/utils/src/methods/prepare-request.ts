@@ -2,6 +2,33 @@
 import { Schema, PrepareRequestArgs, PreparedRequest } from '@mihalytoth20/xcc-types';
 
 // [ ] CORE
+/**
+ * Prepares an HTTP request from OpenAPI specification parameters.
+ * Processes path parameters, query parameters, headers, and request body to create a complete HTTP request.
+ * 
+ * @param args - Request preparation arguments
+ * @param args.baseUrl - The base URL for the API
+ * @param args.path - The endpoint path with optional {placeholders}
+ * @param args.method - HTTP method (GET, POST, PUT, etc.)
+ * @param args.headers - Additional headers to include
+ * @param args.parameters - OpenAPI parameter definitions
+ * @param args.body - Request body schema for POST/PUT requests
+ * @returns A prepared request object ready for execution
+ * 
+ * @example
+ * ```typescript
+ * const request = prepareRequest({
+ *   baseUrl: 'https://api.example.com',
+ *   path: '/users/{id}',
+ *   method: 'GET',
+ *   parameters: [
+ *     { name: 'id', in: 'path', schema: { type: 'string' } },
+ *     { name: 'include', in: 'query', schema: { type: 'string' } }
+ *   ]
+ * });
+ * // Returns: { url: 'https://api.example.com/users/1?include=string', method: 'GET', ... }
+ * ```
+ */
 // --- Main Function ---
 export function prepareRequest({
    baseUrl,
@@ -72,6 +99,25 @@ export function prepareRequest({
    };
 }
 
+/**
+ * Generates mock data from an OpenAPI schema definition.
+ * Creates realistic sample data based on schema types, examples, and constraints.
+ * 
+ * @param schema - OpenAPI schema definition
+ * @returns Mock data that conforms to the schema
+ * 
+ * @example
+ * ```typescript
+ * const mockData = mockFromSchema({
+ *   type: 'object',
+ *   properties: {
+ *     name: { type: 'string', example: 'John' },
+ *     age: { type: 'integer', default: 25 }
+ *   }
+ * });
+ * // Returns: { name: 'John', age: 25 }
+ * ```
+ */
 // --- Helper: Generate mock data from schema ---
 function mockFromSchema(schema?: Schema): unknown {
    if (!schema || typeof schema !== 'object') return guessDummyForType(schema?.type);
@@ -102,6 +148,20 @@ function mockFromSchema(schema?: Schema): unknown {
    }
 }
 
+/**
+ * Generates dummy values for basic OpenAPI types.
+ * Provides fallback values when schema examples or defaults are not available.
+ * 
+ * @param type - The OpenAPI type (string, integer, number, boolean, etc.)
+ * @returns A dummy value appropriate for the specified type
+ * 
+ * @example
+ * ```typescript
+ * const stringValue = guessDummyForType('string'); // Returns: 'string'
+ * const numberValue = guessDummyForType('integer'); // Returns: 1
+ * const boolValue = guessDummyForType('boolean'); // Returns: false
+ * ```
+ */
 // --- Helper: Dummy value generator for types ---
 function guessDummyForType(type?: string): unknown {
    switch (type) {
