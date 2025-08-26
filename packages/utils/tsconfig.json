@@ -3,10 +3,11 @@
    "compilerOptions": {
       "outDir": "dist",
       "rootDir": "src",
-      "declaration": true,
-      "emitDeclarationOnly": true,
       "composite": true,
       "noEmit": false
    },
-   "include": ["src"]
+   "include": ["src"],
+   "references": [
+      { "path": "../types" }
+   ]
 }

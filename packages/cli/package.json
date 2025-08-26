@@ -11,6 +11,7 @@
         "dist"
     ],
     "dependencies": {
+        "@clack/prompts": "^0.11.0",
         "@mihalytoth20/xcc-core": "workspace:*",
         "@mihalytoth20/xcc-types": "workspace:*",
         "@mihalytoth20/xcc-utils": "workspace:*",
@@ -20,9 +21,12 @@
         "tar": "^7.4.3"
     },
     "scripts": {
-        "build": "tsc --emitDeclarationOnly && tsx esbuild.config.ts && shx chmod +x dist/index.cjs"
+        "build": "tsc --build && tsx esbuild.config.ts && shx chmod +x dist/index.cjs",
+        "clean": "rm -rf dist",
+        "xcc": "node dist/index.cjs"
     },
     "devDependencies": {
-        "shx": "^0.4.0"
+        "shx": "^0.4.0",
+        "uvu": "^0.5.6"
     }
 }

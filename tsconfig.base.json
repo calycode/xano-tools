@@ -13,21 +13,20 @@
       "strict": false,
       "sourceMap": true,
       "incremental": true,
-      "noEmit": true
+      "composite": true,
+      "declaration": true,
+      "declarationMap": true
    },
+   "references": [
+      { "path": "./packages/types" },
+      { "path": "./packages/utils" },
+      { "path": "./packages/core" },
+      { "path": "./packages/cli" }
+   ],
    "include": [
       "src/**/*",
       "scripts/**/*",
-      "eslint.config.ts",
-      "packages/core",
-      "packages/utils/methods/api-helper.ts",
-      "packages/utils/methods/fetch-and-extract-yaml.ts",
-      "packages/utils/methods/fetch-workspaces-branches.ts",
-      "packages/utils/methods/is-empty.ts",
-      "packages/utils/methods/prepare-request.ts",
-      "packages/utils/methods/replace-placeholders.ts",
-      "packages/utils/methods/sanitize.ts",
-      "packages/utils/methods/path.ts"
+      "eslint.config.ts"
    ],
    "exclude": ["node_modules", "dist"]
 }

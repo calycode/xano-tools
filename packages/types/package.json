@@ -9,6 +9,7 @@
         "dist"
     ],
     "scripts": {
-        "build": "tsc --emitDeclarationOnly"
+        "build": "tsc --build",
+        "clean": "rm -rf dist"
     }
 }

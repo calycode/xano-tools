@@ -12,6 +12,7 @@
         "@mihalytoth20/xcc-types": "workspace:*"
     },
     "scripts": {
-        "build": "tsc --emitDeclarationOnly && tsx esbuild.config.ts"
+        "build": "tsc --build && tsx esbuild.config.ts",
+        "clean": "rm -rf dist"
     }
 }

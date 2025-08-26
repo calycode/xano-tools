@@ -1,9 +1,6 @@
 {
-   "name": "@mihalytoth20/xano-community-cli",
+   "name": "@mihalytoth20/xano-community-cli-workspace",
    "version": "0.1.1",
-   "main": "dist/index.cjs",
-   "module": "dist/index.js",
-   "types": "dist/index.d.ts",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
    "workspaces": [
@@ -12,18 +9,14 @@
       "packages/types",
       "packages/utils"
    ],
-   "bin": {
-      "xcc": "dist/index.cjs"
-   },
-   "files": [
-      "dist"
-   ],
    "scripts": {
-      "build": "pnpm -r run build",
+      "build": "tsc --build",
+      "build:packages": "pnpm -r --workspace-concurrency=1 run build",
       "xcc": "pnpm --filter @mihalytoth20/xano-community-cli run xcc",
       "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
       "serve-registry": "npx serve registry --listen 3030",
-      "prepublishOnly": "pnpm run build"
+      "clean": "pnpm -r run clean && rm -rf dist",
+      "prepublishOnly": "pnpm run build:packages"
    },
    "private": true,
    "publishConfig": {
@@ -37,16 +30,10 @@
    ],
    "author": "Mihály Tóth <hello@nextcurve.hu>",
    "license": "MIT",
-   "dependencies": {
-      "@clack/prompts": "^0.11.0",
-      "chalk": "^5.4.1",
-      "commander": "^14.0.0",
-      "js-yaml": "^4.1.0",
-      "tar": "^7.4.3",
-      "uvu": "^0.5.6"
-   },
+   "dependencies": {},
    "devDependencies": {
       "@eslint/js": "^9.32.0",
+      "@types/node": "^24.3.0",
       "@typescript-eslint/eslint-plugin": "^8.39.1",
       "@typescript-eslint/parser": "^8.39.1",
       "esbuild": "^0.25.9",
@@ -54,6 +41,7 @@
       "eslint-plugin-import": "^2.32.0",
       "knip": "^5.62.0",
       "strip-ansi": "^7.1.0",
-      "tsx": "^4.20.4"
+      "tsx": "^4.20.4",
+      "typescript": "^5.9.2"
    }
 }
