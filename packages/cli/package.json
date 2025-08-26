@@ -1,0 +1,28 @@
+{
+    "name": "@mihalytoth20/xano-community-cli",
+    "version": "0.1.1",
+    "bin": {
+        "xcc": "dist/index.cjs"
+    },
+    "main": "dist/index.cjs",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@mihalytoth20/xcc-core": "workspace:*",
+        "@mihalytoth20/xcc-types": "workspace:*",
+        "@mihalytoth20/xcc-utils": "workspace:*",
+        "chalk": "^5.4.1",
+        "commander": "^14.0.0",
+        "js-yaml": "^4.1.0",
+        "tar": "^7.4.3"
+    },
+    "scripts": {
+        "build": "tsc --emitDeclarationOnly && tsx esbuild.config.ts && shx chmod +x dist/index.cjs"
+    },
+    "devDependencies": {
+        "shx": "^0.4.0"
+    }
+}

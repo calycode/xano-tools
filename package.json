@@ -2,8 +2,16 @@
    "name": "@mihalytoth20/xano-community-cli",
    "version": "0.1.1",
    "main": "dist/index.cjs",
+   "module": "dist/index.js",
+   "types": "dist/index.d.ts",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
+   "workspaces": [
+      "packages/cli",
+      "packages/core",
+      "packages/types",
+      "packages/utils"
+   ],
    "bin": {
       "xcc": "dist/index.cjs"
    },
@@ -11,12 +19,11 @@
       "dist"
    ],
    "scripts": {
-      "xcc": "tsx src/cli/index.ts",
-      "xano-community-cli": "tsx src/cli/index.ts",
+      "build": "pnpm -r run build",
+      "xcc": "pnpm --filter @mihalytoth20/xano-community-cli run xcc",
       "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
-      "build": "pnpm update-xcc-docs && tsx scripts/build.ts",
-      "prepublishOnly": "pnpm run build",
-      "serve-registry": "npx serve registry --listen 3030"
+      "serve-registry": "npx serve registry --listen 3030",
+      "prepublishOnly": "pnpm run build"
    },
    "private": true,
    "publishConfig": {

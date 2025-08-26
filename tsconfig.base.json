@@ -1,0 +1,33 @@
+{
+   "compilerOptions": {
+      "target": "ES2020",
+      "module": "esnext",
+      "moduleResolution": "node",
+      "outDir": "dist",
+      "esModuleInterop": true,
+      "allowJs": true,
+      "checkJs": false,
+      "skipLibCheck": true,
+      "resolveJsonModule": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": false,
+      "sourceMap": true,
+      "incremental": true,
+      "noEmit": true
+   },
+   "include": [
+      "src/**/*",
+      "scripts/**/*",
+      "eslint.config.ts",
+      "packages/core",
+      "packages/utils/methods/api-helper.ts",
+      "packages/utils/methods/fetch-and-extract-yaml.ts",
+      "packages/utils/methods/fetch-workspaces-branches.ts",
+      "packages/utils/methods/is-empty.ts",
+      "packages/utils/methods/prepare-request.ts",
+      "packages/utils/methods/replace-placeholders.ts",
+      "packages/utils/methods/sanitize.ts",
+      "packages/utils/methods/path.ts"
+   ],
+   "exclude": ["node_modules", "dist"]
+}

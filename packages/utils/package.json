@@ -1,0 +1,17 @@
+{
+    "name": "@mihalytoth20/xcc-utils",
+    "version": "0.1.0",
+    "main": "dist/index.cjs",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@mihalytoth20/xcc-types": "workspace:*"
+    },
+    "scripts": {
+        "build": "tsc --emitDeclarationOnly && tsx esbuild.config.ts"
+    }
+}
