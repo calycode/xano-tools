@@ -5,8 +5,8 @@ import { build } from 'esbuild';
 import { intro, outro, log } from '@clack/prompts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const rootDir = resolve(__dirname, '..');
-const distDir = resolve(rootDir, 'dist');
+const rootDir = resolve(__dirname);
+const distDir = resolve(__dirname, 'dist');
 
 (async () => {
    try {
@@ -18,14 +18,14 @@ const distDir = resolve(rootDir, 'dist');
 
       // Copy util-resources (xano-grammar)
       // Copy github actions
-      await cp(resolve(rootDir, 'cli/src/actions'), resolve(distDir, 'actions'), {
+      await cp(resolve(rootDir, 'src/actions'), resolve(distDir, 'actions'), {
          recursive: true,
       });
       log.step('Copied and minified assets to dist.');
 
       // Bundle the application with esbuild
       const result = await build({
-         entryPoints: [resolve(rootDir, 'cli/src/index.ts')],
+         entryPoints: [resolve(rootDir, 'src/index.ts')],
          bundle: true,
          platform: 'node',
          plugins: [],
