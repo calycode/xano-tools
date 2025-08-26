@@ -13,7 +13,7 @@
         "@mihalytoth20/xcc-utils": "workspace:*"
     },
     "scripts": {
-        "build": "tsc --build && tsx esbuild.config.ts && npx rollup -c ../../rollup.config.js --input dist/index.d.ts --file dist/index.bundled.d.ts --format es --plugin dts",
+        "build": "tsc --build --force && tsx esbuild.config.ts && cd ../.. && npx rollup -c rollup.config.js --input packages/core/dist/index.d.ts --file packages/core/dist/index.bundled.d.ts --format es --plugin dts && cd packages/core && find dist -name '*.d.ts' ! -name '*.bundled.d.ts' -delete && find dist -name '*.d.ts.map' -delete && find dist -type d -empty -delete",
         "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"
     }
 }
