@@ -11,7 +11,7 @@ async function updateOpenapiSpecImplementation(
       branch: string;
       groups: ApiGroup[];
    }
-) {
+): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
    const { instance, workspace, branch } = options;
 
    core.emit('start', { name: 'start-updateoas', payload: options });
@@ -23,17 +23,18 @@ async function updateOpenapiSpecImplementation(
    });
 
    try {
-      // 3. For each group, update the spec
-      for (const grp of options.groups) {
+      const results = [];
+      for (const [i, grp] of options.groups.entries()) {
          core.emit('progress', {
             name: 'progress-updateoas',
             payload: grp,
             message: `Processing group: ${grp.name}`,
-            step: options.groups.indexOf(grp) + 1,
+            step: i + 1,
             totalSteps: options.groups.length,
-            percent: Math.round(((options.groups.indexOf(grp) + 1) / options.groups.length) * 100),
+            percent: Math.round(((i + 1) / options.groups.length) * 100),
          });
-         await updateSpecForGroup({
+
+         const { oas, generatedItems } = await updateSpecForGroup({
             group: grp,
             instanceConfig,
             workspaceConfig,
@@ -41,13 +42,17 @@ async function updateOpenapiSpecImplementation(
             storage,
             core,
          });
+
+         results.push({ group: grp.name, oas, generatedItems });
       }
-      core.emit('end', { name: 'end-updateoas', payload: options });
+      core.emit('end', { name: 'end-updateoas', payload: results });
+      return results;
    } catch (err) {
       core.emit('error', {
          error: err,
          message: 'error-updateoas',
       });
+      throw err;
    }
 }
 

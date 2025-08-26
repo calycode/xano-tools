@@ -42,9 +42,8 @@ export class XCC extends TypedEmitter<EventMap> {
       instance: string,
       workspace: string,
       branch: string,
-      // groups have to be the proper api group array not just a string...
       groups: any
-   ): Promise<void> {
+   ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
       return updateOpenapiSpecImplementation(this.storage, this, {
          instance,
          workspace,
@@ -84,10 +83,15 @@ export class XCC extends TypedEmitter<EventMap> {
    }
 
    // ----- SEMI-UTIL METHODS ----- //
-   async doOasUpdate({ inputOas, outputDir, instanceConfig, workspaceConfig }): Promise<any> {
+   async doOasUpdate({ inputOas, instanceConfig, workspaceConfig }): Promise<{
+      oas: any;
+      generatedItems: {
+         path: string;
+         content: string;
+      }[];
+   }> {
       return doOasUpdate({
          inputOas,
-         outputDir,
          instanceConfig,
          workspaceConfig,
          storage: this.storage,

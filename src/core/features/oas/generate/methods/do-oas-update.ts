@@ -1,27 +1,43 @@
 import { joinPath } from '../../../../utils';
 import { patchOasSpec } from './index';
 
-// [ ] CORE
+interface GeneratedItem {
+   path: string;
+   content: string;
+}
+
+interface DoOasUpdateOutput {
+   oas: any;
+   generatedItems: GeneratedItem[];
+}
+
 export default async function doOasUpdate({
    inputOas,
-   outputDir,
    instanceConfig,
    workspaceConfig,
-   storage,
-}) {
-   // Load and patch
+   storage, // Used for meta lookups, not FS
+}: {
+   inputOas: any;
+   instanceConfig: any;
+   workspaceConfig: any;
+   storage: any;
+}): Promise<DoOasUpdateOutput> {
+   // Patch and enrich OAS
    const oas = await patchOasSpec({ oas: inputOas, instanceConfig, workspaceConfig, storage });
 
-   // Ensure output directories exist
-   await storage.mkdir(outputDir, { recursive: true });
-   await storage.mkdir(joinPath(outputDir, 'html'), { recursive: true });
-
-   // Write JSON specs
-   await storage.writeFile(joinPath(outputDir, 'spec.json'), JSON.stringify(oas, null, 2));
-   await storage.writeFile(joinPath(outputDir, 'html', 'spec.json'), JSON.stringify(oas, null, 2));
-
-   // Write Scalar HTML
-   const html = `
+   // Prepare output artifacts (relative paths)
+   const generatedItems: GeneratedItem[] = [
+      {
+         path: 'spec.json',
+         content: JSON.stringify(oas, null, 2),
+      },
+      {
+         path: joinPath('html', 'spec.json'),
+         content: JSON.stringify(oas, null, 2),
+      },
+      {
+         path: joinPath('html', 'index.html'),
+         content: `
 <!doctype html>
 <html>
   <head>
@@ -58,8 +74,9 @@ export default async function doOasUpdate({
     </script>
   </body>
 </html>
-`;
-   await storage.writeFile(joinPath(outputDir, 'html', 'index.html'), html);
+`.trim(),
+      },
+   ];
 
-   return oas;
+   return { oas, generatedItems };
 }

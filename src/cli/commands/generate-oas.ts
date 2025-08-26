@@ -1,14 +1,15 @@
-import { intro, log, outro } from '@clack/prompts';
 import {
    addApiGroupOptions,
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
+   normalizeApiGroupName,
    printOutputDir,
+   replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
-import type { XCC } from '../../core';
 import { attachCliEventHandlers } from '../utils/event-listener';
+import { joinPath, dirname } from '../../core/utils';
 
 async function updateOasWizard({
    instance,
@@ -25,7 +26,7 @@ async function updateOasWizard({
    group: string;
    isAll: boolean;
    printOutput: boolean;
-   core: XCC;
+   core;
 }) {
    attachCliEventHandlers('generate-oas', core, {
       instance,
@@ -53,12 +54,34 @@ async function updateOasWizard({
       all: isAll,
    });
 
-   await core.updateOpenapiSpec(
-      instanceConfig.name,
-      workspaceConfig.name,
-      branchConfig.label,
-      groups
-   );
+   const allGroupResults: {
+      group: string;
+      oas: any;
+      generatedItems: { path: string; content: string }[];
+   }[] = await core.updateOpenapiSpec(instance, workspace, branch, groups);
+   for (const { group, generatedItems } of allGroupResults) {
+      const apiGroupNameNorm = normalizeApiGroupName(group);
+
+      const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
+         branch: branchConfig.label,
+         api_group_normalized_name: apiGroupNameNorm,
+      });
+
+      await Promise.all(
+         generatedItems.map(async ({ path, content }) => {
+            const finalPath = joinPath(outputPath, path);
+            const writeDir = dirname(finalPath);
+            if (!(await core.storage.exists(writeDir))) {
+               await core.storage.mkdir(writeDir, { recursive: true });
+            }
+            await core.storage.writeFile(finalPath, content);
+         })
+      );
+
+      printOutputDir(printOutput, outputPath);
+   }
 }
 
 function registerGenerateOasCommand(program, core) {

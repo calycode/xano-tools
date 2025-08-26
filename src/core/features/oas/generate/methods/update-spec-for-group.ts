@@ -1,50 +1,44 @@
-import {
-   normalizeApiGroupName,
-   replacePlaceholders,
-   metaApiGet,
-} from '../../../../../cli/utils';
+import { metaApiGet } from '../../../../../cli/utils';
 import { doOasUpdate } from '../index';
 
-// [ ] CORE
-/**
- * Updates the OpenAPI spec for a single group.
- */
 async function updateSpecForGroup({
    group,
    instanceConfig,
    workspaceConfig,
-   branchConfig,
    storage,
    core,
+}: {
+   group: any;
+   instanceConfig: any;
+   workspaceConfig: any;
+   branchConfig: any;
+   storage: any;
+   core: any;
 }) {
-   const apiGroupNameNorm = normalizeApiGroupName(group.name);
 
-   const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
-      instance: instanceConfig.name,
-      workspace: workspaceConfig.name,
-      branch: branchConfig.label,
-      api_group_normalized_name: apiGroupNameNorm,
-   });
-
+   // Get raw OAS from API
    const openapiRaw = await metaApiGet({
       baseUrl: instanceConfig.url,
       token: await core.loadToken(instanceConfig.name),
       path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
    });
 
-   await doOasUpdate({
+   // Generate OAS and artifacts (relative paths)
+   const { oas, generatedItems } = await doOasUpdate({
       inputOas: openapiRaw,
-      outputDir: outputPath,
       instanceConfig,
       workspaceConfig,
       storage,
    });
 
+   // Optionally emit info for consumer
    core.emit('info', {
-      name: 'output-dir',
-      payload: outputPath,
-      message: `OUTPUT_DIR=${outputPath}`,
+      name: 'oas-group-generated',
+      payload: { group: group.name, generatedItems },
+      message: `OAS generated for group: ${group.name}`,
    });
+
+   return { oas, generatedItems };
 }
 
 export { updateSpecForGroup };
