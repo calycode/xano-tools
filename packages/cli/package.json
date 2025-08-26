@@ -1,6 +1,8 @@
 {
     "name": "@mihalytoth20/xano-community-cli",
     "version": "0.1.1",
+    "description": "Command-line interface for the Xano Community CLI providing terminal access to Xano workflows",
+    "keywords": ["xano", "cli", "command-line", "api", "openapi", "backend", "automation", "developer-tools"],
     "bin": {
         "xcc": "dist/index.cjs"
     },
@@ -8,8 +10,21 @@
     "types": "dist/index.d.ts",
     "type": "module",
     "files": [
-        "dist"
+        "dist",
+        "README.md"
     ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "directory": "packages/cli"
+    },
+    "bugs": {
+        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+    },
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli#readme",
     "dependencies": {
         "@clack/prompts": "^0.11.0",
         "@mihalytoth20/xcc-core": "workspace:*",

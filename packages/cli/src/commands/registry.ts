@@ -31,7 +31,6 @@ async function addToXano(
    for (const componentName of componentNames) {
       try {
          const registryItem = await getRegistryItem(componentName);
-         // [ ] TODO: add sorting of registry item files where the table is the first, function comes second and queries come last
          const sortedFiles = sortFilesByType(registryItem.files);
          for (const file of sortedFiles) {
             const success = await installComponentToXano(

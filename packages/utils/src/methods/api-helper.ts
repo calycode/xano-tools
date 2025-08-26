@@ -7,7 +7,15 @@ import {
    HTTPMethod,
 } from '@mihalytoth20/xcc-types';
 
-// Internal shared helper for building URLs
+/**
+ * Internal helper for building Xano Metadata API URLs with path parameters and query strings.
+ * @param baseUrl - The base URL of the Xano instance (e.g., 'https://x123.xano.io')
+ * @param path - The API endpoint path (e.g., '/workspace/{id}')
+ * @param pathParams - Object containing path parameter replacements for {placeholders}
+ * @param query - Object containing query string parameters
+ * @returns The complete URL with expanded path parameters and query string
+ * @internal
+ */
 function buildMetaApiUrl(
    baseUrl: string,
    path: string = '',
@@ -20,8 +28,9 @@ function buildMetaApiUrl(
       fullPath = fullPath.replace(`{${key}}`, encodeURIComponent(String(value)));
    }
 
-   // Compose base URL
-   let url = baseUrl.replace(/\/+$/, '') + '/api:meta' + fullPath;
+   // Compose base URL using native URL constructor for better validation
+   const metaPath = fullPath ? `/api:meta${fullPath}` : '/api:meta';
+   let url = new URL(metaPath, baseUrl).toString();
 
    // Query string
    const queryString = new URLSearchParams(
@@ -36,7 +45,14 @@ function buildMetaApiUrl(
    return url;
 }
 
-// Internal shared helper for headers
+/**
+ * Internal helper for building HTTP headers with authentication and content type.
+ * @param token - Bearer token for Xano API authentication
+ * @param headers - Additional headers to merge with defaults
+ * @param body - Request body (used to determine if Content-Type should be set)
+ * @returns Complete headers object with Authorization and Content-Type as needed
+ * @internal
+ */
 function buildHeaders(token: string, headers: Headers = {}, body: unknown = null): Headers {
    return {
       ...headers,
@@ -45,7 +61,45 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
    };
 }
 
-// Main JSON request
+/**
+ * Makes authenticated HTTP requests to the Xano Metadata API.
+ * Handles JSON parsing, error handling, and authentication automatically.
+ * 
+ * @param options - Configuration options for the API request
+ * @param options.baseUrl - The base URL of the Xano instance
+ * @param options.token - Bearer token for authentication
+ * @param options.method - HTTP method (defaults to 'GET')
+ * @param options.path - API endpoint path with optional {placeholders}
+ * @param options.pathParams - Object to replace {placeholders} in path
+ * @param options.query - Query string parameters
+ * @param options.body - Request body for POST/PUT requests (will be JSON stringified)
+ * @param options.headers - Additional HTTP headers
+ * @param options.allowError - If true, won't throw on non-2xx responses
+ * @returns Promise resolving to the parsed JSON response or text if JSON parsing fails
+ * @throws {Error} When API request fails and allowError is false
+ * 
+ * @example
+ * ```typescript
+ * // Get workspace information
+ * const workspace = await metaApiRequest({
+ *   baseUrl: 'https://x123.xano.io',
+ *   token: 'your-api-token',
+ *   method: 'GET',
+ *   path: '/workspace/{id}',
+ *   pathParams: { id: '123' }
+ * });
+ * 
+ * // Create a new function
+ * const newFunction = await metaApiRequest({
+ *   baseUrl: 'https://x123.xano.io',
+ *   token: 'your-api-token',
+ *   method: 'POST',
+ *   path: '/workspace/{workspaceId}/function',
+ *   pathParams: { workspaceId: '123' },
+ *   body: { name: 'my-function', code: 'return "hello"' }
+ * });
+ * ```
+ */
 async function metaApiRequest({
    baseUrl,
    token,
@@ -80,7 +134,37 @@ async function metaApiRequest({
    return result;
 }
 
-// Main blob request
+/**
+ * Makes authenticated HTTP requests to the Xano Metadata API for binary data.
+ * Similar to metaApiRequest but returns raw binary data as Uint8Array.
+ * 
+ * @param options - Configuration options for the API request
+ * @param options.baseUrl - The base URL of the Xano instance
+ * @param options.token - Bearer token for authentication
+ * @param options.method - HTTP method (defaults to 'GET')
+ * @param options.path - API endpoint path with optional {placeholders}
+ * @param options.pathParams - Object to replace {placeholders} in path
+ * @param options.query - Query string parameters
+ * @param options.body - Request body for POST/PUT requests (will be JSON stringified)
+ * @param options.headers - Additional HTTP headers
+ * @returns Promise resolving to binary data as Uint8Array
+ * @throws {Error} When API request fails (always throws on non-2xx responses)
+ * 
+ * @example
+ * ```typescript
+ * // Download workspace backup
+ * const backupData = await metaApiRequestBlob({
+ *   baseUrl: 'https://x123.xano.io',
+ *   token: 'your-api-token',
+ *   method: 'GET',
+ *   path: '/workspace/{id}/backup',
+ *   pathParams: { id: '123' }
+ * });
+ * 
+ * // Save to file
+ * await fs.writeFile('backup.tar.gz', backupData);
+ * ```
+ */
 export async function metaApiRequestBlob({
    baseUrl,
    token,
@@ -107,11 +191,45 @@ export async function metaApiRequestBlob({
    return new Uint8Array(arrayBuffer);
 }
 
-// Factory for HTTP method helpers
+/**
+ * Factory function for creating HTTP method-specific API request helpers.
+ * @param method - The HTTP method to bind to the helper function
+ * @returns A function that makes API requests with the specified method
+ * @internal
+ */
 function makeMetaApiMethod<M extends HTTPMethod>(method: M) {
    return (opts: Omit<MetaApiRequestOptions, 'method'>) => metaApiRequest({ ...opts, method });
 }
 
-// Exported helpers
+/**
+ * Convenience function for making GET requests to the Xano Metadata API.
+ * @param options - API request options (method is automatically set to 'GET')
+ * @returns Promise resolving to the API response
+ * 
+ * @example
+ * ```typescript
+ * const workspaces = await metaApiGet({
+ *   baseUrl: 'https://x123.xano.io',
+ *   token: 'your-api-token',
+ *   path: '/workspaces'
+ * });
+ * ```
+ */
 export const metaApiGet = makeMetaApiMethod('GET');
+
+/**
+ * Convenience function for making POST requests to the Xano Metadata API.
+ * @param options - API request options (method is automatically set to 'POST')
+ * @returns Promise resolving to the API response
+ * 
+ * @example
+ * ```typescript
+ * const newWorkspace = await metaApiPost({
+ *   baseUrl: 'https://x123.xano.io',
+ *   token: 'your-api-token',
+ *   path: '/workspace',
+ *   body: { name: 'My New Workspace' }
+ * });
+ * ```
+ */
 export const metaApiPost = makeMetaApiMethod('POST');

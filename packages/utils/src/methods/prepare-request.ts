@@ -62,21 +62,19 @@ export function prepareRequest({
       }
    });
 
-   // 2. Replace path params: /foo/{id}/{name} => /foo/1/1
-   const fullUrl =
-      baseUrl +
-      path.replace(/\{(\w+?)\}/g, (_, key) =>
-         pathParams[key] !== undefined ? String(pathParams[key]) : '1'
-      );
+   // 2. Replace path params using URL constructor for better validation
+   let processedPath = path.replace(/\{(\w+?)\}/g, (_, key) =>
+      pathParams[key] !== undefined ? String(pathParams[key]) : '1'
+   );
+   
+   const fullUrl = new URL(processedPath, baseUrl).toString();
 
-   // 3. Append query string if any
-   let url = fullUrl;
-   if (Object.keys(queryParams).length > 0) {
-      const queryString = new URLSearchParams(
-         Object.fromEntries(Object.entries(queryParams).map(([k, v]) => [k, String(v)]))
-      ).toString();
-      url += (url.includes('?') ? '&' : '?') + queryString;
-   }
+   // 3. Append query string using URLSearchParams
+   const urlObj = new URL(fullUrl);
+   Object.entries(queryParams).forEach(([key, value]) => {
+      urlObj.searchParams.set(key, String(value));
+   });
+   const url = urlObj.toString();
 
    // 4. Merge headers (config + endpoint + OpenAPI header params)
    const finalHeaders: Record<string, string> = {
@@ -87,7 +85,7 @@ export function prepareRequest({
 
    // 5. Prepare body if present
    let preparedBody: string | undefined = undefined;
-   if (body && Object.keys(body).length > 0) {
+   if (body && typeof body === 'object' && Object.keys(body).length > 0) {
       preparedBody = JSON.stringify(mockFromSchema(body));
    }
 
@@ -122,27 +120,21 @@ export function prepareRequest({
 function mockFromSchema(schema?: Schema): unknown {
    if (!schema || typeof schema !== 'object') return guessDummyForType(schema?.type);
 
-   // Handle enums
-   if (schema.enum && schema.enum.length > 0) return schema.enum[0];
+   if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
 
-   // Use default or example if available
    if (schema.default !== undefined) return schema.default;
    if (schema.example !== undefined) return schema.example;
 
-   // Handle types
    switch (schema.type) {
       case 'object':
-         if (schema.properties) {
-            const obj: Record<string, unknown> = {};
-            for (const [k, v] of Object.entries(schema.properties)) {
-               obj[k] = mockFromSchema(v);
-            }
-            return obj;
+         if (schema.properties && typeof schema.properties === 'object') {
+            return Object.fromEntries(
+               Object.entries(schema.properties).map(([k, v]) => [k, mockFromSchema(v)])
+            );
          }
          return {};
       case 'array':
-         if (schema.items) return [mockFromSchema(schema.items)];
-         return [];
+         return schema.items ? [mockFromSchema(schema.items)] : [];
       default:
          return guessDummyForType(schema.type);
    }

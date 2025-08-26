@@ -1,13 +1,28 @@
 {
     "name": "@mihalytoth20/xcc-types",
     "version": "0.1.0",
+    "description": "TypeScript type definitions for the Xano Community CLI ecosystem",
+    "keywords": ["xano", "cli", "types", "typescript", "api", "backend"],
     "main": "dist/index.cjs",
     "module": "dist/index.js",
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
-        "dist"
+        "dist",
+        "README.md"
     ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "directory": "packages/types"
+    },
+    "bugs": {
+        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+    },
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli#readme",
     "scripts": {
         "build": "tsc --build --force && cd ../.. && npx rollup -c rollup.config.js --input packages/types/dist/index.d.ts --file packages/types/dist/index.bundled.d.ts --format es --plugin dts && cd packages/types && find dist -name '*.d.ts' ! -name '*.bundled.d.ts' -delete && find dist -name '*.d.ts.map' -delete && find dist -type d -empty -delete",
         "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"

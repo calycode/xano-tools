@@ -1,6 +1,24 @@
 // core/config-storage.ts
 import { InstanceConfig, CoreContext } from '..';
-// core/config-storage.ts
+/**
+ * Storage interface for XCC configuration and file operations.
+ * Abstracts filesystem operations to allow different storage implementations (Node.js, browser, etc.).
+ * 
+ * @example
+ * ```typescript
+ * // Node.js implementation
+ * import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
+ * const xcc = new XCC(nodeConfigStorage);
+ * 
+ * // Custom implementation
+ * class CustomStorage implements ConfigStorage {
+ *   async loadGlobalConfig() {
+ *     // Custom storage logic
+ *   }
+ *   // ... implement other methods
+ * }
+ * ```
+ */
 export interface ConfigStorage {
    ensureDirs(): Promise<void>;
    loadGlobalConfig(): Promise<{ currentContext: CoreContext; instances: string[] }>;

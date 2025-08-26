@@ -1,13 +1,28 @@
 {
     "name": "@mihalytoth20/xcc-core",
     "version": "0.1.0",
+    "description": "Core functionality for the Xano Community CLI providing programmatic access to Xano workflows",
+    "keywords": ["xano", "cli", "core", "api", "openapi", "backend", "automation"],
     "main": "dist/index.cjs",
     "module": "dist/index.js",
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
-        "dist"
+        "dist",
+        "README.md"
     ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "directory": "packages/core"
+    },
+    "bugs": {
+        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+    },
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli#readme",
     "dependencies": {
         "@mihalytoth20/xcc-types": "workspace:*",
         "@mihalytoth20/xcc-utils": "workspace:*"
