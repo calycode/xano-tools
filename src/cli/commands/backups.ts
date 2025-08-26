@@ -1,7 +1,7 @@
 import path, { join } from 'path';
 import { readdirSync } from 'fs';
 import { openAsBlob } from 'node:fs';
-import { spinner, select, confirm, outro, log } from '@clack/prompts';
+import { select, confirm, outro, } from '@clack/prompts';
 import {
    addFullContextOptions,
    addPartialContextOptions,
@@ -10,6 +10,7 @@ import {
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
+import { attachCliEventHandlers } from '../utils/event-listener';
 const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
@@ -17,8 +18,6 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
       instance,
       workspace,
    });
-
-   const s = spinner();
 
    try {
       let backupFilePath = sourceBackup;
@@ -78,35 +77,17 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
          }
       }
 
-      s.start(
-         `Uploading and importing backup to --> ${instanceConfig.name} > ${workspaceConfig.name}`
-      );
-
-      const startTime = Date.now();
-
       const formData = new FormData();
       formData.append('file', await openAsBlob(backupFilePath), path.basename(backupFilePath));
       formData.append('password', '');
 
       // Pass on the formdata to the core implementation
-      const response = await core.restoreBackup({
+      await core.restoreBackup({
          formData,
          instance,
          workspace,
       });
-
-      const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
-      if (response.status === 200) {
-         s.stop(`Backup restoration completed in ${durationSec} seconds!`);
-         log.info(`Xano response: ${JSON.stringify(response.data)}`);
-      } else {
-         s.stop(`Backup restoration failed after ${durationSec} seconds.`);
-         log.error(`HTTP ${response.status} - ${JSON.stringify(response.data)}`);
-         process.exit(1);
-      }
    } catch (err) {
-      s.stop('Backup restoration failed!');
-      log.error(err?.message || err);
       process.exit(1);
    }
 }
@@ -121,6 +102,7 @@ function registerExportBackupCommand(program, core) {
 
    cmd.action(
       withErrorHandler(async (options) => {
+         attachCliEventHandlers('export-backup', core, options);
          const outputObject = await core.exportBackup({
             branch: options.branch,
             instance: options.instance,

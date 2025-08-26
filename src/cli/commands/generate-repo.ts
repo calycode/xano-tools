@@ -11,6 +11,7 @@ import {
    replacePlaceholders,
    withErrorHandler,
 } from '../utils/index';
+import { attachCliEventHandlers } from '../utils/event-listener';
 
 /**
  * Clears the contents of a directory.
@@ -30,7 +31,7 @@ function clearDirectory(directory) {
    }
 }
 
-async function generateRepo(
+async function generateRepo({
    instance,
    workspace,
    branch,
@@ -38,23 +39,16 @@ async function generateRepo(
    output,
    fetch = false,
    printOutput = false,
-   core
-) {
-   let spin;
-   const s = spinner();
-   // Handle incoming events
-   core.on('progress', () => {
-      if (!spin) {
-         spin = true;
-         s.start('Processing workspace information...');
-      }
-   });
-   core.on('end', () => {
-      if (spin) s.stop('Processing done!');
-   });
-   core.on('error', (data) => {
-      if (spin) spin.stop('Error!');
-      log.error(data.message);
+   core,
+}) {
+   attachCliEventHandlers('generate-repo', core, {
+      instance,
+      workspace,
+      branch,
+      input,
+      output,
+      fetch,
+      printOutput,
    });
 
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
@@ -127,16 +121,16 @@ function registerGenerateRepoCommand(program, core) {
 
    cmd.option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano').action(
       withErrorHandler(async (opts) => {
-         await generateRepo(
-            opts.instance,
-            opts.workspace,
-            opts.branch,
-            opts.input,
-            opts.output,
-            opts.fetch,
-            opts.printOutput,
-            core
-         );
+         await generateRepo({
+            instance: opts.instance,
+            workspace: opts.workspace,
+            branch: opts.branch,
+            input: opts.input,
+            output: opts.output,
+            fetch: opts.fetch,
+            printOutput: opts.printOutputDir,
+            core: core,
+         });
       })
    );
 }

@@ -7,37 +7,33 @@ import {
    printOutputDir,
    withErrorHandler,
 } from '../utils/index';
+import type { XCC } from '../../core';
+import { attachCliEventHandlers } from '../utils/event-listener';
 
-async function updateOasWizard(
-   instance: string,
-   workspace: string,
-   branch: string,
-   group: string,
-   isAll: boolean,
-   printOutput: boolean = false,
-   core
-) {
-   // Handle incoming events
-   core.on('info', (data) => {
-      if (data.name === 'output-dir') {
-         printOutputDir(printOutput, data.message);
-      }
-   });
-
-   core.on('start', () => {
-      intro('Generating OpenAPI specifications...');
-   });
-
-   core.on('end', () => {
-      outro('OpenAPI specs generated successfully!');
-   });
-
-   core.on('progress', (data) => {
-      log.step(`${data.step} / ${data.totalSteps} (${data.percent}%) - ${data.message}`);
-   });
-
-   core.on('error', (data) => {
-      log.error(`Error: ${data.message} \n Payload: ${JSON.stringify(data.payload, null, 2)}}`);
+async function updateOasWizard({
+   instance,
+   workspace,
+   branch,
+   group,
+   isAll = false,
+   printOutput = false,
+   core,
+}: {
+   instance: string;
+   workspace: string;
+   branch: string;
+   group: string;
+   isAll: boolean;
+   printOutput: boolean;
+   core: XCC;
+}) {
+   attachCliEventHandlers('generate-oas', core, {
+      instance,
+      workspace,
+      branch,
+      group,
+      isAll,
+      printOutput,
    });
 
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
@@ -54,15 +50,14 @@ async function updateOasWizard(
       branchLabel: branchConfig.label,
       promptUser: !isAll && !group,
       groupName: group,
-      all: !!isAll,
+      all: isAll,
    });
 
    await core.updateOpenapiSpec(
       instanceConfig.name,
       workspaceConfig.name,
       branchConfig.label,
-      groups,
-      printOutput
+      groups
    );
 }
 
@@ -77,15 +72,15 @@ function registerGenerateOasCommand(program, core) {
 
    cmd.action(
       withErrorHandler(async (opts) => {
-         await updateOasWizard(
-            opts.instance,
-            opts.workspace,
-            opts.branch,
-            opts.group,
-            opts.all,
-            opts.printOutputDir,
-            core
-         );
+         await updateOasWizard({
+            instance: opts.instance,
+            workspace: opts.workspace,
+            branch: opts.branch,
+            group: opts.group,
+            isAll: opts.all,
+            printOutput: opts.printOutputDir,
+            core: core,
+         });
       })
    );
 }

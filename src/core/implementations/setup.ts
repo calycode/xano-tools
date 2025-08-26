@@ -1,4 +1,3 @@
-import { outro, log } from '@clack/prompts';
 import { ConfigStorage } from '../../types';
 import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '../utils';
 
@@ -41,7 +40,6 @@ export async function setupInstanceImplementation(
       throw new Error('Instance name must contain at least one letter or number.');
    }
    if (safeName !== name) {
-      log.info(`Using "${safeName}" as the instance key.`);
    }
 
    // 2. Health checks and setup
@@ -49,7 +47,6 @@ export async function setupInstanceImplementation(
 
    // 3. Store credentials
    await storage.saveToken(safeName, apiKey);
-   log.step(`Stored credentials for "${safeName}".`);
 
    // 4. Fetch workspaces and branches
    const workspaces = await fetchWorkspacesAndBranches({ url, apiKey });
@@ -88,7 +85,6 @@ export async function setupInstanceImplementation(
       },
       workspaces,
    });
-   log.step('Stored instance configuration.');
 
    // 6. Register in global config
    const global = await storage.loadGlobalConfig();
@@ -106,9 +102,6 @@ export async function setupInstanceImplementation(
                ? workspaces[0].branches[0].label
                : null,
       };
-      log.step(`Set "${safeName}" as the current context.`);
    }
    await storage.saveGlobalConfig(global);
-
-   outro(`🚀 Instance "${safeName}" configured! Use 'xcc switch-context' to change.`);
 }

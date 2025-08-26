@@ -38,15 +38,14 @@ export function registerSetupCommand(program, core) {
       .option('--no-set-current', 'Do not set this instance as the current context')
       .action(
          withErrorHandler(async (opts) => {
+            ensureGitignore();
             if (opts.name && opts.url && opts.token) {
-               // Ensure gitignore:
-               ensureGitignore();
                // Non-interactive mode for CI/CD
                await core.setupInstance({
                   name: opts.name,
                   url: opts.url,
                   apiKey: opts.token,
-                  setAsCurrent: opts.setCurrent, // commander turns --no-set-current to setCurrent: false
+                  setAsCurrent: opts.setCurrent,
                });
             } else {
                // Interactive wizard for local development

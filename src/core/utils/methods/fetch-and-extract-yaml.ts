@@ -1,4 +1,3 @@
-import { spinner } from '@clack/prompts';
 import { metaApiRequestBlob } from './api-helper';
 import { FetchAndExtractYamlArgs } from '../../../types';
 import { joinPath, dirname } from '..';
@@ -16,8 +15,11 @@ export async function fetchAndExtractYaml({
    outDir,
    core,
 }: FetchAndExtractYamlArgs): Promise<string> {
-   const s = spinner();
-   s.start('Fetching workspace schema...');
+   core.emit('progress', {
+      name: 'fetch-extract-yaml',
+      message: 'Fetching workspace schema...',
+      percent: 5,
+   });
 
    const tarGzBuffer = await metaApiRequestBlob({
       baseUrl,
@@ -25,6 +27,12 @@ export async function fetchAndExtractYaml({
       method: 'POST',
       path: `/workspace/${workspaceId}/export-schema`,
       body: { branch: branchLabel },
+   });
+
+   core.emit('progress', {
+      name: 'fetch-extract-yaml',
+      message: 'Downloaded workspace schema, extracting...',
+      percent: 80,
    });
 
    // Environment agnostic extract
@@ -43,7 +51,11 @@ export async function fetchAndExtractYaml({
    if (!yamlFile) throw new Error('No .yaml found in the exported archive!');
    const yamlFilePath = joinPath(outDir, yamlFile);
 
-   s.stop('Workspace schema fetched!');
+   core.emit('progress', {
+      name: 'fetch-extract-yaml',
+      message: 'Extracted workspace schema!',
+      percent: 100,
+   });
 
    return yamlFilePath;
 }
