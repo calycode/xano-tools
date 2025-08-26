@@ -1,4 +1,12 @@
-// cli/node-config-storage.ts
+/**
+ * Node.js filesystem-based implementation of ConfigStorage for XCC CLI.
+ * Stores configuration files in the user's home directory under .xano-community-cli/
+ * 
+ * Directory structure:
+ * - ~/.xano-community-cli/config.json (global configuration)
+ * - ~/.xano-community-cli/instances/ (instance-specific configurations)
+ * - ~/.xano-community-cli/tokens/ (API tokens with restricted permissions)
+ */
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -12,13 +20,34 @@ const configPath = path.join(baseDir, 'config.json');
 const instancesDir = path.join(baseDir, 'instances');
 const tokensDir = path.join(baseDir, 'tokens');
 
+/**
+ * Node.js implementation of the ConfigStorage interface.
+ * Provides file system operations and configuration management for the XCC CLI.
+ * 
+ * @example
+ * ```typescript
+ * import { XCC } from '@mihalytoth20/xcc-core';
+ * import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
+ * 
+ * const xcc = new XCC(nodeConfigStorage);
+ * ```
+ */
 export const nodeConfigStorage: ConfigStorage = {
+   /**
+    * Ensures that required configuration directories exist.
+    * Creates ~/.xano-community-cli/instances and ~/.xano-community-cli/tokens if they don't exist.
+    */
    async ensureDirs() {
       [instancesDir, tokensDir].forEach((dir) => {
          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       });
    },
 
+   /**
+    * Loads the global XCC configuration from ~/.xano-community-cli/config.json.
+    * Returns default configuration if file doesn't exist.
+    * @returns Global configuration object with current context and instance list
+    */
    async loadGlobalConfig() {
       if (!fs.existsSync(configPath)) {
          return { currentContext: {}, instances: [] };
@@ -41,6 +70,13 @@ export const nodeConfigStorage: ConfigStorage = {
       fs.writeFileSync(p, JSON.stringify(data, null, 2));
    },
 
+   /**
+    * Loads API token for the specified instance.
+    * First checks for environment variable (XANO_TOKEN_INSTANCENAME), then falls back to token file.
+    * @param instance - Instance name to load token for
+    * @returns The API token string
+    * @throws {Error} When token is not found in either location
+    */
    async loadToken(instance) {
       const envVarName = `XANO_TOKEN_${instance.toUpperCase().replace(/-/g, '_')}`;
       const envToken = process.env[envVarName];
@@ -56,6 +92,12 @@ export const nodeConfigStorage: ConfigStorage = {
       return fs.readFileSync(p, 'utf-8').trim();
    },
 
+   /**
+    * Saves API token for the specified instance with restricted file permissions.
+    * Token file is created with 600 permissions (readable only by owner).
+    * @param instance - Instance name to save token for
+    * @param token - The API token to save
+    */
    async saveToken(instance, token) {
       const p = path.join(tokensDir, `${instance}.token`);
       fs.writeFileSync(p, token, { mode: 0o600 });

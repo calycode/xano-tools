@@ -46,12 +46,10 @@ function sanitizeString(input: string, options: SanitizeOptions = {}): string {
    s = s.replace(new RegExp(`[^${opts.allowedCharsRegex.source}]`, 'g'), opts.replacementChar);
 
    if (opts.collapseRepeats) {
-      const re = new RegExp(`[${opts.replacementChar}]+`, 'g');
-      s = s.replace(re, opts.replacementChar);
+      s = s.replace(new RegExp(`\\${opts.replacementChar}+`, 'g'), opts.replacementChar);
    }
    if (opts.trimReplacement) {
-      const re = new RegExp(`^${opts.replacementChar}+|${opts.replacementChar}+$`, 'g');
-      s = s.replace(re, '');
+      s = s.replace(new RegExp(`^\\${opts.replacementChar}+|\\${opts.replacementChar}+$`, 'g'), '');
    }
    if (opts.toLowerCase) {
       s = s.toLowerCase();
