@@ -22,7 +22,7 @@
     },
     "scripts": {
         "build": "tsc --build && tsx esbuild.config.ts && shx chmod +x dist/index.cjs",
-        "clean": "rm -rf dist",
+        "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo",
         "xcc": "node dist/index.cjs"
     },
     "devDependencies": {

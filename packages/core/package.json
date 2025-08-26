@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "main": "dist/index.cjs",
     "module": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
         "dist"
@@ -13,7 +13,7 @@
         "@mihalytoth20/xcc-utils": "workspace:*"
     },
     "scripts": {
-        "build": "tsc --build && tsx esbuild.config.ts",
-        "clean": "rm -rf dist"
+        "build": "tsc --build && tsx esbuild.config.ts && npx rollup -c ../../rollup.config.js --input dist/index.d.ts --file dist/index.bundled.d.ts --format es --plugin dts",
+        "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"
     }
 }

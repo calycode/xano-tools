@@ -15,7 +15,7 @@
       "xcc": "pnpm --filter @mihalytoth20/xano-community-cli run xcc",
       "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
       "serve-registry": "npx serve registry --listen 3030",
-      "clean": "pnpm -r run clean && rm -rf dist",
+      "clean": "pnpm -r run clean && rm -rf dist && find . -name '*.tsbuildinfo' -delete",
       "prepublishOnly": "pnpm run build:packages"
    },
    "private": true,
@@ -30,7 +30,6 @@
    ],
    "author": "Mihály Tóth <hello@nextcurve.hu>",
    "license": "MIT",
-   "dependencies": {},
    "devDependencies": {
       "@eslint/js": "^9.32.0",
       "@types/node": "^24.3.0",
@@ -40,6 +39,8 @@
       "eslint": "^9.12.0",
       "eslint-plugin-import": "^2.32.0",
       "knip": "^5.62.0",
+      "rollup": "^4.48.1",
+      "rollup-plugin-dts": "^6.2.3",
       "strip-ansi": "^7.1.0",
       "tsx": "^4.20.4",
       "typescript": "^5.9.2"

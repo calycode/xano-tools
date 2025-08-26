@@ -3,13 +3,13 @@
     "version": "0.1.0",
     "main": "dist/index.cjs",
     "module": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
         "dist"
     ],
     "scripts": {
-        "build": "tsc --build",
-        "clean": "rm -rf dist"
+        "build": "tsc --build && npx rollup -c ../../rollup.config.js --input dist/index.d.ts --file dist/index.bundled.d.ts --format es --plugin dts",
+        "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"
     }
 }

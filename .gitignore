@@ -27,3 +27,4 @@ dist/
 debug_requests.json
 .VSCodeCounter/
 project-plan.md
+*.tsbuildinfo
