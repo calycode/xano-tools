@@ -12,7 +12,11 @@
         "@mihalytoth20/xcc-types": "workspace:*"
     },
     "scripts": {
-        "build": "pnpm clean && tsc --build --force && npx rollup -c rollup.config.js && tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "clean": "trash dist tsconfig.tsbuildinfo"
+        "clean": "trash dist tsconfig.tsbuildinfo",
+        "build:js": "tsx esbuild.config.ts",
+        "build:types": "tsc",
+        "bundle:types": "rollup -c rollup.config.js",
+        "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
+        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

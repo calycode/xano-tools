@@ -1,15 +1,17 @@
 {
     "name": "@mihalytoth20/xcc-types",
     "version": "0.1.0",
-    "main": "dist/index.cjs",
-    "module": "dist/index.js",
+    "main": "dist/index.bundle.d.ts",
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
         "dist"
     ],
     "scripts": {
-        "build": "pnpm clean && tsc --build --force && npx rollup -c rollup.config.js && tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "clean": "trash dist tsconfig.tsbuildinfo"
+        "clean": "trash dist tsconfig.tsbuildinfo",
+        "build:types": "tsc",
+        "bundle:types": "rollup -c rollup.config.js",
+        "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
+        "build": "pnpm clean && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

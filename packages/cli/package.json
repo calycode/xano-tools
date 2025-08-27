@@ -5,7 +5,6 @@
         "xcc": "dist/index.cjs"
     },
     "main": "dist/index.cjs",
-    "types": "dist/index.d.ts",
     "type": "module",
     "files": [
         "dist"
@@ -21,8 +20,10 @@
         "tar": "^7.4.3"
     },
     "scripts": {
-        "build": "tsc --build && tsx esbuild.config.ts && shx chmod +x dist/index.cjs && pnpm link -g",
         "clean": "trash dist tsconfig.tsbuildinfo",
+        "build:js": "tsx esbuild.config.ts",
+        "build:chmod": "shx chmod +x dist/index.cjs",
+        "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "xcc": "node dist/index.cjs"
     },
     "devDependencies": {
