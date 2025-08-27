@@ -12,7 +12,7 @@
         "@mihalytoth20/xcc-types": "workspace:*"
     },
     "scripts": {
-        "build": "tsc --build --force && tsx esbuild.config.ts && cd ../.. && npx rollup -c rollup.config.js --input packages/utils/dist/index.d.ts --file packages/utils/dist/index.bundled.d.ts --format es --plugin dts && cd packages/utils && find dist -name '*.d.ts' ! -name '*.bundled.d.ts' -delete && find dist -name '*.d.ts.map' -delete && find dist -type d -empty -delete",
-        "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"
+        "build": "pnpm clean && tsc --build --force && npx rollup -c rollup.config.js && tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
+        "clean": "trash dist tsconfig.tsbuildinfo"
     }
 }

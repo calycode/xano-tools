@@ -34,6 +34,9 @@ const distDir = resolve(__dirname, 'dist');
          outfile: resolve(distDir, 'index.cjs'),
          treeShaking: true,
          minify: true,
+         banner: {
+            js: '#!/usr/bin/env node',
+         },
          // Mark heavy dependencies as external to reduce bundle size.
          // Node.js will resolve these from node_modules at runtime.
          // This is a standard practice for CLI tools.

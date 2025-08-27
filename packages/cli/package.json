@@ -21,8 +21,8 @@
         "tar": "^7.4.3"
     },
     "scripts": {
-        "build": "tsc --build && tsx esbuild.config.ts && shx chmod +x dist/index.cjs",
-        "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo",
+        "build": "tsc --build && tsx esbuild.config.ts && shx chmod +x dist/index.cjs && pnpm link -g",
+        "clean": "trash dist tsconfig.tsbuildinfo",
         "xcc": "node dist/index.cjs"
     },
     "devDependencies": {
