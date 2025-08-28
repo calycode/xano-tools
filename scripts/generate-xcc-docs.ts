@@ -1,6 +1,5 @@
 import { writeFileSync, mkdirSync, rmSync, mkdirSync as mkdirSync2 } from 'fs';
 import path from 'path';
-import { intro, outro, log } from '@clack/prompts';
 import stripAnsi from 'strip-ansi';
 import { program } from '../packages/cli/src/program';
 
@@ -14,21 +13,21 @@ function writeDocForCommand(cmd, dir = 'docs/commands') {
 }
 
 async function generateCliDocs() {
-   intro('Generating XCC CLI Docs');
+   console.log('Generating XCC CLI Docs');
 
    // 1. Clean docs directory
    rmSync('docs', { recursive: true, force: true });
    mkdirSync2('docs', { recursive: true });
-   log.step('Cleaned and recreated docs directory.');
+   console.log('Cleaned and recreated docs directory.');
 
    // 2. Generate main help
    const mainHelp = stripAnsi(program.helpInformation());
    writeFileSync('docs/xcc.md', '```\n' + mainHelp.trim() + '\n```');
-   log.step('Generated main help.');
+   console.log('Generated main help.');
 
    // 3. Generate docs for each command and collect their names
    const commandNames = program.commands.map((cmd) => writeDocForCommand(cmd));
-   log.step('Generated docs for each command.');
+   console.log('Generated docs for each command.');
 
    // 4. Generate a Table of Contents
    const tocLines = [
@@ -46,9 +45,9 @@ async function generateCliDocs() {
       '',
    ];
    writeFileSync('docs/README.md', tocLines.join('\n'));
-   log.step('Generated Table of Contents.');
+   console.log('Generated Table of Contents.');
 
-   outro('CLI Docs generated successfully.');
+   console.log('CLI Docs generated successfully.');
 }
 
 generateCliDocs();

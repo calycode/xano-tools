@@ -10,8 +10,7 @@
         "api",
         "backend"
     ],
-    "main": "dist/index.cjs",
-    "module": "dist/index.js",
+    "main": "dist/index.bundle.d.ts",
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
