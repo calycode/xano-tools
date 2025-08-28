@@ -9,7 +9,7 @@ The core package provides the main `XCC` class that orchestrates all Xano operat
 - OpenAPI specification generation
 - Workspace backup and restore operations
 - Context switching and validation
-- Event-driven architecture for CLI integration
+- Exposes events during execution to allow for rich feedback on consumer side
 
 ## Key Features
 
@@ -38,6 +38,7 @@ The core package provides the main `XCC` class that orchestrates all Xano operat
 
 ```typescript
 import { XCC } from '@mihalytoth20/xcc-core';
+// Implement your own storage interface based on the platform you're using
 import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
 
 const xcc = new XCC(nodeConfigStorage);
@@ -98,7 +99,7 @@ const backupData = await xcc.exportBackup({
   branch: 'master'
 });
 
-// Restore from backup
+// Restore from backup (suggested to pass on the backupFile as a stream as backups can be big)
 const formData = new FormData();
 formData.append('backup', backupFile);
 
@@ -128,7 +129,7 @@ The XCC class extends `TypedEmitter` to provide a type-safe event system. All op
 
 ### Storage Abstraction
 
-XCC uses a `ConfigStorage` interface to abstract filesystem operations, allowing it to work in different environments (Node.js, browser, etc.).
+XCC uses a `ConfigStorage` interface to abstract filesystem operations, allowing it to work in different environments (Node.js, browser, etc.). This means that you **need** to implement your own storage implementation to use the XCC class.
 
 ### Error Handling
 

@@ -5,11 +5,9 @@
       "rootDir": "src",
       "composite": true,
       "noEmit": false,
-      "declaration": true
+      "declaration": true,
+      "emitDeclarationOnly": true
    },
    "include": ["src"],
-   "references": [
-      { "path": "../types" },
-      { "path": "../utils" }
-   ]
+   "references": [{ "path": "../types" }, { "path": "../utils" }]
 }

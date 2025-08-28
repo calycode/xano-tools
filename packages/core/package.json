@@ -2,7 +2,15 @@
     "name": "@mihalytoth20/xcc-core",
     "version": "0.1.0",
     "description": "Core functionality for the Xano Community CLI providing programmatic access to Xano workflows",
-    "keywords": ["xano", "cli", "core", "api", "openapi", "backend", "automation"],
+    "keywords": [
+        "xano",
+        "cli",
+        "core",
+        "api",
+        "openapi",
+        "backend",
+        "automation"
+    ],
     "main": "dist/index.cjs",
     "module": "dist/index.js",
     "types": "dist/index.bundled.d.ts",
@@ -22,13 +30,17 @@
     "bugs": {
         "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
     },
-    "homepage": "https://github.com/MihalyToth20/xano-community-cli#readme",
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli/packages/core#readme",
     "dependencies": {
         "@mihalytoth20/xcc-types": "workspace:*",
         "@mihalytoth20/xcc-utils": "workspace:*"
     },
     "scripts": {
-        "build": "tsc --build --force && tsx esbuild.config.ts && cd ../.. && npx rollup -c rollup.config.js --input packages/core/dist/index.d.ts --file packages/core/dist/index.bundled.d.ts --format es --plugin dts && cd packages/core && find dist -name '*.d.ts' ! -name '*.bundled.d.ts' -delete && find dist -name '*.d.ts.map' -delete && find dist -type d -empty -delete",
-        "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"
+        "clean": "trash dist tsconfig.tsbuildinfo",
+        "build:js": "tsx esbuild.config.ts",
+        "build:types": "tsc",
+        "bundle:types": "rollup -c rollup.config.js",
+        "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
+        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

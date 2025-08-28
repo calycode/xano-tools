@@ -51,7 +51,20 @@ const newFunction = await metaApiPost({
   token: 'your-api-token',
   path: '/workspace/{workspaceId}/function',
   pathParams: { workspaceId: '123' },
-  body: { name: 'my-function', code: 'return "hello"' }
+  body: `
+   function hello-world {
+    input {
+      int score
+    }
+    stack {
+      var $x1 {
+        value = $input.score + 1
+      }
+    }
+    response {
+      value = $x1
+    }
+  }`
 });
 ```
 

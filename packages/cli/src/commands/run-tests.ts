@@ -17,14 +17,8 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-function validateTestConfig(config: any): boolean {
-   if (!config || typeof config !== 'object') {
-      return false;
-   }
-   
-   const requiredFields = ['output', 'headers', 'defaultAsserts'];
-   return requiredFields.every(field => field in config);
-}
+// [ ] Bring back schema validation featureset!
+
 // [ ] CORE, needs fs
 async function testRunner(
    instance,
@@ -143,10 +137,6 @@ async function testRunner(
 
       // 3.2.2 Start the test with looping through the endpointsToTest:
       const defaultTestSetup = instanceConfig.test;
-      
-      if (!validateTestConfig(defaultTestSetup)) {
-         throw new Error('Invalid test configuration. Please check your test setup.');
-      }
       const results = [];
       for (const endpoint of endpointsToTest) {
          const testStart = Date.now();

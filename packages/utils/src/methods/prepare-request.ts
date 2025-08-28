@@ -1,11 +1,10 @@
 // --- Types ---
 import { Schema, PrepareRequestArgs, PreparedRequest } from '@mihalytoth20/xcc-types';
 
-// [ ] CORE
 /**
  * Prepares an HTTP request from OpenAPI specification parameters.
  * Processes path parameters, query parameters, headers, and request body to create a complete HTTP request.
- * 
+ *
  * @param args - Request preparation arguments
  * @param args.baseUrl - The base URL for the API
  * @param args.path - The endpoint path with optional {placeholders}
@@ -14,7 +13,7 @@ import { Schema, PrepareRequestArgs, PreparedRequest } from '@mihalytoth20/xcc-t
  * @param args.parameters - OpenAPI parameter definitions
  * @param args.body - Request body schema for POST/PUT requests
  * @returns A prepared request object ready for execution
- * 
+ *
  * @example
  * ```typescript
  * const request = prepareRequest({
@@ -66,7 +65,7 @@ export function prepareRequest({
    let processedPath = path.replace(/\{(\w+?)\}/g, (_, key) =>
       pathParams[key] !== undefined ? String(pathParams[key]) : '1'
    );
-   
+
    const fullUrl = new URL(processedPath, baseUrl).toString();
 
    // 3. Append query string using URLSearchParams
@@ -100,10 +99,10 @@ export function prepareRequest({
 /**
  * Generates mock data from an OpenAPI schema definition.
  * Creates realistic sample data based on schema types, examples, and constraints.
- * 
+ *
  * @param schema - OpenAPI schema definition
  * @returns Mock data that conforms to the schema
- * 
+ *
  * @example
  * ```typescript
  * const mockData = mockFromSchema({
@@ -143,10 +142,10 @@ function mockFromSchema(schema?: Schema): unknown {
 /**
  * Generates dummy values for basic OpenAPI types.
  * Provides fallback values when schema examples or defaults are not available.
- * 
+ *
  * @param type - The OpenAPI type (string, integer, number, boolean, etc.)
  * @returns A dummy value appropriate for the specified type
- * 
+ *
  * @example
  * ```typescript
  * const stringValue = guessDummyForType('string'); // Returns: 'string'

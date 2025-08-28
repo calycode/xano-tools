@@ -3,19 +3,19 @@ import { InstanceConfig, CoreContext } from '..';
 /**
  * Storage interface for XCC configuration and file operations.
  * Abstracts filesystem operations to allow different storage implementations (Node.js, browser, etc.).
- * 
+ *
  * @example
  * ```typescript
- * // Node.js implementation
+ * // Node.js implementation (see the xcc-cli)
  * import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
  * const xcc = new XCC(nodeConfigStorage);
- * 
+ *
  * // Custom implementation
  * class CustomStorage implements ConfigStorage {
  *   async loadGlobalConfig() {
  *     // Custom storage logic
  *   }
- *   // ... implement other methods
+ *   // ... implement all other methods
  * }
  * ```
  */
@@ -37,5 +37,4 @@ export interface ConfigStorage {
 
    // Tar methods
    tarExtract(tarGzBuffer: Uint8Array): Promise<{ [filename: string]: Uint8Array | string }>;
-   // Optionally add readFile, exists, etc. as needed
 }
