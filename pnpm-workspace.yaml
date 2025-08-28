@@ -1,0 +1,6 @@
+packages:
+  - packages/*
+overrides:
+  '@mihalytoth20/xcc-types': link:packages/types
+  '@mihalytoth20/xcc-utils': link:packages/utils
+  '@mihalytoth20/xcc-core': link:packages/core

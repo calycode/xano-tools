@@ -1,6 +1,7 @@
 # Standalone files
 .env
 workspace.yaml
+deps.json
 
 # Config files
 xcc.config.js
@@ -26,3 +27,4 @@ dist/
 debug_requests.json
 .VSCodeCounter/
 project-plan.md
+*.tsbuildinfo
