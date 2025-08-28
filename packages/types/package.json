@@ -1,12 +1,34 @@
 {
     "name": "@mihalytoth20/xcc-types",
     "version": "0.1.0",
+    "description": "TypeScript type definitions for the Xano Community CLI ecosystem",
+    "keywords": [
+        "xano",
+        "cli",
+        "types",
+        "typescript",
+        "api",
+        "backend"
+    ],
     "main": "dist/index.bundle.d.ts",
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
-        "dist"
+        "dist",
+        "README.md"
     ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "directory": "packages/types"
+    },
+    "bugs": {
+        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+    },
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli#readme",
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:types": "tsc",

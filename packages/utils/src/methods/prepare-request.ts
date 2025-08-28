@@ -1,7 +1,33 @@
 // --- Types ---
 import { Schema, PrepareRequestArgs, PreparedRequest } from '@mihalytoth20/xcc-types';
 
-// [ ] CORE
+/**
+ * Prepares an HTTP request from OpenAPI specification parameters.
+ * Processes path parameters, query parameters, headers, and request body to create a complete HTTP request.
+ *
+ * @param args - Request preparation arguments
+ * @param args.baseUrl - The base URL for the API
+ * @param args.path - The endpoint path with optional {placeholders}
+ * @param args.method - HTTP method (GET, POST, PUT, etc.)
+ * @param args.headers - Additional headers to include
+ * @param args.parameters - OpenAPI parameter definitions
+ * @param args.body - Request body schema for POST/PUT requests
+ * @returns A prepared request object ready for execution
+ *
+ * @example
+ * ```typescript
+ * const request = prepareRequest({
+ *   baseUrl: 'https://api.example.com',
+ *   path: '/users/{id}',
+ *   method: 'GET',
+ *   parameters: [
+ *     { name: 'id', in: 'path', schema: { type: 'string' } },
+ *     { name: 'include', in: 'query', schema: { type: 'string' } }
+ *   ]
+ * });
+ * // Returns: { url: 'https://api.example.com/users/1?include=string', method: 'GET', ... }
+ * ```
+ */
 // --- Main Function ---
 export function prepareRequest({
    baseUrl,
@@ -35,21 +61,19 @@ export function prepareRequest({
       }
    });
 
-   // 2. Replace path params: /foo/{id}/{name} => /foo/1/1
-   const fullUrl =
-      baseUrl +
-      path.replace(/\{(\w+?)\}/g, (_, key) =>
-         pathParams[key] !== undefined ? String(pathParams[key]) : '1'
-      );
+   // 2. Replace path params using URL constructor for better validation
+   let processedPath = path.replace(/\{(\w+?)\}/g, (_, key) =>
+      pathParams[key] !== undefined ? String(pathParams[key]) : '1'
+   );
 
-   // 3. Append query string if any
-   let url = fullUrl;
-   if (Object.keys(queryParams).length > 0) {
-      const queryString = new URLSearchParams(
-         Object.fromEntries(Object.entries(queryParams).map(([k, v]) => [k, String(v)]))
-      ).toString();
-      url += (url.includes('?') ? '&' : '?') + queryString;
-   }
+   const fullUrl = new URL(processedPath, baseUrl).toString();
+
+   // 3. Append query string using URLSearchParams
+   const urlObj = new URL(fullUrl);
+   Object.entries(queryParams).forEach(([key, value]) => {
+      urlObj.searchParams.set(key, String(value));
+   });
+   const url = urlObj.toString();
 
    // 4. Merge headers (config + endpoint + OpenAPI header params)
    const finalHeaders: Record<string, string> = {
@@ -60,7 +84,7 @@ export function prepareRequest({
 
    // 5. Prepare body if present
    let preparedBody: string | undefined = undefined;
-   if (body && Object.keys(body).length > 0) {
+   if (body && typeof body === 'object' && Object.keys(body).length > 0) {
       preparedBody = JSON.stringify(mockFromSchema(body));
    }
 
@@ -72,36 +96,63 @@ export function prepareRequest({
    };
 }
 
+/**
+ * Generates mock data from an OpenAPI schema definition.
+ * Creates realistic sample data based on schema types, examples, and constraints.
+ *
+ * @param schema - OpenAPI schema definition
+ * @returns Mock data that conforms to the schema
+ *
+ * @example
+ * ```typescript
+ * const mockData = mockFromSchema({
+ *   type: 'object',
+ *   properties: {
+ *     name: { type: 'string', example: 'John' },
+ *     age: { type: 'integer', default: 25 }
+ *   }
+ * });
+ * // Returns: { name: 'John', age: 25 }
+ * ```
+ */
 // --- Helper: Generate mock data from schema ---
 function mockFromSchema(schema?: Schema): unknown {
    if (!schema || typeof schema !== 'object') return guessDummyForType(schema?.type);
 
-   // Handle enums
-   if (schema.enum && schema.enum.length > 0) return schema.enum[0];
+   if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
 
-   // Use default or example if available
    if (schema.default !== undefined) return schema.default;
    if (schema.example !== undefined) return schema.example;
 
-   // Handle types
    switch (schema.type) {
       case 'object':
-         if (schema.properties) {
-            const obj: Record<string, unknown> = {};
-            for (const [k, v] of Object.entries(schema.properties)) {
-               obj[k] = mockFromSchema(v);
-            }
-            return obj;
+         if (schema.properties && typeof schema.properties === 'object') {
+            return Object.fromEntries(
+               Object.entries(schema.properties).map(([k, v]) => [k, mockFromSchema(v)])
+            );
          }
          return {};
       case 'array':
-         if (schema.items) return [mockFromSchema(schema.items)];
-         return [];
+         return schema.items ? [mockFromSchema(schema.items)] : [];
       default:
          return guessDummyForType(schema.type);
    }
 }
 
+/**
+ * Generates dummy values for basic OpenAPI types.
+ * Provides fallback values when schema examples or defaults are not available.
+ *
+ * @param type - The OpenAPI type (string, integer, number, boolean, etc.)
+ * @returns A dummy value appropriate for the specified type
+ *
+ * @example
+ * ```typescript
+ * const stringValue = guessDummyForType('string'); // Returns: 'string'
+ * const numberValue = guessDummyForType('integer'); // Returns: 1
+ * const boolValue = guessDummyForType('boolean'); // Returns: false
+ * ```
+ */
 // --- Helper: Dummy value generator for types ---
 function guessDummyForType(type?: string): unknown {
    switch (type) {

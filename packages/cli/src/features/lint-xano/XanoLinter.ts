@@ -32,30 +32,27 @@ async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = o
          }
       }
 
-      // [ ] TODO: Extract to the rules as this is also a rule!
-      // Safeguard database queries from failing because of query expressions
-      if (
-         parentKey.includes('search.expression') &&
-         parentKey.includes('statement.left') &&
-         key === 'filters' &&
-         value.length > 0
-      ) {
-         errors.push({
-            message: `Database query left operand should not have filters in "${obj.index ?? ''} ${
-               obj.name
-            } ${obj.as ?? ''}".`,
-            rule: "DB queries: Don't put filters in left operand",
-         });
-      }
-
-      // [ ] TODO: Extract to the rules as this is also a rule!
-      // Keep the queries clean of commented out code:
-      if (key === 'disabled' && value === true) {
-         errors.push({
+      const additionalRules = [
+         {
+            condition: () => parentKey.includes('search.expression') && 
+                           parentKey.includes('statement.left') && 
+                           key === 'filters' && 
+                           Array.isArray(value) && value.length > 0,
+            message: `Database query left operand should not have filters in "${obj.index ?? ''} ${obj.name} ${obj.as ?? ''}".`,
+            rule: "DB queries: Don't put filters in left operand"
+         },
+         {
+            condition: () => key === 'disabled' && value === true,
             message: `Disabled logic step found in "${parentObj.name}" as "${obj.index} ${obj.name} ${obj.as}".`,
-            rule: 'Good practice: remove commented code',
-         });
-      }
+            rule: 'Good practice: remove commented code'
+         }
+      ];
+
+      additionalRules.forEach(({ condition, message, rule }) => {
+         if (condition()) {
+            errors.push({ message, rule });
+         }
+      });
 
       // Recurse if value is an object
       if (typeof value === 'object' && value !== null) {

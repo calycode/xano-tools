@@ -17,7 +17,8 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-// [ ] TODO: bring back the schema validation!
+// [ ] Bring back schema validation featureset!
+
 // [ ] CORE, needs fs
 async function testRunner(
    instance,

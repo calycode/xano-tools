@@ -1,9 +1,30 @@
 /**
  * Recursively replaces {placeholders} in strings, arrays, or objects with values from replacements.
- * Keys are matched case-insensitively.
+ * Keys are matched case-insensitively. Supports nested objects and arrays.
  *
- * @param template - The template (string, array, or object)
- * @param replacements - Key-value pairs for replacement
+ * @param template - The template (string, array, or object) containing {placeholder} patterns
+ * @param replacements - Key-value pairs for replacement (keys are case-insensitive)
+ * @returns The template with all placeholders replaced by corresponding values
+ * 
+ * @example
+ * ```typescript
+ * // String replacement
+ * const result = replacePlaceholders(
+ *   'Hello {name}, welcome to {app}!',
+ *   { name: 'John', app: 'XCC' }
+ * );
+ * // Returns: 'Hello John, welcome to XCC!'
+ * 
+ * // Object replacement
+ * const config = replacePlaceholders(
+ *   { 
+ *     url: 'https://{instance}.xano.io/api/{version}',
+ *     headers: { 'X-Branch': '{branch}' }
+ *   },
+ *   { instance: 'x123', version: 'v1', branch: 'main' }
+ * );
+ * // Returns: { url: 'https://x123.xano.io/api/v1', headers: { 'X-Branch': 'main' } }
+ * ```
  * @returns - The template with placeholders replaced
  */
 export function replacePlaceholders(
