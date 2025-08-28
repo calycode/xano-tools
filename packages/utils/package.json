@@ -29,7 +29,7 @@
     "bugs": {
         "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
     },
-    "homepage": "https://github.com/MihalyToth20/xano-community-cli/packages/utils#readme",
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli/tree/main/packages/utils#readme",
     "dependencies": {
         "@mihalytoth20/xcc-types": "workspace:*"
     },

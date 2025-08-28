@@ -28,7 +28,7 @@
     "bugs": {
         "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
     },
-    "homepage": "https://github.com/MihalyToth20/xano-community-cli#readme",
+    "homepage": "https://github.com/MihalyToth20/xano-community-cli/tree/main/#readme",
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:types": "tsc",
