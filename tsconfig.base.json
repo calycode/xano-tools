@@ -15,8 +15,7 @@
       "incremental": true,
       "composite": true,
       "declaration": true,
-      "declarationMap": true,
-      "ignoreDeprecations": "6.0"
+      "declarationMap": true
    },
    "references": [
       { "path": "./packages/types" },

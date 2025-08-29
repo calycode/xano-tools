@@ -14,6 +14,7 @@ import { registerSetupCommand } from './commands/setup-instance';
 import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
+import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
 import { XCC } from '@mihalytoth20/xcc-core';
 import { nodeConfigStorage } from './node-config-storage';
 
@@ -79,6 +80,7 @@ registerGenerateOasCommand(program, core);
 registerOasServeCommand(program, core);
 registerGenerateCodeCommand(program, core);
 registerGenerateRepoCommand(program, core);
+registerBuildXanoscriptRepoCommand(program, core);
 registerFetchFunctionsInXanoScript(program, core);
 registerRegistryAddCommand(program, core);
 registerRegistryScaffoldCommand(program, core);
@@ -109,7 +111,7 @@ program.configureHelp({
       },
       {
         title: chalk.bold.cyan('Code Generation:'),
-        commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-functions'],
+        commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-xs-repo', 'generate-functions'],
       },
       {
         title: chalk.bold.cyan('Registry:'),

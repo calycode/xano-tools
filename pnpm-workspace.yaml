@@ -1,6 +1,8 @@
 packages:
   - packages/*
+
 overrides:
+  '@mihalytoth20/xano-community-cli': link:../../../../Library/pnpm/global/5/node_modules/@mihalytoth20/xano-community-cli
+  '@mihalytoth20/xcc-core': link:packages/core
   '@mihalytoth20/xcc-types': link:packages/types
   '@mihalytoth20/xcc-utils': link:packages/utils
-  '@mihalytoth20/xcc-core': link:packages/core
