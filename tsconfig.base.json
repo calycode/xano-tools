@@ -15,7 +15,8 @@
       "incremental": true,
       "composite": true,
       "declaration": true,
-      "declarationMap": true
+      "declarationMap": true,
+      "ignoreDeprecations": "6.0"
    },
    "references": [
       { "path": "./packages/types" },
@@ -23,10 +24,6 @@
       { "path": "./packages/core" },
       { "path": "./packages/cli" }
    ],
-   "include": [
-      "src/**/*",
-      "scripts/**/*",
-      "eslint.config.ts"
-   ],
+   "include": ["src/**/*", "scripts/**/*", "eslint.config.ts"],
    "exclude": ["node_modules", "dist"]
 }
