@@ -16,11 +16,11 @@ const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
 /**
  * Sanitizes a string by normalizing unicode, removing diacritics, and replacing invalid characters.
  * Provides comprehensive string cleaning with configurable options.
- * 
+ *
  * @param input - The string to sanitize
  * @param options - Configuration options for sanitization behavior
  * @returns The sanitized string according to the specified options
- * 
+ *
  * @example
  * ```typescript
  * const result = sanitizeString('Café & Restaurant!', {
@@ -62,10 +62,10 @@ function sanitizeString(input: string, options: SanitizeOptions = {}): string {
 /**
  * Normalizes an API group name for consistent usage across the CLI.
  * Uses default sanitization options optimized for API group naming.
- * 
+ *
  * @param name - The API group name to normalize
  * @returns A normalized API group name safe for filesystem and URL usage
- * 
+ *
  * @example
  * ```typescript
  * const normalized = normalizeApiGroupName('User Management API');
@@ -80,10 +80,10 @@ function normalizeApiGroupName(name: string): string {
 /**
  * Sanitizes an instance name for consistent configuration storage.
  * Uses default sanitization options optimized for instance naming.
- * 
+ *
  * @param name - The instance name to sanitize
  * @returns A sanitized instance name safe for configuration keys and filesystem usage
- * 
+ *
  * @example
  * ```typescript
  * const sanitized = sanitizeInstanceName('Production 2024!');
@@ -98,15 +98,15 @@ function sanitizeInstanceName(name: string): string {
 /**
  * Sanitizes a filename while preserving case and allowing file extensions.
  * Optimized for creating safe filenames that maintain readability.
- * 
+ *
  * @param fileName - The filename to sanitize
  * @returns A filesystem-safe filename with preserved case and extension support
- * 
+ *
  * @example
  * ```typescript
  * const safeFileName = sanitizeFileName('My API Spec.json');
  * // Returns: 'My_API_Spec.json'
- * 
+ *
  * const configFile = sanitizeFileName('config-file!@#.yaml');
  * // Returns: 'config-file___.yaml'
  * ```
@@ -114,7 +114,7 @@ function sanitizeInstanceName(name: string): string {
 function sanitizeFileName(fileName: string): string {
    // Override for file names: underscores, no lowercase
    return sanitizeString(fileName, {
-      allowedCharsRegex: /a-zA-Z0-9._-/, // allow dot for extension, can adjust as needed
+      allowedCharsRegex: /[a-zA-Z0-9._/-]/, // allow dot for extension, can adjust as needed
       replacementChar: '_',
       toLowerCase: false,
    });
