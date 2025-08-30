@@ -3,7 +3,7 @@ import type { XCC } from '..';
 import { ApiGroup } from '@mihalytoth20/xcc-types';
 
 async function updateOpenapiSpecImplementation(
-   storage,
+   storage: XCC["storage"],
    core: XCC,
    options: {
       instance: string;

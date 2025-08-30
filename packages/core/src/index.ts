@@ -17,6 +17,7 @@ import { loadAndValidateContextImplementation } from './implementations/load-and
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
+import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
 
 /**
  * Main XCC (Xano Community CLI) class that provides core functionality for Xano development workflows.
@@ -179,7 +180,7 @@ export class XCC extends TypedEmitter<EventMap> {
    }
 
    /**
-    * Generates a browsable repository structure from Xano workspace data.
+    * Generates a browsable repository structure from Xano workspace schema JSON (that comes form the metadata and a yaml file).
     * Processes queries, functions, and tables into organized file structures.
     *
     * @param jsonData - Raw Xano workspace data to process
@@ -199,6 +200,38 @@ export class XCC extends TypedEmitter<EventMap> {
     */
    async generateRepo(jsonData: any): Promise<{ path: string; content: string }[]> {
       const response = await generateRepoImplementation(jsonData, this);
+      return response;
+   }
+
+   /**
+    * Generate a repository with separate .xs and .json metadata files based on workspace
+    * this takes the metadata api and directly tries to rebuild the workspace as a repo.
+    * It requires an instance, workspace and a branch selection. The rest it takes from Xano
+    * @param options - Config object
+    * @param options.workspace - Target workspace
+    * @param options.branch - Target branch to fetch data for.
+    * @returns Promise resolving to array of generated files with paths and content
+    *
+    * @example
+    * ```typescript
+    * const xanoScriptPath = 'output/instance/xanoscript/branch;
+    * const xanoScriptFiles = await xcc.buildXanoscriptRepo({instance, workspace, branch});
+    *
+    * // Save files to disc:
+    * for (const file of xanoScriptFiles) {
+    *    await fs.writeFile(file.path, file.content)
+    * }
+    */
+   async buildXanoscriptRepo({
+      instance,
+      workspace,
+      branch,
+   }): Promise<{ path: string; content: string }[]> {
+      const response = await buildXanoscriptRepoImplementation(this.storage, this, {
+         instance,
+         workspace,
+         branch,
+      });
       return response;
    }
 

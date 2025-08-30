@@ -55,7 +55,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
 
       log.step(`Fetched all functions.`);
 
-      s.start(`Generating .xano files for fetched functions...`);
+      s.start(`Generating .xs files for fetched functions...`);
       // 2. Loop through each of these functions and try to fetch their Xano Script representation.
       for (const item of Object.keys(branchFunctions)) {
          const itemDefinition = await metaApiGet({
@@ -73,7 +73,7 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
             itemDefinition?.script ??
             `function ${branchFunctions[item].name} {\n  description = "function id: ${item} Xano Script fetching failed"\n}`;
          // Build the full file path
-         const fileName = sanitizeFileName(branchFunctions[item].name) + '.xano';
+         const fileName = sanitizeFileName(branchFunctions[item].name) + '.xs';
          const filePath = join(outputDir, fileName);
 
          // Ensure the parent directory exists

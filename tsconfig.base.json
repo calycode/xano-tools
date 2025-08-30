@@ -23,10 +23,6 @@
       { "path": "./packages/core" },
       { "path": "./packages/cli" }
    ],
-   "include": [
-      "src/**/*",
-      "scripts/**/*",
-      "eslint.config.ts"
-   ],
+   "include": ["src/**/*", "scripts/**/*", "eslint.config.ts"],
    "exclude": ["node_modules", "dist"]
 }

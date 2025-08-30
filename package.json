@@ -11,7 +11,7 @@
    ],
    "scripts": {
       "build": "tsc --build",
-      "build:packages": "pnpm -r --workspace-concurrency=1 run build",
+      "build:packages": "pnpm -r --reporter=silent --workspace-concurrency=1 run build",
       "xcc": "pnpm --filter @mihalytoth20/xano-community-cli run xcc",
       "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
       "serve-registry": "npx serve registry --listen 3030",
@@ -46,6 +46,7 @@
       "typescript": "^5.9.2"
    },
    "dependencies": {
+      "@mihalytoth20/xano-community-cli": "link:../../../../Library/pnpm/global/5/node_modules/@mihalytoth20/xano-community-cli",
       "@mihalytoth20/xcc-core": "link:packages/core",
       "@mihalytoth20/xcc-types": "link:packages/types",
       "@mihalytoth20/xcc-utils": "link:packages/utils"

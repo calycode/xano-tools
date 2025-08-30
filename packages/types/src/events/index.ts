@@ -59,17 +59,25 @@ export type CoreEvent =
    | { type: 'prompt'; data: PromptEvent }
    | { type: 'custom'; data: CustomEvent };
 
-// 7. Stronly typed event emitter
-export type EventMap = {
-   start: StartEvent;
-   progress: ProgressEvent;
-   end: EndEvent;
-   error: ErrorEvent;
-   warn: WarnEvent;
-   info: InfoEvent;
-   stepStart: StepEvent;
-   stepEnd: StepEvent;
-   stepSkipped: StepSkippedEvent;
-   prompt: PromptEvent;
-   custom: CustomEvent;
-};
+
+   // 7. Stronly typed event emitter
+   export type EventMap = {
+      start: StartEvent;
+      progress: ProgressEvent;
+      end: EndEvent;
+      error: ErrorEvent;
+      warn: WarnEvent;
+      info: InfoEvent;
+      stepStart: StepEvent;
+      stepEnd: StepEvent;
+      stepSkipped: StepSkippedEvent;
+      prompt: PromptEvent;
+      custom: CustomEvent;
+   };
+
+   export type EventName = keyof EventMap;
+
+   // CoreEvent with some ts magic:
+   export type CoreEventGenerated<EventMap> = {
+      [K in keyof EventMap]: { type: K; data: EventMap[K] };
+   }[keyof EventMap];

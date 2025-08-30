@@ -8,7 +8,7 @@ export * from './events';
 /**
  * Core context specification for basic Xano operations.
  * Defines the fundamental targeting information for instance, workspace, and branch.
- * 
+ *
  * @example
  * ```typescript
  * const coreContext: CoreContext = {
@@ -27,7 +27,7 @@ export interface CoreContext {
 /**
  * Extended context specification for Xano operations including API group targeting.
  * Defines the complete operational context for CLI commands.
- * 
+ *
  * @example
  * ```typescript
  * // Full context specification
@@ -37,7 +37,7 @@ export interface CoreContext {
  *   branch: 'master',
  *   apigroup: 'user-api'
  * };
- * 
+ *
  * // Partial context (inherits current values for unspecified fields)
  * const partialContext: Context = {
  *   branch: 'develop',
@@ -52,7 +52,7 @@ export interface Context extends CoreContext {
 /**
  * Configuration for a Xano instance containing connection details and feature settings.
  * Represents a complete Xano deployment with its associated workspaces and tool configurations.
- * 
+ *
  * @example
  * ```typescript
  * const instanceConfig: InstanceConfig = {
@@ -93,7 +93,7 @@ export interface InstanceConfig {
       headers: Record<string, string>;
       defaultAsserts: Record<string, 'error' | 'warn' | 'off'>;
    };
-   'xano-script'?: {
+   xanoscript?: {
       output: string;
    };
 }
@@ -101,7 +101,7 @@ export interface InstanceConfig {
 /**
  * Configuration for a Xano workspace containing its metadata and associated resources.
  * Workspaces are logical containers for related API groups, database schemas, and branches.
- * 
+ *
  * @example
  * ```typescript
  * const workspaceConfig: WorkspaceConfig = {
@@ -132,7 +132,7 @@ export interface WorkspaceConfig {
 /**
  * Configuration for a Xano workspace branch with deployment and backup settings.
  * Branches allow for parallel development and testing of API changes.
- * 
+ *
  * @example
  * ```typescript
  * const branchConfig: BranchConfig = {
@@ -141,7 +141,7 @@ export interface WorkspaceConfig {
  *   backup: true,
  *   created_at: '2024-01-15T10:30:00Z'
  * };
- * 
+ *
  * const devBranch: BranchConfig = {
  *   label: 'develop',
  *   live: false,

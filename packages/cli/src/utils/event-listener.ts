@@ -1,5 +1,6 @@
 import { intro, outro, log, spinner } from '@clack/prompts';
 import { printOutputDir } from './methods/print-output-dir';
+import { EventName } from '@mihalytoth20/xcc-types';
 
 export type CoreEventName = 'start' | 'end' | 'progress' | 'error' | 'info';
 export type HandlerFn = (data: any, context?: any) => void;
@@ -35,6 +36,27 @@ const eventHandlers: Record<string, HandlerMap> = {
             context.spinnerInstance.stop('Processing done!');
          } else {
             outro('Processing done!');
+         }
+      },
+      error: (data, context) => {
+         if (context.spinnerInstance) {
+            context.spinnerInstance.stop('Error!');
+         }
+      },
+   },
+   'generate-xs-repo': {
+      start: () => intro('Generating XS repository...'),
+      progress: (data, context) => {
+         if (!context.spinnerInstance) {
+            context.spinnerInstance = spinner();
+            context.spinnerInstance.start('Fetching and parsing XS from Xano...');
+         }
+      },
+      end: (data, context) => {
+         if (context.spinnerInstance) {
+            context.spinnerInstance.stop('XS files are ready!');
+         } else {
+            outro('Directory structure rebuilt successfully!');
          }
       },
       error: (data, context) => {
@@ -89,7 +111,7 @@ const eventHandlers: Record<string, HandlerMap> = {
 
 function attachCliEventHandlers(
    commandKey: string,
-   core: { on: (event: string, fn: (...args: any[]) => void) => void },
+   core: { on: (event: EventName, fn: (...args: any[]) => void) => void },
    context?: any
 ) {
    const handlers: HandlerMap = { ...defaultHandlers, ...eventHandlers[commandKey] };
