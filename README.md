@@ -1,5 +1,3 @@
-[![Time invested](https://wakatime.com/badge/github/MihalyToth20/xano-community-cli.svg?style=social)](https://wakatime.com/badge/github/MihalyToth20/xano-community-cli)
-
 [//]: # 'ASCII art block for docs link'
 
 ```
