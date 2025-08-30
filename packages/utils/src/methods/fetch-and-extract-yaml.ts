@@ -1,5 +1,5 @@
 import { metaApiRequestBlob } from './api-helper';
-import { FetchAndExtractYamlArgs } from '@mihalytoth20/xcc-types';
+import { FetchAndExtractYamlArgs } from '@calycode/types';
 import { joinPath, dirname } from './path';
 
 // [ ] CORE

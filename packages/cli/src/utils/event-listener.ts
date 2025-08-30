@@ -1,6 +1,6 @@
 import { intro, outro, log, spinner } from '@clack/prompts';
 import { printOutputDir } from './methods/print-output-dir';
-import { EventName } from '@mihalytoth20/xcc-types';
+import { EventName } from '@calycode/types';
 
 export type CoreEventName = 'start' | 'end' | 'progress' | 'error' | 'info';
 export type HandlerFn = (data: any, context?: any) => void;

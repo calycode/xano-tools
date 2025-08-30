@@ -1,7 +1,7 @@
 {
-    "name": "@mihalytoth20/xcc-types",
+    "name": "@calycode/types",
     "version": "0.1.0",
-    "description": "TypeScript type definitions for the Xano Community CLI ecosystem",
+    "description": "TypeScript type definitions for the Caly Xano tooling ecosystem",
     "keywords": [
         "xano",
         "cli",
@@ -22,13 +22,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "url": "https://github.com/calycode/xano-tools.git",
         "directory": "packages/types"
     },
     "bugs": {
-        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+        "url": "https://github.com/calycode/xano-tools/issues"
     },
-    "homepage": "https://github.com/MihalyToth20/xano-community-cli/tree/main/#readme",
+    "homepage": "https://github.com/calycode/xano-tools/tree/main/#readme",
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:types": "tsc",

@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { replacePlaceholders } from '@mihalytoth20/xcc-utils';
+import { replacePlaceholders } from '@calycode/utils';
 import { addPrintOutputFlag, printOutputDir, withErrorHandler } from '../utils/index';
 import { runLintXano } from '../features/lint-xano';
 

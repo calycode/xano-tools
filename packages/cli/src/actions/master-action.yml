@@ -1,12 +1,12 @@
-# This action assumes that the XCC is already an NPM package and can be used
-# from a registry. Which is not the case yet.name: 'Xano Community CLI Action'
-name: 'Xano Community CLI Action'
-description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow.'
-author: 'Xano Community'
+# This action assumes that the Caly CLI is already an NPM package and can be used
+# from a registry. Which is not the case yet.
+name: 'Caly CLI Action'
+description: 'Sets up and runs a Caly CLI command in a GitHub workflow.'
+author: 'Mihály Tóth'
 
 inputs:
    run:
-      description: 'One or more xcc commands to run, each on a new line. e.g., "generate-oas --all"'
+      description: 'One or more caly commands to run, each on a new line. e.g., "generate-oas --all"'
       required: true
    instance-name:
       description: 'The name for the Xano instance (e.g., "prod").'
@@ -18,7 +18,7 @@ inputs:
       description: 'The Xano Metadata API token. Should be stored as a GitHub secret.'
       required: true
    version:
-      description: 'The version of xano-community-cli to use from npm (e.g., 0.1.1, latest).'
+      description: 'The version of xano-tools to use from npm (e.g., 0.1.1, latest).'
       required: false
       default: 'latest'
 
@@ -39,7 +39,7 @@ runs:
            # This step uses npx to download and run the setup command.
            # For private packages, the consuming workflow must configure node-auth prior to this step.
            echo "::group::Configuring Xano CLI Instance"
-           npx --yes @mihalytoth20/xano-community-cli@${{ inputs.version }} setup \
+           npx --yes @calycode/xano-tools@${{ inputs.version }} setup \
              --name "${{ inputs.instance-name }}" \
              --url "${{ inputs.instance-url }}" \
              --token "${{ inputs.api-token }}" \
@@ -58,8 +58,8 @@ runs:
              if [ -z "$command_line" ]; then
                continue # Skip empty lines
              fi
-             echo "::group::Running: xcc $command_line"
-             OUTPUT=$(npx --yes @mihalytoth20/xano-community-cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }} --print-output-dir)
+             echo "::group::Running: caly $command_line"
+             OUTPUT=$(npx --yes @calycode/xano-tools@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }} --print-output-dir)
              DIRS=$(echo "$OUTPUT" | grep 'OUTPUT_DIR=' | cut -d'=' -f2-)
              if [ -n "$DIRS" ]; then
                OUTPUT_DIRS="${OUTPUT_DIRS}${DIRS}"$'\n'

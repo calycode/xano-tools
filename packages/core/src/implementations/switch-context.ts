@@ -1,4 +1,4 @@
-import { ConfigStorage, CoreContext } from '@mihalytoth20/xcc-types';
+import { ConfigStorage, CoreContext } from '@calycode/types';
 
 export async function switchContextImplementation(
    storage: ConfigStorage,

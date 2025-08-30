@@ -1,6 +1,6 @@
-# @mihalytoth20/xcc-types
+# @calycode/types
 
-TypeScript type definitions and interfaces for the Xano Community CLI (XCC) ecosystem.
+TypeScript type definitions and interfaces for the Caly Xano tooling ecosystem.
 
 ## Overview
 
@@ -45,7 +45,7 @@ import {
   WorkspaceConfig,
   Context,
   ConfigStorage
-} from '@mihalytoth20/xcc-types';
+} from '@calycode/types';
 
 // Define a context for operations
 const context: Context = {
@@ -68,7 +68,7 @@ class MyStorage implements ConfigStorage {
 This package is typically installed as a dependency of other XCC packages and doesn't need to be installed directly.
 
 ```bash
-npm install @mihalytoth20/xcc-types
+npm install @calycode/types
 ```
 
 ## License

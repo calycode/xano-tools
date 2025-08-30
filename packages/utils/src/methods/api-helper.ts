@@ -5,7 +5,7 @@ import {
    QueryParams,
    Headers,
    HTTPMethod,
-} from '@mihalytoth20/xcc-types';
+} from '@calycode/types';
 
 /**
  * Internal helper for building Xano Metadata API URLs with path parameters and query strings.
@@ -64,7 +64,7 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
 /**
  * Makes authenticated HTTP requests to the Xano Metadata API.
  * Handles JSON parsing, error handling, and authentication automatically.
- * 
+ *
  * @param options - Configuration options for the API request
  * @param options.baseUrl - The base URL of the Xano instance
  * @param options.token - Bearer token for authentication
@@ -77,7 +77,7 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
  * @param options.allowError - If true, won't throw on non-2xx responses
  * @returns Promise resolving to the parsed JSON response or text if JSON parsing fails
  * @throws {Error} When API request fails and allowError is false
- * 
+ *
  * @example
  * ```typescript
  * // Get workspace information
@@ -88,7 +88,7 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
  *   path: '/workspace/{id}',
  *   pathParams: { id: '123' }
  * });
- * 
+ *
  * // Create a new function
  * const newFunction = await metaApiRequest({
  *   baseUrl: 'https://x123.xano.io',
@@ -137,7 +137,7 @@ async function metaApiRequest({
 /**
  * Makes authenticated HTTP requests to the Xano Metadata API for binary data.
  * Similar to metaApiRequest but returns raw binary data as Uint8Array.
- * 
+ *
  * @param options - Configuration options for the API request
  * @param options.baseUrl - The base URL of the Xano instance
  * @param options.token - Bearer token for authentication
@@ -149,7 +149,7 @@ async function metaApiRequest({
  * @param options.headers - Additional HTTP headers
  * @returns Promise resolving to binary data as Uint8Array
  * @throws {Error} When API request fails (always throws on non-2xx responses)
- * 
+ *
  * @example
  * ```typescript
  * // Download workspace backup
@@ -160,7 +160,7 @@ async function metaApiRequest({
  *   path: '/workspace/{id}/backup',
  *   pathParams: { id: '123' }
  * });
- * 
+ *
  * // Save to file
  * await fs.writeFile('backup.tar.gz', backupData);
  * ```
@@ -205,7 +205,7 @@ function makeMetaApiMethod<M extends HTTPMethod>(method: M) {
  * Convenience function for making GET requests to the Xano Metadata API.
  * @param options - API request options (method is automatically set to 'GET')
  * @returns Promise resolving to the API response
- * 
+ *
  * @example
  * ```typescript
  * const workspaces = await metaApiGet({
@@ -221,7 +221,7 @@ export const metaApiGet = makeMetaApiMethod('GET');
  * Convenience function for making POST requests to the Xano Metadata API.
  * @param options - API request options (method is automatically set to 'POST')
  * @returns Promise resolving to the API response
- * 
+ *
  * @example
  * ```typescript
  * const newWorkspace = await metaApiPost({

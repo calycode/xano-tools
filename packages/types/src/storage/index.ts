@@ -6,8 +6,8 @@ import { InstanceConfig, CoreContext } from '..';
  *
  * @example
  * ```typescript
- * // Node.js implementation (see the xcc-cli)
- * import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
+ * // Node.js implementation (see the cli)
+ * import { nodeConfigStorage } from '@calycode/cli';
  * const xcc = new XCC(nodeConfigStorage);
  *
  * // Custom implementation

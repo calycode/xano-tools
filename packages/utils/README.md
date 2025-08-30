@@ -1,6 +1,6 @@
-# @mihalytoth20/xcc-utils
+# @calycode/utils
 
-Utility functions and helpers for the Xano Community CLI (XCC) ecosystem.
+Utility functions and helpers for the Caly Xano tools ecosystem.
 
 ## Overview
 
@@ -35,7 +35,7 @@ This package provides core utility functions for:
 ### API Communication
 
 ```typescript
-import { metaApiGet, metaApiPost } from '@mihalytoth20/xcc-utils';
+import { metaApiGet, metaApiPost } from '@calycode/utils';
 
 // Get workspace information
 const workspace = await metaApiGet({
@@ -71,7 +71,7 @@ const newFunction = await metaApiPost({
 ### Workspace Discovery
 
 ```typescript
-import { fetchWorkspacesAndBranches } from '@mihalytoth20/xcc-utils';
+import { fetchWorkspacesAndBranches } from '@calycode/utils';
 
 const { workspaces, branches } = await fetchWorkspacesAndBranches(
   'https://x123.xano.io',
@@ -85,7 +85,7 @@ console.log('Branches for main workspace:', branches['main']);
 ### Template Processing
 
 ```typescript
-import { replacePlaceholders } from '@mihalytoth20/xcc-utils';
+import { replacePlaceholders } from '@calycode/utils';
 
 const template = {
   url: 'https://{instance}.xano.io/api/{version}',
@@ -103,7 +103,7 @@ const result = replacePlaceholders(template, {
 ### File Name Sanitization
 
 ```typescript
-import { sanitizeFileName } from '@mihalytoth20/xcc-utils';
+import { sanitizeFileName } from '@calycode/utils';
 
 const safeName = sanitizeFileName('My API Group!');
 // Returns: 'my_api_group_'
@@ -112,12 +112,12 @@ const safeName = sanitizeFileName('My API Group!');
 ## Installation
 
 ```bash
-npm install @mihalytoth20/xcc-utils
+npm install @calycode/utils
 ```
 
 ## Dependencies
 
-- `@mihalytoth20/xcc-types` - TypeScript type definitions
+- `@calycode/types` - TypeScript type definitions
 
 ## License
 

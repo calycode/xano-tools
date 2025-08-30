@@ -1,5 +1,5 @@
 import { processItem } from './core/processItem';
-import { sanitizeFileName } from '@mihalytoth20/xcc-utils';
+import { sanitizeFileName } from '@calycode/utils';
 import { generateStructureDiagrams } from './core/generate-structure-diagrams';
 import type { XCC } from '../../';
 

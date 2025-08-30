@@ -1,6 +1,6 @@
 import { select } from '@clack/prompts';
-import { metaApiGet } from '@mihalytoth20/xcc-utils';
-import { ApiGroup, ChooseApiGroupOrAllOptions } from '@mihalytoth20/xcc-types';
+import { metaApiGet } from '@calycode/utils';
+import { ApiGroup, ChooseApiGroupOrAllOptions } from '@calycode/types';
 
 // [ ] CLI
 export async function chooseApiGroupOrAll({

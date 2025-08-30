@@ -1,4 +1,4 @@
-import { metaApiGet } from '@mihalytoth20/xcc-utils';
+import { metaApiGet } from '@calycode/utils';
 import { doOasUpdate } from '../index';
 
 interface GeneratedItem {

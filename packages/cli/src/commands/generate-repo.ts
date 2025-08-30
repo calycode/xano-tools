@@ -7,7 +7,7 @@ import {
    dirname,
    replacePlaceholders,
    fetchAndExtractYaml,
-} from '@mihalytoth20/xcc-utils';
+} from '@calycode/utils';
 import {
    addFullContextOptions,
    addPrintOutputFlag,

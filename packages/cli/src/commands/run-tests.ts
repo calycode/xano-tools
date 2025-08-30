@@ -7,7 +7,7 @@ import {
    normalizeApiGroupName,
    prepareRequest,
    replacePlaceholders,
-} from '@mihalytoth20/xcc-utils';
+} from '@calycode/utils';
 import {
    availableAsserts,
    addFullContextOptions,

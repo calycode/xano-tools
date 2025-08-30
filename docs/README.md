@@ -4,8 +4,8 @@ Supercharge your Xano workflow: automate backups, docs, testing, and version con
 
 ## Table of Contents
 
-- [xcc - the core commmand](xcc.md)
-#### Commands: 
+- [caly - the core commmand](caly.md)
+#### Commands:
 - [setup](commands/setup.md)
 - [switch-context](commands/switch-context.md)
 - [generate-oas](commands/generate-oas.md)
@@ -22,4 +22,4 @@ Supercharge your Xano workflow: automate backups, docs, testing, and version con
 - [test-via-oas](commands/test-via-oas.md)
 - [current-context](commands/current-context.md)
 
-Need further help? Visit https://github.com/MihalyToth20/xano-community-cli or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/snappy)
+Need further help? Visit https://github.com/calycode/xano-tools or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/snappy)

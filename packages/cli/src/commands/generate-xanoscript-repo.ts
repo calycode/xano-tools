@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync, mkdirSync } from 'fs';
-import { joinPath, dirname } from '@mihalytoth20/xcc-utils';
+import { joinPath, dirname } from '@calycode/utils';
 import { attachCliEventHandlers } from '../utils/event-listener';
-import { replacePlaceholders } from '@mihalytoth20/xcc-utils';
+import { replacePlaceholders } from '@calycode/utils';
 import { printOutputDir } from '../utils';
 import { addFullContextOptions, addPrintOutputFlag, withErrorHandler } from '../utils';
 

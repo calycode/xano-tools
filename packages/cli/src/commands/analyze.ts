@@ -2,7 +2,7 @@ import { mkdir } from 'fs/promises';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { metaApiGet, replacePlaceholders, sanitizeFileName } from '@mihalytoth20/xcc-utils';
+import { metaApiGet, replacePlaceholders, sanitizeFileName } from '@calycode/utils';
 import {
    withErrorHandler,
    addFullContextOptions,

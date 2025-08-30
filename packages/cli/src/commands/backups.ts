@@ -2,7 +2,7 @@ import path, { join } from 'path';
 import { readdirSync } from 'fs';
 import { openAsBlob } from 'node:fs';
 import { select, confirm, outro, } from '@clack/prompts';
-import { replacePlaceholders } from '@mihalytoth20/xcc-utils';
+import { replacePlaceholders } from '@calycode/utils';
 import {
    addFullContextOptions,
    addPartialContextOptions,

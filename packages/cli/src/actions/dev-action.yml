@@ -1,13 +1,13 @@
 # This assumes the action is run from a repo that has the CLI as a dependency,
 # or is the CLI repo itself (not npm-installed).
 
-name: 'Xano Community CLI Dev Action'
-description: 'Sets up and runs a Xano Community CLI command in a GitHub workflow (dev/local version).'
-author: 'Xano Community'
+name: 'Caly CLI Dev Action'
+description: 'Sets up and runs a Caly CLI command in a GitHub workflow (dev/local version).'
+author: 'Mihály Tóth'
 
 inputs:
    run:
-      description: 'One or more xcc commands to run, each on a new line. e.g., "generate-oas --all"'
+      description: 'One or more caly commands to run, each on a new line. e.g., "generate-oas --all"'
       required: true
    instance-name:
       description: 'The name for the Xano instance (e.g., "prod").'
@@ -53,7 +53,7 @@ runs:
              if [ -z "$command_line" ]; then
                continue # Skip empty lines
              fi
-             echo "::group::Running: xcc $command_line"
+             echo "::group::Running: caly $command_line"
              OUTPUT=$(node src/index.js $command_line --instance="${{ inputs.instance-name }}" --print-output-dir)
              DIRS=$(echo "$OUTPUT" | grep 'OUTPUT_DIR=' | cut -d'=' -f2-)
              if [ -n "$DIRS" ]; then

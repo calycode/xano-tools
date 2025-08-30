@@ -1,6 +1,6 @@
-# @mihalytoth20/xcc-cli
+# @calycode/cli
 
-Command-line interface for the Xano Community CLI (XCC) providing terminal access to Xano development workflows.
+Command-line interface for the Caly CLI providing terminal access to Xano development workflows.
 
 ## Overview
 
@@ -16,14 +16,14 @@ The CLI package provides:
 ### Global Installation
 
 ```bash
-npm install -g @mihalytoth20/xcc-cli
-xcc --help
+npm install -g @calycode/cli
+caly--help
 ```
 
 ### NPX Usage
 
 ```bash
-npx @mihalytoth20/xcc-cli --help
+npx @calycode/cli --help
 ```
 
 ## Commands
@@ -35,10 +35,10 @@ npx @mihalytoth20/xcc-cli --help
 Setup a new Xano instance configuration:
 
 ```bash
-xcc setup
+calysetup
 # Interactive prompts for instance name, URL, and API key
 
-xcc setup --name production --url https://x123.xano.io --api-key your-key
+calysetup --name production --url https://x123.xano.io --api-key your-key
 # Non-interactive setup
 ```
 
@@ -47,7 +47,7 @@ xcc setup --name production --url https://x123.xano.io --api-key your-key
 Display the current active context:
 
 ```bash
-xcc current-context
+calycurrent-context
 # Shows: stored json configuration
 ```
 
@@ -56,10 +56,10 @@ xcc current-context
 Switch to a different instance, workspace, or branch:
 
 ```bash
-xcc switch-context
+calyswitch-context
 # Interactive prompts
 
-xcc switch-context --instance staging --workspace main --branch develop
+calyswitch-context --instance staging --workspace main --branch develop
 # Non-interactive switch
 ```
 
@@ -70,13 +70,13 @@ xcc switch-context --instance staging --workspace main --branch develop
 Generate improved OpenAPI specifications:
 
 ```bash
-xcc generate-oas --group user-api
+calygenerate-oas --group user-api
 # Generate for specific API group
 
-xcc generate-oas --all
+calygenerate-oas --all
 # Generate for all API groups
 
-xcc generate-oas --instance production --workspace main --branch master --group api
+calygenerate-oas --instance production --workspace main --branch master --group api
 # Specify context
 ```
 
@@ -85,7 +85,7 @@ xcc generate-oas --instance production --workspace main --branch master --group 
 Serve OpenAPI specifications locally:
 
 ```bash
-xcc oas-serve
+calyoas-serve
 # Starts local server at http://localhost:5999
 ```
 
@@ -94,8 +94,8 @@ xcc oas-serve
 Generate client (and server) libraries from OpenAPI specs (see available [generators](https://openapi-generator.tech/docs/generators)):
 
 ```bash
-xcc generate-code --generator typescript-fetch
-xcc generate-code --generator python --output
+calygenerate-code --generator typescript-fetch
+calygenerate-code --generator python --output
 ```
 
 ### Backup & Restore
@@ -105,8 +105,8 @@ xcc generate-code --generator python --output
 Export workspace backup:
 
 ```bash
-xcc export-backup --output backup.tar.gz
-xcc export-backup --instance production --workspace main --branch master
+calyexport-backup --output backup.tar.gz
+calyexport-backup --instance production --workspace main --branch master
 ```
 
 #### `restore-backup`
@@ -114,7 +114,7 @@ xcc export-backup --instance production --workspace main --branch master
 Restore workspace from backup (cannot specify branch on restoration):
 
 ```bash
-xcc restore-backup --file backup.tar.gz --target-workspace staging
+calyrestore-backup --file backup.tar.gz --target-workspace staging
 ```
 
 ### Registry Operations
@@ -124,7 +124,7 @@ xcc restore-backup --file backup.tar.gz --target-workspace staging
 Create a new registry structure:
 
 ```bash
-xcc registry-scaffold --output ./my-registry
+calyregistry-scaffold --output ./my-registry
 ```
 
 #### `registry-add`
@@ -132,8 +132,8 @@ xcc registry-scaffold --output ./my-registry
 Install components to Xano from registry:
 
 ```bash
-xcc registry-add --registry ./local-registry --item user-auth
-xcc registry-add --registry https://registry.example.com --item payment-system
+calyregistry-add --registry ./local-registry --item user-auth
+calyregistry-add --registry https://registry.example.com --item payment-system
 ```
 
 #### `registry-serve`
@@ -141,7 +141,7 @@ xcc registry-add --registry https://registry.example.com --item payment-system
 Serve local registry:
 
 ```bash
-xcc registry-serve --registry ./my-registry --port 5000
+calyregistry-serve --registry ./my-registry --port 5000
 ```
 
 ### Development Tools
@@ -151,7 +151,7 @@ xcc registry-serve --registry ./my-registry --port 5000
 Generate browsable repository from workspace:
 
 ```bash
-xcc generate-repo
+calygenerate-repo
 ```
 
 #### `run-tests`
@@ -159,7 +159,7 @@ xcc generate-repo
 Run Xano workspace tests:
 
 ```bash
-xcc run-tests --group api --verbose
+calyrun-tests --group api --verbose
 ```
 
 #### `lint-xano`
@@ -167,14 +167,14 @@ xcc run-tests --group api --verbose
 Lint Xano workspace for best practices:
 
 ```bash
-xcc lint-xano --fix --output lint-report.json
+calylint-xano --fix --output lint-report.json
 ```
 
 ## Configuration
 
 ### Configuration Directory
 
-XCC stores configuration in `~/.xano-community-cli/`:
+calystores configuration in `~/.xano-tools/`:
 
 -  `config.json` - Global configuration
 -  `instances/` - Instance-specific configurations
@@ -203,31 +203,31 @@ Commands inherit context from:
 
 ```bash
 # Setup instance
-xcc setup --name production --url https://x123.xano.io --api-key your-key
+calysetup --name production --url https://x123.xano.io --api-key your-key
 
 # Generate OpenAPI specs
-xcc generate-oas --all
+calygenerate-oas --all
 
 # Generate TypeScript client
-xcc generate-code --generator typescript-fetch --output ./api-client
+calygenerate-code --generator typescript-fetch --output ./api-client
 
 # Serve documentation
-xcc oas-serve
+calyoas-serve
 ```
 
 ### Multi-Environment Setup
 
 ```bash
 # Setup multiple instances
-xcc setup --name production --url https://prod.xano.io --api-key prod-key
-xcc setup --name staging --url https://staging.xano.io --api-key staging-key
+calysetup --name production --url https://prod.xano.io --api-key prod-key
+calysetup --name staging --url https://staging.xano.io --api-key staging-key
 
 # Switch between environments
-xcc switch-context --instance staging
-xcc generate-oas --group api
+calyswitch-context --instance staging
+calygenerate-oas --group api
 
-xcc switch-context --instance production
-xcc export-backup --output prod-backup.tar.gz
+calyswitch-context --instance production
+calyexport-backup --output prod-backup.tar.gz
 ```
 
 ## Integration
@@ -238,8 +238,8 @@ xcc export-backup --output prod-backup.tar.gz
 # GitHub Actions example
 - name: Generate API Documentation
   run: |
-     npx @mihalytoth20/xcc-cli generate-oas --all
-     npx @mihalytoth20/xcc-cli generate-code --generator typescript-fetch --output ./api
+     npx @calycode/cli generate-oas --all
+     npx @calycode/cli generate-code --generator typescript-fetch --output ./api
   env:
      XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
 ```

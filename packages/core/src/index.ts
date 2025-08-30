@@ -7,7 +7,7 @@ import {
    EventMap,
    InstanceConfig,
    WorkspaceConfig,
-} from '@mihalytoth20/xcc-types';
+} from '@calycode/types';
 import { TypedEmitter } from './utils/event-handling/event-emitter';
 import { doOasUpdate } from './features/oas/generate';
 import { exportBackupImplementation, restoreBackupImplementation } from './implementations/backups';
@@ -20,13 +20,13 @@ import { updateOpenapiSpecImplementation } from './implementations/generate-oas'
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
 
 /**
- * Main XCC (Xano Community CLI) class that provides core functionality for Xano development workflows.
+ * Main XCC class that provides core functionality for Xano development workflows.
  * Extends TypedEmitter to provide event-driven architecture for CLI operations.
  *
  * @example
  * ```typescript
- * import { XCC } from '@mihalytoth20/xcc-core';
- * import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
+ * import { XCC } from '@calycode/caly-core';
+ * import { nodeConfigStorage } from '@calycode/cli';
  *
  * const xcc = new XCC(nodeConfigStorage);
  *

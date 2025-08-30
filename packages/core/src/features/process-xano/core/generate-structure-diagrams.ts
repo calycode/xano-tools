@@ -1,4 +1,4 @@
-import { joinPath } from '@mihalytoth20/xcc-utils';
+import { joinPath } from '@calycode/utils';
 
 type Query = Partial<{ name: string; verb: string }>;
 type AppQueries = Record<string, Query[]>;
