@@ -42,7 +42,7 @@
       "rollup-plugin-dts": "^6.2.3",
       "strip-ansi": "^7.1.0",
       "trash-cli": "^6.0.0",
-      "tsx": "^4.20.4",
+      "tsx": "^4.20.5",
       "typescript": "^5.9.2"
    }
 }
