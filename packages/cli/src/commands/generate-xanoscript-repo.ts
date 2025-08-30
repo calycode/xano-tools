@@ -1,5 +1,4 @@
 import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync, mkdirSync } from 'fs';
-import { intro, outro } from '@clack/prompts';
 import { joinPath, dirname } from '@mihalytoth20/xcc-utils';
 import { attachCliEventHandlers } from '../utils/event-listener';
 import { replacePlaceholders } from '@mihalytoth20/xcc-utils';
@@ -38,7 +37,7 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
    });
 
    // Resolve output dir
-   const outputDir = replacePlaceholders(instanceConfig['xano-script'].output, {
+   const outputDir = replacePlaceholders(instanceConfig.xanoscript.output, {
       instance: instanceConfig.name,
       workspace: workspaceConfig.name,
       branch: branchConfig.label,
@@ -46,8 +45,6 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
 
    clearDirectory(outputDir);
    await mkdirSync(outputDir, { recursive: true });
-
-   intro('Building directory structure...');
 
    const plannedWrites: { path: string; content: string }[] = await core.buildXanoscriptRepo({
       instance,
@@ -66,12 +63,11 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
    );
 
    printOutputDir(printOutput, outputDir);
-   outro('Directory structure rebuilt successfully!');
 }
 
 function registerBuildXanoscriptRepoCommand(program, core) {
    const cmd = program
-      .command('build-xanoscript-repo')
+      .command('generate-xs-repo')
       .description('Process Xano workspace into repo structure');
 
    addFullContextOptions(cmd);

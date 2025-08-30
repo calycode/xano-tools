@@ -71,8 +71,8 @@ export async function setupInstanceImplementation(
       process: {
          output: 'output/{instance}/repo/{workspace}/{branch}',
       },
-      'xano-script': {
-         output: 'output/{instance}/xano-script/{workspace}/{branch}',
+      xanoscript: {
+         output: 'output/{instance}/xanoscript/{workspace}/{branch}',
       },
       openApiSpec: {
          output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',

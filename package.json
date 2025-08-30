@@ -11,7 +11,7 @@
    ],
    "scripts": {
       "build": "tsc --build",
-      "build:packages": "pnpm -r --workspace-concurrency=1 run build",
+      "build:packages": "pnpm -r --reporter=silent --workspace-concurrency=1 run build",
       "xcc": "pnpm --filter @mihalytoth20/xano-community-cli run xcc",
       "update-xcc-docs": "tsx scripts/generate-xcc-docs.ts",
       "serve-registry": "npx serve registry --listen 3030",

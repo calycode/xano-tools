@@ -44,6 +44,27 @@ const eventHandlers: Record<string, HandlerMap> = {
          }
       },
    },
+   'generate-xs-repo': {
+      start: () => intro('Generating XS repository...'),
+      progress: (data, context) => {
+         if (!context.spinnerInstance) {
+            context.spinnerInstance = spinner();
+            context.spinnerInstance.start('Fetching and parsing XS from Xano...');
+         }
+      },
+      end: (data, context) => {
+         if (context.spinnerInstance) {
+            context.spinnerInstance.stop('XS files are ready!');
+         } else {
+            outro('Directory structure rebuilt successfully!');
+         }
+      },
+      error: (data, context) => {
+         if (context.spinnerInstance) {
+            context.spinnerInstance.stop('Error!');
+         }
+      },
+   },
    'export-backup': {
       start: () => intro('Exporting workspace backup...'),
       progress: (data, context) => {
