@@ -2,16 +2,18 @@
 Usage: caly <command> [options]
 
 
-+----------------------------------------------------------------+
-|                                                                |
-|   ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
-|   ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
-|    ╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
-|    ██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
-|   ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
-|   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
-|                                                                |
-+----------------------------------------------------------------+
++-----------------------------------------------------------+
+|                                                           |
+|                                                           |
+|    ██████╗ █████╗ ██╗  ██╗   ██╗     ██████╗██╗     ██╗   |
+|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ██╔════╝██║     ██║   |
+|   ██║     ███████║██║   ╚████╔╝     ██║     ██║     ██║   |
+|   ██║     ██╔══██║██║    ╚██╔╝      ██║     ██║     ██║   |
+|   ╚██████╗██║  ██║███████╗██║       ╚██████╗███████╗██║   |
+|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝        ╚═════╝╚══════╝╚═╝   |
+|                                                           |
+|                                                           |
++-----------------------------------------------------------+
 
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
@@ -42,6 +44,9 @@ Code Generation:
     Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.
 
   generate-repo       -h, --help
+    Process Xano workspace into repo structure
+
+  generate-xs-repo    -h, --help
     Process Xano workspace into repo structure
 
   generate-functions  -h, --help
@@ -77,7 +82,7 @@ Testing & Linting:
 
 Other:
   current-context     -h, --help
-
+    
 
 Need help? Visit https://github.com/calycode/xano-tools
 ```

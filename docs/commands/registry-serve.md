@@ -1,5 +1,5 @@
 ```
-Usage: xcc registry-serve [options]
+Usage: caly registry-serve [options]
 
 Serve the registry locally. This allows you to actually use your registry without deploying it.
 
