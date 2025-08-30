@@ -10,8 +10,8 @@ const EXAMPLE_GITIGNORE_PATH = path.join(PROJECT_ROOT, 'gitignore.example');
 const RECOMMENDED_IGNORES = [
    '.env',
    'workspace.yaml',
-   'xcc.config.js',
-   'xcc.test.setup.json',
+   'calyInstance.config.js',
+   'calyInstance.test.setup.json',
    'output/',
    'repo/',
    'reports/',

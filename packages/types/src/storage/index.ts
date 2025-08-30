@@ -1,14 +1,14 @@
 // core/config-storage.ts
 import { InstanceConfig, CoreContext } from '..';
 /**
- * Storage interface for XCC configuration and file operations.
+ * Storage interface for Caly configuration and file operations.
  * Abstracts filesystem operations to allow different storage implementations (Node.js, browser, etc.).
  *
  * @example
  * ```typescript
  * // Node.js implementation (see the cli)
  * import { nodeConfigStorage } from '@calycode/cli';
- * const xcc = new XCC(nodeConfigStorage);
+ * const calyInstance = new Caly(nodeConfigStorage);
  *
  * // Custom implementation
  * class CustomStorage implements ConfigStorage {

@@ -1,10 +1,10 @@
 import { updateSpecForGroup } from '../features/oas/generate/methods/update-spec-for-group';
-import type { XCC } from '..';
+import type { Caly } from '..';
 import { ApiGroup } from '@calycode/types';
 
 async function updateOpenapiSpecImplementation(
-   storage: XCC["storage"],
-   core: XCC,
+   storage: Caly["storage"],
+   core: Caly,
    options: {
       instance: string;
       workspace: string;

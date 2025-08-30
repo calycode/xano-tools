@@ -1,5 +1,5 @@
 const registryCache = new Map();
-const REGISTRY_URL = process.env.XCC_REGISTRY_URL || 'http://localhost:5500/registry-definitions';
+const REGISTRY_URL = process.env.Caly_REGISTRY_URL || 'http://localhost:5500/registry-definitions';
 
 // [ ] CLI, whole file
 /**

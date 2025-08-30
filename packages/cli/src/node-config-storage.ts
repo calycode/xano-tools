@@ -26,10 +26,10 @@ const tokensDir = path.join(baseDir, 'tokens');
  *
  * @example
  * ```typescript
- * import { XCC } from '@calycode/caly-core';
+ * import { Caly } from '@calycode/caly-core';
  * import { nodeConfigStorage } from '@calycode/cli';
  *
- * const xcc = new XCC(nodeConfigStorage);
+ * const calyInstance = new Caly(nodeConfigStorage);
  * ```
  */
 export const nodeConfigStorage: ConfigStorage = {
@@ -44,7 +44,7 @@ export const nodeConfigStorage: ConfigStorage = {
    },
 
    /**
-    * Loads the global XCC configuration from ~/.xano-tools/config.json.
+    * Loads the global Caly configuration from ~/.xano-tools/config.json.
     * Returns default configuration if file doesn't exist.
     * @returns Global configuration object with current context and instance list
     */

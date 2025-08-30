@@ -15,14 +15,14 @@ import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
-import { XCC } from '@calycode/caly-core';
+import { Caly } from '@calycode/caly-core';
 import { nodeConfigStorage } from './node-config-storage';
 
 const commandStartTimes = new WeakMap<Command, number>();
 
 const { version } = pkg;
 const program = new Command();
-const core = new XCC(nodeConfigStorage);
+const core = new Caly(nodeConfigStorage);
 
 // Store start time on the command object
 program.hook('preAction', (thisCommand) => {

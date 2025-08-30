@@ -1,8 +1,6 @@
 import { metaApiGet, metaApiPost } from '@calycode/utils';
 import { getRegistryIndex } from '../../index';
 
-// [ ] CLI, whole file
-
 const typePriority = {
    'registry:table': 1,
    'registry:function': 2,

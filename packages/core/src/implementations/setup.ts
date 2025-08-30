@@ -17,7 +17,7 @@ const DEFAULT_ASSERTS: Record<string, 'error' | 'warn' | 'off'> = {
 /**
  * The core, non-interactive logic for setting up an instance.
  * Can be called by the interactive wizard or directly for CI/CD.
- * @param {ConfigStorage} storage - The actual storage implementation provided by the consumer on XCC class instentiation
+ * @param {ConfigStorage} storage - The actual storage implementation provided by the consumer on Caly class instentiation
  * @param {object} options
  * @param {string} options.name - The user-provided name for the instance.
  * @param {string} options.url - The instance base URL.

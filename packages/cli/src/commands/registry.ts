@@ -132,7 +132,7 @@ function registerRegistryAddCommand(program, core) {
       .action(
          withErrorHandler(async (options) => {
             if (options.registry) {
-               process.env.XCC_REGISTRY_URL = options.registry;
+               process.env.Caly_REGISTRY_URL = options.registry;
             }
 
             await addToXano(

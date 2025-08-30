@@ -1,5 +1,5 @@
 import { metaApiGet, sanitizeFileName } from '@calycode/utils';
-import type { XCC } from '..';
+import type { Caly } from '..';
 import type { CoreContext } from '@calycode/types';
 
 async function fetchAndProcessEntities({
@@ -55,8 +55,8 @@ async function fetchAndProcessEntities({
 }
 
 async function buildXanoscriptRepoImplementation(
-   storage: XCC['storage'],
-   core: XCC,
+   storage: Caly['storage'],
+   core: Caly,
    options: CoreContext
 ): Promise<{ path: string; content: string }[]> {
    const { instance, workspace, branch } = options;

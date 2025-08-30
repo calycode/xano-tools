@@ -20,31 +20,31 @@ import { updateOpenapiSpecImplementation } from './implementations/generate-oas'
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
 
 /**
- * Main XCC class that provides core functionality for Xano development workflows.
+ * Main Caly class that provides core functionality for Xano development workflows.
  * Extends TypedEmitter to provide event-driven architecture for CLI operations.
  *
  * @example
  * ```typescript
- * import { XCC } from '@calycode/caly-core';
+ * import { Caly } from '@calycode/caly-core';
  * import { nodeConfigStorage } from '@calycode/cli';
  *
- * const xcc = new XCC(nodeConfigStorage);
+ * const calyInstance = new Caly(nodeConfigStorage);
  *
  * // Setup a new Xano instance
- * await xcc.setupInstance({
+ * await calyInstance.setupInstance({
  *   name: 'production',
  *   url: 'https://x123.xano.io',
  *   apiKey: 'your-api-key'
  * });
  *
  * // Generate OpenAPI specification
- * await xcc.updateOpenapiSpec('production', 'main', 'master', ['api']);
+ * await calyInstance.updateOpenapiSpec('production', 'main', 'master', ['api']);
  * ```
  */
 // [ ] TODO: create a default in-memory storage implementation
-export class XCC extends TypedEmitter<EventMap> {
+export class Caly extends TypedEmitter<EventMap> {
    /**
-    * Creates a new XCC instance with the provided storage implementation.
+    * Creates a new Caly instance with the provided storage implementation.
     * @param storage - Storage implementation for configuration and file operations
     */
    constructor(private storage: ConfigStorage) {
@@ -55,7 +55,7 @@ export class XCC extends TypedEmitter<EventMap> {
    // ----- MAIN FEATURES ----- //
    /**
     * Sets up a new Xano instance configuration with authentication and workspace discovery.
-    * This is typically the first step when configuring XCC for a new Xano deployment.
+    * This is typically the first step when configuring Caly for a new Xano deployment.
     *
     * @param options - Instance setup configuration
     * @param options.name - Unique name for this instance (will be sanitized)
@@ -66,7 +66,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * await xcc.setupInstance({
+    * await calyInstance.setupInstance({
     *   name: 'production',
     *   url: 'https://x123.xano.io',
     *   apiKey: 'your-metadata-api-key',
@@ -95,7 +95,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * await xcc.switchContext({
+    * await calyInstance.switchContext({
     *   instance: 'staging',
     *   workspace: 'main',
     *   branch: 'develop'
@@ -120,7 +120,7 @@ export class XCC extends TypedEmitter<EventMap> {
     * @example
     * ```typescript
     * // Generate OAS for specific API groups
-    * const results = await xcc.updateOpenapiSpec(
+    * const results = await calyInstance.updateOpenapiSpec(
     *   'production',
     *   'main',
     *   'master',
@@ -128,7 +128,7 @@ export class XCC extends TypedEmitter<EventMap> {
     * );
     *
     * // Generate OAS for all API groups
-    * const allResults = await xcc.updateOpenapiSpec(
+    * const allResults = await calyInstance.updateOpenapiSpec(
     *   'production',
     *   'main',
     *   'master',
@@ -163,7 +163,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * const backupData = await xcc.exportBackup({
+    * const backupData = await calyInstance.exportBackup({
     *   instance: 'production',
     *   workspace: 'main',
     *   branch: 'master'
@@ -190,7 +190,7 @@ export class XCC extends TypedEmitter<EventMap> {
     * @example
     * ```typescript
     * const workspaceData = await fetchWorkspaceData();
-    * const repoFiles = await xcc.generateRepo(workspaceData);
+    * const repoFiles = await calyInstance.generateRepo(workspaceData);
     *
     * // Save files to disk
     * for (const file of repoFiles) {
@@ -215,7 +215,7 @@ export class XCC extends TypedEmitter<EventMap> {
     * @example
     * ```typescript
     * const xanoScriptPath = 'output/instance/xanoscript/branch;
-    * const xanoScriptFiles = await xcc.buildXanoscriptRepo({instance, workspace, branch});
+    * const xanoScriptFiles = await calyInstance.buildXanoscriptRepo({instance, workspace, branch});
     *
     * // Save files to disc:
     * for (const file of xanoScriptFiles) {
@@ -251,7 +251,7 @@ export class XCC extends TypedEmitter<EventMap> {
     * const formData = new FormData();
     * formData.append('backup', backupFile);
     *
-    * const result = await xcc.restoreBackup({
+    * const result = await calyInstance.restoreBackup({
     *   instance: 'staging',
     *   workspace: 'main',
     *   formData: formData
@@ -281,7 +281,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * const result = await xcc.doOasUpdate({
+    * const result = await calyInstance.doOasUpdate({
     *   inputOas: baseOpenApiSpec,
     *   instanceConfig: instanceConfig,
     *   workspaceConfig: workspaceConfig
@@ -320,7 +320,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * const context = await xcc.loadAndValidateContext({
+    * const context = await calyInstance.loadAndValidateContext({
     *   instance: 'production',
     *   workspace: 'main',
     *   branch: 'master'
@@ -350,11 +350,11 @@ export class XCC extends TypedEmitter<EventMap> {
     * @example
     * ```typescript
     * // Get current context
-    * const currentContext = await xcc.getCurrentContextConfig();
+    * const currentContext = await calyInstance.getCurrentContextConfig();
     * console.log('Current instance:', currentContext.instance);
     *
     * // Override specific context values
-    * const overriddenContext = await xcc.getCurrentContextConfig(null, {
+    * const overriddenContext = await calyInstance.getCurrentContextConfig(null, {
     *   branch: 'develop'
     * });
     * ```
@@ -371,12 +371,12 @@ export class XCC extends TypedEmitter<EventMap> {
    }
 
    /**
-    * Loads the global XCC configuration containing instance list and current context.
+    * Loads the global Caly configuration containing instance list and current context.
     * @returns Promise resolving to the global configuration object
     *
     * @example
     * ```typescript
-    * const config = await xcc.loadGlobalConfig();
+    * const config = await calyInstance.loadGlobalConfig();
     * console.log('Current instance:', config.currentContext.instance);
     * console.log('Available instances:', config.instances);
     * ```
@@ -393,7 +393,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * const instanceConfig = await xcc.loadInstanceConfig('production');
+    * const instanceConfig = await calyInstance.loadInstanceConfig('production');
     * console.log('Instance URL:', instanceConfig.url);
     * console.log('Available workspaces:', instanceConfig.workspaces);
     * ```
@@ -411,7 +411,7 @@ export class XCC extends TypedEmitter<EventMap> {
     *
     * @example
     * ```typescript
-    * const token = await xcc.loadToken('production');
+    * const token = await calyInstance.loadToken('production');
     * // Use token for API requests
     * ```
     */
