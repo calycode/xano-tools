@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { normalizeApiGroupName, replacePlaceholders } from '@mihalytoth20/xcc-utils';
+import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
 import { addApiGroupOptions, addFullContextOptions, chooseApiGroupOrAll } from '../utils/index';
 
 // [ ] CLI

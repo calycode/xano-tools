@@ -1,6 +1,6 @@
-# @mihalytoth20/xcc-core
+# @calycode/caly-core
 
-Core functionality for the Xano Community CLI (XCC) providing programmatic access to Xano development workflows.
+Core functionality for the Caly CLI providing programmatic access to Xano development workflows.
 
 ## Overview
 
@@ -37,9 +37,9 @@ The core package provides the main `XCC` class that orchestrates all Xano operat
 ### Basic Setup
 
 ```typescript
-import { XCC } from '@mihalytoth20/xcc-core';
+import { XCC } from '@calycode/caly-core';
 // Implement your own storage interface based on the platform you're using
-import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
+import { nodeConfigStorage } from '@calycode/cli';
 
 const xcc = new XCC(nodeConfigStorage);
 
@@ -138,13 +138,13 @@ All methods include comprehensive error handling with descriptive error messages
 ## Installation
 
 ```bash
-npm install @mihalytoth20/xcc-core
+npm install @calycode/caly-core
 ```
 
 ## Dependencies
 
-- `@mihalytoth20/xcc-types` - TypeScript type definitions
-- `@mihalytoth20/xcc-utils` - Utility functions
+- `@calycode/types` - TypeScript type definitions
+- `@calycode/utils` - Utility functions
 
 ## License
 

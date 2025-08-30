@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
+import { font } from './utils';
 import pkg from '../../../package.json' with {type: "json"};
 
 // Import commands:
@@ -15,7 +15,7 @@ import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
-import { XCC } from '@mihalytoth20/xcc-core';
+import { XCC } from '@calycode/caly-core';
 import { nodeConfigStorage } from './node-config-storage';
 
 const commandStartTimes = new WeakMap<Command, number>();
@@ -47,28 +47,30 @@ program.hook('postAction', (thisCommand, actionCommand) => {
 });
 
 program
-  .name('xcc')
+  .name('caly')
   .version(version, '-v, --version', 'output the version number')
   .usage('<command> [options]')
   .description(
-    chalk.cyan(`
-+----------------------------------------------------------------+
-|                                                                |
-|   ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
-|   ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
-|    ╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
-|    ██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
-|   ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
-|   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
-|                                                                |
-+----------------------------------------------------------------+
+    font.color.cyan(`
++-----------------------------------------------------------+
+|                                                           |
+|                                                           |
+|    ██████╗ █████╗ ██╗  ██╗   ██╗     ██████╗██╗     ██╗   |
+|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ██╔════╝██║     ██║   |
+|   ██║     ███████║██║   ╚████╔╝     ██║     ██║     ██║   |
+|   ██║     ██╔══██║██║    ╚██╔╝      ██║     ██║     ██║   |
+|   ╚██████╗██║  ██║███████╗██║       ╚██████╗███████╗██║   |
+|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝        ╚═════╝╚══════╝╚═╝   |
+|                                                           |
+|                                                           |
++-----------------------------------------------------------+
 `) +
     '\n\n' +
-    chalk.yellowBright('Supercharge your Xano workflow: ') +
-    chalk.white('automate ') + chalk.bold.cyan('backups') + chalk.white(', ') +
-    chalk.bold.cyan('docs') + chalk.white(', ') +
-    chalk.bold.cyan('testing') + chalk.white(', and ') +
-    chalk.bold.cyan('version control') + chalk.white(' — no AI guesswork, just reliable, transparent dev tools.') +
+    font.color.yellowBright('Supercharge your Xano workflow: ') +
+    font.color.white('automate ') + font.combo.boldCyan('backups') + font.color.white(', ') +
+    font.combo.boldCyan('docs') + font.color.white(', ') +
+    font.combo.boldCyan('testing') + font.color.white(', and ') +
+    font.combo.boldCyan('version control') + font.color.white(' — no AI guesswork, just reliable, transparent dev tools.') +
     '\n\n' +
     `Current version: ${version}`
   );
@@ -106,27 +108,27 @@ program.configureHelp({
 
     const groups = [
       {
-        title: chalk.bold.cyan('Core Commands:'),
+        title: font.combo.boldCyan('Core Commands:'),
         commands: ['setup', 'switch-context'],
       },
       {
-        title: chalk.bold.cyan('Code Generation:'),
+        title: font.combo.boldCyan('Code Generation:'),
         commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-xs-repo', 'generate-functions'],
       },
       {
-        title: chalk.bold.cyan('Registry:'),
+        title: font.combo.boldCyan('Registry:'),
         commands: ['registry-add', 'registry-scaffold', 'registry-serve'],
       },
       {
-        title: chalk.bold.cyan('Backup & Restore:'),
+        title: font.combo.boldCyan('Backup & Restore:'),
         commands: ['export-backup', 'restore-backup'],
       },
       {
-        title: chalk.bold.cyan('Testing & Linting:'),
+        title: font.combo.boldCyan('Testing & Linting:'),
         commands: ['lint', 'test-via-oas'],
       },
       {
-        title: chalk.bold.cyan('Other:'),
+        title: font.combo.boldCyan('Other:'),
         commands: ['current-context'],
       },
     ];
@@ -136,7 +138,7 @@ program.configureHelp({
 
     // Usage line
     let output = [
-      chalk.bold(`\nUsage: xcc <command> [options]\n`)
+      font.weight.bold(`\nUsage: caly <command> [options]\n`)
     ];
 
     // Banner and description
@@ -145,10 +147,10 @@ program.configureHelp({
     }
 
     // Options
-    output.push(chalk.bold('Options:'));
+    output.push(font.weight.bold('Options:'));
     output.push(
-      `  -v, --version   ${chalk.gray('output the version number')}\n` +
-      `  -h, --help      ${chalk.gray('display help for command')}\n`
+      `  -v, --version   ${font.color.gray('output the version number')}\n` +
+      `  -h, --help      ${font.color.gray('display help for command')}\n`
     );
 
     // Command Groups
@@ -158,10 +160,10 @@ program.configureHelp({
         const c = cmdMap[cname];
         if (c) {
           // Only show -h, --help in main help for brevity
-          const opts = '  ' + chalk.gray('-h, --help');
+          const opts = '  ' + font.color.gray('-h, --help');
           // Align command names
           output.push(
-            `  ${chalk.bold(pad(c.name(), longestName))}${opts}\n    ${c.description()}\n`
+            `  ${font.weight.bold(pad(c.name(), longestName))}${opts}\n    ${c.description()}\n`
           );
         }
       }
@@ -169,7 +171,7 @@ program.configureHelp({
 
     // Footer/help link
     output.push(
-      chalk.gray('Need help? Visit https://github.com/MihalyToth20/xano-community-cli\n')
+      font.color.gray('Need help? Visit https://github.com/calycode/xano-tools\n')
     );
 
     return output.join('\n');

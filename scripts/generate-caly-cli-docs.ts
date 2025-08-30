@@ -13,7 +13,7 @@ function writeDocForCommand(cmd, dir = 'docs/commands') {
 }
 
 async function generateCliDocs() {
-   console.log('Generating XCC CLI Docs');
+   console.log('Generating Caly Xano CLI Docs');
 
    // 1. Clean docs directory
    rmSync('docs', { recursive: true, force: true });
@@ -31,7 +31,7 @@ async function generateCliDocs() {
 
    // 4. Generate a Table of Contents
    const tocLines = [
-      '# XCC CLI Command Reference',
+      '# Caly Xano CLI Command Reference',
       '',
       'Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.',
       '',
@@ -41,7 +41,7 @@ async function generateCliDocs() {
       '#### Commands: ',
       ...commandNames.map((name) => `- [${name}](commands/${name}.md)`),
       '',
-      'Need further help? Visit https://github.com/MihalyToth20/xano-community-cli or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/snappy)',
+      'Need further help? Visit https://github.com/calycode/xano-tools or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/snappy)',
       '',
    ];
    writeFileSync('docs/README.md', tocLines.join('\n'));

@@ -1,4 +1,4 @@
-import { replacePlaceholders, metaApiRequestBlob, joinPath } from '@mihalytoth20/xcc-utils';
+import { replacePlaceholders, metaApiRequestBlob, joinPath } from '@calycode/utils';
 
 /**
  * Exports a backup and emits events for CLI/UI.

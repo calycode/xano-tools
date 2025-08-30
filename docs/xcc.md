@@ -1,5 +1,5 @@
 ```
-Usage: xcc <command> [options]
+Usage: caly <command> [options]
 
 
 +----------------------------------------------------------------+
@@ -77,7 +77,7 @@ Testing & Linting:
 
 Other:
   current-context     -h, --help
-    
 
-Need help? Visit https://github.com/MihalyToth20/xano-community-cli
+
+Need help? Visit https://github.com/calycode/xano-tools
 ```

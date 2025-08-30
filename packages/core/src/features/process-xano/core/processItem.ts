@@ -1,6 +1,6 @@
 import { generateQueryLogicDescription } from './generateRunReadme';
 import { convertXanoDBDescription } from '../adapters/dbmlGenerator';
-import { sanitizeFileName, joinPath } from '@mihalytoth20/xcc-utils';
+import { sanitizeFileName, joinPath } from '@calycode/utils';
 
 function getItemDir({ key, item, dirPath, appMapping }) {
    let baseDir;

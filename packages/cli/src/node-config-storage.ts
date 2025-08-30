@@ -1,11 +1,11 @@
 /**
- * Node.js filesystem-based implementation of ConfigStorage for XCC CLI.
- * Stores configuration files in the user's home directory under .xano-community-cli/
- * 
+ * Node.js filesystem-based implementation of ConfigStorage for  Caly CLI.
+ * Stores configuration files in the user's home directory under .xano-tools/
+ *
  * Directory structure:
- * - ~/.xano-community-cli/config.json (global configuration)
- * - ~/.xano-community-cli/instances/ (instance-specific configurations)
- * - ~/.xano-community-cli/tokens/ (API tokens with restricted permissions)
+ * - ~/.xano-tools/config.json (global configuration)
+ * - ~/.xano-tools/instances/ (instance-specific configurations)
+ * - ~/.xano-tools/tokens/ (API tokens with restricted permissions)
  */
 import fs from 'fs';
 import path from 'path';
@@ -13,29 +13,29 @@ import os from 'os';
 import { x } from 'tar';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ConfigStorage } from '@mihalytoth20/xcc-types';
+import { ConfigStorage } from '@calycode/types';
 
-const baseDir = path.join(os.homedir(), '.xano-community-cli');
+const baseDir = path.join(os.homedir(), '.xano-tools');
 const configPath = path.join(baseDir, 'config.json');
 const instancesDir = path.join(baseDir, 'instances');
 const tokensDir = path.join(baseDir, 'tokens');
 
 /**
  * Node.js implementation of the ConfigStorage interface.
- * Provides file system operations and configuration management for the XCC CLI.
- * 
+ * Provides file system operations and configuration management for the Caly CLI.
+ *
  * @example
  * ```typescript
- * import { XCC } from '@mihalytoth20/xcc-core';
- * import { nodeConfigStorage } from '@mihalytoth20/xcc-cli';
- * 
+ * import { XCC } from '@calycode/caly-core';
+ * import { nodeConfigStorage } from '@calycode/cli';
+ *
  * const xcc = new XCC(nodeConfigStorage);
  * ```
  */
 export const nodeConfigStorage: ConfigStorage = {
    /**
     * Ensures that required configuration directories exist.
-    * Creates ~/.xano-community-cli/instances and ~/.xano-community-cli/tokens if they don't exist.
+    * Creates ~/.xano-tools/instances and ~/.xano-tools/tokens if they don't exist.
     */
    async ensureDirs() {
       [instancesDir, tokensDir].forEach((dir) => {
@@ -44,7 +44,7 @@ export const nodeConfigStorage: ConfigStorage = {
    },
 
    /**
-    * Loads the global XCC configuration from ~/.xano-community-cli/config.json.
+    * Loads the global XCC configuration from ~/.xano-tools/config.json.
     * Returns default configuration if file doesn't exist.
     * @returns Global configuration object with current context and instance list
     */
@@ -86,7 +86,7 @@ export const nodeConfigStorage: ConfigStorage = {
       const p = path.join(tokensDir, `${instance}.token`);
       if (!fs.existsSync(p)) {
          throw new Error(
-            `Token not found for instance: ${instance}. Please provide it via the ${envVarName} environment variable or run 'xcc setup'.`
+            `Token not found for instance: ${instance}. Please provide it via the ${envVarName} environment variable or run 'caly setup'.`
          );
       }
       return fs.readFileSync(p, 'utf-8').trim();

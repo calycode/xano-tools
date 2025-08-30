@@ -1,5 +1,5 @@
 import { convertXanoSchemaToJsonSchema } from './convert-xano-schemas';
-import { metaApiGet } from '@mihalytoth20/xcc-utils';
+import { metaApiGet } from '@calycode/utils';
 
 // [ ] CORE
 async function generateTableSchemas({ instanceConfig, workspaceConfig, storage }) {

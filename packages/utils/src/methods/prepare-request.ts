@@ -1,5 +1,5 @@
 // --- Types ---
-import { Schema, PrepareRequestArgs, PreparedRequest } from '@mihalytoth20/xcc-types';
+import { Schema, PrepareRequestArgs, PreparedRequest } from '@calycode/types';
 
 /**
  * Prepares an HTTP request from OpenAPI specification parameters.

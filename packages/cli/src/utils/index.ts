@@ -7,3 +7,4 @@ export * from './methods/choose-api-group';
 export * from './methods/print-output-dir';
 export * from './methods/safe-version-control';
 export * from './methods/with-error-handler';
+export * from './methods/font';

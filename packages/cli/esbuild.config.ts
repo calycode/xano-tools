@@ -10,7 +10,7 @@ const distDir = resolve(__dirname, 'dist');
 
 (async () => {
    try {
-      intro('Bundling XCC with esbuild');
+      intro('Bundling Caly with esbuild');
 
       // Copy github actions
       await cp(resolve(rootDir, 'src/actions'), resolve(distDir, 'actions'), {

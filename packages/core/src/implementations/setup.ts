@@ -1,5 +1,5 @@
-import { ConfigStorage } from '@mihalytoth20/xcc-types';
-import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '@mihalytoth20/xcc-utils';
+import { ConfigStorage } from '@calycode/types';
+import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '@calycode/utils';
 
 // DEFAULT SETTINGS:
 const DEFAULT_LINT_RULES: Record<string, 'error' | 'warn' | 'off'> = {

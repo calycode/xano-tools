@@ -58,14 +58,14 @@ async function scaffoldRegistry(
          {
             path: `${componentsRoot}/functions/${functionFileName}`,
             type: 'registry:function',
-            target: `/xcc/${functionName}`,
+            target: `/caly/${functionName}`,
          },
       ],
    };
 
    const sampleIndex = {
       $schema: 'https://nextcurve.hu/schemas/registry/registry.json',
-      name: 'xano-community-registry',
+      name: 'caly-xano-registry',
       homepage: 'https://nextcurve.hu',
       items: [sampleRegistryItem],
    };

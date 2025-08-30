@@ -3,7 +3,7 @@ import {
    replacePlaceholders,
    joinPath,
    dirname,
-} from '@mihalytoth20/xcc-utils';
+} from '@calycode/utils';
 import {
    addApiGroupOptions,
    addFullContextOptions,

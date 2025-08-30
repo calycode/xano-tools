@@ -1,8 +1,8 @@
 packages:
-  - packages/*
+   - packages/*
 
 overrides:
-  '@mihalytoth20/xano-community-cli': link:../../../../Library/pnpm/global/5/node_modules/@mihalytoth20/xano-community-cli
-  '@mihalytoth20/xcc-core': link:packages/core
-  '@mihalytoth20/xcc-types': link:packages/types
-  '@mihalytoth20/xcc-utils': link:packages/utils
+   '@calycode/cli': link:../../../../Library/pnpm/global/5/node_modules/@calycode/cli
+   '@calycode/caly-core': link:packages/core
+   '@calycode/types': link:packages/types
+   '@calycode/utils': link:packages/utils

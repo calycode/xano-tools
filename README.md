@@ -1,21 +1,23 @@
 [//]: # 'ASCII art block for docs link'
 
 ```
-+----------------------------------------------------------------+
-|                                                                |
-|   ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
-|   ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
-|    ╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
-|    ██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
-|   ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
-|   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
-|                                                                |
-+----------------------------------------------------------------+
++-----------------------------------------------------------+
+|                                                           |
+|                                                           |
+|    ██████╗ █████╗ ██╗  ██╗   ██╗     ██████╗██╗     ██╗   |
+|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ██╔════╝██║     ██║   |
+|   ██║     ███████║██║   ╚████╔╝     ██║     ██║     ██║   |
+|   ██║     ██╔══██║██║    ╚██╔╝      ██║     ██║     ██║   |
+|   ╚██████╗██║  ██║███████╗██║       ╚██████╗███████╗██║   |
+|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝        ╚═════╝╚══════╝╚═╝   |
+|                                                           |
+|                                                           |
++-----------------------------------------------------------+
 ```
 
 [📚 **View Full CLI Documentation**](docs/README.md)
 
-# xano-community-cli
+# xano-tools
 
 **_(Work In Progress)_**
 
@@ -40,11 +42,11 @@
 
    -  Using pnpm (recommended):
       ```
-      pnpm exec xcc --help
+      pnpm exec caly --help
       ```
    -  Or using npx:
       ```
-      npx xcc --help
+      npx caly --help
       ```
 
 5. _(Optional)_ If you want the CLI globally available during development:
@@ -61,7 +63,7 @@
 
 You can use this CLI as a GitHub Action to automate your Xano workflows.
 
-Here is an example job that checks out your repository and uses the local composite action (`./dist/actions/master-action.yml`), which in turn securely downloads and runs the XCC CLI as npm package via the npx command.
+Here is an example job that checks out your repository and uses the local composite action (`./dist/actions/master-action.yml`), which in turn securely downloads and runs the Caly CLI as npm package via the npx command.
 
 ```yaml
 jobs:
@@ -105,7 +107,7 @@ I have been astonished by the shadcn/ui CLI and the core principles of code dist
 
 1. Scaffold the registry or build it manually by obeying the schemas (https://nextcurve.hu/schemas/registry/registry.json).
    ```
-   xcc registry-scaffold
+   caly registry-scaffold
    ```
 2. Serve your registry locally or host it on an object storage (or [advanced] recreate a Xano api that would deliver the required JSON objects on demand --> this could allow you to add auth as well)
 
@@ -115,9 +117,9 @@ I have been astonished by the shadcn/ui CLI and the core principles of code dist
 
    or use our script: `pnpm run serve-registry`
 
-3. Use the registry and it's content in `xcc`
+3. Use the registry and it's content in `caly`
    ```
-   xcc registry-add --components <coma separated component names> --registry <registry url>
+   caly registry-add --components <coma separated component names> --registry <registry url>
    ```
 
 > **Note:**

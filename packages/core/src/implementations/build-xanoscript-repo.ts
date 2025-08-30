@@ -1,6 +1,6 @@
-import { metaApiGet, sanitizeFileName } from '@mihalytoth20/xcc-utils';
+import { metaApiGet, sanitizeFileName } from '@calycode/utils';
 import type { XCC } from '..';
-import type { CoreContext } from '@mihalytoth20/xcc-types';
+import type { CoreContext } from '@calycode/types';
 
 async function fetchAndProcessEntities({
    baseUrl,

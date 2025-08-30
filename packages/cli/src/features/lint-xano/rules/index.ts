@@ -1,5 +1,5 @@
 // src/lint-xano/rules/index.js
-import { isNotEmpty } from '@mihalytoth20/xcc-utils';
+import { isNotEmpty } from '@calycode/utils';
 
 const VALID_HEADERS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD']);
 

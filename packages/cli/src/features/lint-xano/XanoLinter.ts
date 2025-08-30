@@ -1,6 +1,6 @@
 // src/lint-xano/XanoLinter.js
 import { availableRules } from './rules/index';
-import { isNotEmpty } from '@mihalytoth20/xcc-utils';
+import { isNotEmpty } from '@calycode/utils';
 
 // ----- Linting rule functions -----
 async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = obj) {
@@ -34,9 +34,9 @@ async function lintObject(obj, errors, ruleConfig, parentKey = '', parentObj = o
 
       const additionalRules = [
          {
-            condition: () => parentKey.includes('search.expression') && 
-                           parentKey.includes('statement.left') && 
-                           key === 'filters' && 
+            condition: () => parentKey.includes('search.expression') &&
+                           parentKey.includes('statement.left') &&
+                           key === 'filters' &&
                            Array.isArray(value) && value.length > 0,
             message: `Database query left operand should not have filters in "${obj.index ?? ''} ${obj.name} ${obj.as ?? ''}".`,
             rule: "DB queries: Don't put filters in left operand"

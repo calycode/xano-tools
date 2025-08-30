@@ -1,5 +1,5 @@
 // core/config.ts
-import { ConfigStorage, InstanceConfig, WorkspaceConfig, BranchConfig, Context } from '@mihalytoth20/xcc-types';
+import { ConfigStorage, InstanceConfig, WorkspaceConfig, BranchConfig, Context } from '@calycode/types';
 import { getCurrentContextConfigImplementation } from './get-current-context';
 
 function assignDefined<T>(base: T, overrides: Partial<T>): T {

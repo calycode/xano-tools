@@ -1,4 +1,4 @@
-import { metaApiGet, metaApiPost } from '@mihalytoth20/xcc-utils';
+import { metaApiGet, metaApiPost } from '@calycode/utils';
 import { getRegistryIndex } from '../../index';
 
 // [ ] CLI, whole file

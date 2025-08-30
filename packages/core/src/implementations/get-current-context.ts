@@ -6,7 +6,7 @@ import {
    ApiGroupConfig,
    CurrentContextConfig,
    ConfigStorage,
-} from '@mihalytoth20/xcc-types';
+} from '@calycode/types';
 
 // [ ] CORE, needs fs
 /**

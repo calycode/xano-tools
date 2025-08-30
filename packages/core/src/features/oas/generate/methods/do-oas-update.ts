@@ -1,4 +1,4 @@
-import { joinPath } from '@mihalytoth20/xcc-utils';
+import { joinPath } from '@calycode/utils';
 import { patchOasSpec } from './index';
 
 interface GeneratedItem {

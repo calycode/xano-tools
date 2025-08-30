@@ -1,7 +1,7 @@
 {
-    "name": "@mihalytoth20/xcc-utils",
+    "name": "@calycode/utils",
     "version": "0.1.0",
-    "description": "Utility functions and helpers for the Xano Community CLI ecosystem",
+    "description": "Utility functions and helpers for the Caly Xano tooling ecosystem",
     "keywords": [
         "xano",
         "cli",
@@ -23,15 +23,15 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "url": "https://github.com/calycode/xano-tools.git",
         "directory": "packages/utils"
     },
     "bugs": {
-        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+        "url": "https://github.com/calycode/xano-tools/issues"
     },
-    "homepage": "https://github.com/MihalyToth20/xano-community-cli/tree/main/packages/utils#readme",
+    "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/utils#readme",
     "dependencies": {
-        "@mihalytoth20/xcc-types": "workspace:*"
+        "@calycode/types": "workspace:*"
     },
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",

@@ -1,7 +1,7 @@
 {
-    "name": "@mihalytoth20/xano-community-cli",
+    "name": "@calycode/cli",
     "version": "0.1.1",
-    "description": "Command-line interface for the Xano Community CLI providing terminal access to Xano workflows",
+    "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "keywords": [
         "xano",
         "cli",
@@ -13,7 +13,7 @@
         "developer-tools"
     ],
     "bin": {
-        "xcc": "dist/index.cjs"
+        "caly": "dist/index.cjs"
     },
     "main": "dist/index.cjs",
     "type": "module",
@@ -26,19 +26,18 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/MihalyToth20/xano-community-cli.git",
+        "url": "https://github.com/calycode/xano-tools.git",
         "directory": "packages/cli"
     },
     "bugs": {
-        "url": "https://github.com/MihalyToth20/xano-community-cli/issues"
+        "url": "https://github.com/calycode/xano-tools/issues"
     },
-    "homepage": "https://github.com/MihalyToth20/xano-community-cli/tree/main/packages/cli#readme",
+    "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/cli#readme",
     "dependencies": {
         "@clack/prompts": "^0.11.0",
-        "@mihalytoth20/xcc-core": "workspace:*",
-        "@mihalytoth20/xcc-types": "workspace:*",
-        "@mihalytoth20/xcc-utils": "workspace:*",
-        "chalk": "^5.4.1",
+        "@calycode/caly-core": "workspace:*",
+        "@calycode/types": "workspace:*",
+        "@calycode/utils": "workspace:*",
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
         "tar": "^7.4.3",
@@ -49,7 +48,7 @@
         "build:js": "tsx esbuild.config.ts",
         "build:chmod": "shx chmod +x dist/index.cjs",
         "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
-        "xcc": "node dist/index.cjs"
+        "caly": "node dist/index.cjs"
     },
     "devDependencies": {
         "shx": "^0.4.0"
