@@ -48,7 +48,7 @@ async function fetchAndProcessEntities({
           "description" = "Xanoscript fetching failed with message: ${xanoscript.message}"
       }
       `;
-      tempResults.push({ path: `${path}/script.xs`, content: xanoScriptContent });
+      tempResults.push({ path: `${path}/script.freezed.xs`, content: xanoScriptContent });
    }
 
    return tempResults;

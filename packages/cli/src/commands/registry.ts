@@ -2,7 +2,6 @@ import { intro, log } from '@clack/prompts';
 import {
    addFullContextOptions,
    fetchRegistryFileContent,
-   getApiGroupByName,
    getRegistryItem,
    promptForComponents,
    scaffoldRegistry,
@@ -33,23 +32,24 @@ async function addToXano(
          const registryItem = await getRegistryItem(componentName);
          const sortedFiles = sortFilesByType(registryItem.files);
          for (const file of sortedFiles) {
-            const success = await installComponentToXano(
-               file,
-               {
-                  instanceConfig,
-                  workspaceConfig,
-                  branchConfig,
-               },
-               core
-            );
-            if (success)
+            // extract into the 'content' key
+            file.content = await fetchRegistryFileContent(file.path);
+
+            const success = await core.installXanoscriptToXano(file, {
+               instance: instanceConfig.name,
+               workspace: workspaceConfig.name,
+               branch: branchConfig.label,
+            });
+
+            if (success) {
                results.installed.push({ component: componentName, file: file.target || file.path });
-            else
+            } else {
                results.failed.push({
                   component: componentName,
                   file: file.target || file.path,
                   error: 'Installation failed',
                });
+            }
          }
          log.step(`Installed: ${componentName}`);
       } catch (error) {
@@ -57,64 +57,6 @@ async function addToXano(
       }
    }
    return results;
-}
-
-// [ ] CORE
-/**
- * Function that creates the required components in Xano.
- *
- * @param {*} file
- * @param {*} resolvedContext
- * @returns {Boolean} - success: true, failure: false
- */
-async function installComponentToXano(file, resolvedContext, core) {
-   const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
-
-   const urlMapping = {
-      'registry:function': `workspace/${workspaceConfig.id}/function?branch=${branchConfig.label}`,
-      'registry:table': `workspace/${workspaceConfig.id}/table`,
-   };
-
-   // If query, extend the default urlMapping with the populated query creation API group.
-   if (file.type === 'registry:query') {
-      const targetApiGroup = await getApiGroupByName(
-         file['api-group-name'],
-         {
-            instanceConfig,
-            workspaceConfig,
-            branchConfig,
-         },
-         core
-      );
-
-      urlMapping[
-         'registry:query'
-      ] = `workspace/${workspaceConfig.id}/apigroup/${targetApiGroup.id}/api?branch=${branchConfig.label}`;
-   }
-
-   const xanoToken = await core.loadToken(instanceConfig.name);
-   const xanoApiUrl = `${instanceConfig.url}/api:meta`;
-
-   try {
-      // [ ] TODO: implement override checking. For now just try the POST and Xano will throw error anyways...
-
-      // Fetch the text content of the registry file (xano-script)
-      const content = await fetchRegistryFileContent(file.path);
-
-      const response = await fetch(`${xanoApiUrl}/${urlMapping[file.type]}`, {
-         method: 'POST',
-         headers: {
-            Authorization: `Bearer ${xanoToken}`,
-            'Content-Type': 'text/x-xanoscript',
-         },
-         body: content,
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      return true;
-   } catch (error) {
-      console.error(`Failed to install ${file.target || file.path}:`, error);
-      return false;
-   }
 }
 
 // [ ] CLI

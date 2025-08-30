@@ -18,6 +18,7 @@ import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
+import { installComponentToXanoImplementation } from './implementations/install-xs-to-xano';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
@@ -233,6 +234,16 @@ export class Caly extends TypedEmitter<EventMap> {
          branch,
       });
       return response;
+   }
+
+   /**
+    * Upload xanoscript to Xano.
+    * @param file - an object containing xs metadata and the content, matching the 'xs-registry-item > file schema'
+    * @param options: CoreContext
+    * @returns Promise<void>
+    */
+   async installXanoscriptToXano(file: any, options: CoreContext): Promise<void> {
+      return installComponentToXanoImplementation({ file, core: this, rawContext: options });
    }
 
    /**
