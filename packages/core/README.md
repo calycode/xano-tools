@@ -4,7 +4,7 @@ Core functionality for the Caly CLI providing programmatic access to Xano develo
 
 ## Overview
 
-The core package provides the main `XCC` class that orchestrates all Xano operations including:
+The core package provides the main `Caly` class that orchestrates all Xano operations including:
 - Instance setup and configuration management
 - OpenAPI specification generation
 - Workspace backup and restore operations
@@ -37,14 +37,14 @@ The core package provides the main `XCC` class that orchestrates all Xano operat
 ### Basic Setup
 
 ```typescript
-import { XCC } from '@calycode/caly-core';
+import { Caly } from '@calycode/caly-core';
 // Implement your own storage interface based on the platform you're using
 import { nodeConfigStorage } from '@calycode/cli';
 
-const xcc = new XCC(nodeConfigStorage);
+const calyInstance = new Caly(nodeConfigStorage);
 
 // Setup a new Xano instance
-await xcc.setupInstance({
+await calyInstance.setupInstance({
   name: 'production',
   url: 'https://x123.xano.io',
   apiKey: 'your-metadata-api-key'
@@ -55,14 +55,14 @@ await xcc.setupInstance({
 
 ```typescript
 // Switch to a different context
-await xcc.switchContext({
+await calyInstance.switchContext({
   instance: 'staging',
   workspace: 'main',
   branch: 'develop'
 });
 
 // Load and validate context
-const context = await xcc.loadAndValidateContext({
+const context = await calyInstance.loadAndValidateContext({
   instance: 'production',
   workspace: 'main',
   branch: 'master'
@@ -73,7 +73,7 @@ const context = await xcc.loadAndValidateContext({
 
 ```typescript
 // Generate OAS for specific API groups
-const results = await xcc.updateOpenapiSpec(
+const results = await calyInstance.updateOpenapiSpec(
   'production',
   'main',
   'master',
@@ -81,7 +81,7 @@ const results = await xcc.updateOpenapiSpec(
 );
 
 // Generate OAS for all API groups
-const allResults = await xcc.updateOpenapiSpec(
+const allResults = await calyInstance.updateOpenapiSpec(
   'production',
   'main',
   'master',
@@ -93,7 +93,7 @@ const allResults = await xcc.updateOpenapiSpec(
 
 ```typescript
 // Export workspace backup
-const backupData = await xcc.exportBackup({
+const backupData = await calyInstance.exportBackup({
   instance: 'production',
   workspace: 'main',
   branch: 'master'
@@ -103,7 +103,7 @@ const backupData = await xcc.exportBackup({
 const formData = new FormData();
 formData.append('backup', backupFile);
 
-await xcc.restoreBackup({
+await calyInstance.restoreBackup({
   instance: 'staging',
   workspace: 'main',
   formData: formData
@@ -114,22 +114,22 @@ await xcc.restoreBackup({
 
 ```typescript
 // Listen for events
-xcc.on('setup-progress', (data) => {
+calyInstance.on('setup-progress', (data) => {
   console.log('Setup progress:', data.message);
 });
 
-xcc.on('oas-generated', (data) => {
+calyInstance.on('oas-generated', (data) => {
   console.log('OAS generated for group:', data.group);
 });
 ```
 
 ## Architecture
 
-The XCC class extends `TypedEmitter` to provide a type-safe event system. All operations emit events that can be consumed by CLI interfaces or other integrations.
+The Caly class extends `TypedEmitter` to provide a type-safe event system. All operations emit events that can be consumed by CLI interfaces or other integrations.
 
 ### Storage Abstraction
 
-XCC uses a `ConfigStorage` interface to abstract filesystem operations, allowing it to work in different environments (Node.js, browser, etc.). This means that you **need** to implement your own storage implementation to use the XCC class.
+Caly uses a `ConfigStorage` interface to abstract filesystem operations, allowing it to work in different environments (Node.js, browser, etc.). This means that you **need** to implement your own storage implementation to use the Caly class.
 
 ### Error Handling
 

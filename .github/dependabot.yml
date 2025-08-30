@@ -5,7 +5,20 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
+   - package-ecosystem: 'npm'
+     directory: '/'
+     schedule:
+        interval: 'weekly'
+        day: 'saturday'
+        time: '11:00'
+        timezone: 'Europe/Vienna'
+     open-pull-requests-limit: 10
+     assignees:
+        - 'MihalyToth20'
+     labels:
+        - 'dependencies'
+     commit-message:
+        prefix: 'chore'
+        include: 'scope'
+     rebase-strategy: 'auto'
+     versioning-strategy: 'increase'

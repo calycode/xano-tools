@@ -1,5 +1,5 @@
 ```
-Usage: xcc lint [options]
+Usage: caly lint [options]
 
 Lint backend logic, based on provided local file. Remote and dynamic sources are WIP...
 

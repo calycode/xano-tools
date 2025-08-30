@@ -12,6 +12,12 @@
     ],
     "main": "dist/index.cjs",
     "module": "dist/index.js",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        }
+    },
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [

@@ -1,5 +1,5 @@
 ```
-Usage: xcc setup [options]
+Usage: caly setup [options]
 
 Setup Xano instance configurations (interactively or via flags)
 

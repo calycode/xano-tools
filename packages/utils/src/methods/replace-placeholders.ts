@@ -5,19 +5,19 @@
  * @param template - The template (string, array, or object) containing {placeholder} patterns
  * @param replacements - Key-value pairs for replacement (keys are case-insensitive)
  * @returns The template with all placeholders replaced by corresponding values
- * 
+ *
  * @example
  * ```typescript
  * // String replacement
  * const result = replacePlaceholders(
  *   'Hello {name}, welcome to {app}!',
- *   { name: 'John', app: 'XCC' }
+ *   { name: 'John', app: 'Caly' }
  * );
- * // Returns: 'Hello John, welcome to XCC!'
- * 
+ * // Returns: 'Hello John, welcome to Caly!'
+ *
  * // Object replacement
  * const config = replacePlaceholders(
- *   { 
+ *   {
  *     url: 'https://{instance}.xano.io/api/{version}',
  *     headers: { 'X-Branch': '{branch}' }
  *   },

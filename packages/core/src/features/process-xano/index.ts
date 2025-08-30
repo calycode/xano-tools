@@ -1,7 +1,7 @@
 import { processItem } from './core/processItem';
 import { sanitizeFileName } from '@calycode/utils';
 import { generateStructureDiagrams } from './core/generate-structure-diagrams';
-import type { XCC } from '../../';
+import type { Caly } from '../../';
 
 const buildMapping = (entities, keyBuilder) =>
    Array.isArray(entities)
@@ -12,7 +12,7 @@ const buildMapping = (entities, keyBuilder) =>
         }, {})
       : {};
 
-async function rebuildDirectoryStructure(jsonData, core: XCC) {
+async function rebuildDirectoryStructure(jsonData, core: Caly) {
    const { dbo, app, query, function: func, addon, trigger, task, middleware } = jsonData.payload;
 
    core.emit('start', { name: 'generate-repo', payload: null });

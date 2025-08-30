@@ -22,7 +22,7 @@ async function generateCliDocs() {
 
    // 2. Generate main help
    const mainHelp = stripAnsi(program.helpInformation());
-   writeFileSync('docs/xcc.md', '```\n' + mainHelp.trim() + '\n```');
+   writeFileSync('docs/caly-cli.md', '```\n' + mainHelp.trim() + '\n```');
    console.log('Generated main help.');
 
    // 3. Generate docs for each command and collect their names
@@ -37,7 +37,7 @@ async function generateCliDocs() {
       '',
       '## Table of Contents',
       '',
-      '- [xcc - the core commmand](xcc.md)',
+      '- [caly - the core commmand](caly-cli.md)',
       '#### Commands: ',
       ...commandNames.map((name) => `- [${name}](commands/${name}.md)`),
       '',

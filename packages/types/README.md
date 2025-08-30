@@ -18,7 +18,7 @@ This package provides comprehensive TypeScript types for:
 - **`WorkspaceConfig`** - Workspace metadata and branch listings
 - **`BranchConfig`** - Branch identification and metadata
 - **`Context`** - Operational context specification
-- **`GlobalConfig`** - Global XCC configuration structure
+- **`GlobalConfig`** - Global Caly configuration structure
 
 ### API Types
 
@@ -34,8 +34,8 @@ This package provides comprehensive TypeScript types for:
 
 ### Event System
 
-- **`EventMap`** - Type-safe event definitions for XCC operations
-- **`XCCEvents`** - Specific event types emitted by XCC core
+- **`EventMap`** - Type-safe event definitions for Caly operations
+- **`CalyEvents`** - Specific event types emitted by Caly core
 
 ## Usage
 
@@ -65,7 +65,7 @@ class MyStorage implements ConfigStorage {
 
 ## Installation
 
-This package is typically installed as a dependency of other XCC packages and doesn't need to be installed directly.
+This package is typically installed as a dependency of other Caly packages and doesn't need to be installed directly.
 
 ```bash
 npm install @calycode/types
