@@ -37,7 +37,7 @@
       "esbuild": "^0.25.9",
       "eslint": "^9.34.0",
       "eslint-plugin-import": "^2.32.0",
-      "knip": "^5.62.0",
+      "knip": "^5.63.0",
       "rollup": "^4.49.0",
       "rollup-plugin-dts": "^6.2.3",
       "strip-ansi": "^7.1.0",
