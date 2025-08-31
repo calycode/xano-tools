@@ -3,7 +3,7 @@ import type { Caly } from '..';
 import { ApiGroup } from '@calycode/types';
 
 async function updateOpenapiSpecImplementation(
-   storage: Caly["storage"],
+   storage: Caly['storage'],
    core: Caly,
    options: {
       instance: string;
@@ -23,28 +23,31 @@ async function updateOpenapiSpecImplementation(
    });
 
    try {
-      const results = [];
-      for (const [i, grp] of options.groups.entries()) {
-         core.emit('progress', {
-            name: 'progress-updateoas',
-            payload: grp,
-            message: `Processing group: ${grp.name}`,
-            step: i + 1,
-            totalSteps: options.groups.length,
-            percent: Math.round(((i + 1) / options.groups.length) * 100),
-         });
+      // PARALLELIZE: process all groups concurrently
+      const results = await Promise.all(
+         options.groups.map(async (grp, i) => {
+            core.emit('progress', {
+               name: 'progress-updateoas',
+               payload: grp,
+               message: `Processing group: ${grp.name}`,
+               step: i + 1,
+               totalSteps: options.groups.length,
+               percent: Math.round(((i + 1) / options.groups.length) * 100),
+            });
 
-         const { oas, generatedItems } = await updateSpecForGroup({
-            group: grp,
-            instanceConfig,
-            workspaceConfig,
-            branchConfig,
-            storage,
-            core,
-         });
+            const { oas, generatedItems } = await updateSpecForGroup({
+               group: grp,
+               instanceConfig,
+               workspaceConfig,
+               branchConfig,
+               storage,
+               core,
+            });
 
-         results.push({ group: grp.name, oas, generatedItems });
-      }
+            return { group: grp.name, oas, generatedItems };
+         })
+      );
+
       core.emit('end', { name: 'end-updateoas', payload: results });
       return results;
    } catch (err) {
