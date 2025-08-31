@@ -2,6 +2,10 @@
     "name": "@calycode/caly-xano-cli",
     "version": "0.1.1",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
+    "publishConfig": {
+        "access": "restricted",
+        "tag": "latest"
+    },
     "keywords": [
         "calycode",
         "xano",
