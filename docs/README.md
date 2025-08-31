@@ -1,26 +1,23 @@
-# Caly Xano CLI Command Reference
+# Caly-Xano CLI Command Reference
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.
 
 ## Table of Contents
 
-- [caly - the core commmand](caly-cli.md)
+- [caly-xano - the core commmand](caly-xano-cli.md)
 #### Commands: 
 - [setup](commands/setup.md)
 - [switch-context](commands/switch-context.md)
 - [generate-oas](commands/generate-oas.md)
-- [oas-serve](commands/oas-serve.md)
+- [serve-oas](commands/serve-oas.md)
 - [generate-code](commands/generate-code.md)
 - [generate-repo](commands/generate-repo.md)
 - [generate-xs-repo](commands/generate-xs-repo.md)
-- [generate-functions](commands/generate-functions.md)
 - [registry-add](commands/registry-add.md)
 - [registry-scaffold](commands/registry-scaffold.md)
-- [registry-serve](commands/registry-serve.md)
+- [serve-registry](commands/serve-registry.md)
 - [export-backup](commands/export-backup.md)
 - [restore-backup](commands/restore-backup.md)
-- [lint](commands/lint.md)
-- [test-via-oas](commands/test-via-oas.md)
 - [current-context](commands/current-context.md)
 
-Need further help? Visit https://github.com/calycode/xano-tools or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/snappy)
+Need further help? Visit https://github.com/calycode/xano-tools or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/@mihaly-toth-2040?g=snappy)

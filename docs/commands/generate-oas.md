@@ -1,5 +1,5 @@
 ```
-Usage: caly generate-oas [options]
+Usage: caly-xano generate-oas [options]
 
 Update and generate OpenAPI spec(s) for the current context.
 

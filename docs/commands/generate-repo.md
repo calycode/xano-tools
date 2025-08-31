@@ -1,5 +1,5 @@
 ```
-Usage: caly generate-repo [options]
+Usage: caly-xano generate-repo [options]
 
 Process Xano workspace into repo structure
 

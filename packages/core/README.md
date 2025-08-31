@@ -1,6 +1,6 @@
 # @calycode/caly-core
 
-Core functionality for the Caly CLI providing programmatic access to Xano development workflows.
+Core functionality for the Caly-Xano CLI providing programmatic access to Xano development workflows.
 
 ## Overview
 
@@ -39,7 +39,7 @@ The core package provides the main `Caly` class that orchestrates all Xano opera
 ```typescript
 import { Caly } from '@calycode/caly-core';
 // Implement your own storage interface based on the platform you're using
-import { nodeConfigStorage } from '@calycode/cli';
+import { nodeConfigStorage } from '@calycode/caly-xano-cli';
 
 const calyInstance = new Caly(nodeConfigStorage);
 

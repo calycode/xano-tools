@@ -1,5 +1,5 @@
 ```
-Usage: caly switch-context [options]
+Usage: caly-xano switch-context [options]
 
 Switch instance/workspace context
 

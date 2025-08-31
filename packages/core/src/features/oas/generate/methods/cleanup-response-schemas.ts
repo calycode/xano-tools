@@ -1,8 +1,34 @@
 // TODO: add in the [path][method]['200'] to expected schemas mapping...
-// [ ] CORE, needs yielding
+// -------- UTILS ----------
+function toPascalCase(str) {
+   return str
+      .split(/[_-]/)
+      .filter(Boolean)
+      .map((text: string) => text.charAt(0).toUpperCase() + text.slice(1))
+      .join('');
+}
+
+function generateOperationId(method: string, path: string) {
+   let opId = method.toLowerCase();
+   let byParams: string[] = [];
+
+   const segments = path.replace(/^\/|\/$/g, '').split('/');
+
+   segments.forEach((segment: string) => {
+      if (/^\{.+\}$/.test(segment)) {
+         const param = segment.slice(1, -1);
+         byParams.push('By' + toPascalCase(param));
+      } else {
+         opId += toPascalCase(segment);
+      }
+   });
+
+   return opId + byParams.join('');
+}
+
 /**
  * Recursively normalize an old OAS schema to JSON Schema 2020-12 compliance.
- * @param schema The input (possibly legacy) schema object.
+ * @param schema The input schema object.
  * @returns The normalized JSON Schema 2020-12 object.
  */
 function normalizeToJsonSchema(schema) {
@@ -75,16 +101,19 @@ function normalizeToJsonSchema(schema) {
       }
    });
 
-   // Remove legacy/unknown fields if needed (optional)
-   // delete out.nullable; // already handled above
-
    return out;
 }
 
-function cleanupResponseSchemas(oas) {
+/**
+ * Cleanup and normalize response schemas in an OAS document.
+ * @param {object} oas - The OpenAPI specification object.
+ * @param {object} [customSchemas] - Optional mapping: { 'GET:/path': schema, ... }, useful when you define schemas for your queries
+ * @returns {object} The cleaned OpenAPI spec.
+ */
+function cleanupResponseSchemas(oas, customSchemas = {}) {
    const spec = oas;
 
-   const queryToSchemaMap = new Map([]);
+   const queryToSchemaMap = new Map(Object.entries(customSchemas));
 
    Object.entries(spec.paths).forEach(([path, pathItem]) => {
       Object.entries(pathItem).forEach(([method, methodItem]) => {
@@ -93,6 +122,7 @@ function cleanupResponseSchemas(oas) {
 
          // Fix the summary:
          methodItem.summary = mapKey;
+         methodItem.operationId = generateOperationId(method, path);
 
          // Fix requestBody schema
          if (methodItem.requestBody?.content?.['application/json']?.schema) {

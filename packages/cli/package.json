@@ -1,8 +1,9 @@
 {
-    "name": "@calycode/cli",
+    "name": "@calycode/caly-xano-cli",
     "version": "0.1.1",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "keywords": [
+        "calycode",
         "xano",
         "cli",
         "command-line",
@@ -13,7 +14,7 @@
         "developer-tools"
     ],
     "bin": {
-        "caly": "dist/index.cjs"
+        "caly-xano": "dist/index.cjs"
     },
     "main": "dist/index.cjs",
     "type": "module",

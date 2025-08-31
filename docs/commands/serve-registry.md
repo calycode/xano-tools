@@ -1,5 +1,5 @@
 ```
-Usage: caly registry-serve [options]
+Usage: caly-xano serve-registry [options]
 
 Serve the registry locally. This allows you to actually use your registry without deploying it.
 

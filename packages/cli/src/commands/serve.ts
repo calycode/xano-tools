@@ -79,7 +79,7 @@ function serveRegistry({ root = 'registry', listen = 5000, cors = false }) {
 // [ ] CLI
 function registerRegistryServeCommand(program) {
    program
-      .command('registry-serve')
+      .command('serve-registry')
       .description(
          'Serve the registry locally. This allows you to actually use your registry without deploying it.'
       )
@@ -101,7 +101,7 @@ function registerRegistryServeCommand(program) {
 // [ ] CLI
 function registerOasServeCommand(program, core) {
    const cmd = program
-      .command('oas-serve')
+      .command('serve-oas')
       .description('Serve the Open API specification locally for quick visual check.');
    addFullContextOptions(cmd);
    addApiGroupOptions(cmd);

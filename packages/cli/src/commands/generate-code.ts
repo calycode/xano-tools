@@ -1,5 +1,5 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { metaApiGet, normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
+import { metaApiGet, normalizeApiGroupName, replacePlaceholders, dirname } from '@calycode/utils';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -69,13 +69,17 @@ async function generateCodeFromOas(
       });
 
       // Prepare for better usability
-      await core.doOasUpdate({
+      const { oas } = await core.doOasUpdate({
          inputOas: openapiRaw,
          outputDir: outputPath,
          instanceConfig,
          workspaceConfig,
          storage: core.storage,
       });
+
+      // Create a temp file for the oas to reuse:
+      await core.storage.mkdir(outputPath, { recursive: true });
+      await core.storage.writeFile(`${outputPath}/spec.json`, JSON.stringify(oas, null, 2));
 
       try {
          await runOpenApiGenerator({
@@ -141,7 +145,7 @@ function registerGenerateCodeCommand(program, core) {
                opts.all,
                stack,
                opts.debug,
-               opts.printOutput,
+               opts.printOutputDir,
                core
             );
          })

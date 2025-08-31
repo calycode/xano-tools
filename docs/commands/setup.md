@@ -1,5 +1,5 @@
 ```
-Usage: caly setup [options]
+Usage: caly-xano setup [options]
 
 Setup Xano instance configurations (interactively or via flags)
 

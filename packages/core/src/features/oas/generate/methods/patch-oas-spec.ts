@@ -1,13 +1,17 @@
 import { cleanupResponseSchemas } from './cleanup-response-schemas';
 import { generateTableSchemas } from '..';
 
-// [ ] CORE
-export default async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
+async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
+
    const newOas = { ...oas };
    const tableSchemas = await generateTableSchemas({ instanceConfig, workspaceConfig, storage });
+
    newOas.openapi = '3.1.1';
+
    newOas.components = {
+
       ...(oas.components ?? {}),
+
       responses: {
          AccessDenied: {
             content: {
@@ -39,7 +43,6 @@ export default async function patchOasSpec({ oas, instanceConfig, workspaceConfi
             },
             description: 'A generic server error.',
          },
-
          TooManyRequests: {
             content: {
                'application/json': {
@@ -50,7 +53,6 @@ export default async function patchOasSpec({ oas, instanceConfig, workspaceConfi
             },
             description: 'Hit quota limits.',
          },
-
          NotFound: {
             content: {
                'application/json': {
@@ -61,7 +63,6 @@ export default async function patchOasSpec({ oas, instanceConfig, workspaceConfi
             },
             description: 'The requested resource cannot be found.',
          },
-
          BadRequest: {
             content: {
                'application/json': {
@@ -73,6 +74,7 @@ export default async function patchOasSpec({ oas, instanceConfig, workspaceConfi
             description: 'The provided inputs are not correct.',
          },
       },
+
       schemas: {
          ...(oas.schemas ?? {}),
          'Errors.AccessDenied': {
@@ -215,14 +217,22 @@ export default async function patchOasSpec({ oas, instanceConfig, workspaceConfi
          },
          ...tableSchemas,
       },
+
+      securitySchemes: {
+         ...(newOas.components.securitySchemes ?? {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+         }),
+      },
+
    };
-   newOas.components.securitySchemes = newOas.components.securitySchemes || {};
-   newOas.components.securitySchemes.bearerAuth = {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-   };
+
    newOas.security = newOas.security || [{ bearerAuth: [] }];
+
    const oasWithPatchedResponseSchemas = cleanupResponseSchemas(newOas);
+
    return oasWithPatchedResponseSchemas;
 }
+
+export { patchOasSpec }
