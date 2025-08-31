@@ -1,5 +1,5 @@
 ```
-Usage: caly registry-add [options]
+Usage: caly-xano registry-add [options]
 
 Add a prebuilt component to the current Xano context.
 

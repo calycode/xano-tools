@@ -1,5 +1,5 @@
 ```
-Usage: caly oas-serve [options]
+Usage: caly-xano serve-oas [options]
 
 Serve the Open API specification locally for quick visual check.
 

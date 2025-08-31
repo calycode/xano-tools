@@ -1,5 +1,5 @@
 ```
-Usage: caly restore-backup [options]
+Usage: caly-xano restore-backup [options]
 
 Restore a backup to a Xano Workspace via Metadata API
 

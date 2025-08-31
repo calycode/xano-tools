@@ -1,5 +1,5 @@
 ```
-Usage: caly export-backup [options]
+Usage: caly-xano export-backup [options]
 
 Backup Xano Workspace via Metadata API
 
