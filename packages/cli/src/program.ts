@@ -5,13 +5,13 @@ import pkg from '../../../package.json' with {type: "json"};
 // Import commands:
 import { registerCurrentContextCommand, registerSwitchContextCommand } from './commands/context';
 import { registerExportBackupCommand, registerRestoreBackupCommand } from './commands/backups';
-import { registerFetchFunctionsInXanoScript } from './commands/analyze';
+//import { registerFetchFunctionsInXanoScript } from './commands/analyze';
 import { registerGenerateCodeCommand } from './commands/generate-code';
 import { registerGenerateOasCommand } from './commands/generate-oas';
 import { registerGenerateRepoCommand } from './commands/generate-repo';
-import { registerLintCommand } from './commands/run-lint';
+//import { registerLintCommand } from './commands/run-lint';
 import { registerSetupCommand } from './commands/setup-instance';
-import { registerTestViaOasCommand } from './commands/run-tests';
+//import { registerTestViaOasCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
@@ -83,14 +83,14 @@ registerOasServeCommand(program, core);
 registerGenerateCodeCommand(program, core);
 registerGenerateRepoCommand(program, core);
 registerBuildXanoscriptRepoCommand(program, core);
-registerFetchFunctionsInXanoScript(program, core);
+//registerFetchFunctionsInXanoScript(program, core);
 registerRegistryAddCommand(program, core);
 registerRegistryScaffoldCommand(program, core);
 registerRegistryServeCommand(program);
 registerExportBackupCommand(program, core);
 registerRestoreBackupCommand(program, core);
-registerLintCommand(program, core);
-registerTestViaOasCommand(program, core);
+//registerLintCommand(program, core);
+//registerTestViaOasCommand(program, core);
 registerCurrentContextCommand(program, core);
 
 // --- Custom Help Formatter ---
