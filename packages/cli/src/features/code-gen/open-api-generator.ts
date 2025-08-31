@@ -1,7 +1,6 @@
 import { spawn } from 'child_process';
-import { resolve, join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { existsSync, mkdirSync, createWriteStream } from 'fs';
+import { resolve, join } from 'path';
+import { mkdirSync, createWriteStream } from 'fs';
 
 // [ ] CLI only feature
 export function runOpenApiGenerator({
@@ -12,18 +11,13 @@ export function runOpenApiGenerator({
    logger = false, // If true, log to file, else discard logs
 }) {
    return new Promise((resolvePromise, reject) => {
-
-      const myDirname =
-         typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
-      const cliBase = join(myDirname, '../../../../node_modules/.bin/openapi-generator-cli');
-      const winBin = `${cliBase}.cmd`;
-      const localBin = process.platform === 'win32' ? winBin : cliBase;
-      const useLocalBin = existsSync(localBin);
-
+      // Always use npx and the official package
+      const cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
       const inputPath = resolve(input).replace(/\\/g, '/');
       const outputPath = resolve(output);
 
-      const baseArgs = [
+      const cliArgs = [
+         '@openapitools/openapi-generator-cli',
          'generate',
          '-i',
          inputPath,
@@ -33,18 +27,6 @@ export function runOpenApiGenerator({
          outputPath,
          ...additionalArgs,
       ].filter(Boolean);
-
-      let cliBin;
-      let cliArgs;
-
-      if (useLocalBin) {
-         cliBin = localBin;
-         cliArgs = baseArgs;
-      } else {
-         // Fallback to npx if local bin doesn't exist
-         cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-         cliArgs = ['openapi-generator-cli', ...baseArgs];
-      }
 
       let logStream = null;
       let logPath = null;
@@ -65,7 +47,6 @@ export function runOpenApiGenerator({
          proc.stdout.pipe(logStream);
          proc.stderr.pipe(logStream);
       } else {
-         // Discard output by piping to /dev/null (or just do nothing)
          proc.stdout.resume(); // prevent backpressure
          proc.stderr.resume();
       }
