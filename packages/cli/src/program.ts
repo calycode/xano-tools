@@ -47,23 +47,21 @@ program.hook('postAction', (thisCommand, actionCommand) => {
 });
 
 program
-  .name('caly')
+  .name('caly-xano')
   .version(version, '-v, --version', 'output the version number')
   .usage('<command> [options]')
   .description(
     font.color.cyan(`
-+-----------------------------------------------------------+
-|                                                           |
-|                                                           |
-|    ██████╗ █████╗ ██╗  ██╗   ██╗     ██████╗██╗     ██╗   |
-|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ██╔════╝██║     ██║   |
-|   ██║     ███████║██║   ╚████╔╝     ██║     ██║     ██║   |
-|   ██║     ██╔══██║██║    ╚██╔╝      ██║     ██║     ██║   |
-|   ╚██████╗██║  ██║███████╗██║       ╚██████╗███████╗██║   |
-|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝        ╚═════╝╚══════╝╚═╝   |
-|                                                           |
-|                                                           |
-+-----------------------------------------------------------+
++==================================================================================================+
+|                                                                                                  |
+|    ██████╗ █████╗ ██╗  ██╗   ██╗    ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
+|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
+|   ██║     ███████║██║   ╚████╔╝█████╗╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
+|   ██║     ██╔══██║██║    ╚██╔╝ ╚════╝██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
+|   ╚██████╗██║  ██║███████╗██║       ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
+|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝       ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
+|                                                                                                  |
++==================================================================================================+
 `) +
     '\n\n' +
     font.color.yellowBright('Supercharge your Xano workflow: ') +
@@ -123,10 +121,12 @@ program.configureHelp({
         title: font.combo.boldCyan('Backup & Restore:'),
         commands: ['export-backup', 'restore-backup'],
       },
+      /* [ ] Bring back ASAP
       {
         title: font.combo.boldCyan('Testing & Linting:'),
         commands: ['lint', 'test-via-oas'],
       },
+      */
       {
         title: font.combo.boldCyan('Other:'),
         commands: ['current-context'],
@@ -138,7 +138,7 @@ program.configureHelp({
 
     // Usage line
     let output = [
-      font.weight.bold(`\nUsage: caly <command> [options]\n`)
+      font.weight.bold(`\nUsage: caly-xano <command> [options]\n`)
     ];
 
     // Banner and description

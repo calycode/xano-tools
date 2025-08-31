@@ -1,12 +1,12 @@
-# @calycode/cli
+# @calycode/caly-xano-cli
 
-Command-line interface for the Caly CLI providing terminal access to Xano development workflows.
+Command-line interface for the Caly-Xano CLI providing terminal access to Xano development workflows.
 
 ## Overview
 
 The CLI package provides:
 
--  Complete command-line interface with 14+ commands
+-  Command-line interface with 10+ commands
 -  Node.js filesystem-based configuration storage
 -  Interactive prompts and progress logs
 -  Integration with external tools (OpenAPI Generator, serve, etc.)
@@ -16,14 +16,14 @@ The CLI package provides:
 ### Global Installation
 
 ```bash
-npm install -g @calycode/cli
-caly--help
+npm install -g @calycode/caly-xano-cli
+caly-xano --help
 ```
 
 ### NPX Usage
 
 ```bash
-npx @calycode/cli --help
+npx @calycode/caly-xano-cli --help
 ```
 
 ## Commands
@@ -35,10 +35,10 @@ npx @calycode/cli --help
 Setup a new Xano instance configuration:
 
 ```bash
-calysetup
+caly-xano setup
 # Interactive prompts for instance name, URL, and API key
 
-calysetup --name production --url https://x123.xano.io --api-key your-key
+caly-xano setup --name production --url https://x123.xano.io --api-key your-key
 # Non-interactive setup
 ```
 
@@ -47,7 +47,7 @@ calysetup --name production --url https://x123.xano.io --api-key your-key
 Display the current active context:
 
 ```bash
-calycurrent-context
+caly-xano current-context
 # Shows: stored json configuration
 ```
 
@@ -56,10 +56,10 @@ calycurrent-context
 Switch to a different instance, workspace, or branch:
 
 ```bash
-calyswitch-context
+caly-xano switch-context
 # Interactive prompts
 
-calyswitch-context --instance staging --workspace main --branch develop
+caly-xano switch-context --instance staging --workspace main --branch develop
 # Non-interactive switch
 ```
 
@@ -70,22 +70,22 @@ calyswitch-context --instance staging --workspace main --branch develop
 Generate improved OpenAPI specifications:
 
 ```bash
-calygenerate-oas --group user-api
+caly-xano generate-oas --group user-api
 # Generate for specific API group
 
-calygenerate-oas --all
+caly-xano generate-oas --all
 # Generate for all API groups
 
-calygenerate-oas --instance production --workspace main --branch master --group api
+caly-xano generate-oas --instance production --workspace main --branch master --group api
 # Specify context
 ```
 
-#### `oas-serve`
+#### `serve-oas`
 
 Serve OpenAPI specifications locally:
 
 ```bash
-calyoas-serve
+caly-xano serve-oas
 # Starts local server at http://localhost:5999
 ```
 
@@ -94,8 +94,8 @@ calyoas-serve
 Generate client (and server) libraries from OpenAPI specs (see available [generators](https://openapi-generator.tech/docs/generators)):
 
 ```bash
-calygenerate-code --generator typescript-fetch
-calygenerate-code --generator python --output
+caly-xano generate-code --generator typescript-fetch
+caly-xano generate-code --generator python
 ```
 
 ### Backup & Restore
@@ -105,8 +105,8 @@ calygenerate-code --generator python --output
 Export workspace backup:
 
 ```bash
-calyexport-backup --output backup.tar.gz
-calyexport-backup --instance production --workspace main --branch master
+caly-xano export-backup
+caly-xano export-backup --instance production --workspace main --branch master
 ```
 
 #### `restore-backup`
@@ -114,17 +114,17 @@ calyexport-backup --instance production --workspace main --branch master
 Restore workspace from backup (cannot specify branch on restoration):
 
 ```bash
-calyrestore-backup --file backup.tar.gz --target-workspace staging
+caly-xano restore-backup --file backup.tar.gz --target-workspace staging
 ```
 
-### Registry Operations
+### Registry Operations (**WIP**)
 
 #### `registry-scaffold`
 
 Create a new registry structure:
 
 ```bash
-calyregistry-scaffold --output ./my-registry
+caly-xano registry-scaffold --output ./my-registry
 ```
 
 #### `registry-add`
@@ -132,16 +132,16 @@ calyregistry-scaffold --output ./my-registry
 Install components to Xano from registry:
 
 ```bash
-calyregistry-add --registry ./local-registry --item user-auth
-calyregistry-add --registry https://registry.example.com --item payment-system
+caly-xano registry-add --registry ./local-registry --item user-auth
+caly-xano registry-add --registry https://registry.example.com --item payment-system
 ```
 
-#### `registry-serve`
+#### `serve-registry`
 
 Serve local registry:
 
 ```bash
-calyregistry-serve --registry ./my-registry --port 5000
+caly-xano serve-registry --registry ./my-registry --port 5000
 ```
 
 ### Development Tools
@@ -151,23 +151,7 @@ calyregistry-serve --registry ./my-registry --port 5000
 Generate browsable repository from workspace:
 
 ```bash
-calygenerate-repo
-```
-
-#### `run-tests`
-
-Run Xano workspace tests:
-
-```bash
-calyrun-tests --group api --verbose
-```
-
-#### `lint-xano`
-
-Lint Xano workspace for best practices:
-
-```bash
-calylint-xano --fix --output lint-report.json
+caly-xano generate-repo
 ```
 
 ## Configuration
@@ -203,31 +187,30 @@ Commands inherit context from:
 
 ```bash
 # Setup instance
-calysetup --name production --url https://x123.xano.io --api-key your-key
+caly-xano setup --name production --url https://x123.xano.io --api-key your-key
 
 # Generate OpenAPI specs
-calygenerate-oas --all
+caly-xano generate-oas --all
 
 # Generate TypeScript client
-calygenerate-code --generator typescript-fetch --output ./api-client
-
+caly-xano generate-code --generator typescript-fetch
 # Serve documentation
-calyoas-serve
+caly-xano serve-oas
 ```
 
 ### Multi-Environment Setup
 
 ```bash
 # Setup multiple instances
-calysetup --name production --url https://prod.xano.io --api-key prod-key
-calysetup --name staging --url https://staging.xano.io --api-key staging-key
+caly-xano setup --name production --url https://prod.xano.io --api-key prod-key
+caly-xano setup --name staging --url https://staging.xano.io --api-key staging-key
 
 # Switch between environments
-calyswitch-context --instance staging
-calygenerate-oas --group api
+caly-xano switch-context --instance staging
+caly-xano generate-oas --group api
 
-calyswitch-context --instance production
-calyexport-backup --output prod-backup.tar.gz
+caly-xano switch-context --instance production
+caly-xano export-backup
 ```
 
 ## Integration
@@ -238,8 +221,8 @@ calyexport-backup --output prod-backup.tar.gz
 # GitHub Actions example
 - name: Generate API Documentation
   run: |
-     npx @calycode/cli generate-oas --all
-     npx @calycode/cli generate-code --generator typescript-fetch --output ./api
+     npx @calycode/caly-xano-cli generate-oas --all
+     npx @calycode/caly-xano-cli generate-code --generator typescript-fetch
   env:
      XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
 ```

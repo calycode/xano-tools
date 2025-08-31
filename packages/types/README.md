@@ -1,6 +1,6 @@
 # @calycode/types
 
-TypeScript type definitions and interfaces for the Caly Xano tooling ecosystem.
+TypeScript type definitions and interfaces for the Caly-Xano tooling ecosystem.
 
 ## Overview
 

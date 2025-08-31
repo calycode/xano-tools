@@ -145,7 +145,7 @@ function registerGenerateCodeCommand(program, core) {
                opts.all,
                stack,
                opts.debug,
-               opts.printOutput,
+               opts.printOutputDir,
                core
             );
          })
