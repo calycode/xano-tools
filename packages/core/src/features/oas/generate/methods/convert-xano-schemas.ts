@@ -12,7 +12,6 @@ const TYPE_MAP = {
    vector: 'number',
 };
 
-// [ ] CORE
 /**
  * Recursively converts a Xano schema field to JSON Schema property.
  * @param {object} field - Xano field descriptor.
@@ -36,7 +35,8 @@ function convertField(field) {
 
    jsonSchema.type = baseType;
 
-   // Handle vector type:
+   // Handle vector type
+   // [ ] Handle vector as a more relevant type
    if (field.type === 'vector') {
       jsonSchema.type = 'array';
       jsonSchema.items = { type: 'number' };
@@ -82,7 +82,7 @@ function convertField(field) {
 }
 
 /**
- * Converts a full Xano schema to JSON Schema.
+ * Converts a full Xano table schema to JSON Schema.
  * @param {Array} xanoSchema - Array of field descriptors.
  * @param {object} [options]
  * @returns {object} - JSON Schema object.

@@ -1,5 +1,5 @@
 import { joinPath } from '@calycode/utils';
-import { patchOasSpec } from './index';
+import { patchOasSpec } from './patch-oas-spec';
 
 interface GeneratedItem {
    path: string;
@@ -11,7 +11,7 @@ interface DoOasUpdateOutput {
    generatedItems: GeneratedItem[];
 }
 
-export default async function doOasUpdate({
+async function doOasUpdate({
    inputOas,
    instanceConfig,
    workspaceConfig,
@@ -74,9 +74,11 @@ export default async function doOasUpdate({
     </script>
   </body>
 </html>
-`.trim(),
+`,
       },
    ];
 
    return { oas, generatedItems };
 }
+
+export { doOasUpdate };

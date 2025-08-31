@@ -1,10 +1,8 @@
 import { convertXanoSchemaToJsonSchema } from './convert-xano-schemas';
 import { metaApiGet } from '@calycode/utils';
 
-// [ ] CORE
 async function generateTableSchemas({ instanceConfig, workspaceConfig, storage }) {
-   const tableSchemas = {};
-
+   // Step 1: Fetch all tables
    const workspaceTablesRaw = await metaApiGet({
       baseUrl: instanceConfig.url,
       path: `/workspace/${workspaceConfig.id}/table`,
@@ -19,7 +17,8 @@ async function generateTableSchemas({ instanceConfig, workspaceConfig, storage }
 
    const workspaceTables = workspaceTablesRaw.items;
 
-   for (const table of workspaceTables) {
+   // Step 2: Prepare all schema fetch promises
+   const tableSchemaPromises = workspaceTables.map(async (table) => {
       const workspaceTableSchemaRaw = await metaApiGet({
          baseUrl: instanceConfig.url,
          path: `/workspace/${workspaceConfig.id}/table/${table.id}/schema`,
@@ -28,16 +27,26 @@ async function generateTableSchemas({ instanceConfig, workspaceConfig, storage }
 
       const workspaceTableSchema = workspaceTableSchemaRaw;
 
-      tableSchemas[`Table.${table.name.replace(' ', '_')}`] = {
-         title: `Table.${table.name.replace(' ', '_')}`,
-         description: `#### Table id: ${table.id}. ${
-            table.auth ? '\n\n **This table is used for AUTH.**' : ''
-         }`,
-         type: 'object',
-         properties: convertXanoSchemaToJsonSchema(workspaceTableSchema, { includeInternal: true })
-            .properties,
-      };
-   }
+      return [
+         `Table.${table.name.replace(' ', '_')}`,
+         {
+            title: `Table.${table.name.replace(' ', '_')}`,
+            description: `#### Table id: ${table.id}. ${
+               table.auth ? '\n\n **This table is used for AUTH.**' : ''
+            }`,
+            type: 'object',
+            properties: convertXanoSchemaToJsonSchema(workspaceTableSchema, {
+               includeInternal: true,
+            }).properties,
+         },
+      ];
+   });
+
+   // Step 3: Resolve all promises in parallel
+   const tableSchemasEntries = await Promise.all(tableSchemaPromises);
+
+   // Step 4: Convert entries array to object
+   const tableSchemas = Object.fromEntries(tableSchemasEntries);
 
    return tableSchemas;
 }
