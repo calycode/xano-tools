@@ -1,6 +1,6 @@
 {
     "name": "@calycode/utils",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Utility functions and helpers for the Caly Xano tooling ecosystem",
     "publishConfig": {
         "access": "restricted"
