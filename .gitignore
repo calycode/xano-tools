@@ -6,7 +6,6 @@ deps.json
 # Config files
 xcc.config.js
 xcc.test.setup.json
-test-config.json
 
 # Generated folders:
 output/

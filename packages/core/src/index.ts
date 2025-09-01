@@ -10,16 +10,16 @@ import {
    WorkspaceConfig,
 } from '@calycode/types';
 import { TypedEmitter } from './utils/event-handling/event-emitter';
+import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
 import { doOasUpdate } from './features/oas/generate';
 import { exportBackupImplementation, restoreBackupImplementation } from './implementations/backups';
 import { generateRepoImplementation } from './implementations/generate-repo';
 import { getCurrentContextConfigImplementation } from './implementations/get-current-context';
 import { loadAndValidateContextImplementation } from './implementations/load-and-validate-context';
+import { runTestsImplementation } from './implementations/run-tests';
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
-import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
-import { runTestsImplementation } from './implementations/run-tests';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
@@ -312,7 +312,15 @@ export class Caly extends TypedEmitter<EventMap> {
     * Run tests based on provided testconfig file.
     */
    // [ ] Add JSDocs
-   async runTests({ context, groups, testConfig }): Promise<
+   async runTests({
+      context,
+      groups,
+      testConfig,
+   }: {
+      context: Context;
+      groups: ApiGroupConfig[];
+      testConfig: any;
+   }): Promise<
       {
          group: ApiGroupConfig;
          results: {

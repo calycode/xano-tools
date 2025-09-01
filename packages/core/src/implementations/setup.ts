@@ -1,4 +1,4 @@
-import { ConfigStorage } from '@calycode/types';
+import { ConfigStorage, AssertDefinition } from '@calycode/types';
 import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '@calycode/utils';
 
 // DEFAULT SETTINGS:
@@ -8,10 +8,10 @@ const DEFAULT_LINT_RULES: Record<string, 'error' | 'warn' | 'off'> = {
    'is-description-present': 'warn',
 };
 
-const DEFAULT_ASSERTS: Record<string, 'error' | 'warn' | 'off'> = {
-   statusOk: 'error',
-   responseDefined: 'error',
-   responseSchema: 'warn',
+const DEFAULT_ASSERTS: AssertDefinition = {
+   statusOk: { level: 'error' },
+   responseDefined: { level: 'error' },
+   responseSchema: { level: 'warn' },
 };
 
 /**

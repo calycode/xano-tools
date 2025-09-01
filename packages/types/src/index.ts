@@ -91,7 +91,7 @@ export interface InstanceConfig {
    test?: {
       output: string;
       headers: Record<string, string>;
-      defaultAsserts: Record<string, 'error' | 'warn' | 'off'>;
+      defaultAsserts: AssertDefinition;
    };
    xanoscript?: {
       output: string;
@@ -272,3 +272,15 @@ export type SanitizeOptions = {
    trimReplacement?: boolean; // (default: true)
    toLowerCase?: boolean; // (default: true)
 };
+
+// -------- ASSERTS ---------- //
+
+type Level = 'off' | 'error' | 'warn';
+
+export interface AssertOptions {
+   key: string;
+   fn?: (context: any) => void;
+   level: Level;
+}
+
+export type AssertDefinition = Record<string, { fn?: (context: any) => void; level: Level }>;

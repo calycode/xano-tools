@@ -41,10 +41,10 @@ export function prepareRequest({
    const pathParams: Record<string, unknown> = {};
    const queryParams: Record<string, unknown> = {};
    const headerParams: Record<string, unknown> = {};
-   // const cookieParams: Record<string, unknown> = {}; // For future support
 
    parameters.forEach((param) => {
-      const value = param.example ?? param.default ?? guessDummyForType(param.schema?.type);
+      const value =
+         param.value ?? param.example ?? param.default ?? guessDummyForType(param.schema?.type);
       switch (param.in) {
          case 'path':
             pathParams[param.name] = value;
@@ -55,34 +55,44 @@ export function prepareRequest({
          case 'header':
             headerParams[param.name] = value;
             break;
-         // case 'cookie':
-         //   cookieParams[param.name] = value;
-         //   break;
       }
    });
 
-   // 2. Replace path params using URL constructor for better validation
+   console.log(queryParams);
+
+   // 2. Replace path params
    let processedPath = path.replace(/\{(\w+?)\}/g, (_, key) =>
-      pathParams[key] !== undefined ? String(pathParams[key]) : '1'
+      pathParams[key] !== undefined ? encodeURIComponent(String(pathParams[key])) : '1'
    );
 
-   const fullUrl = new URL(processedPath, baseUrl).toString();
+   // 3. Concatenate baseUrl and processedPath robustly
+   let url = baseUrl.replace(/\/+$/, '') + '/' + processedPath.replace(/^\/+/, '');
 
-   // 3. Append query string using URLSearchParams
-   const urlObj = new URL(fullUrl);
-   Object.entries(queryParams).forEach(([key, value]) => {
-      urlObj.searchParams.set(key, String(value));
-   });
-   const url = urlObj.toString();
+   console.log(url);
 
-   // 4. Merge headers (config + endpoint + OpenAPI header params)
+   // 4. Append query string using URLSearchParams
+   const queryString = new URLSearchParams(
+      Object.entries(queryParams).reduce<Record<string, string>>((acc, [k, v]) => {
+         if (v !== undefined && v !== null) acc[k] = String(v);
+         return acc;
+      }, {})
+   ).toString();
+
+   if (queryString) {
+      url += (url.includes('?') ? '&' : '?') + queryString;
+   }
+
+   console.log(queryString);
+   console.log(url);
+
+   // 5. Merge headers
    const finalHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
       ...headers,
       ...headerParams,
    };
 
-   // 5. Prepare body if present
+   // 6. Prepare body
    let preparedBody: string | undefined = undefined;
    if (body && typeof body === 'object' && Object.keys(body).length > 0) {
       preparedBody = JSON.stringify(mockFromSchema(body));

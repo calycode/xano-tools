@@ -1,6 +1,6 @@
-import { testRunnerReworked } from '../features/testing';
+import { testRunner } from '../features/testing';
 import type { Caly } from '..';
-import { ApiGroupConfig, CoreContext, PrepareRequestArgs } from '@calycode/types';
+import { ApiGroupConfig, CoreContext, PrepareRequestArgs, AssertDefinition } from '@calycode/types';
 
 async function runTestsImplementation({
    context,
@@ -17,7 +17,7 @@ async function runTestsImplementation({
       queryParams: PrepareRequestArgs['parameters'];
       requestBody: any;
       store?: { key: string; path: string }[];
-      customAsserts: string[];
+      customAsserts: AssertDefinition;
    }[];
    core: Caly;
 }): Promise<
@@ -33,7 +33,7 @@ async function runTestsImplementation({
       }[];
    }[]
 > {
-   return await testRunnerReworked({ context, groups, testConfig, core });
+   return await testRunner({ context, groups, testConfig, core });
 }
 
 export { runTestsImplementation };
