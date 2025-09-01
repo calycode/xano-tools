@@ -25,4 +25,4 @@ jobs:
           publish: pnpm -r publish --access restricted
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_GH_TOKEN }}
