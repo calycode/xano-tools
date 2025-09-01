@@ -1,0 +1,41 @@
+[
+    {
+        "path": "/utility/mvp-version",
+        "method": "GET",
+        "headers": {
+            "X-Data-Source": "live",
+            "X-Branch": "prod"
+        },
+        "queryParams": null,
+        "requestBody": null,
+        "customAsserts": []
+    },
+    {
+        "path": "/translations/list",
+        "method": "GET",
+        "headers": {
+            "X-Data-Source": "live",
+            "X-Branch": "prod"
+        },
+        "queryParams": [
+            {
+                "name": "language",
+                "in": "query",
+                "value": "en-US"
+            }
+        ],
+        "requestBody": null,
+        "customAsserts": []
+    },
+    {
+        "path": "/translations/list",
+        "method": "GET",
+        "headers": {
+            "X-Data-Source": "live",
+            "X-Branch": "prod"
+        },
+        "queryParams": null,
+        "requestBody": null,
+        "customAsserts": []
+    }
+]

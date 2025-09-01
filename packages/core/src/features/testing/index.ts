@@ -1,5 +1,11 @@
 import type { Caly } from '../..';
-import { ApiGroupConfig, CoreContext, PrepareRequestArgs } from '@calycode/types';
+import {
+   ApiGroupConfig,
+   AssertDefinition,
+   AssertOptions,
+   CoreContext,
+   PrepareRequestArgs,
+} from '@calycode/types';
 import { metaApiGet, prepareRequest } from '@calycode/utils';
 import { availableAsserts } from './asserts';
 
@@ -23,12 +29,15 @@ function getByPath(obj, path) {
    return path.split('.').reduce((acc, key) => acc?.[key], obj);
 }
 
+// [ ] Add the branchConfig.label as the branch header to every request (unless overriden)
+// [ ] Add the X-Data-Source: test header to every endpoint by deafult (unless overriden)
+
 /**
  * testConfig is actually an array of objects defining in what order and which
  * endpoints to run, also optionally define custom asserts (either inline func, or predefined asserts)
  * ApiGroupConfig allows for extra keys. In this case it should include an 'oas' key
  */
-async function testRunnerReworked({
+async function testRunner({
    context,
    groups,
    testConfig,
@@ -43,7 +52,7 @@ async function testRunnerReworked({
       queryParams: PrepareRequestArgs['parameters'];
       requestBody: any;
       store?: { key: string; path: string }[];
-      customAsserts: string[];
+      customAsserts: AssertDefinition;
    }[];
    core: Caly;
 }): Promise<
@@ -69,8 +78,10 @@ async function testRunnerReworked({
       branch,
    });
 
-   const DEFAULT_X_DATA_SOURCE = 'test';
-   const DEFAULT_X_BRANCH = branchConfig.label;
+   const DEFAULT_HEADERS = {
+      'X-Data-Source': 'test',
+      'X-Branch': branchConfig.label,
+   };
    let runtimeValues = {};
 
    let finalOutput = [];
@@ -98,31 +109,59 @@ async function testRunnerReworked({
 
          const { path, method, headers, queryParams, requestBody, store, customAsserts } = endpoint;
 
-         const mergedAsserts = {
-            ...availableAsserts,
-            ...customAsserts,
-         };
+         // Setup all asserts that are available for this endpoint
+         const assertsToRun: AssertOptions[] = [];
+
+         const customAssertKeys = customAsserts ? Object.keys(customAsserts) : [];
+
+         if (customAssertKeys.length > 0) {
+            // Use only asserts provided in customAsserts (with their specified levels/fns)
+            for (const key of customAssertKeys) {
+               const assertOpt = customAsserts[key];
+               if (assertOpt && typeof assertOpt.fn === 'function' && assertOpt.level !== 'off') {
+                  assertsToRun.push({
+                     key,
+                     ...assertOpt,
+                  });
+               }
+            }
+         } else {
+            // Use all available asserts (with their default levels/fns)
+            for (const [key, assertOpt] of Object.entries(availableAsserts)) {
+               if (assertOpt.level !== 'off') {
+                  assertsToRun.push({
+                     key,
+                     ...assertOpt,
+                  });
+               }
+            }
+         }
 
          try {
             // Resolve values and prepare request:
             const resolvedQueryParams: PrepareRequestArgs['parameters'] = (queryParams ?? []).map(
                (param) => {
+                  console.log(param);
                   param.value = replaceDynamicValues(param.value, runtimeValues);
                   return param;
                }
             );
-            const resolvedHeaders = replaceDynamicValues(headers, runtimeValues);
+            console.log(resolvedQueryParams);
+            const resolvedHeaders = replaceDynamicValues(headers, {
+               ...DEFAULT_HEADERS,
+               ...runtimeValues,
+            });
             const resolvedRequestBody = replaceDynamicValues(requestBody, runtimeValues);
 
             const preparedRequest = prepareRequest({
-               baseUrl: instanceConfig.url,
+               baseUrl: `${instanceConfig.url}/api:${group.canonical}`,
                path,
                method,
                headers: resolvedHeaders,
                parameters: resolvedQueryParams,
                body: resolvedRequestBody,
             });
-
+            console.log(preparedRequest);
             // Execute the request
             const requestOutcome = await fetch(preparedRequest.url, preparedRequest);
             const contentType = requestOutcome.headers.get('content-type');
@@ -140,17 +179,14 @@ async function testRunnerReworked({
             let assertionErrors = [];
             let assertionWarnings = [];
 
-            for (const [assertKey, assertFn] of Object.entries(availableAsserts)) {
-               const level = mergedAsserts[assertKey] || 'error';
+            // Run all prepared asserts
+            for (const { key, fn, level } of assertsToRun) {
                if (level === 'off') continue;
                try {
-                  assertFn(assertContext);
+                  fn(assertContext);
                } catch (e) {
-                  if (level === 'error')
-                     assertionErrors.push({ key: assertKey, message: e.message });
-                  if (level === 'warn') {
-                     assertionWarnings.push({ key: assertKey, message: e.message });
-                  }
+                  if (level === 'error') assertionErrors.push({ key, message: e.message });
+                  if (level === 'warn') assertionWarnings.push({ key, message: e.message });
                }
             }
 
@@ -193,4 +229,4 @@ async function testRunnerReworked({
    return finalOutput;
 }
 
-export { testRunnerReworked };
+export { testRunner };

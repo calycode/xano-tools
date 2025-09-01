@@ -32,7 +32,7 @@ const distDir = resolve(__dirname, 'dist');
          banner: {
             js: '#!/usr/bin/env node',
          },
-         sourcemap: true,
+         sourcemap: false,
          metafile: true,
       });
       log.step('esbuild bundling complete.');

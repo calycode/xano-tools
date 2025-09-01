@@ -1,17 +1,18 @@
 import * as assert from 'uvu/assert';
+import { AssertDefinition } from '@calycode/types';
 
 /**
  * Assert that the response status is OK.
  */
 function assertResponseStatus(context) {
-   const { res, method, path } = context;
-   if (!res.ok) {
+   const { requestOutcome, method, path } = context;
+   if (!requestOutcome.ok) {
       throw new assert.Assertion({
-         actual: res.status,
+         actual: requestOutcome.status,
          expects: 200,
          operator: 'statusOk',
          message: `${method.toUpperCase()}:${path} | ❌ Response status was ${
-            res.status
+            requestOutcome.status
          } (expected 200)`,
          details: '', // You could add more details or a diff here if you want
       });
@@ -49,10 +50,20 @@ function assertResponseSchema(context) {
    }
 }
 
-const availableAsserts = {
-   statusOk: assertResponseStatus,
-   responseDefined: assertResponseDefined,
-   responseSchema: assertResponseSchema,
+// The map: keys are assertion names
+const availableAsserts: AssertDefinition = {
+   statusOk: {
+      fn: assertResponseStatus,
+      level: 'error',
+   },
+   responseDefined: {
+      fn: assertResponseDefined,
+      level: 'warn',
+   },
+   responseSchema: {
+      fn: assertResponseSchema,
+      level: 'off',
+   },
 };
 
 export { availableAsserts };
