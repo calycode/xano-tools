@@ -12,20 +12,30 @@ import {
 import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
 
 // [ ] CLI only feature
-async function generateCodeFromOas(
+async function generateCodeFromOas({
    instance,
    workspace,
    branch,
-   group: string,
-   isAll: boolean = false,
-   stack: { generator: string; args: string[] } = {
+   group,
+   isAll = false,
+   stack = {
       generator: 'typescript-fetch',
       args: ['--additional-properties=supportsES6=true'],
    },
-   logger: boolean = false,
-   printOutput: boolean = false,
-   core
-) {
+   logger = false,
+   printOutput = false,
+   core,
+}: {
+   instance: string;
+   workspace: string;
+   branch: string;
+   group: string;
+   isAll: boolean;
+   stack: { generator: string; args: string[] };
+   logger: boolean;
+   printOutput: boolean;
+   core;
+}) {
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
@@ -137,17 +147,17 @@ function registerGenerateCodeCommand(program, core) {
             if (opts.args) {
                stack.args = opts.args.split(',');
             }
-            await generateCodeFromOas(
-               opts.instance,
-               opts.workspace,
-               opts.branch,
-               opts.group,
-               opts.all,
-               stack,
-               opts.debug,
-               opts.printOutputDir,
-               core
-            );
+            await generateCodeFromOas({
+               instance: opts.instance,
+               workspace: opts.workspace,
+               branch: opts.branch,
+               group: opts.group,
+               isAll: opts.all,
+               stack: stack,
+               logger: opts.debug,
+               printOutput: opts.printOutputDir,
+               core: core,
+            });
          })
       );
 }
