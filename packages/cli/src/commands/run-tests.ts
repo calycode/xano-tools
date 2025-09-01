@@ -1,15 +1,8 @@
 import fs from 'fs/promises';
-import path from 'path';
-import { intro, log } from '@clack/prompts';
+import { intro, log, spinner } from '@clack/prompts';
+import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
 import {
-   isEmptySchema,
-   metaApiGet,
-   normalizeApiGroupName,
-   prepareRequest,
-   replacePlaceholders,
-} from '@calycode/utils';
-import {
-   availableAsserts,
+   addApiGroupOptions,
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
@@ -17,19 +10,26 @@ import {
    withErrorHandler,
 } from '../utils/index';
 
-// [ ] Bring back schema validation featureset!
-
-// [ ] CORE, needs fs
-async function testRunner(
+async function runTest({
    instance,
    workspace,
    branch,
    group,
+   testConfigPath,
    isAll = false,
-   printOutput: boolean = false,
-   core
-) {
-   intro('☣️   Stating up the testing...');
+   printOutput = false,
+   core,
+}: {
+   instance: string;
+   workspace: string;
+   branch: string;
+   testConfigPath: string;
+   group: string;
+   isAll: boolean;
+   printOutput: boolean;
+   core: any;
+}) {
+   intro('☣️   Starting up the testing...');
 
    // 1. Get the current context.
    const globalConfig = await core.loadGlobalConfig();
@@ -63,184 +63,47 @@ async function testRunner(
       all: isAll,
    });
 
-   // 3. Loop through the groups: fetch OAS, run test.
-   for (const group of groups) {
-      const apiGroupNameNorm = normalizeApiGroupName(group.name);
-      const oasOutputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
+   // Take the core implementation for test running:
+   // for now testconfig has to exist on the machine prior to running the tests.
+   const testConfigFileContent = await fs.readFile(testConfigPath, { encoding: 'utf-8' });
+   const testConfig = JSON.parse(testConfigFileContent);
+   const s = spinner();
+   s.start('Running tests based on the provided spec');
+   const testResults = await core.runTests({
+      context: {
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
          branch: branchConfig.label,
-         api_group_normalized_name: apiGroupNameNorm,
-      });
+      },
+      groups: groups,
+      testConfig,
+   });
+   s.stop();
 
-      // 3.1 Find the OAS at the outputPath. If not present, generate from remote...
-      const localOasPath = path.join(oasOutputPath, 'spec.json');
-      let oasSpec;
-      try {
-         oasSpec = JSON.parse(await fs.readFile(localOasPath, 'utf8'));
-      } catch {
-         // [ ] TODO: Log event to the temp logs.
-         if (!oasSpec) {
-            log.warn(
-               `Local OpenAPI spec for ${group.name} not found. Generating one from remote source...`
-            );
+   // Write output to fs and present the summary table
+   const now = new Date();
+   const ts = now.toISOString().replace(/[:.]/g, '-');
+   const testFileName = `test-results-${ts}.json`;
 
-            const openapiRaw = await metaApiGet({
-               baseUrl: instanceConfig.url,
-               token: await core.loadToken(instanceConfig.name),
-               path: `/workspace/${workspaceConfig.id}/apigroup/${group.id}/openapi`,
-            });
-
-            const updatedOasSpec = await core.doOasUpdate({
-               inputOas: openapiRaw,
-               outputDir: oasOutputPath,
-               instanceConfig,
-               workspaceConfig,
-               storage: core.storage,
-            });
-            oasSpec = updatedOasSpec.oas;
-         }
-
-         log.step(`Local OpenAPI spec for ${group.name} generated. Continuing to tests.`);
-      }
-
-      // 3.2 Actually do the test running.
-
-      // 3.2.1 Prepare the endpoints to test
-      const serverUrl = oasSpec.servers[0].url;
-      const endpointsToTest = [];
-
-      for (const path in oasSpec.paths) {
-         for (const method in oasSpec.paths[path]) {
-            // [ ] TODO: implement here a merge from future optional test setup file
-            // [ ] TODO: implement a potential formdata request body to also be able to test file uploads or functionality from restricted frontends.
-            // [ ] TODO: extend to also allow runtime key handling so that we can pass on specific
-            const op = oasSpec.paths[path][method];
-            const responseSchema = op.responses?.['200']?.content?.['application/json']?.schema;
-            // [ ] TODO: add CustomAsserts interface
-            const customAsserts: any = {};
-
-            if (isEmptySchema(responseSchema)) {
-               customAsserts.responseSchema = 'off';
-            }
-
-            endpointsToTest.push({
-               path,
-               method: method.toUpperCase(),
-               headers: {},
-               parameters: op.parameters || [],
-               requestBody: op.requestBody?.content?.['application/json']?.schema || {},
-               customAsserts,
-            });
-         }
-      }
-
-      // 3.2.2 Start the test with looping through the endpointsToTest:
-      const defaultTestSetup = instanceConfig.test;
-      const results = [];
-      for (const endpoint of endpointsToTest) {
-         const testStart = Date.now();
-
-         const { path, method, headers, parameters, requestBody, customAsserts } = endpoint;
-         try {
-            const mergedAsserts = {
-               ...defaultTestSetup.defaultAsserts,
-               ...customAsserts,
-            };
-            const mergedHeaders = replacePlaceholders(
-               {
-                  ...defaultTestSetup.headers,
-                  ...headers,
-               },
-               { branch: branchConfig.label }
-            );
-
-            // Resolve headers, params or body depending on the method:
-            const req = prepareRequest({
-               baseUrl: serverUrl,
-               path,
-               method,
-               headers: mergedHeaders,
-               parameters,
-               body: requestBody,
-            });
-
-            const res = await fetch(req.url, req);
-            const contentType = res.headers.get('content-type');
-            const result = contentType?.includes('application/json')
-               ? await res.json()
-               : await res.text();
-
-            // [ ] TODO: add a feature to handle runtime values of the tests.
-
-            const assertContext = {
-               res,
-               result,
-               method,
-               path,
-            };
-
-            // Collect assertion results/errors
-            let assertionErrors = [];
-            let assertionWarnings = [];
-
-            for (const [assertKey, assertFn] of Object.entries(availableAsserts)) {
-               const level = mergedAsserts[assertKey] || 'error';
-               if (level === 'off') continue;
-               try {
-                  assertFn(assertContext);
-               } catch (e) {
-                  if (level === 'error')
-                     assertionErrors.push({ key: assertKey, message: e.message });
-                  if (level === 'warn') {
-                     assertionWarnings.push({ key: assertKey, message: e.message });
-                     log.warn(`${method} ${path} [${assertKey}]: ${e.message}`);
-                  }
-               }
-            }
-
-            const testEnd = Date.now();
-            const testDuration = testEnd - testStart;
-            results.push({
-               path,
-               method,
-               success: assertionErrors.length === 0,
-               errors: assertionErrors.length > 0 ? assertionErrors : null,
-               warnings: assertionWarnings.length > 0 ? assertionWarnings : null,
-               duration: testDuration,
-            });
-         } catch (err) {
-            const testEnd = Date.now();
-            const testDuration = testEnd - testStart;
-            log.warn(`Test failed for ${method.toUpperCase()} ${path}: ${err}`);
-            results.push({
-               path,
-               method,
-               success: false,
-               errors: err.stack || err.message,
-               duration: testDuration,
-            });
-         }
-      }
-
-      const testOutputPath = replacePlaceholders(defaultTestSetup.output, {
+   for (const outcome of testResults) {
+      const apiGroupTestPath = replacePlaceholders(instanceConfig.test.output, {
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
          branch: branchConfig.label,
-         api_group_normalized_name: apiGroupNameNorm,
+         api_group_normalized_name: normalizeApiGroupName(outcome.group.name),
       });
 
-      const now = new Date();
-      const ts = now.toISOString().replace(/[:.]/g, '-');
-      const testFileName = `test-results-${ts}.json`;
+      await fs.mkdir(apiGroupTestPath, { recursive: true });
+      await fs.writeFile(
+         `${apiGroupTestPath}/${testFileName}`,
+         JSON.stringify(outcome.results, null, 2)
+      );
 
-      await fs.mkdir(testOutputPath, { recursive: true });
-      await fs.writeFile(path.join(testOutputPath, testFileName), JSON.stringify(results, null, 3));
-
-      printTestSummary(results);
-
-      log.step(`Tests for ${group.name} completed. Results -> ${testOutputPath}/${testFileName}`);
-      printOutputDir(printOutput, testOutputPath);
+      log.step(
+         `Tests for ${outcome.group.name} completed. Results -> ${apiGroupTestPath}/${testFileName}`
+      );
+      printTestSummary(outcome.results);
+      printOutputDir(printOutput, apiGroupTestPath);
    }
 }
 
@@ -278,27 +141,25 @@ ${'-'.repeat(60)}`
 }
 
 // [ ] CLI
-function registerTestViaOasCommand(program, core) {
+function registerRunTestCommand(program, core) {
    const cmd = program
-      .command('test-via-oas')
+      .command('run-test')
       .description('Run an API test suite via the OpenAPI spec. WIP...');
 
    addFullContextOptions(cmd);
+   addApiGroupOptions(cmd);
    addPrintOutputFlag(cmd);
 
-   cmd.action(
+   cmd.option('--test-config-path <path>', 'Path to a test configuration file.').action(
       withErrorHandler(async (options) => {
-         //@ts-expect-error We need to make sure to allow context override here and proper arguments coming from the command.
-         await testRunner(
-            options.instance,
-            options.workspace,
-            options.branch,
-            false,
-            options.printOutputDir,
-            core
-         );
+         await runTest({
+            ...options,
+            isAll: options.all,
+            printOutput: options.printOutputDir,
+            core,
+         });
       })
    );
 }
 
-export { registerTestViaOasCommand };
+export { registerRunTestCommand };

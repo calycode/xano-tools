@@ -237,6 +237,7 @@ type ParamLocation = 'path' | 'query' | 'header' | 'cookie';
 interface Parameter {
    name: string;
    in: ParamLocation;
+   value?: any;
    schema?: Schema;
    example?: unknown;
    default?: unknown;

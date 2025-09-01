@@ -11,7 +11,7 @@ import { registerGenerateOasCommand } from './commands/generate-oas';
 import { registerGenerateRepoCommand } from './commands/generate-repo';
 //import { registerLintCommand } from './commands/run-lint';
 import { registerSetupCommand } from './commands/setup-instance';
-//import { registerTestViaOasCommand } from './commands/run-tests';
+import { registerRunTestCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
@@ -88,7 +88,7 @@ registerRegistryServeCommand(program);
 registerExportBackupCommand(program, core);
 registerRestoreBackupCommand(program, core);
 //registerLintCommand(program, core);
-//registerTestViaOasCommand(program, core);
+registerRunTestCommand(program, core);
 registerCurrentContextCommand(program, core);
 
 // --- Custom Help Formatter ---
@@ -121,12 +121,10 @@ program.configureHelp({
         title: font.combo.boldCyan('Backup & Restore:'),
         commands: ['export-backup', 'restore-backup'],
       },
-      /* [ ] Bring back ASAP
       {
         title: font.combo.boldCyan('Testing & Linting:'),
-        commands: ['lint', 'test-via-oas'],
+        commands: ['run-test'],
       },
-      */
       {
         title: font.combo.boldCyan('Other:'),
         commands: ['current-context'],
