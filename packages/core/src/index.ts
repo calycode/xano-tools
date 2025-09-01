@@ -1,4 +1,5 @@
 import {
+   ApiGroupConfig,
    BranchConfig,
    ConfigStorage,
    Context,
@@ -18,6 +19,7 @@ import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
+import { runTestsImplementation } from './implementations/run-tests';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
@@ -304,6 +306,26 @@ export class Caly extends TypedEmitter<EventMap> {
          workspaceConfig,
          storage: this.storage,
       });
+   }
+
+   /**
+    * Run tests based on provided testconfig file.
+    */
+   // [ ] Add JSDocs
+   async runTests({ context, groups, testConfig }): Promise<
+      {
+         group: ApiGroupConfig;
+         results: {
+            path: string;
+            method: string;
+            success: boolean;
+            errors: any;
+            warnings: any;
+            duration: number;
+         }[];
+      }[]
+   > {
+      return await runTestsImplementation({ context, groups, testConfig, core: this });
    }
 
    // ----- UTIL METHODS ----- //

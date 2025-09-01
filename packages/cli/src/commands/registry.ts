@@ -9,13 +9,17 @@ import {
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
+import type { CoreContext } from '@calycode/types';
 
-// [ ] CORE
-async function addToXano(
-   componentNames: string[],
-   context: { instance?: string; workspace?: string; branch?: string } = {},
-   core
-) {
+async function addToXano({
+   componentNames,
+   context = {},
+   core,
+}: {
+   componentNames: string[];
+   context: CoreContext;
+   core: any;
+}) {
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance: context.instance,
       workspace: context.workspace,
@@ -135,15 +139,15 @@ function registerRegistryAddCommand(program, core) {
                process.env.Caly_REGISTRY_URL = options.registry;
             }
 
-            await addToXano(
-               options.components,
-               {
+            await addToXano({
+               componentNames: options.components,
+               context: {
                   instance: options.instance,
                   workspace: options.workspace,
                   branch: options.branch,
                },
-               core
-            );
+               core,
+            });
          })
       );
 }
