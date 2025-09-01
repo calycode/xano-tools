@@ -15,6 +15,7 @@ async function main() {
       outdir: 'dist',
       format: 'esm',
       outExtension: { '.js': '.js' },
+      sourcemap: false,
       metafile: true,
    });
    const cjsResult = await build({
@@ -23,6 +24,7 @@ async function main() {
       outdir: 'dist',
       format: 'cjs',
       outExtension: { '.js': '.cjs' },
+      sourcemap: false,
       metafile: true,
    });
 
