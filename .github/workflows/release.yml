@@ -16,9 +16,12 @@ jobs:
          - name: Setup Node
            uses: actions/setup-node@v4
            with:
-              version: 20.x
+              node-version: 20.x
               registry-url: 'https://registry.npmjs.org'
               scope: '@calycode'
+              always-auth: 'true'
+           env: 
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
          
          - name: Install dependencies
            run: pnpm install
