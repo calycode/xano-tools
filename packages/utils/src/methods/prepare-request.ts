@@ -58,8 +58,6 @@ export function prepareRequest({
       }
    });
 
-   console.log(queryParams);
-
    // 2. Replace path params
    let processedPath = path.replace(/\{(\w+?)\}/g, (_, key) =>
       pathParams[key] !== undefined ? encodeURIComponent(String(pathParams[key])) : '1'
@@ -67,8 +65,6 @@ export function prepareRequest({
 
    // 3. Concatenate baseUrl and processedPath robustly
    let url = baseUrl.replace(/\/+$/, '') + '/' + processedPath.replace(/^\/+/, '');
-
-   console.log(url);
 
    // 4. Append query string using URLSearchParams
    const queryString = new URLSearchParams(
@@ -81,9 +77,6 @@ export function prepareRequest({
    if (queryString) {
       url += (url.includes('?') ? '&' : '?') + queryString;
    }
-
-   console.log(queryString);
-   console.log(url);
 
    // 5. Merge headers
    const finalHeaders: Record<string, string> = {

@@ -269,6 +269,35 @@ export class Caly extends TypedEmitter<EventMap> {
       });
    }
 
+
+   /**
+    * Run tests based on provided testconfig file.
+    */
+   // [ ] Add JSDocs
+   async runTests({
+      context,
+      groups,
+      testConfig,
+   }: {
+      context: Context;
+      groups: ApiGroupConfig[];
+      testConfig: any;
+   }): Promise<
+      {
+         group: ApiGroupConfig;
+         results: {
+            path: string;
+            method: string;
+            success: boolean;
+            errors: any;
+            warnings: any;
+            duration: number;
+         }[];
+      }[]
+   > {
+      return await runTestsImplementation({ context, groups, testConfig, core: this });
+   }
+
    // ----- SEMI-UTIL METHODS ----- //
    /**
     * Updates an OpenAPI specification with Xano-specific enhancements.
@@ -306,34 +335,6 @@ export class Caly extends TypedEmitter<EventMap> {
          workspaceConfig,
          storage: this.storage,
       });
-   }
-
-   /**
-    * Run tests based on provided testconfig file.
-    */
-   // [ ] Add JSDocs
-   async runTests({
-      context,
-      groups,
-      testConfig,
-   }: {
-      context: Context;
-      groups: ApiGroupConfig[];
-      testConfig: any;
-   }): Promise<
-      {
-         group: ApiGroupConfig;
-         results: {
-            path: string;
-            method: string;
-            success: boolean;
-            errors: any;
-            warnings: any;
-            duration: number;
-         }[];
-      }[]
-   > {
-      return await runTestsImplementation({ context, groups, testConfig, core: this });
    }
 
    // ----- UTIL METHODS ----- //

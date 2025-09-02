@@ -6,6 +6,8 @@
         "access": "restricted",
         "tag": "latest"
     },
+    "license": "MIT",
+    "author": "Mihály Tóth | @calycode",
     "keywords": [
         "calycode",
         "xano",
