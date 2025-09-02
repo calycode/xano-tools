@@ -13,6 +13,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { attachCliEventHandlers } from '../utils/event-listener';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 async function updateOasWizard({
    instance,
@@ -40,11 +41,10 @@ async function updateOasWizard({
       printOutput,
    });
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      resolvedContext
+   );
 
    // Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({

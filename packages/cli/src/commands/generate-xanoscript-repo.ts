@@ -4,6 +4,7 @@ import { attachCliEventHandlers } from '../utils/event-listener';
 import { replacePlaceholders } from '@calycode/utils';
 import { printOutputDir } from '../utils';
 import { addFullContextOptions, addPrintOutputFlag, withErrorHandler } from '../utils';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 /**
  * Clears the contents of a directory.
@@ -30,11 +31,10 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
       branch,
    });
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      resolvedContext
+   );
 
    // Resolve output dir
    const outputDir = replacePlaceholders(instanceConfig.xanoscript.output, {

@@ -28,3 +28,5 @@ debug_requests.json
 .VSCodeCounter/
 project-plan.md
 *.tsbuildinfo
+calyInstance.config.js
+calyInstance.test.setup.json

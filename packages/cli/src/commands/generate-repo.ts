@@ -2,12 +2,7 @@ import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync } from 'fs';
 import { log, intro, outro } from '@clack/prompts';
 import { load } from 'js-yaml';
 import { mkdir } from 'fs/promises';
-import {
-   joinPath,
-   dirname,
-   replacePlaceholders,
-   fetchAndExtractYaml,
-} from '@calycode/utils';
+import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@calycode/utils';
 import {
    addFullContextOptions,
    addPrintOutputFlag,
@@ -15,6 +10,7 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { attachCliEventHandlers } from '../utils/event-listener';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 /**
  * Clears the contents of a directory.
@@ -54,11 +50,10 @@ async function generateRepo({
       printOutput,
    });
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      resolvedContext
+   );
 
    // Resolve output dir
    const outputDir = output

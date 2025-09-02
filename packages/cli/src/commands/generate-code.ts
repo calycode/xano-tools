@@ -8,6 +8,7 @@ import {
    printOutputDir,
    withErrorHandler,
 } from '../utils/index';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
 
@@ -39,11 +40,10 @@ async function generateCodeFromOas({
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      resolvedContext
+   );
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';
    const additionalArgs = stack.args || [];

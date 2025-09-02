@@ -31,6 +31,7 @@ export async function setupInstanceImplementation(
       url: string;
       apiKey: string;
       setAsCurrent?: boolean;
+      projectRoot: string;
    }
 ) {
    const { name, url, apiKey, setAsCurrent = true } = options;
@@ -51,17 +52,17 @@ export async function setupInstanceImplementation(
    // 4. Fetch workspaces and branches
    const workspaces = await fetchWorkspacesAndBranches({ url, apiKey });
 
-   // 5. Save instance config
+   // 5. Save instance config (to the global configuration location)
    await storage.saveInstanceConfig(safeName, {
       name: safeName,
       url,
-      tokenFile: `../tokens/${safeName}.token`,
+      tokenRef: safeName,
       lint: {
-         output: 'output/{instance}/lint/{workspace}/{branch}',
+         output: '{instance}/lint/{workspace}/{branch}',
          rules: DEFAULT_LINT_RULES,
       },
       test: {
-         output: 'output/{instance}/tests/{workspace}/{branch}/{api_group_normalized_name}',
+         output: '{instance}/tests/{workspace}/{branch}/{api_group_normalized_name}',
          headers: {
             'X-Branch': '{branch}',
             'X-Data-Source': 'test',
@@ -69,16 +70,16 @@ export async function setupInstanceImplementation(
          defaultAsserts: DEFAULT_ASSERTS,
       },
       process: {
-         output: 'output/{instance}/repo/{workspace}/{branch}',
+         output: '{instance}/repo/{workspace}/{branch}',
       },
       xanoscript: {
-         output: 'output/{instance}/xanoscript/{workspace}/{branch}',
+         output: '{instance}/xanoscript/{workspace}/{branch}',
       },
       openApiSpec: {
-         output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
+         output: '{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
       },
       backups: {
-         output: 'output/{instance}/backups/{workspace}/{branch}',
+         output: '{instance}/backups/{workspace}/{branch}',
       },
       registry: {
          output: 'registry',
@@ -103,5 +104,16 @@ export async function setupInstanceImplementation(
                : null,
       };
    }
+
+   // 8. Set up the local context and config file, that can help with context resolution
+   // when the projectRoot input is a blank string, then the local config goes into the './xano-tools/' path
+   await storage.saveLocalInstanceConfig('', {
+      instance: safeName,
+      workspace: workspaces.length ? workspaces[0].id : null,
+      branch:
+         workspaces.length && workspaces[0].branches.length
+            ? workspaces[0].branches[0].label
+            : null,
+   });
    await storage.saveGlobalConfig(global);
 }

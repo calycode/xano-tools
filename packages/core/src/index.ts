@@ -81,6 +81,7 @@ export class Caly extends TypedEmitter<EventMap> {
       url: string;
       apiKey: string;
       setAsCurrent?: boolean;
+      projectRoot: string;
    }) {
       return setupInstanceImplementation(this.storage, options);
    }
@@ -268,7 +269,6 @@ export class Caly extends TypedEmitter<EventMap> {
          core: this,
       });
    }
-
 
    /**
     * Run tests based on provided testconfig file.

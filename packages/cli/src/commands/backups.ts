@@ -1,7 +1,7 @@
 import path, { join } from 'path';
 import { readdirSync } from 'fs';
 import { openAsBlob } from 'node:fs';
-import { select, confirm, outro, } from '@clack/prompts';
+import { select, confirm, outro } from '@clack/prompts';
 import { replacePlaceholders } from '@calycode/utils';
 import {
    addFullContextOptions,
@@ -11,13 +11,14 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { attachCliEventHandlers } from '../utils/event-listener';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
-   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-   });
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace }, core);
+   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext(
+      resolvedContext
+   );
 
    try {
       let backupFilePath = sourceBackup;

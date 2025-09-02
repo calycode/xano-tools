@@ -13,12 +13,14 @@ import os from 'os';
 import { x } from 'tar';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ConfigStorage } from '@calycode/types';
+import { ConfigStorage, CoreContext } from '@calycode/types';
 
 const baseDir = path.join(os.homedir(), '.xano-tools');
 const configPath = path.join(baseDir, 'config.json');
 const instancesDir = path.join(baseDir, 'instances');
 const tokensDir = path.join(baseDir, 'tokens');
+const DEFAULT_LOCAL_CONFIG_SUBDIR = '.xano-tools';
+const DEFAULT_LOCAL_CONFIG_FILE = 'xano-cli.config.json';
 
 /**
  * Node.js implementation of the ConfigStorage interface.
@@ -123,6 +125,22 @@ export const nodeConfigStorage: ConfigStorage = {
       } catch {
          return false;
       }
+   },
+
+   async saveLocalInstanceConfig(projectRoot: string = '', config: CoreContext) {
+      const configDir = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_SUBDIR);
+      const configPath = path.join(configDir, DEFAULT_LOCAL_CONFIG_FILE);
+      if (!fs.existsSync(configDir)) {
+         fs.mkdirSync(configDir, { recursive: true });
+      }
+      fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+   },
+
+   async loadLocalInstanceConfig(projectRoot: string): Promise<any> {
+      const configDir = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_SUBDIR);
+      const configPath = path.join(configDir, DEFAULT_LOCAL_CONFIG_FILE);
+      if (!fs.existsSync(configPath)) throw new Error(`Local config not found: ${configPath}`);
+      return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
    },
 
    // ----- TAR helper -----

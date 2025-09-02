@@ -28,6 +28,9 @@ export interface ConfigStorage {
    saveInstanceConfig(instance: string, data: InstanceConfig): Promise<void>;
    saveToken(instance: string, token: string): Promise<void>;
 
+   saveLocalInstanceConfig(projectRoot: string, config: CoreContext): Promise<void>;
+   loadLocalInstanceConfig(projectRoot: string): Promise<CoreContext>;
+
    // Add generic file/directory methods:
    mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
    readdir(path: string): Promise<string[]>;

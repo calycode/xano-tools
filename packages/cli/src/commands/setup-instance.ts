@@ -25,8 +25,10 @@ async function setupInstanceWizard(core) {
       })) as boolean;
    }
 
+   const projectRoot = process.cwd();
+
    // Run the core setup logic
-   await core.setupInstance({ name, url, apiKey, setAsCurrent });
+   await core.setupInstance({ name, url, apiKey, setAsCurrent, projectRoot });
 }
 
 export function registerSetupCommand(program, core) {
