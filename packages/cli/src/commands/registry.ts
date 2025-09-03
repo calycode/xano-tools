@@ -20,10 +20,12 @@ async function addToXano({
    context: CoreContext;
    core: any;
 }) {
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance: context.instance,
       workspace: context.workspace,
       branch: context.branch,
+      startDir
    });
 
    intro('Add components to your Xano instance');
@@ -167,9 +169,7 @@ function registerRegistryScaffoldCommand(program, core) {
       .action(
          withErrorHandler(async (options) => {
             await scaffoldRegistry({
-               outputPath: options.output,
-               instance: options.instance,
-               core,
+               registryRoot: options.output,
             });
          })
       );

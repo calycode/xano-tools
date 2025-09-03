@@ -80,11 +80,12 @@ async function testRunner({
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
-
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
       branch,
+      startDir,
    });
 
    const DEFAULT_HEADERS = {
@@ -196,7 +197,6 @@ async function testRunner({
                }
             }
 
-            console.log('store: ', store);
             // Add runtime values if request has 'store' defined
             if (store && requestOutcome.headers.get('content-type').includes('application/json')) {
                const newRuntimeValues = Object.fromEntries(

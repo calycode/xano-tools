@@ -16,8 +16,10 @@ const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
    const resolvedContext = await resolveEffectiveContext({ instance, workspace }, core);
-   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext(
-      resolvedContext
+   const startDir = process.cwd();
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      {...resolvedContext,
+      startDir}
    );
 
    try {

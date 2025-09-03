@@ -41,8 +41,10 @@ async function generateCodeFromOas({
    intro('🔄 Starting to generate code');
 
    const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      resolvedContext
+      {...resolvedContext,
+      startDir}
    );
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';

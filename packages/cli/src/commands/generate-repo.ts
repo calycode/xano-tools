@@ -51,8 +51,10 @@ async function generateRepo({
    });
 
    const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      resolvedContext
+      {...resolvedContext,
+      startDir}
    );
 
    // Resolve output dir

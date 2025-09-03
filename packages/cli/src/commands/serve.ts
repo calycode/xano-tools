@@ -6,8 +6,10 @@ import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
    const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      resolvedContext
+      {...resolvedContext,
+      startDir}
    );
    const apiGroups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,

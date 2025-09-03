@@ -1,5 +1,5 @@
 // core/config-storage.ts
-import { InstanceConfig, CoreContext } from '..';
+import { InstanceConfig, CoreContext, WorkspaceConfig, BranchConfig } from '..';
 /**
  * Storage interface for Caly configuration and file operations.
  * Abstracts filesystem operations to allow different storage implementations (Node.js, browser, etc.).
@@ -23,13 +23,20 @@ export interface ConfigStorage {
    ensureDirs(): Promise<void>;
    loadGlobalConfig(): Promise<{ currentContext: CoreContext; instances: string[] }>;
    loadInstanceConfig(instance: string): Promise<InstanceConfig>;
+   loadMergedConfig(
+      startDir: string,
+      configFiles?: string[]
+   ): {
+      mergedConfig: any;
+      instanceConfig?: InstanceConfig;
+      workspaceConfig?: WorkspaceConfig;
+      branchConfig?: BranchConfig;
+      foundLevels: { branch?: string; workspace?: string; instance?: string };
+   };
    loadToken(instance: string): Promise<string>;
    saveGlobalConfig(config: any): Promise<void>;
-   saveInstanceConfig(instance: string, data: InstanceConfig): Promise<void>;
+   saveInstanceConfig(projectRoot: string, data: InstanceConfig): Promise<void>;
    saveToken(instance: string, token: string): Promise<void>;
-
-   saveLocalInstanceConfig(projectRoot: string, config: CoreContext): Promise<void>;
-   loadLocalInstanceConfig(projectRoot: string): Promise<CoreContext>;
 
    // Add generic file/directory methods:
    mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;

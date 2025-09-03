@@ -8,10 +8,11 @@ async function runLinter(printOutput: boolean = false, core) {
    const globalConfig = await core.loadGlobalConfig();
    const context = globalConfig.currentContext;
 
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.getCurrentContextConfig(
-      globalConfig,
-      context
-   );
+   const startDir = process.cwd();
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.getCurrentContextConfig({
+      startDir,
+      context,
+   });
 
    if (!instanceConfig || !workspaceConfig || !branchConfig) {
       log.error(

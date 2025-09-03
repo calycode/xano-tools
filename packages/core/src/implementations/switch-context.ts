@@ -7,6 +7,4 @@ export async function switchContextImplementation(
    const config = await storage.loadGlobalConfig();
    config.currentContext = context;
    await storage.saveGlobalConfig(config);
-   // keep local config in sync
-   await storage.saveLocalInstanceConfig('', context);
 }

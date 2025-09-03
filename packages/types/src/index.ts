@@ -75,6 +75,9 @@ export interface InstanceConfig {
    openApiSpec?: {
       output: string;
    };
+   codegen?: {
+      output: string;
+   };
    registry?: {
       output: string;
    };

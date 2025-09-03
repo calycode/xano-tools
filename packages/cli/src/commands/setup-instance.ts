@@ -6,29 +6,49 @@ async function setupInstanceWizard(core) {
    intro('✨ Xano CLI Instance Setup ✨');
 
    // Gather info from user
-   const name = (
+   let nameInput = (
       (await text({
          message: 'Name this Xano instance (e.g. prod, staging, client-a):',
       })) as string
    ).trim();
-   const url = ((await text({ message: `What's the base URL for "${name}"?` })) as string).trim();
-   const apiKey = await password({ message: `Enter the Metadata API key for "${name}":` });
+   const instanceName = sanitizeInstanceName(nameInput);
+   const url = (
+      (await text({ message: `What's the base URL for "${instanceName}"?` })) as string
+   ).trim();
+   const apiKey = await password({ message: `Enter the Metadata API key for "${instanceName}":` });
+   const defaultPath = `xano-cli/${instanceName}`;
+   let userDirectory = (await text({
+      message: 'Where do you want the repo to be initialized at?',
+      placeholder: defaultPath,
+   })) as string;
+   if (userDirectory) {
+      userDirectory.trim();
+      if (userDirectory === '.') {
+         userDirectory = process.cwd();
+      }
+   } else {
+      userDirectory = defaultPath;
+   }
 
    // Check if we should set it as the current context
    const global = await core.loadGlobalConfig();
    const { currentContext } = global;
    let setAsCurrent = true;
-   if (currentContext?.instance && currentContext.instance !== sanitizeInstanceName(name)) {
+   if (currentContext?.instance && currentContext.instance !== instanceName) {
       setAsCurrent = (await confirm({
-         message: `Set "${name}" as your current context?`,
+         message: `Set "${instanceName}" as your current context?`,
          initialValue: true,
       })) as boolean;
    }
 
-   const projectRoot = process.cwd();
-
    // Run the core setup logic
-   await core.setupInstance({ name, url, apiKey, setAsCurrent, projectRoot });
+   await core.setupInstance({
+      name: instanceName,
+      projectRoot: userDirectory,
+      url,
+      apiKey,
+      setAsCurrent,
+   });
 }
 
 export function registerSetupCommand(program, core) {

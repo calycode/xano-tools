@@ -1,5 +1,11 @@
 // core/config.ts
-import { ConfigStorage, InstanceConfig, WorkspaceConfig, BranchConfig, Context } from '@calycode/types';
+import {
+   ConfigStorage,
+   InstanceConfig,
+   WorkspaceConfig,
+   BranchConfig,
+   Context,
+} from '@calycode/types';
 import { getCurrentContextConfigImplementation } from './get-current-context';
 
 function assignDefined<T>(base: T, overrides: Partial<T>): T {
@@ -12,10 +18,15 @@ function assignDefined<T>(base: T, overrides: Partial<T>): T {
    return result;
 }
 
-export async function loadAndValidateContextImplementation(
-   storage: ConfigStorage,
-   overrides: Partial<Context>
-): Promise<{
+export async function loadAndValidateContextImplementation({
+   storage,
+   overrides,
+   startDir,
+}: {
+   storage: ConfigStorage;
+   overrides: Partial<Context>;
+   startDir: string;
+}): Promise<{
    instanceConfig: InstanceConfig;
    workspaceConfig: WorkspaceConfig;
    branchConfig: BranchConfig;
@@ -24,7 +35,7 @@ export async function loadAndValidateContextImplementation(
    const globalConfig = await storage.loadGlobalConfig();
    const context = assignDefined(globalConfig.currentContext, overrides);
    const { instanceConfig, workspaceConfig, branchConfig } =
-      await getCurrentContextConfigImplementation({ storage, globalConfig, context });
+      await getCurrentContextConfigImplementation({ storage, startDir, context });
    if (!instanceConfig || !workspaceConfig || !branchConfig) {
       throw new Error(
          'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'

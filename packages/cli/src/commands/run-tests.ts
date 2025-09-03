@@ -34,8 +34,10 @@ async function runTest({
 
    // 1. Get the current context.
    const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      resolvedContext
+      {...resolvedContext,
+      startDir}
    );
 
    // 2. Get API groups (prompt or all)

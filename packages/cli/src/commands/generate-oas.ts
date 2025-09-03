@@ -1,9 +1,4 @@
-import {
-   normalizeApiGroupName,
-   replacePlaceholders,
-   joinPath,
-   dirname,
-} from '@calycode/utils';
+import { normalizeApiGroupName, replacePlaceholders, joinPath, dirname } from '@calycode/utils';
 import {
    addApiGroupOptions,
    addFullContextOptions,
@@ -42,9 +37,11 @@ async function updateOasWizard({
    });
 
    const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      resolvedContext
-   );
+   const startDir = process.cwd();
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      ...resolvedContext,
+      startDir,
+   });
 
    // Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({

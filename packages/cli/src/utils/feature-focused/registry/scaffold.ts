@@ -8,18 +8,10 @@ async function ensureDirForFile(filePath) {
 
 // [ ] CLI
 async function scaffoldRegistry(
-   { outputPath, instance, core } = {
-      outputPath: 'registry',
-      instance: null,
-      core: null,
+   { registryRoot }: { registryRoot?: string } = {
+      registryRoot: 'registry',
    }
 ) {
-   const { instanceConfig } = await core.loadAndValidateContext({ instance });
-   const registryRoot =
-      outputPath ||
-      (instanceConfig && instanceConfig.registry && instanceConfig.registry.output) ||
-      'registry';
-
    const componentsRoot = 'components';
    const definitionPath = path.join(registryRoot, 'definitions');
    const functionName = 'hello-world';

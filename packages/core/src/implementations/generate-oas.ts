@@ -15,11 +15,12 @@ async function updateOpenapiSpecImplementation(
    const { instance, workspace, branch } = options;
 
    core.emit('start', { name: 'start-updateoas', payload: options });
-
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
       branch,
+      startDir,
    });
 
    try {

@@ -361,13 +361,17 @@ export class Caly extends TypedEmitter<EventMap> {
     * console.log('Workspace ID:', context.workspaceConfig.id);
     * ```
     */
-   async loadAndValidateContext({ instance, workspace, branch }: Context): Promise<{
+   async loadAndValidateContext({ instance, workspace, branch, startDir }): Promise<{
       instanceConfig: InstanceConfig;
       workspaceConfig: WorkspaceConfig;
       branchConfig: BranchConfig;
       globalConfig: any;
    }> {
-      return loadAndValidateContextImplementation(this.storage, { instance, workspace, branch });
+      return loadAndValidateContextImplementation({
+         storage: this.storage,
+         overrides: { instance, workspace, branch },
+         startDir,
+      });
    }
 
    /**
@@ -390,13 +394,16 @@ export class Caly extends TypedEmitter<EventMap> {
     * });
     * ```
     */
-   async getCurrentContextConfig(
-      globalConfig?: any,
-      context: Context = {}
-   ): Promise<CurrentContextConfig> {
+   async getCurrentContextConfig({
+      startDir,
+      context = {},
+   }: {
+      startDir?: any;
+      context: Context;
+   }): Promise<CurrentContextConfig> {
       return getCurrentContextConfigImplementation({
          storage: this.storage,
-         globalConfig,
+         startDir,
          context,
       });
    }

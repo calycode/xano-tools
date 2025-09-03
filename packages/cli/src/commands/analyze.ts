@@ -16,8 +16,10 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
    intro('Starting to analyze functions.');
    let branchFunctions = {};
    const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      resolvedContext
+   const startDir = process.cwd();
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
+      ...resolvedContext,
+      startDir}
    );
 
    // Resolve output dir
