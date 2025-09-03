@@ -64,11 +64,12 @@ async function buildXanoscriptRepoImplementation(
    core.emit('start', { name: 'xs-repo-generation', payload: options });
 
    const results: { path: string; content: string }[] = [];
-
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
       branch,
+      startDir
    });
 
    const baseUrl = instanceConfig.url;

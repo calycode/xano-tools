@@ -9,6 +9,7 @@ import {
    printOutputDir,
    withErrorHandler,
 } from '../utils/index';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 async function runTest({
    instance,
@@ -32,25 +33,12 @@ async function runTest({
    intro('☣️   Starting up the testing...');
 
    // 1. Get the current context.
-   const globalConfig = await core.loadGlobalConfig();
-   const context = {
-      ...globalConfig.currentContext,
-      instance,
-      workspace,
-      branch,
-      group,
-   };
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.getCurrentContextConfig(
-      globalConfig,
-      context
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      {...resolvedContext,
+      startDir}
    );
-
-   if (!instanceConfig || !workspaceConfig || !branchConfig) {
-      log.error(
-         'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
-      );
-      process.exit(1);
-   }
 
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({

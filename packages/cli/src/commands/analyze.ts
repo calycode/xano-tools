@@ -9,16 +9,18 @@ import {
    addPrintOutputFlag,
    printOutputDir,
 } from '../utils/index';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 // [ ] CORE, but needs fs access.
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false, core) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
+      ...resolvedContext,
+      startDir}
+   );
 
    // Resolve output dir
    const outputDir = replacePlaceholders(instanceConfig['xano-script'].output, {

@@ -21,7 +21,7 @@ function getFunctionLink(method, functionMapping) {
    const functionId = method.context?.function?.id;
    if (functionId && functionMapping[functionId]) {
       const functionName = functionMapping[functionId].name;
-      const functionPath = `/repo/function/${functionName.replace(/\//g, '_')}/`;
+      const functionPath = `/src/function/${functionName.replace(/\//g, '_')}/`;
       return `**[${functionName}](${functionPath})**`;
    }
    return '';
@@ -31,7 +31,7 @@ function getDboLink(method, dboMapping) {
    const dboId = method.context?.dbo?.id;
    if (dboId && dboMapping[dboId]) {
       const dboName = dboMapping[dboId].name;
-      const dboPath = `/repo/dbo/${dboName.replace(/\//g, '_')}/`;
+      const dboPath = `/src/dbo/${dboName.replace(/\//g, '_')}/`;
       return `**[${dboName}](${dboPath})**`;
    }
    return '';

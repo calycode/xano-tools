@@ -101,7 +101,8 @@ function registerSwitchContextCommand(program, core) {
 
 function registerCurrentContextCommand(program, core) {
    program.command('current-context').action(async () => {
-      const currentContext = await core.getCurrentContextConfig();
+      const startDir = process.cwd();
+      const currentContext = await core.getCurrentContextConfig({ startDir, context: {} });
       log.info(`Current context: ${JSON.stringify(currentContext, null, 2)}`);
    });
 }

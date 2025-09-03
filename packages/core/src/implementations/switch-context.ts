@@ -2,7 +2,7 @@ import { ConfigStorage, CoreContext } from '@calycode/types';
 
 export async function switchContextImplementation(
    storage: ConfigStorage,
-   context: CoreContext,
+   context: CoreContext
 ): Promise<void> {
    const config = await storage.loadGlobalConfig();
    config.currentContext = context;

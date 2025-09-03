@@ -25,12 +25,21 @@ const replaceDynamicValues = (obj, replacements) => {
    return obj;
 };
 
+// [ ] Consider using the JSONPath package for a full-featured JSONPath lookup.
+/**
+ * Utility to extract runtime values.
+ *
+ * @param obj
+ * @param path
+ * @returns
+ */
 function getByPath(obj, path) {
-   return path.split('.').reduce((acc, key) => acc?.[key], obj);
+   // Normalize: remove leading "$.", "$", or "."
+   let cleanPath = path.replace(/^\$\.?/, '').replace(/^\./, '');
+   // Split into tokens for dot and array
+   const tokens = cleanPath.split(/[\.\[]/g).map((t) => t.replace(/]$/, ''));
+   return tokens.reduce((acc, key) => acc?.[key], obj);
 }
-
-// [ ] Add the branchConfig.label as the branch header to every request (unless overriden)
-// [ ] Add the X-Data-Source: test header to every endpoint by deafult (unless overriden)
 
 /**
  * testConfig is actually an array of objects defining in what order and which
@@ -71,11 +80,12 @@ async function testRunner({
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
-
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
       branch,
+      startDir,
    });
 
    const DEFAULT_HEADERS = {
@@ -141,12 +151,10 @@ async function testRunner({
             // Resolve values and prepare request:
             const resolvedQueryParams: PrepareRequestArgs['parameters'] = (queryParams ?? []).map(
                (param) => {
-                  console.log(param);
                   param.value = replaceDynamicValues(param.value, runtimeValues);
                   return param;
                }
             );
-            console.log(resolvedQueryParams);
             const resolvedHeaders = replaceDynamicValues(headers, {
                ...DEFAULT_HEADERS,
                ...runtimeValues,
@@ -161,7 +169,6 @@ async function testRunner({
                parameters: resolvedQueryParams,
                body: resolvedRequestBody,
             });
-            console.log(preparedRequest);
             // Execute the request
             const requestOutcome = await fetch(preparedRequest.url, preparedRequest);
             const contentType = requestOutcome.headers.get('content-type');
@@ -191,7 +198,7 @@ async function testRunner({
             }
 
             // Add runtime values if request has 'store' defined
-            if (store && requestOutcome.headers.get('content-type') === 'application/json') {
+            if (store && requestOutcome.headers.get('content-type').includes('application/json')) {
                const newRuntimeValues = Object.fromEntries(
                   store.map(({ key, path }) => [key, getByPath(result, path.replace(/^\./, ''))])
                );

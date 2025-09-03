@@ -31,6 +31,7 @@ export async function setupInstanceImplementation(
       url: string;
       apiKey: string;
       setAsCurrent?: boolean;
+      projectRoot: string;
    }
 ) {
    const { name, url, apiKey, setAsCurrent = true } = options;
@@ -51,17 +52,16 @@ export async function setupInstanceImplementation(
    // 4. Fetch workspaces and branches
    const workspaces = await fetchWorkspacesAndBranches({ url, apiKey });
 
-   // 5. Save instance config
-   await storage.saveInstanceConfig(safeName, {
+   const instanceConfig = {
       name: safeName,
       url,
-      tokenFile: `../tokens/${safeName}.token`,
+      tokenRef: safeName,
       lint: {
-         output: 'output/{instance}/lint/{workspace}/{branch}',
+         output: '/lint/{branch}',
          rules: DEFAULT_LINT_RULES,
       },
       test: {
-         output: 'output/{instance}/tests/{workspace}/{branch}/{api_group_normalized_name}',
+         output: '/tests/{branch}/{api_group_normalized_name}',
          headers: {
             'X-Branch': '{branch}',
             'X-Data-Source': 'test',
@@ -69,22 +69,59 @@ export async function setupInstanceImplementation(
          defaultAsserts: DEFAULT_ASSERTS,
       },
       process: {
-         output: 'output/{instance}/repo/{workspace}/{branch}',
+         output: '/src/{branch}',
       },
       xanoscript: {
-         output: 'output/{instance}/xanoscript/{workspace}/{branch}',
+         output: '/xanoscript/{branch}',
       },
       openApiSpec: {
-         output: 'output/{instance}/oas/{workspace}/{branch}/{api_group_normalized_name}',
+         output: '/oas/{branch}/{api_group_normalized_name}',
+      },
+      codegen: {
+         output: '/codegen/{branch}/{api_group_normalized_name}',
       },
       backups: {
-         output: 'output/{instance}/backups/{workspace}/{branch}',
+         output: 'backups/{branch}',
       },
       registry: {
          output: 'registry',
       },
       workspaces,
-   });
+   };
+
+   // 5. Setup the whole directory for each workspace and it's branches as well:
+   // 5.1: Workspaces directory creation
+   const workspaceDirMap = {};
+
+   await Promise.all(
+      workspaces.map(async (workspace) => {
+         const workspaceCleanName = sanitizeInstanceName(workspace.name);
+         const workspaceDir = `${options.projectRoot}/${workspaceCleanName}`;
+         workspaceDirMap[workspace.name] = workspaceDir;
+         await storage.mkdir(workspaceDir, { recursive: true });
+         await storage.writeFile(
+            `${workspaceDir}/workspace.config.json`,
+            JSON.stringify(workspace, null, 2)
+         );
+      })
+   );
+
+   // 5.2: Branches directory creation
+   await Promise.all(
+      workspaces.map(async (workspace) => {
+         const workspaceDir = workspaceDirMap[workspace.name];
+         await Promise.all(
+            workspace.branches.map(async (branch) => {
+               const branchDir = `${workspaceDir}/${branch.label}`;
+               await storage.mkdir(branchDir, { recursive: true });
+               await storage.writeFile(
+                  `${branchDir}/branch.config.json`,
+                  JSON.stringify(branch, null, 2)
+               );
+            })
+         );
+      })
+   );
 
    // 6. Register in global config
    const global = await storage.loadGlobalConfig();
@@ -103,5 +140,10 @@ export async function setupInstanceImplementation(
                : null,
       };
    }
+
+   // 8. Set up the local context and config file, that can help with context resolution
+   // when the projectRoot input is a blank string, then the local config goes into the './xano-tools/' path
+   await storage.saveInstanceConfig(options.projectRoot, instanceConfig);
+
    await storage.saveGlobalConfig(global);
 }

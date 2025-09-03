@@ -5,6 +5,8 @@
     "publishConfig": {
         "access": "restricted"
     },
+    "license": "MIT",
+    "author": "Mihály Tóth | @calycode",
     "keywords": [
         "xano",
         "cli",

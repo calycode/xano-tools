@@ -8,6 +8,12 @@
         },
         "queryParams": null,
         "requestBody": null,
+        "store": [
+            {
+                "key": "MVP_VERSION",
+                "path": "$.appVersion"
+            }
+        ],
         "customAsserts": []
     },
     {
@@ -25,6 +31,7 @@
             }
         ],
         "requestBody": null,
+        "store": null,
         "customAsserts": []
     },
     {
@@ -36,6 +43,7 @@
         },
         "queryParams": null,
         "requestBody": null,
+        "store": null,
         "customAsserts": []
     }
 ]

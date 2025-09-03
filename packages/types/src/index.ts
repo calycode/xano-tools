@@ -70,9 +70,12 @@ export interface Context extends CoreContext {
 export interface InstanceConfig {
    name: string;
    url: string;
-   tokenFile: string;
+   tokenRef: string;
    workspaces?: WorkspaceConfig[];
    openApiSpec?: {
+      output: string;
+   };
+   codegen?: {
       output: string;
    };
    registry?: {

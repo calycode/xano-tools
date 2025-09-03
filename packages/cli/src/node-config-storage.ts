@@ -13,12 +13,60 @@ import os from 'os';
 import { x } from 'tar';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ConfigStorage } from '@calycode/types';
+import { ConfigStorage, CoreContext, InstanceConfig } from '@calycode/types';
 
-const baseDir = path.join(os.homedir(), '.xano-tools');
-const configPath = path.join(baseDir, 'config.json');
-const instancesDir = path.join(baseDir, 'instances');
-const tokensDir = path.join(baseDir, 'tokens');
+const BASE_DIR = path.join(os.homedir(), '.xano-tools');
+const GLOBAL_CONFIG_PATH = path.join(BASE_DIR, 'config.json');
+const TOKENS_DIR = path.join(BASE_DIR, 'tokens');
+const DEFAULT_LOCAL_CONFIG_FILE = 'instance.config.json';
+const MERGE_KEYS = ['lint', 'test'];
+
+/**
+ * Walks up the directory tree to find the first directory containing
+ * .xano-tools/xano-cli.config.json, starting from startDir or process.cwd().
+ * @param startDir Optional directory to start search from. Defaults to process.cwd().
+ * @returns The project root directory containing the config file.
+ * @throws {Error} if no config file is found up to the filesystem root.
+ */
+async function walkDirs(startDir?: string): Promise<string> {
+   let dir = startDir ?? process.cwd();
+
+   while (true) {
+      const configPath = path.join(dir, DEFAULT_LOCAL_CONFIG_FILE);
+
+      if (fs.existsSync(configPath)) {
+         return dir;
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) {
+         // reached root
+         throw new Error(
+            `No local config found under any parent directories. Looked for ${dir}/${DEFAULT_LOCAL_CONFIG_FILE}`
+         );
+      }
+      dir = parent;
+   }
+}
+
+function selectiveDeepMerge(source: any, target: any): any {
+   // Only merge the keys we care about; otherwise, leave target as is.
+   const result = { ...target };
+   for (const key of MERGE_KEYS) {
+      if (source[key]) {
+         if (
+            typeof source[key] === 'object' &&
+            typeof target[key] === 'object' &&
+            source[key] !== null &&
+            target[key] !== null
+         ) {
+            result[key] = { ...target[key], ...source[key] };
+         } else {
+            result[key] = source[key];
+         }
+      }
+   }
+   return result;
+}
 
 /**
  * Node.js implementation of the ConfigStorage interface.
@@ -38,7 +86,7 @@ export const nodeConfigStorage: ConfigStorage = {
     * Creates ~/.xano-tools/instances and ~/.xano-tools/tokens if they don't exist.
     */
    async ensureDirs() {
-      [instancesDir, tokensDir].forEach((dir) => {
+      [TOKENS_DIR].forEach((dir) => {
          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       });
    },
@@ -49,25 +97,93 @@ export const nodeConfigStorage: ConfigStorage = {
     * @returns Global configuration object with current context and instance list
     */
    async loadGlobalConfig() {
-      if (!fs.existsSync(configPath)) {
+      if (!fs.existsSync(GLOBAL_CONFIG_PATH)) {
          return { currentContext: {}, instances: [] };
       }
-      return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      return JSON.parse(fs.readFileSync(GLOBAL_CONFIG_PATH, 'utf-8'));
    },
 
    async saveGlobalConfig(config) {
+      fs.writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(config, null, 2));
+   },
+
+   async saveInstanceConfig(projectRoot: string = '', config: InstanceConfig) {
+      const configPath = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_FILE);
+      if (!fs.existsSync(projectRoot)) {
+         fs.mkdirSync(projectRoot, { recursive: true });
+      }
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
    },
 
-   async loadInstanceConfig(instance) {
-      const p = path.join(instancesDir, `${instance}.json`);
-      if (!fs.existsSync(p)) throw new Error(`Instance config not found: ${instance}`);
-      return JSON.parse(fs.readFileSync(p, 'utf-8'));
+   async loadInstanceConfig(workingDir?: string): Promise<any> {
+      const projectRoot = await walkDirs(workingDir);
+      const configPath = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_FILE);
+      if (!fs.existsSync(configPath)) throw new Error(`Local config not found: ${configPath}`);
+      return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
    },
 
-   async saveInstanceConfig(instance, data) {
-      const p = path.join(instancesDir, `${instance}.json`);
-      fs.writeFileSync(p, JSON.stringify(data, null, 2));
+   /**
+    * Recursively walks up from startDir, merging only lint/test keys.
+    * All other keys from workspace/branch configs are stored in workspaceConfig/branchConfig.
+    */
+   loadMergedConfig(
+      startDir: string,
+      configFiles: string[] = [
+         'branch.config.json',
+         'workspace.config.json',
+         'instance.config.json',
+      ]
+   ): {
+      mergedConfig: any;
+      branchConfig?: any;
+      workspaceConfig?: any;
+      instanceConfig?: any;
+      foundLevels: { branch?: string; workspace?: string; instance?: string };
+   } {
+      let dir = path.resolve(startDir);
+      let mergedConfig: any = {};
+      let branchConfig: any = null;
+      let workspaceConfig: any = null;
+      let instanceConfig: any = null;
+      const foundLevels: { branch?: string; workspace?: string; instance?: string } = {};
+
+      while (dir && dir !== path.dirname(dir)) {
+         for (const configFile of configFiles) {
+            const configPath = path.join(dir, configFile);
+            if (fs.existsSync(configPath)) {
+               try {
+                  const raw = fs.readFileSync(configPath, 'utf-8');
+                  const config = JSON.parse(raw);
+
+                  // Special handling by config file type
+                  if (configFile === 'branch.config.json') {
+                     mergedConfig = selectiveDeepMerge(config, mergedConfig);
+                     branchConfig = config;
+                     foundLevels.branch = configPath;
+                  } else if (configFile === 'workspace.config.json') {
+                     mergedConfig = selectiveDeepMerge(config, mergedConfig);
+                     workspaceConfig = config;
+                     foundLevels.workspace = configPath;
+                  } else if (configFile === 'instance.config.json') {
+                     mergedConfig = selectiveDeepMerge(config, mergedConfig);
+                     instanceConfig = config;
+                     foundLevels.instance = configPath;
+                  }
+               } catch (err) {
+                  console.warn(`⚠️  Failed to load or parse ${configPath}: ${err}`);
+               }
+            }
+         }
+         dir = path.dirname(dir);
+      }
+
+      return {
+         mergedConfig,
+         branchConfig,
+         workspaceConfig,
+         instanceConfig,
+         foundLevels,
+      };
    },
 
    /**
@@ -83,7 +199,7 @@ export const nodeConfigStorage: ConfigStorage = {
       if (envToken) {
          return envToken;
       }
-      const p = path.join(tokensDir, `${instance}.token`);
+      const p = path.join(TOKENS_DIR, `${instance}.token`);
       if (!fs.existsSync(p)) {
          throw new Error(
             `Token not found for instance: ${instance}. Please provide it via the ${envVarName} environment variable or run 'caly setup'.`
@@ -99,7 +215,7 @@ export const nodeConfigStorage: ConfigStorage = {
     * @param token - The API token to save
     */
    async saveToken(instance, token) {
-      const p = path.join(tokensDir, `${instance}.token`);
+      const p = path.join(TOKENS_DIR, `${instance}.token`);
       fs.writeFileSync(p, token, { mode: 0o600 });
    },
 

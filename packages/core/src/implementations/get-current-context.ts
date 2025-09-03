@@ -6,70 +6,58 @@ import {
    ApiGroupConfig,
    CurrentContextConfig,
    ConfigStorage,
+   CoreContext,
 } from '@calycode/types';
 
-// [ ] CORE, needs fs
 /**
- * Safely loads the config for the current context.
+ * Loads and merges the current context config from the directory tree.
  * Returns { instanceConfig, workspaceConfig, branchConfig, apigroupConfig }
- * If any level is not found, returns null for that level.
  */
-export async function getCurrentContextConfigImplementation({
+async function getCurrentContextConfigImplementation({
    storage,
-   globalConfig = null,
    context = {},
+   startDir,
 }: {
    storage: ConfigStorage;
-   globalConfig?: any;
-   context: Context;
+   context?: Context;
+   startDir: string;
 }): Promise<CurrentContextConfig> {
-   if (!globalConfig) globalConfig = await storage.loadGlobalConfig();
+   let {
+      mergedConfig,
+      workspaceConfig,
+      branchConfig,
+      instanceConfig,
+      foundLevels,
+   }: {
+      mergedConfig: InstanceConfig;
+      workspaceConfig?: WorkspaceConfig;
+      branchConfig?: BranchConfig;
+      instanceConfig?: InstanceConfig;
+      foundLevels: CoreContext;
+   } = storage.loadMergedConfig(startDir);
 
-   const resolvedContext: Context = {
-      instance: context.instance ?? globalConfig.currentContext?.instance ?? null,
-      workspace: context.workspace ?? globalConfig.currentContext?.workspace ?? null,
-      branch: context.branch ?? globalConfig.currentContext?.branch ?? null,
-      apigroup: context.apigroup ?? globalConfig.currentContext?.apigroup ?? null,
-   };
+   // Extract context from config & override with explicit context
+   const workspace = context.workspace ?? foundLevels.workspace ?? null;
+   const branch = context.branch ?? foundLevels.branch ?? null;
+   const apigroup = context.apigroup ?? null;
 
-   const { instance, workspace, branch, apigroup } = resolvedContext;
+   // "instanceConfig" is always the fully merged config
+   // Optionally, you can also extract the raw configs at each level if needed
 
-   let instanceConfig: InstanceConfig | null = null;
-   let workspaceConfig: WorkspaceConfig | null = null;
-   let branchConfig: BranchConfig | null = null;
    let apigroupConfig: ApiGroupConfig | null = null;
 
-   if (!instance) {
-      return {
-         instanceConfig: null,
-         workspaceConfig: null,
-         branchConfig: null,
-         apigroupConfig: null,
-      };
-   }
-
-   try {
-      instanceConfig = await storage.loadInstanceConfig(instance);
-   } catch {
-      return {
-         instanceConfig: null,
-         workspaceConfig: null,
-         branchConfig: null,
-         apigroupConfig: null,
-      };
-   }
-
-   if (instanceConfig && workspace) {
+   // If your config contains workspaces/branches as arrays, extract the matching config objects
+   if (!workspaceConfig) {
       workspaceConfig =
-         (instanceConfig.workspaces ?? []).find(
+         (mergedConfig.workspaces as any[]).find(
             (ws) => String(ws.id) === String(workspace) || ws.name === workspace
          ) ?? null;
    }
-
-   if (workspaceConfig && branch) {
+   if (!branchConfig) {
       branchConfig = (workspaceConfig.branches ?? []).find((b) => b.label === branch) ?? null;
    }
 
+   // If you have apigroups as well, extract here
    if (workspaceConfig && apigroup) {
       apigroupConfig =
          (workspaceConfig.apigroups ?? []).find(
@@ -77,5 +65,12 @@ export async function getCurrentContextConfigImplementation({
          ) ?? null;
    }
 
-   return { instanceConfig, workspaceConfig, branchConfig, apigroupConfig };
+   return {
+      instanceConfig: instanceConfig,
+      workspaceConfig,
+      branchConfig,
+      apigroupConfig,
+   };
 }
+
+export { getCurrentContextConfigImplementation };

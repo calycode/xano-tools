@@ -81,6 +81,7 @@ export class Caly extends TypedEmitter<EventMap> {
       url: string;
       apiKey: string;
       setAsCurrent?: boolean;
+      projectRoot: string;
    }) {
       return setupInstanceImplementation(this.storage, options);
    }
@@ -269,6 +270,34 @@ export class Caly extends TypedEmitter<EventMap> {
       });
    }
 
+   /**
+    * Run tests based on provided testconfig file.
+    */
+   // [ ] Add JSDocs
+   async runTests({
+      context,
+      groups,
+      testConfig,
+   }: {
+      context: Context;
+      groups: ApiGroupConfig[];
+      testConfig: any;
+   }): Promise<
+      {
+         group: ApiGroupConfig;
+         results: {
+            path: string;
+            method: string;
+            success: boolean;
+            errors: any;
+            warnings: any;
+            duration: number;
+         }[];
+      }[]
+   > {
+      return await runTestsImplementation({ context, groups, testConfig, core: this });
+   }
+
    // ----- SEMI-UTIL METHODS ----- //
    /**
     * Updates an OpenAPI specification with Xano-specific enhancements.
@@ -308,34 +337,6 @@ export class Caly extends TypedEmitter<EventMap> {
       });
    }
 
-   /**
-    * Run tests based on provided testconfig file.
-    */
-   // [ ] Add JSDocs
-   async runTests({
-      context,
-      groups,
-      testConfig,
-   }: {
-      context: Context;
-      groups: ApiGroupConfig[];
-      testConfig: any;
-   }): Promise<
-      {
-         group: ApiGroupConfig;
-         results: {
-            path: string;
-            method: string;
-            success: boolean;
-            errors: any;
-            warnings: any;
-            duration: number;
-         }[];
-      }[]
-   > {
-      return await runTestsImplementation({ context, groups, testConfig, core: this });
-   }
-
    // ----- UTIL METHODS ----- //
    /**
     * Loads and validates the configuration for a specific Xano context.
@@ -360,13 +361,17 @@ export class Caly extends TypedEmitter<EventMap> {
     * console.log('Workspace ID:', context.workspaceConfig.id);
     * ```
     */
-   async loadAndValidateContext({ instance, workspace, branch }: Context): Promise<{
+   async loadAndValidateContext({ instance, workspace, branch, startDir }): Promise<{
       instanceConfig: InstanceConfig;
       workspaceConfig: WorkspaceConfig;
       branchConfig: BranchConfig;
       globalConfig: any;
    }> {
-      return loadAndValidateContextImplementation(this.storage, { instance, workspace, branch });
+      return loadAndValidateContextImplementation({
+         storage: this.storage,
+         overrides: { instance, workspace, branch },
+         startDir,
+      });
    }
 
    /**
@@ -389,13 +394,16 @@ export class Caly extends TypedEmitter<EventMap> {
     * });
     * ```
     */
-   async getCurrentContextConfig(
-      globalConfig?: any,
-      context: Context = {}
-   ): Promise<CurrentContextConfig> {
+   async getCurrentContextConfig({
+      startDir,
+      context = {},
+   }: {
+      startDir?: any;
+      context: Context;
+   }): Promise<CurrentContextConfig> {
       return getCurrentContextConfigImplementation({
          storage: this.storage,
-         globalConfig,
+         startDir,
          context,
       });
    }

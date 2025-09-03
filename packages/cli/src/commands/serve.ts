@@ -1,15 +1,16 @@
 import { spawn } from 'child_process';
 import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
 import { addApiGroupOptions, addFullContextOptions, chooseApiGroupOrAll } from '../utils/index';
+import { resolveEffectiveContext } from '../utils/commands/context-resolution';
 
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-   });
-
+   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const startDir = process.cwd();
+   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
+      {...resolvedContext,
+      startDir}
+   );
    const apiGroups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
       token: await core.loadToken(instanceConfig.name),

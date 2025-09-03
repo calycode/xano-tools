@@ -15,11 +15,12 @@ async function exportBackupImplementation({ instance, workspace, branch, core })
          message: 'Loading context...',
          percent: 5,
       });
-
+      const startDir = process.cwd();
       const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
          instance,
          workspace,
          branch,
+         startDir
       });
 
       if (!instanceConfig || !workspaceConfig || !branchConfig) {
@@ -102,9 +103,11 @@ async function restoreBackupImplementation({ instance, workspace, formData, core
       message: 'Loading context...',
       percent: 5,
    });
+   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
+      startDir
    });
 
    const headers = {
