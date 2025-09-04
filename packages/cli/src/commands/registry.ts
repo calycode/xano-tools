@@ -20,12 +20,13 @@ async function addToXano({
    context: CoreContext;
    core: any;
 }) {
+   // [ ] !!! fix: to use the context resolver !!!!
    const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance: context.instance,
       workspace: context.workspace,
       branch: context.branch,
-      startDir
+      startDir,
    });
 
    intro('Add components to your Xano instance');
@@ -123,7 +124,6 @@ async function installComponentToXano(file, resolvedContext, core) {
    }
 }
 
-// [ ] CLI
 function registerRegistryAddCommand(program, core) {
    const cmd = program
       .command('registry-add')
@@ -154,7 +154,6 @@ function registerRegistryAddCommand(program, core) {
       );
 }
 
-// [ ] CLI
 function registerRegistryScaffoldCommand(program, core) {
    program
       .command('registry-scaffold')

@@ -10,7 +10,8 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { attachCliEventHandlers } from '../utils/event-listener';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 /**
  * Clears the contents of a directory.
@@ -50,17 +51,17 @@ async function generateRepo({
       printOutput,
    });
 
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {...resolvedContext,
-      startDir}
-   );
+   //const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
+   });
 
    // Resolve output dir
    const outputDir = output
       ? output
       : replacePlaceholders(instanceConfig.process.output, {
+           '@': await findProjectRoot(),
            instance: instanceConfig.name,
            workspace: workspaceConfig.name,
            branch: branchConfig.label,
@@ -108,7 +109,6 @@ async function generateRepo({
    outro('Directory structure rebuilt successfully!');
 }
 
-// [ ] CLI
 function registerGenerateRepoCommand(program, core) {
    const cmd = program
       .command('generate-repo')

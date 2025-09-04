@@ -8,7 +8,8 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { attachCliEventHandlers } from '../utils/event-listener';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 async function updateOasWizard({
    instance,
@@ -36,11 +37,11 @@ async function updateOasWizard({
       printOutput,
    });
 
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
    const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      ...resolvedContext,
-      startDir,
+
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
    });
 
    // Get API groups (prompt or all)
@@ -58,11 +59,19 @@ async function updateOasWizard({
       group: string;
       oas: any;
       generatedItems: { path: string; content: string }[];
-   }[] = await core.updateOpenapiSpec(instance, workspace, branch, groups);
+   }[] = await core.updateOpenapiSpec(
+      instanceConfig.name,
+      workspaceConfig.name,
+      branchConfig.label,
+      groups,
+      startDir
+   );
    for (const { group, generatedItems } of allGroupResults) {
       const apiGroupNameNorm = normalizeApiGroupName(group);
 
+      // [x] This is going to be relative to the working dir, but we have to force the structure...
       const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
+         '@': await findProjectRoot(),
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
          branch: branchConfig.label,

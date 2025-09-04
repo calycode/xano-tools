@@ -159,15 +159,15 @@ export const nodeConfigStorage: ConfigStorage = {
                   if (configFile === 'branch.config.json') {
                      mergedConfig = selectiveDeepMerge(config, mergedConfig);
                      branchConfig = config;
-                     foundLevels.branch = configPath;
+                     foundLevels.branch = branchConfig.label;
                   } else if (configFile === 'workspace.config.json') {
                      mergedConfig = selectiveDeepMerge(config, mergedConfig);
                      workspaceConfig = config;
-                     foundLevels.workspace = configPath;
+                     foundLevels.workspace = workspaceConfig.name;
                   } else if (configFile === 'instance.config.json') {
                      mergedConfig = selectiveDeepMerge(config, mergedConfig);
                      instanceConfig = config;
-                     foundLevels.instance = configPath;
+                     foundLevels.instance = instanceConfig.name;
                   }
                } catch (err) {
                   console.warn(`⚠️  Failed to load or parse ${configPath}: ${err}`);

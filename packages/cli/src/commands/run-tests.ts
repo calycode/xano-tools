@@ -9,7 +9,8 @@ import {
    printOutputDir,
    withErrorHandler,
 } from '../utils/index';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 async function runTest({
    instance,
@@ -33,12 +34,10 @@ async function runTest({
    intro('☣️   Starting up the testing...');
 
    // 1. Get the current context.
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {...resolvedContext,
-      startDir}
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
+   });
 
    // 2. Get API groups (prompt or all)
    const groups = await chooseApiGroupOrAll({
@@ -75,6 +74,7 @@ async function runTest({
 
    for (const outcome of testResults) {
       const apiGroupTestPath = replacePlaceholders(instanceConfig.test.output, {
+         '@': await findProjectRoot(),
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
          branch: branchConfig.label,

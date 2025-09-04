@@ -1,16 +1,16 @@
 import { spawn } from 'child_process';
 import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
 import { addApiGroupOptions, addFullContextOptions, chooseApiGroupOrAll } from '../utils/index';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 // [ ] CLI
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {...resolvedContext,
-      startDir}
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
+   });
+
    const apiGroups = await chooseApiGroupOrAll({
       baseUrl: instanceConfig.url,
       token: await core.loadToken(instanceConfig.name),
@@ -25,6 +25,7 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
    const apiGroupNameNorm = normalizeApiGroupName(currentApiGroup.name);
 
    const specBasePath = replacePlaceholders(instanceConfig.openApiSpec.output, {
+      '@': await findProjectRoot(),
       instance: instanceConfig.name,
       workspace: workspaceConfig.name,
       branch: branchConfig.label,

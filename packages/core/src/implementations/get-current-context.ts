@@ -23,7 +23,6 @@ async function getCurrentContextConfigImplementation({
    startDir: string;
 }): Promise<CurrentContextConfig> {
    let {
-      mergedConfig,
       workspaceConfig,
       branchConfig,
       instanceConfig,
@@ -49,7 +48,7 @@ async function getCurrentContextConfigImplementation({
    // If your config contains workspaces/branches as arrays, extract the matching config objects
    if (!workspaceConfig) {
       workspaceConfig =
-         (mergedConfig.workspaces as any[]).find(
+         (instanceConfig.workspaces as any[]).find(
             (ws) => String(ws.id) === String(workspace) || ws.name === workspace
          ) ?? null;
    }

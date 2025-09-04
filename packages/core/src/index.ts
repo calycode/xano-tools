@@ -143,14 +143,20 @@ export class Caly extends TypedEmitter<EventMap> {
       instance: string,
       workspace: string,
       branch: string,
-      groups: any
+      groups: any,
+      startDir: string
    ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
-      return updateOpenapiSpecImplementation(this.storage, this, {
-         instance,
-         workspace,
-         branch,
-         groups,
-      });
+      return updateOpenapiSpecImplementation(
+         this.storage,
+         this,
+         {
+            instance,
+            workspace,
+            branch,
+            groups,
+         },
+         startDir
+      );
    }
 
    /**
@@ -365,7 +371,6 @@ export class Caly extends TypedEmitter<EventMap> {
       instanceConfig: InstanceConfig;
       workspaceConfig: WorkspaceConfig;
       branchConfig: BranchConfig;
-      globalConfig: any;
    }> {
       return loadAndValidateContextImplementation({
          storage: this.storage,
