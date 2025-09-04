@@ -1,8 +1,8 @@
 ```
 Usage: caly-xano generate-code [options]
 
-Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well
-as the first step.
+Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as
+the first step.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.

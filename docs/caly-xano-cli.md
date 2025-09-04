@@ -61,6 +61,11 @@ Backup & Restore:
     Restore a backup to a Xano Workspace via Metadata API
 
 
+Testing & Linting:
+  run-test           -h, --help
+    Run an API test suite via the OpenAPI spec. WIP...
+
+
 Other:
   current-context    -h, --help
     
