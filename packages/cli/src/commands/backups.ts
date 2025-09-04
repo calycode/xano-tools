@@ -11,16 +11,16 @@ import {
    withErrorHandler,
 } from '../utils/index';
 import { attachCliEventHandlers } from '../utils/event-listener';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace }, core);
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {...resolvedContext,
-      startDir}
-   );
+   const { instanceConfig, workspaceConfig } = await resolveConfigs({
+      cliContext: { instance, workspace },
+      core,
+      requiredFields: ['instance', 'workspace'],
+   });
 
    try {
       let backupFilePath = sourceBackup;
@@ -40,9 +40,10 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
 
          // Find available backups for the selected branch
          const backupsDir = replacePlaceholders(instanceConfig.backups.output, {
-            branch: branchConfig.label,
+            '@': await findProjectRoot(),
             instance: instanceConfig.name,
             workspace: workspaceConfig.name,
+            branch: branchConfig.label,
          });
 
          let availableBackups;
@@ -95,6 +96,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
    }
 }
 
+// [ ] Add potentially context awareness like in the other commands
 function registerExportBackupCommand(program, core) {
    const cmd = program
       .command('export-backup')

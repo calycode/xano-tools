@@ -57,11 +57,11 @@ export async function setupInstanceImplementation(
       url,
       tokenRef: safeName,
       lint: {
-         output: '/lint/{branch}',
+         output: '{@}/{workspace}/{branch}/lint',
          rules: DEFAULT_LINT_RULES,
       },
       test: {
-         output: '/tests/{branch}/{api_group_normalized_name}',
+         output: '{@}/{workspace}/{branch}/tests/{api_group_normalized_name}',
          headers: {
             'X-Branch': '{branch}',
             'X-Data-Source': 'test',
@@ -69,22 +69,22 @@ export async function setupInstanceImplementation(
          defaultAsserts: DEFAULT_ASSERTS,
       },
       process: {
-         output: '/src/{branch}',
+         output: '{@}/{workspace}/{branch}/src',
       },
       xanoscript: {
-         output: '/xanoscript/{branch}',
+         output: '{@}/{workspace}/{branch}/xanoscript',
       },
       openApiSpec: {
-         output: '/oas/{branch}/{api_group_normalized_name}',
+         output: '{@}/{workspace}/{branch}/oas/{api_group_normalized_name}',
       },
       codegen: {
-         output: '/codegen/{branch}/{api_group_normalized_name}',
+         output: '{@}/{workspace}/{branch}/codegen/{api_group_normalized_name}',
       },
       backups: {
-         output: 'backups/{branch}',
+         output: '{@}/{workspace}{branch}/backups',
       },
       registry: {
-         output: 'registry',
+         output: '{@}/registry',
       },
       workspaces,
    };

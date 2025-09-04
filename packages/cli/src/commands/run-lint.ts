@@ -2,6 +2,7 @@ import { log } from '@clack/prompts';
 import { replacePlaceholders } from '@calycode/utils';
 import { addPrintOutputFlag, printOutputDir, withErrorHandler } from '../utils/index';
 import { runLintXano } from '../features/lint-xano';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 // [ ] CORE
 async function runLinter(printOutput: boolean = false, core) {
@@ -22,6 +23,7 @@ async function runLinter(printOutput: boolean = false, core) {
    }
 
    const inputDir = replacePlaceholders(instanceConfig.process.output, {
+      '@': await findProjectRoot(),
       instance: instanceConfig.name,
       workspace: workspaceConfig.name,
       branch: branchConfig.label,
@@ -30,6 +32,7 @@ async function runLinter(printOutput: boolean = false, core) {
    if (!inputDir) throw new Error('Input YAML file is required');
 
    const outputDir = replacePlaceholders(instanceConfig.lint.output, {
+      '@': await findProjectRoot(),
       instance: instanceConfig.name,
       workspace: workspaceConfig.name,
       branch: branchConfig.label,

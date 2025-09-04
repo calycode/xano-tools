@@ -10,12 +10,11 @@ async function updateOpenapiSpecImplementation(
       workspace: string;
       branch: string;
       groups: ApiGroup[];
-   }
+   },
+   startDir: string
 ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
    const { instance, workspace, branch } = options;
-
    core.emit('start', { name: 'start-updateoas', payload: options });
-   const startDir = process.cwd();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,

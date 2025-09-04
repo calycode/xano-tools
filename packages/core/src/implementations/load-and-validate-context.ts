@@ -30,16 +30,15 @@ export async function loadAndValidateContextImplementation({
    instanceConfig: InstanceConfig;
    workspaceConfig: WorkspaceConfig;
    branchConfig: BranchConfig;
-   globalConfig: any;
 }> {
-   const globalConfig = await storage.loadGlobalConfig();
-   const context = assignDefined(globalConfig.currentContext, overrides);
+   //const globalConfig = await storage.loadGlobalConfig();
+   //const context = assignDefined(globalConfig.currentContext, overrides);
    const { instanceConfig, workspaceConfig, branchConfig } =
-      await getCurrentContextConfigImplementation({ storage, startDir, context });
+      await getCurrentContextConfigImplementation({ storage, startDir, context: overrides });
    if (!instanceConfig || !workspaceConfig || !branchConfig) {
       throw new Error(
          'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
       );
    }
-   return { instanceConfig, workspaceConfig, branchConfig, globalConfig };
+   return { instanceConfig, workspaceConfig, branchConfig };
 }

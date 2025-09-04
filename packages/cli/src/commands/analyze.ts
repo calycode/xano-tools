@@ -9,21 +9,22 @@ import {
    addPrintOutputFlag,
    printOutputDir,
 } from '../utils/index';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 // [ ] CORE, but needs fs access.
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false, core) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      ...resolvedContext,
-      startDir}
-   );
+
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
+   });
 
    // Resolve output dir
-   const outputDir = replacePlaceholders(instanceConfig['xano-script'].output, {
+   const outputDir = replacePlaceholders(instanceConfig['xanoscript'].output, {
+      '@': await findProjectRoot(),
       instance: instanceConfig.name,
       workspace: workspaceConfig.name,
       branch: branchConfig.label,

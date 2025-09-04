@@ -8,9 +8,10 @@ import {
    printOutputDir,
    withErrorHandler,
 } from '../utils/index';
-import { resolveEffectiveContext } from '../utils/commands/context-resolution';
+import { resolveConfigs } from '../utils/commands/context-resolution';
 
 import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
+import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 // [ ] CLI only feature
 async function generateCodeFromOas({
@@ -40,12 +41,11 @@ async function generateCodeFromOas({
    const startTime: Date = new Date();
    intro('🔄 Starting to generate code');
 
-   const resolvedContext = await resolveEffectiveContext({ instance, workspace, branch }, core);
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext(
-      {...resolvedContext,
-      startDir}
-   );
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
+   });
+
    // Determine generator and extra args
    const generator = stack.generator || 'typescript-fetch';
    const additionalArgs = stack.args || [];
@@ -67,7 +67,8 @@ async function generateCodeFromOas({
       s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
 
       const apiGroupNameNorm = normalizeApiGroupName(group.name);
-      const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
+      const outputPath = replacePlaceholders(instanceConfig.codegen.output, {
+         '@': await findProjectRoot(),
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
          branch: branchConfig.label,
@@ -96,12 +97,12 @@ async function generateCodeFromOas({
       try {
          await runOpenApiGenerator({
             input: `${outputPath}/spec.json`,
-            output: `${outputPath}/codegen/${generator}`,
+            output: `${outputPath}/${generator}`,
             generator,
             additionalArgs,
             logger,
          });
-         s.stop(`Code generated for group "${group.name}" → ${outputPath}/codegen/${generator}`);
+         s.stop(`Code generated for group "${group.name}" → ${outputPath}/${generator}`);
          printOutputDir(printOutput, outputPath);
       } catch (err) {
          s.stop();
