@@ -1,0 +1,46 @@
+name: Release Docs for Caly-Xano CLI
+
+on:
+   workflow_dispatch
+
+jobs:
+   release:
+      name: Release Docs
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout repo
+           uses: actions/checkout@v4
+
+         - name: Install pnpm
+           uses: pnpm/action-setup@v4
+           with:
+              version: 10
+              run_install: true
+
+         - name: Setup Node
+           uses: actions/setup-node@v4
+           with:
+              node-version: 20.x
+              registry-url: 'https://registry.npmjs.org'
+              scope: '@calycode'
+              always-auth: true
+           env:
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+         - name: Install dependencies
+           run: pnpm install
+
+         - name: Update the docs
+           run: pnpm build:docs
+
+         # Upload docs to GCP ONLY after publishing
+         - name: Authenticate GCP
+           uses: google-github-actions/auth@v3
+           with:
+              credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+         - name: Upload docs folder to GCP
+           uses: google-github-actions/upload-cloud-storage@v3
+           with:
+              path: 'docs'
+              destination: 'calycode.com/cli'
