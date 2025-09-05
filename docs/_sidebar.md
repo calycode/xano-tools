@@ -1,4 +1,3 @@
-
 -  ### Core Commands:
 
    -  [xano - the core command](xano.md)
@@ -19,3 +18,9 @@
    -  [`restore-backup`](commands/restore-backup.md)
    -  [`run-test`](commands/run-test.md)
    -  [`current-context`](commands/current-context.md)
+
+---
+
+<small>Made with💖by the [OSOI.IO](https://osoi.io) Team</small>
+
+<small>Documentation powered by [Docsify.js](https://docsifyjs.org)</small>
