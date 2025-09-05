@@ -13,7 +13,7 @@
 +==================================================================================================+
 ```
 
-[📚 **View Full CLI Documentation**](docs/README.md)
+[📚 **View Full CLI Documentation**](https://calycode.com/cli/docs)
 
 # xano tools
 

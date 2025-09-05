@@ -17,10 +17,16 @@
       />
       <link
          rel="stylesheet"
-         href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css"
+         href="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/core.min.css"
       />
+      <style>
+         :root {
+            --theme-color: #1b62f8;
+            --content-max-width: 104ch;
+         }
+      </style>
    </head>
-   <body>
+   <body class="loading sidebar-chevron-left sidebar-group-box sidebar-toggle-chevron">
       <div id="app"></div>
       <script>
          window.$docsify = {
@@ -28,11 +34,10 @@
             repo: 'https://github.com/calycode/xano-tools.git',
             autoHeader: true,
             loadSidebar: true,
-            themeColor: '#1b62f8',
          };
       </script>
       <!-- Docsify v4 -->
-      <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+      <script src="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc"></script>
       <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
    </body>
 </html>

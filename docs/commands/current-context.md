@@ -1,4 +1,7 @@
-# `current-context` Command
+# current-context
+```sh
+xano current-context [options]
+```
 ### Options
 
 

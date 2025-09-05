@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync, rmSync, cpSync } from 'fs';
+import { writeFileSync, mkdirSync, rmSync, cpSync, readFileSync } from 'fs';
 import path from 'path';
 import stripAnsi from 'strip-ansi';
 import { program } from '../packages/cli/src/program';
@@ -29,8 +29,12 @@ function writeDocForCommand(cmd, dir = 'docs/commands') {
    }
    mkdirSync(dir, { recursive: true });
    const content = [
-      `# \`${name}\` Command`,
-      description && `> ${description}`,
+      `# ${name}`,
+      description && `> #### ${description}\n`,
+      '',
+      '```sh',
+      `xano ${name} [options]`,
+      '```',
       optionsContent,
       `\n### ${name} --help`,
       '```sh',
@@ -59,7 +63,7 @@ function generateCliDocs() {
       const mainHelp = stripAnsi(program.helpInformation());
       writeFileSync(
          'docs/xano.md',
-         ['# @calycode/cli', '', '```sh', mainHelp.trim(), '```', ''].join('\n')
+         ['# @calycode/cli', '```sh', mainHelp.trim(), '```', ''].join('\n')
       );
       console.log('Generated main help. \n');
 
@@ -68,20 +72,16 @@ function generateCliDocs() {
       console.log('Generated docs for each command.\n ');
 
       // 4. Generate a Table of Contents
+
+      const mainReadmeContent = readFileSync('README.md', 'utf-8');
       const tocLines = [
-         '# @calycode/cli (Caly-Xano CLI) Command Reference',
+         '# @calycode/cli Docs',
          '',
          'Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.',
          '',
-         '## Table of Contents',
-         '',
-         '- [xano - the core command](xano.md)',
-         '',
-         '### Commands',
-         ...commandNames.map((name) => `- [\`${name}\`](commands/${name}.md)`),
+         mainReadmeContent,
          '',
          'Need further help? Visit [GitHub](https://github.com/calycode/xano-tools) or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/@mihaly-toth-2040?g=snappy)',
-         '',
       ];
       writeFileSync('docs/README.md', tocLines.join('\n'));
       console.log('Generated Table of Contents. \n');

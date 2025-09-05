@@ -1,5 +1,9 @@
-# `generate-xs-repo` Command
-> Process Xano workspace into repo structure
+# generate-xs-repo
+> #### Process Xano workspace into repo structure
+
+```sh
+xano generate-xs-repo [options]
+```
 ### Options
 
 #### --instance <instance>
@@ -18,16 +22,12 @@ Usage: xano generate-xs-repo [options]
 Process Xano workspace into repo structure
 
 Options:
-  --instance <instance>    The instance name. This is used to fetch
-                           the instance configuration. The value
-                           provided at the setup command.
-  --workspace <workspace>  The workspace name. This is used to fetch
-                           the workspace configuration. Same as on
-                           Xano interface.
-  --branch <branch>        The branch name. This is used to select the
-                           branch configuration. Same as on Xano
-                           Interface.
-  --print-output-dir       Expose usable output path for further
-                           reuse.
+  --instance <instance>    The instance name. This is used to fetch the instance
+                           configuration. The value provided at the setup command.
+  --workspace <workspace>  The workspace name. This is used to fetch the workspace
+                           configuration. Same as on Xano interface.
+  --branch <branch>        The branch name. This is used to select the branch
+                           configuration. Same as on Xano Interface.
+  --print-output-dir       Expose usable output path for further reuse.
   -h, --help               display help for command
 ```

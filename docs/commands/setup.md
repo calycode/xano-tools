@@ -1,5 +1,9 @@
-# `setup` Command
-> Setup Xano instance configurations (interactively or via flags)
+# setup
+> #### Setup Xano instance configurations (interactively or via flags)
+
+```sh
+xano setup [options]
+```
 ### Options
 
 #### --name <name>
