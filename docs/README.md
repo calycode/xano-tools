@@ -1,11 +1,11 @@
-# Caly-Xano CLI Command Reference
+# @calycode/cli Command Reference
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.
 
 ## Table of Contents
 
-- [caly-xano - the core commmand](caly-xano-cli.md)
-#### Commands: 
+- [xano - the core commmand](xano.md)
+#### Commands:
 - [setup](commands/setup.md)
 - [switch-context](commands/switch-context.md)
 - [generate-oas](commands/generate-oas.md)

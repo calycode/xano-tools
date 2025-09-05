@@ -1,5 +1,5 @@
 {
-    "name": "@calycode/caly-xano-cli",
+    "name": "@calycode/cli",
     "version": "0.3.0",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "publishConfig": {
@@ -20,7 +20,7 @@
         "developer-tools"
     ],
     "bin": {
-        "caly-xano": "dist/index.cjs"
+        "xano": "dist/index.cjs"
     },
     "main": "dist/index.cjs",
     "type": "module",
@@ -43,7 +43,7 @@
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/cli#readme",
     "dependencies": {
         "@clack/prompts": "^0.11.0",
-        "@calycode/caly-core": "workspace:*",
+        "@calycode/core": "workspace:*",
         "@calycode/types": "workspace:*",
         "@calycode/utils": "workspace:*",
         "commander": "^14.0.0",
@@ -56,7 +56,7 @@
         "build:js": "tsx esbuild.config.ts",
         "build:chmod": "shx chmod +x dist/index.cjs",
         "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
-        "caly": "node dist/index.cjs"
+        "xano": "node dist/index.cjs"
     },
     "devDependencies": {
         "shx": "^0.4.0"

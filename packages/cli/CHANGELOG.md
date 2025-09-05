@@ -1,4 +1,4 @@
-# @calycode/caly-xano-cli
+# @calycode/xano-cli
 
 ## 0.3.0
 

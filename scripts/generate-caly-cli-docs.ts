@@ -22,7 +22,7 @@ async function generateCliDocs() {
 
    // 2. Generate main help
    const mainHelp = stripAnsi(program.helpInformation());
-   writeFileSync('docs/caly-xano-cli.md', '```\n' + mainHelp.trim() + '\n```');
+   writeFileSync('docs/xano.md', '```\n' + mainHelp.trim() + '\n```');
    console.log('Generated main help.');
 
    // 3. Generate docs for each command and collect their names
@@ -37,7 +37,7 @@ async function generateCliDocs() {
       '',
       '## Table of Contents',
       '',
-      '- [caly-xano - the core commmand](caly-xano-cli.md)',
+      '- [xano - the core commmand](xano.md)',
       '#### Commands: ',
       ...commandNames.map((name) => `- [${name}](commands/${name}.md)`),
       '',

@@ -1,4 +1,4 @@
-# @calycode/caly-xano-cli
+# @calycode/cli
 
 Command-line interface for the Caly-Xano CLI providing terminal access to Xano development workflows.
 
@@ -16,14 +16,14 @@ The CLI package provides:
 ### Global Installation
 
 ```bash
-npm install -g @calycode/caly-xano-cli
-caly-xano --help
+npm install -g @calycode/cli
+xano --help
 ```
 
 ### NPX Usage
 
 ```bash
-npx @calycode/caly-xano-cli --help
+npx @calycode/cli --help
 ```
 
 ## Commands
@@ -35,10 +35,10 @@ npx @calycode/caly-xano-cli --help
 Setup a new Xano instance configuration:
 
 ```bash
-caly-xano setup
+xano setup
 # Interactive prompts for instance name, URL, and API key
 
-caly-xano setup --name production --url https://x123.xano.io --api-key your-key
+xano setup --name production --url https://x123.xano.io --api-key your-key
 # Non-interactive setup
 ```
 
@@ -47,7 +47,7 @@ caly-xano setup --name production --url https://x123.xano.io --api-key your-key
 Display the current active context:
 
 ```bash
-caly-xano current-context
+xano current-context
 # Shows: stored json configuration
 ```
 
@@ -56,10 +56,10 @@ caly-xano current-context
 Switch to a different instance, workspace, or branch:
 
 ```bash
-caly-xano switch-context
+xano switch-context
 # Interactive prompts
 
-caly-xano switch-context --instance staging --workspace main --branch develop
+xano switch-context --instance staging --workspace main --branch develop
 # Non-interactive switch
 ```
 
@@ -70,13 +70,13 @@ caly-xano switch-context --instance staging --workspace main --branch develop
 Generate improved OpenAPI specifications:
 
 ```bash
-caly-xano generate-oas --group user-api
+xano generate-oas --group user-api
 # Generate for specific API group
 
-caly-xano generate-oas --all
+xano generate-oas --all
 # Generate for all API groups
 
-caly-xano generate-oas --instance production --workspace main --branch master --group api
+xano generate-oas --instance production --workspace main --branch master --group api
 # Specify context
 ```
 
@@ -85,7 +85,7 @@ caly-xano generate-oas --instance production --workspace main --branch master --
 Serve OpenAPI specifications locally:
 
 ```bash
-caly-xano serve-oas
+xano serve-oas
 # Starts local server at http://localhost:5999
 ```
 
@@ -94,8 +94,8 @@ caly-xano serve-oas
 Generate client (and server) libraries from OpenAPI specs (see available [generators](https://openapi-generator.tech/docs/generators)):
 
 ```bash
-caly-xano generate-code --generator typescript-fetch
-caly-xano generate-code --generator python
+xano generate-code --generator typescript-fetch
+xano generate-code --generator python
 ```
 
 ### Backup & Restore
@@ -105,8 +105,8 @@ caly-xano generate-code --generator python
 Export workspace backup:
 
 ```bash
-caly-xano export-backup
-caly-xano export-backup --instance production --workspace main --branch master
+xano export-backup
+xano export-backup --instance production --workspace main --branch master
 ```
 
 #### `restore-backup`
@@ -114,7 +114,7 @@ caly-xano export-backup --instance production --workspace main --branch master
 Restore workspace from backup (cannot specify branch on restoration):
 
 ```bash
-caly-xano restore-backup --file backup.tar.gz --target-workspace staging
+xano restore-backup --file backup.tar.gz --target-workspace staging
 ```
 
 ### Registry Operations (**WIP**)
@@ -124,7 +124,7 @@ caly-xano restore-backup --file backup.tar.gz --target-workspace staging
 Create a new registry structure:
 
 ```bash
-caly-xano registry-scaffold --output ./my-registry
+xano registry-scaffold --output ./my-registry
 ```
 
 #### `registry-add`
@@ -132,8 +132,8 @@ caly-xano registry-scaffold --output ./my-registry
 Install components to Xano from registry:
 
 ```bash
-caly-xano registry-add --registry ./local-registry --item user-auth
-caly-xano registry-add --registry https://registry.example.com --item payment-system
+xano registry-add --registry ./local-registry --item user-auth
+xano registry-add --registry https://registry.example.com --item payment-system
 ```
 
 #### `serve-registry`
@@ -141,7 +141,7 @@ caly-xano registry-add --registry https://registry.example.com --item payment-sy
 Serve local registry:
 
 ```bash
-caly-xano serve-registry --registry ./my-registry --port 5000
+xano serve-registry --registry ./my-registry --port 5000
 ```
 
 ### Development Tools
@@ -151,7 +151,7 @@ caly-xano serve-registry --registry ./my-registry --port 5000
 Generate browsable repository from workspace:
 
 ```bash
-caly-xano generate-repo
+xano generate-repo
 ```
 
 ## Configuration
@@ -187,30 +187,30 @@ Commands inherit context from:
 
 ```bash
 # Setup instance
-caly-xano setup --name production --url https://x123.xano.io --api-key your-key
+xano setup --name production --url https://x123.xano.io --api-key your-key
 
 # Generate OpenAPI specs
-caly-xano generate-oas --all
+xano generate-oas --all
 
 # Generate TypeScript client
-caly-xano generate-code --generator typescript-fetch
+xano generate-code --generator typescript-fetch
 # Serve documentation
-caly-xano serve-oas
+xano serve-oas
 ```
 
 ### Multi-Environment Setup
 
 ```bash
 # Setup multiple instances
-caly-xano setup --name production --url https://prod.xano.io --api-key prod-key
-caly-xano setup --name staging --url https://staging.xano.io --api-key staging-key
+xano setup --name production --url https://prod.xano.io --api-key prod-key
+xano setup --name staging --url https://staging.xano.io --api-key staging-key
 
 # Switch between environments
-caly-xano switch-context --instance staging
-caly-xano generate-oas --group api
+xano switch-context --instance staging
+xano generate-oas --group api
 
-caly-xano switch-context --instance production
-caly-xano export-backup
+xano switch-context --instance production
+xano export-backup
 ```
 
 ## Integration
@@ -221,8 +221,8 @@ caly-xano export-backup
 # GitHub Actions example
 - name: Generate API Documentation
   run: |
-     npx @calycode/caly-xano-cli generate-oas --all
-     npx @calycode/caly-xano-cli generate-code --generator typescript-fetch
+     npx @calycode/cli generate-oas --all
+     npx @calycode/cli generate-code --generator typescript-fetch
   env:
      XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
 ```

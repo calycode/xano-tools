@@ -23,7 +23,7 @@ const MERGE_KEYS = ['lint', 'test'];
 
 /**
  * Walks up the directory tree to find the first directory containing
- * .xano-tools/xano-cli.config.json, starting from startDir or process.cwd().
+ * .xano-tools/cli.config.json, starting from startDir or process.cwd().
  * @param startDir Optional directory to start search from. Defaults to process.cwd().
  * @returns The project root directory containing the config file.
  * @throws {Error} if no config file is found up to the filesystem root.
