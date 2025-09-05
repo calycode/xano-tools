@@ -1,0 +1,26 @@
+name: Deploy docs to GCP
+
+on:
+  workflow_dispatch
+
+jobs:
+  gcp_job:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+  
+    steps:
+    - id: 'checkout'
+      uses: 'actions/checkout@v4'
+  
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v3'
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+  
+    - id: 'upload-folder'
+      uses: 'google-github-actions/upload-cloud-storage@v3'
+      with:
+        path: 'docs'
+        destination: 'calycode.com/cli/docs'
