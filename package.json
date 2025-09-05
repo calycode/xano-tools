@@ -11,12 +11,12 @@
    ],
    "scripts": {
       "build": "tsc --build",
+      "build:docs": "tsx scripts/generate-caly-cli-docs.ts",
       "build:packages": "pnpm -r --reporter=silent --workspace-concurrency=1 run build",
       "caly": "pnpm --filter @calycode/cli run caly",
-      "update-caly-docs": "tsx scripts/generate-caly-cli-docs.ts",
-      "serve-registry": "npx serve registry --listen 3030",
       "clean": "pnpm -r run clean && trash dist tsconfig.tsbuildinfo",
-      "prepublishOnly": "pnpm run build:packages"
+      "prepublishOnly": "pnpm run build:packages",
+      "serve-registry": "npx serve registry --listen 3030"
    },
    "private": true,
    "publishConfig": {
