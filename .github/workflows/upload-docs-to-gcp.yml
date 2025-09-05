@@ -30,6 +30,9 @@ jobs:
          - name: Install dependencies
            run: pnpm install
 
+         - name: Build packages
+           run: pnpm build:packages
+
          - name: Update the docs
            run: pnpm build:docs
 
