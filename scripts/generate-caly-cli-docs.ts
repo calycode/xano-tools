@@ -1,53 +1,87 @@
-import { writeFileSync, mkdirSync, rmSync, mkdirSync as mkdirSync2 } from 'fs';
+import { writeFileSync, mkdirSync, rmSync } from 'fs';
 import path from 'path';
 import stripAnsi from 'strip-ansi';
 import { program } from '../packages/cli/src/program';
 
-// Helper to write docs for each command
 function writeDocForCommand(cmd, dir = 'docs/commands') {
-   const name = cmd._name || cmd.name();
+   const name = cmd.name();
+   const description = cmd.description ? cmd.description() : '';
    const help = stripAnsi(cmd.helpInformation());
+   const options = cmd.options;
+   let optionsContent: string = '';
+   if (options) {
+      optionsContent = [
+         '### Options',
+         '',
+         ...options.map((opt) => {
+            const optionDoc = [`#### ${opt.flags}`, `**Description:** ${opt.description}`].join(
+               '\n'
+            );
+            return optionDoc;
+         }),
+      ].join('\n');
+   }
    mkdirSync(dir, { recursive: true });
-   writeFileSync(path.join(dir, `${name}.md`), '```\n' + help.trim() + '\n```');
+   const content = [
+      `# \`${name}\` Command`,
+      description && `> ${description}`,
+      optionsContent,
+      `\n### ${name} --help`,
+      '```sh',
+      help.trim(),
+      '```',
+   ]
+      .filter(Boolean)
+      .join('\n');
+   writeFileSync(path.join(dir, `${name}.md`), content);
    return name;
 }
 
-async function generateCliDocs() {
-   console.log('Generating Caly-Xano CLI Docs');
+function generateCliDocs() {
+   try {
+      console.log('Generating Caly-Xano CLI Docs \n');
 
-   // 1. Clean docs directory
-   rmSync('docs', { recursive: true, force: true });
-   mkdirSync2('docs', { recursive: true });
-   console.log('Cleaned and recreated docs directory.');
+      // 1. Clean docs directory
+      rmSync('docs', { recursive: true, force: true });
+      mkdirSync('docs', { recursive: true });
+      console.log('Cleaned and recreated docs directory. \n');
 
-   // 2. Generate main help
-   const mainHelp = stripAnsi(program.helpInformation());
-   writeFileSync('docs/xano.md', '```\n' + mainHelp.trim() + '\n```');
-   console.log('Generated main help.');
+      // 2. Generate main help
+      const mainHelp = stripAnsi(program.helpInformation());
+      writeFileSync(
+         'docs/xano.md',
+         ['# @calycode/cli', '', '```sh', mainHelp.trim(), '```', ''].join('\n')
+      );
+      console.log('Generated main help. \n');
 
-   // 3. Generate docs for each command and collect their names
-   const commandNames = program.commands.map((cmd) => writeDocForCommand(cmd));
-   console.log('Generated docs for each command.');
+      // 3. Generate docs for each command and collect their names
+      const commandNames = program.commands.map((cmd) => writeDocForCommand(cmd));
+      console.log('Generated docs for each command.\n ');
 
-   // 4. Generate a Table of Contents
-   const tocLines = [
-      '# Caly-Xano CLI Command Reference',
-      '',
-      'Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.',
-      '',
-      '## Table of Contents',
-      '',
-      '- [xano - the core commmand](xano.md)',
-      '#### Commands: ',
-      ...commandNames.map((name) => `- [${name}](commands/${name}.md)`),
-      '',
-      'Need further help? Visit https://github.com/calycode/xano-tools or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/@mihaly-toth-2040?g=snappy)',
-      '',
-   ];
-   writeFileSync('docs/README.md', tocLines.join('\n'));
-   console.log('Generated Table of Contents.');
+      // 4. Generate a Table of Contents
+      const tocLines = [
+         '# @calycode/cli (Caly-Xano CLI) Command Reference',
+         '',
+         'Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.',
+         '',
+         '## Table of Contents',
+         '',
+         '- [xano - the core command](xano.md)',
+         '',
+         '### Commands',
+         ...commandNames.map((name) => `- [\`${name}\`](commands/${name}.md)`),
+         '',
+         'Need further help? Visit [GitHub](https://github.com/calycode/xano-tools) or reach out to Mihály Tóth on [State Change](https://statechange.ai/) or [Snappy Community](https://www.skool.com/@mihaly-toth-2040?g=snappy)',
+         '',
+      ];
+      writeFileSync('docs/README.md', tocLines.join('\n'));
+      console.log('Generated Table of Contents. \n');
 
-   console.log('CLI Docs generated successfully.');
+      console.log('CLI Docs generated successfully. \n');
+   } catch (err) {
+      console.error('Error generating CLI docs:', err);
+      process.exit(1);
+   }
 }
 
 generateCliDocs();

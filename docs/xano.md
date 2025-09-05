@@ -1,4 +1,6 @@
-```
+# @calycode/cli
+
+```sh
 Usage: xano <command> [options]
 
 
