@@ -1,7 +1,13 @@
-import { writeFileSync, mkdirSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, rmSync, cpSync } from 'fs';
 import path from 'path';
 import stripAnsi from 'strip-ansi';
 import { program } from '../packages/cli/src/program';
+
+function copyTemplateFiles(templateDir, targetDir) {
+   // Copies everything from templateDir into targetDir, overwriting if needed
+   cpSync(templateDir, targetDir, { recursive: true });
+   console.log(`Copied template files from ${templateDir} to ${targetDir}.\n`);
+}
 
 function writeDocForCommand(cmd, dir = 'docs/commands') {
    const name = cmd.name();
@@ -44,6 +50,9 @@ function generateCliDocs() {
       // 1. Clean docs directory
       rmSync('docs', { recursive: true, force: true });
       mkdirSync('docs', { recursive: true });
+
+      // 1.1. Copy default template files:
+      copyTemplateFiles('util-resources/docs-template', 'docs');
       console.log('Cleaned and recreated docs directory. \n');
 
       // 2. Generate main help
