@@ -1,5 +1,6 @@
-```
-Usage: caly-xano <command> [options]
+# @calycode/cli
+```sh
+Usage: xano <command> [options]
 
 
 +==================================================================================================+

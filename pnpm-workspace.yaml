@@ -3,6 +3,6 @@ packages:
 
 overrides:
    '@calycode/cli': link:../../../../Library/pnpm/global/5/node_modules/@calycode/cli
-   '@calycode/caly-core': link:packages/core
+   '@calycode/core': link:packages/core
    '@calycode/types': link:packages/types
    '@calycode/utils': link:packages/utils

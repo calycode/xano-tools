@@ -13,9 +13,9 @@
 +==================================================================================================+
 ```
 
-[📚 **View Full CLI Documentation**](docs/README.md)
+[📚 **View Full CLI Documentation**](https://calycode.com/cli/docs)
 
-# caly-xano tools
+# xano tools
 
 **_(Work In Progress)_**
 
@@ -37,7 +37,7 @@ pnpm install
 pnpm build:packages
 
 # 4. Run any command
-caly-xano
+xano
 ```
 
 > _(Optional)_ If you want the CLI globally available during development:
@@ -96,17 +96,17 @@ I have been astonished by the shadcn/ui CLI and the core principles of code dist
 
 1. Scaffold the registry or build it manually by obeying the schemas (https://calycode.com/schemas/registry/registry.json).
    ```
-   caly-xano registry-scaffold
+   xano registry-scaffold
    ```
 2. Serve your registry locally or host it on an object storage (or [advanced] recreate a Xano api that would deliver the required JSON objects on demand --> this could allow you to add auth as well)
 
    ```
-   caly-xano serve-registry
+   xano serve-registry
    ```
 
-3. Use the registry and it's content in `caly-xano`
+3. Use the registry and it's content in `xano`
    ```
-   caly-xano registry-add --components <coma separated component names> --registry <registry url>
+   xano registry-add --components <coma separated component names> --registry <registry url>
    ```
 
 > **Notes:**

@@ -15,7 +15,7 @@ import { registerRunTestCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
-import { Caly } from '@calycode/caly-core';
+import { Caly } from '@calycode/core';
 import { nodeConfigStorage } from './node-config-storage';
 
 const commandStartTimes = new WeakMap<Command, number>();
@@ -47,7 +47,7 @@ program.hook('postAction', (thisCommand, actionCommand) => {
 });
 
 program
-  .name('caly-xano')
+  .name('xano')
   .version(version, '-v, --version', 'output the version number')
   .usage('<command> [options]')
   .description(
@@ -136,7 +136,7 @@ program.configureHelp({
 
     // Usage line
     let output = [
-      font.weight.bold(`\nUsage: caly-xano <command> [options]\n`)
+      font.weight.bold(`\nUsage: xano <command> [options]\n`)
     ];
 
     // Banner and description

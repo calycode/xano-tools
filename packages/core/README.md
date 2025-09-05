@@ -39,7 +39,7 @@ The core package provides the main `Caly` class that orchestrates all Xano opera
 ```typescript
 import { Caly } from '@calycode/caly-core';
 // Implement your own storage interface based on the platform you're using
-import { nodeConfigStorage } from '@calycode/caly-xano-cli';
+import { nodeConfigStorage } from '@calycode/cli';
 
 const calyInstance = new Caly(nodeConfigStorage);
 

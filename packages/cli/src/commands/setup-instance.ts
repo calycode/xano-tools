@@ -16,7 +16,7 @@ async function setupInstanceWizard(core) {
       (await text({ message: `What's the base URL for "${instanceName}"?` })) as string
    ).trim();
    const apiKey = await password({ message: `Enter the Metadata API key for "${instanceName}":` });
-   const defaultPath = `xano-cli/${instanceName}`;
+   const defaultPath = `xano/${instanceName}`;
    let userDirectory = (await text({
       message: 'Where do you want the repo to be initialized at?',
       placeholder: defaultPath,

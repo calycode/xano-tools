@@ -57,7 +57,7 @@ async function scaffoldRegistry(
 
    const sampleIndex = {
       $schema: 'https://nextcurve.hu/schemas/registry/registry.json',
-      name: 'caly-xano-registry',
+      name: 'xano-registry',
       homepage: 'https://nextcurve.hu',
       items: [sampleRegistryItem],
    };
