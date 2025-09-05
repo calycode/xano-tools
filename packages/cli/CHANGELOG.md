@@ -1,5 +1,13 @@
 # @calycode/xano-cli
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [99d0ff0]
+  - @calycode/utils@0.2.1
+  - @calycode/core@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes

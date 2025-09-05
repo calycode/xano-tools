@@ -1,5 +1,11 @@
 # @calycode/utils
 
+## 0.2.1
+
+### Patch Changes
+
+- 99d0ff0: fix: release of docs
+
 ## 0.2.0
 
 ### Minor Changes
