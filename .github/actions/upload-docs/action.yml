@@ -1,0 +1,16 @@
+# .github/actions/upload-docs/action.yml
+name: Upload Docs to GCP
+description: Build and upload docs to GCP Storage
+runs:
+   using: 'composite'
+   steps:
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v3
+        with:
+           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Upload docs folder to GCP
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+           path: 'docs'
+           destination: 'calycode.com/cli'

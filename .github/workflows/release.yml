@@ -1,3 +1,4 @@
+# .github/workflows/release.yml
 name: Release Caly-Xano CLI
 
 on:
@@ -7,6 +8,8 @@ on:
 
 jobs:
    release:
+      if: github.repository == 'calycode/xano-tools' && github.repository_owner == 'calycode'
+
       name: Release CLI
       runs-on: ubuntu-latest
       steps:
@@ -50,15 +53,6 @@ jobs:
               echo "hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}"
 
          # Upload docs to GCP ONLY after publishing
-         - name: Authenticate GCP
+         - name: Upload docs
            if: steps.changesets.outputs.published == 'true'
-           uses: google-github-actions/auth@v3
-           with:
-              credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-
-         - name: Upload docs folder to GCP
-           if: steps.changesets.outputs.published == 'true'
-           uses: google-github-actions/upload-cloud-storage@v3
-           with:
-              path: 'docs'
-              destination: 'calycode.com/cli'
+           uses: './.github/actions/upload-docs'
