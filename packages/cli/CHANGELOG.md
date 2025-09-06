@@ -1,5 +1,27 @@
 # @calycode/xano-cli
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [99d0ff0]
+  - @calycode/utils@0.2.1
+  - @calycode/core@0.4.1
+
+## 0.4.0
+
+### Minor Changes
+
+- 0342c6f: docs: integrated docsify.js to auto-generate documentation site from command signatures.
+  feat: added GCP uploader actions to the release to automatically update the docs on new release from the command signature
+  feat: added more descriptive and styled mardkown as docs that are generated from command signatures
+  refactor: rebrand actually, renamed the core package from caly-core to core and the command from caly-xano to simply xano
+
+### Patch Changes
+
+- Updated dependencies [0342c6f]
+  - @calycode/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
