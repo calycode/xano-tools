@@ -1,13 +1,19 @@
 # .github/actions/upload-docs/action.yml
 name: Upload Docs to GCP
-description: Build and upload docs to GCP Storage
+description: Upload docs to GCP Storage
+
+inputs:
+  gcp_credentials:
+    description: 'GCP service account key'
+    required: true
+    
 runs:
    using: 'composite'
    steps:
       - name: Authenticate GCP
         uses: google-github-actions/auth@v3
         with:
-           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+           credentials_json: '${{ inputs.GCP_CREDENTIALS }}'
 
       - name: Upload docs folder to GCP
         uses: google-github-actions/upload-cloud-storage@v3
