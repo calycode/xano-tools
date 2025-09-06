@@ -56,3 +56,5 @@ jobs:
          - name: Upload docs
            if: steps.changesets.outputs.published == 'true'
            uses: './.github/actions/upload-docs'
+           with:
+              gcp_credentials: '${{ secrets.GCP_CREDENTIALS }}'
