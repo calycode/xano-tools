@@ -40,3 +40,5 @@ jobs:
          # Upload docs to GCP ONLY after publishing
          - name: Upload docs
            uses: './.github/actions/upload-docs'
+           with:
+              gcp_credentials: '${{ secrets.GCP_CREDENTIALS }}'
