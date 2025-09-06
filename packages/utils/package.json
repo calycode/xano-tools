@@ -26,8 +26,9 @@
     "types": "dist/index.bundled.d.ts",
     "type": "module",
     "files": [
-        "dist",
+        "dist/",
         "README.md",
+        "CHANGELOG.md",
         "LICENSE"
     ],
     "engines": {

@@ -25,8 +25,9 @@
     "main": "dist/index.cjs",
     "type": "module",
     "files": [
-        "dist",
+        "dist/",
         "README.md",
+        "CHANGELOG.md",
         "LICENSE"
     ],
     "engines": {
