@@ -1,16 +1,12 @@
-# .github/workflows/release.yml
-name: Release Caly-Xano CLI
+# .github/workflows/upload-docs.yml
+name: Release Docs for Caly-Xano CLI
 
 on:
-   push:
-      branches:
-         - main
+   workflow_dispatch
 
 jobs:
    release:
-      if: github.repository == 'calycode/xano-tools' && github.repository_owner == 'calycode'
-
-      name: Release CLI
+      name: Release Docs
       runs-on: ubuntu-latest
       steps:
          - name: Checkout repo
@@ -35,18 +31,12 @@ jobs:
          - name: Install dependencies
            run: pnpm install
 
-         - name: Publish to npm
-           id: changesets
-           uses: changesets/action@v1
-           with:
-              commit: 'changeset-release'
-              title: 'Release Version'
-              publish: pnpm -r publish --access restricted
-           env:
-              GITHUB_TOKEN: ${{ secrets.CHANGESETS_GH_TOKEN }}
-              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+         - name: Build packages
+           run: pnpm build:packages
+
+         - name: Update the docs
+           run: pnpm build:docs
 
          # Upload docs to GCP ONLY after publishing
          - name: Upload docs
-           if: steps.changesets.outputs.published == 'true'
            uses: './.github/actions/upload-docs'
