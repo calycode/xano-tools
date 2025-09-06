@@ -1,5 +1,15 @@
 # @calycode/xano-cli
 
+## 0.4.2
+
+### Patch Changes
+
+- 0df5340: fix: fixing package.json for package publishing, not building packages in the github action resulted with non-existent dist directory...
+- Updated dependencies [0df5340]
+  - @calycode/types@0.2.1
+  - @calycode/utils@0.2.2
+  - @calycode/core@0.4.2
+
 ## 0.4.1
 
 ### Patch Changes

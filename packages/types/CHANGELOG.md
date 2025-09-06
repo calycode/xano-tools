@@ -1,5 +1,11 @@
 # @calycode/types
 
+## 0.2.1
+
+### Patch Changes
+
+- 0df5340: fix: fixing package.json for package publishing, not building packages in the github action resulted with non-existent dist directory...
+
 ## 0.2.0
 
 ### Minor Changes
