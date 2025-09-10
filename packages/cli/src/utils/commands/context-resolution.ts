@@ -26,10 +26,7 @@ async function promptForContext(
          const selectedWorkspaceId = responses['workspace'] ?? knownContext.workspace;
          // Workspace could be identified by id or label or name; adjust as needed:
          let workspace = instanceConfig.workspaces.find(
-            (w) =>
-               w.id === selectedWorkspaceId ||
-               w.name === selectedWorkspaceId ||
-               w.label === selectedWorkspaceId
+            (w) => w.id === selectedWorkspaceId || w.name === selectedWorkspaceId
          );
          choices = workspace?.branches || [];
       }

@@ -48,28 +48,33 @@ async function fetchAndProcessEntities({
           "description" = "Xanoscript fetching failed with message: ${xanoscript.message}"
       }
       `;
-      tempResults.push({ path: `${path}/script.xs`, content: xanoScriptContent });
+      tempResults.push({ path: `${path}/script.freezed.xs`, content: xanoScriptContent });
    }
 
    return tempResults;
 }
 
-async function buildXanoscriptRepoImplementation(
-   storage: Caly['storage'],
-   core: Caly,
-   options: CoreContext
-): Promise<{ path: string; content: string }[]> {
+async function buildXanoscriptRepoImplementation({
+   storage,
+   core,
+   options,
+}: {
+   storage: Caly['storage'];
+   core: Caly;
+   options: CoreContext;
+}): Promise<{ path: string; content: string }[]> {
    const { instance, workspace, branch } = options;
 
    core.emit('start', { name: 'xs-repo-generation', payload: options });
 
+   // [ ] THIS IS WHERE THE ROOT OF ALL EVIL IS
    const results: { path: string; content: string }[] = [];
-   const startDir = process.cwd();
+   const startDir = storage.getStartDir();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
       branch,
-      startDir
+      startDir,
    });
 
    const baseUrl = instanceConfig.url;

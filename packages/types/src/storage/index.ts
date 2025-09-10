@@ -37,6 +37,7 @@ export interface ConfigStorage {
    saveGlobalConfig(config: any): Promise<void>;
    saveInstanceConfig(projectRoot: string, data: InstanceConfig): Promise<void>;
    saveToken(instance: string, token: string): Promise<void>;
+   getStartDir(): string;
 
    // Add generic file/directory methods:
    mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;

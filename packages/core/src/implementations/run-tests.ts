@@ -7,6 +7,7 @@ async function runTestsImplementation({
    groups,
    testConfig,
    core,
+   storage,
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -20,6 +21,7 @@ async function runTestsImplementation({
       customAsserts: AssertDefinition;
    }[];
    core: Caly;
+   storage: Caly['storage'];
 }): Promise<
    {
       group: ApiGroupConfig;
@@ -33,7 +35,7 @@ async function runTestsImplementation({
       }[];
    }[]
 > {
-   return await testRunner({ context, groups, testConfig, core });
+   return await testRunner({ context, groups, testConfig, core, storage });
 }
 
 export { runTestsImplementation };

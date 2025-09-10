@@ -31,26 +31,27 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
       workspace,
       branch,
    });
-   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+   const { instanceConfig, workspaceConfig, branchConfig, context } = await resolveConfigs({
+      requiredFields: ['instance', 'workspace', 'branch'],
       cliContext: { instance, workspace, branch },
       core,
    });
 
    // Resolve output dir
    const outputDir = replacePlaceholders(instanceConfig.xanoscript.output, {
-      '@': await core.findProjectRoot(),
+      '@': await findProjectRoot(),
       instance: instanceConfig.name,
       workspace: workspaceConfig.name,
       branch: branchConfig.label,
    });
 
    clearDirectory(outputDir);
-   await mkdirSync(outputDir, { recursive: true });
+   mkdirSync(outputDir, { recursive: true });
 
    const plannedWrites: { path: string; content: string }[] = await core.buildXanoscriptRepo({
-      instance,
-      workspace,
-      branch,
+      instance: context.instance,
+      workspace: context.workspace,
+      branch: context.branch,
    });
    await Promise.all(
       plannedWrites.map(async ({ path, content }) => {
