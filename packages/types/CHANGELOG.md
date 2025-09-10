@@ -1,5 +1,13 @@
 # @calycode/types
 
+## 0.2.2
+
+### Patch Changes
+
+- af3ad93: feat: added getStartDir() method to the ConfigStorage interface. Goal is to allow platform agnosticity in the context resolution.
+  fix: fixing an issue where xanoscript generation would fail due to missing context
+  fix: fixing package.json for package publishing, not building packages in the github action resulted with non-existent dist directory...
+
 ## 0.2.1
 
 ### Patch Changes
