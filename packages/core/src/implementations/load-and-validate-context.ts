@@ -8,16 +8,6 @@ import {
 } from '@calycode/types';
 import { getCurrentContextConfigImplementation } from './get-current-context';
 
-function assignDefined<T>(base: T, overrides: Partial<T>): T {
-   const result = { ...base };
-   for (const key in overrides) {
-      if (overrides[key] !== undefined) {
-         result[key] = overrides[key]!;
-      }
-   }
-   return result;
-}
-
 export async function loadAndValidateContextImplementation({
    storage,
    overrides,

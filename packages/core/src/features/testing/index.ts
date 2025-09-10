@@ -51,6 +51,7 @@ async function testRunner({
    groups,
    testConfig,
    core,
+   storage,
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -64,6 +65,7 @@ async function testRunner({
       customAsserts: AssertDefinition;
    }[];
    core: Caly;
+   storage: Caly['storage'];
 }): Promise<
    {
       group: ApiGroupConfig;
@@ -80,7 +82,7 @@ async function testRunner({
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
-   const startDir = process.cwd();
+   const startDir = storage.getStartDir();
    const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
       instance,
       workspace,

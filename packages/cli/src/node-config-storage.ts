@@ -13,7 +13,7 @@ import os from 'os';
 import { x } from 'tar';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ConfigStorage, CoreContext, InstanceConfig } from '@calycode/types';
+import { ConfigStorage, InstanceConfig } from '@calycode/types';
 
 const BASE_DIR = path.join(os.homedir(), '.xano-tools');
 const GLOBAL_CONFIG_PATH = path.join(BASE_DIR, 'config.json');
@@ -219,6 +219,15 @@ export const nodeConfigStorage: ConfigStorage = {
       fs.writeFileSync(p, token, { mode: 0o600 });
    },
 
+   /**
+    * Get the current working directory as 'startDir' for reuse in the core methods.
+    *
+    * @return string
+    */
+   getStartDir() {
+      return process.cwd();
+   },
+// 
    // ----- FILESYSTEM OPS -----
    async mkdir(dirPath, options) {
       await fs.promises.mkdir(dirPath, options);

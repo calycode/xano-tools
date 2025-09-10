@@ -236,10 +236,14 @@ export class Caly extends TypedEmitter<EventMap> {
       workspace,
       branch,
    }): Promise<{ path: string; content: string }[]> {
-      const response = await buildXanoscriptRepoImplementation(this.storage, this, {
-         instance,
-         workspace,
-         branch,
+      const response = await buildXanoscriptRepoImplementation({
+         storage: this.storage,
+         core: this,
+         options: {
+            instance,
+            workspace,
+            branch,
+         },
       });
       return response;
    }
@@ -301,7 +305,13 @@ export class Caly extends TypedEmitter<EventMap> {
          }[];
       }[]
    > {
-      return await runTestsImplementation({ context, groups, testConfig, core: this });
+      return await runTestsImplementation({
+         context,
+         groups,
+         testConfig,
+         core: this,
+         storage: this.storage,
+      });
    }
 
    // ----- SEMI-UTIL METHODS ----- //
