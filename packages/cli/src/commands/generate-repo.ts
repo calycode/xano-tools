@@ -1,7 +1,6 @@
-import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync } from 'fs';
+import { mkdir, access, readdir, lstat, rm, unlink } from 'node:fs/promises';
 import { log, intro, outro } from '@clack/prompts';
 import { load } from 'js-yaml';
-import { mkdir } from 'fs/promises';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@calycode/utils';
 import {
    addFullContextOptions,
@@ -14,21 +13,30 @@ import { resolveConfigs } from '../utils/commands/context-resolution';
 import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 /**
- * Clears the contents of a directory.
+ * Recursively removes all files and subdirectories in a directory.
  * @param {string} directory - The directory to clear.
  */
-function clearDirectory(directory) {
-   if (existsSync(directory)) {
-      readdirSync(directory).forEach((file) => {
-         const curPath = joinPath(directory, file);
-         if (lstatSync(curPath).isDirectory()) {
-            clearDirectory(curPath);
-            rmdirSync(curPath);
-         } else {
-            unlinkSync(curPath);
-         }
-      });
+async function clearDirectory(directory: string): Promise<void> {
+   try {
+      await access(directory);
+   } catch {
+      // Directory does not exist; nothing to clear
+      return;
    }
+
+   const files = await readdir(directory);
+   await Promise.all(
+      files.map(async (file) => {
+         const curPath = joinPath(directory, file);
+         const stat = await lstat(curPath);
+         if (stat.isDirectory()) {
+            await clearDirectory(curPath);
+            await rm(curPath, { recursive: true, force: true }); // removes the (now-empty) dir
+         } else {
+            await unlink(curPath);
+         }
+      })
+   );
 }
 
 async function generateRepo({

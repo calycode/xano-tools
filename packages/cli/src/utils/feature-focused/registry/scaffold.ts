@@ -1,9 +1,9 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { dirname, join } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
 
-async function ensureDirForFile(filePath) {
-   const dir = path.dirname(filePath);
-   await fs.mkdir(dir, { recursive: true });
+async function ensureDirForFile(filePath: string) {
+   const dir = dirname(filePath);
+   await mkdir(dir, { recursive: true });
 }
 
 // [ ] CLI
@@ -13,15 +13,15 @@ async function scaffoldRegistry(
    }
 ) {
    const componentsRoot = 'components';
-   const definitionPath = path.join(registryRoot, 'definitions');
+   const definitionPath = join(registryRoot, 'definitions');
    const functionName = 'hello-world';
    const functionRelPath = `functions/${functionName}`;
    const functionFileName = `${functionName}.xano`;
 
    // Paths
-   const functionFilePath = path.join(registryRoot, componentsRoot, 'functions', functionFileName);
-   const functionDefPath = path.join(definitionPath, 'functions', `${functionName}.json`);
-   const indexPath = path.join(definitionPath, 'index.json');
+   const functionFilePath = join(registryRoot, componentsRoot, 'functions', functionFileName);
+   const functionDefPath = join(definitionPath, 'functions', `${functionName}.json`);
+   const indexPath = join(definitionPath, 'index.json');
 
    // Sample content
    const sampleFunctionContent = `
@@ -56,9 +56,9 @@ async function scaffoldRegistry(
    };
 
    const sampleIndex = {
-      $schema: 'https://nextcurve.hu/schemas/registry/registry.json',
+      $schema: 'https://calycode.com/schemas/registry/registry.json',
       name: 'xano-registry',
-      homepage: 'https://nextcurve.hu',
+      homepage: 'https://calycode.com',
       items: [sampleRegistryItem],
    };
 
@@ -67,9 +67,9 @@ async function scaffoldRegistry(
    await ensureDirForFile(functionDefPath);
    await ensureDirForFile(indexPath);
 
-   await fs.writeFile(functionFilePath, sampleFunctionContent, 'utf8');
-   await fs.writeFile(functionDefPath, JSON.stringify(sampleRegistryItem, null, 2), 'utf8');
-   await fs.writeFile(indexPath, JSON.stringify(sampleIndex, null, 2), 'utf8');
+   await writeFile(functionFilePath, sampleFunctionContent, 'utf8');
+   await writeFile(functionDefPath, JSON.stringify(sampleRegistryItem, null, 2), 'utf8');
+   await writeFile(indexPath, JSON.stringify(sampleIndex, null, 2), 'utf8');
 
    console.log(`✅ Registry scaffolded at "${registryRoot}" with a sample component!`);
 }

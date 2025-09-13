@@ -1,5 +1,5 @@
 import { xanoQueryToSql } from '../adapters/xanoQueryToSql';
-import { statementsMap } from '../../../utils/methods/statements-map';
+import { statementsMap } from '../../../utils';
 
 function getMethodType(method) {
    if (method.name === 'mvp:function' && method.context?.function?.id) return 'function';

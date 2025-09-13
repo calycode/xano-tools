@@ -4,22 +4,21 @@
  *
  * Directory structure:
  * - ~/.xano-tools/config.json (global configuration)
- * - ~/.xano-tools/instances/ (instance-specific configurations)
  * - ~/.xano-tools/tokens/ (API tokens with restricted permissions)
  */
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import fs from 'node:fs';
+import path from 'node:path';
+import { tmpdir, homedir } from 'node:os';
+import { join } from 'node:path';
+import { Readable } from 'node:stream';
 import { x } from 'tar';
-import { tmpdir } from 'os';
-import { join } from 'path';
 import { ConfigStorage, InstanceConfig } from '@calycode/types';
 
-const BASE_DIR = path.join(os.homedir(), '.xano-tools');
+const BASE_DIR = path.join(homedir(), '.xano-tools');
 const GLOBAL_CONFIG_PATH = path.join(BASE_DIR, 'config.json');
 const TOKENS_DIR = path.join(BASE_DIR, 'tokens');
 const DEFAULT_LOCAL_CONFIG_FILE = 'instance.config.json';
-const MERGE_KEYS = ['lint', 'test'];
+const MERGE_KEYS = ['test'];
 
 /**
  * Walks up the directory tree to find the first directory containing
@@ -227,7 +226,7 @@ export const nodeConfigStorage: ConfigStorage = {
    getStartDir() {
       return process.cwd();
    },
-// 
+   //
    // ----- FILESYSTEM OPS -----
    async mkdir(dirPath, options) {
       await fs.promises.mkdir(dirPath, options);
@@ -237,6 +236,30 @@ export const nodeConfigStorage: ConfigStorage = {
    },
    async writeFile(filePath, data) {
       await fs.promises.writeFile(filePath, data);
+   },
+   async streamToFile(
+      destinationPath: string,
+      source: ReadableStream | NodeJS.ReadableStream
+   ): Promise<void> {
+      const dest = fs.createWriteStream(destinationPath, { mode: 0o600 });
+      let nodeStream: NodeJS.ReadableStream;
+
+      // Convert if necessary
+      if (typeof (source as any).pipe === 'function') {
+         // already a NodeJS stream
+         nodeStream = source as NodeJS.ReadableStream;
+      } else {
+         // WHATWG stream (from fetch in Node 18+)
+         // Can only use fromWeb if available in the environment
+         nodeStream = Readable.fromWeb(source as any);
+      }
+
+      await new Promise<void>((resolve, reject) => {
+         nodeStream.pipe(dest);
+         dest.on('finish', () => resolve());
+         dest.on('error', (err) => reject(err));
+         nodeStream.on('error', (err) => reject(err));
+      });
    },
    async readFile(filePath) {
       return await fs.promises.readFile(filePath); // returns Buffer

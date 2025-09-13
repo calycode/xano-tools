@@ -9,7 +9,6 @@ import { registerExportBackupCommand, registerRestoreBackupCommand } from './com
 import { registerGenerateCodeCommand } from './commands/generate-code';
 import { registerGenerateOasCommand } from './commands/generate-oas';
 import { registerGenerateRepoCommand } from './commands/generate-repo';
-//import { registerLintCommand } from './commands/run-lint';
 import { registerSetupCommand } from './commands/setup-instance';
 import { registerRunTestCommand } from './commands/run-tests';
 import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
@@ -87,7 +86,6 @@ registerRegistryScaffoldCommand(program, core);
 registerRegistryServeCommand(program);
 registerExportBackupCommand(program, core);
 registerRestoreBackupCommand(program, core);
-//registerLintCommand(program, core);
 registerRunTestCommand(program, core);
 registerCurrentContextCommand(program, core);
 

@@ -137,8 +137,7 @@ I have been astonished by the shadcn/ui CLI and the core principles of code dist
 -  [x] **Scaffolding a registry** of reusable Xano components
 -  [x] Exporting all available `xanoscript` from your instance via metadata API _*(important note: not all pieces of logic can be exported via metadata API, this especially is fragile on older and bigger instances)_.
 -  [x] Adding components to Xano from a registry (only functions, tables, queries for now)
--  [ ] Automated test runner with assertion configuration
--  [ ] Linting with custom rulesets
+-  [x] Automated test runner with assertion configuration
 
 ---
 

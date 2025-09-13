@@ -2,7 +2,6 @@ export * from './commands/option-sets';
 export * from './feature-focused/registry/api';
 export * from './feature-focused/registry/general';
 export * from './feature-focused/registry/scaffold';
-export * from './feature-focused/test/custom-assertions';
 export * from './methods/choose-api-group';
 export * from './methods/print-output-dir';
 export * from './methods/safe-version-control';

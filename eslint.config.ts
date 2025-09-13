@@ -38,7 +38,7 @@ export default [
    // TS/TSX files config
    {
       files: ['**/*.ts'],
-      ignores: ['node_modules/**', 'dist/**', 'output/**'],
+      ignores: ['node_modules/**', 'dist/**', 'output/**', 'scripts/**'],
       languageOptions: {
          parser: '@typescript-eslint/parser',
          parserOptions: {

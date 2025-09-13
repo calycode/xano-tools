@@ -1,11 +1,11 @@
-import fs from 'fs';
-import path from 'path';
+import { access, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { log } from '@clack/prompts';
 
 // [ ] CLI
 const PROJECT_ROOT = process.cwd();
-const GITIGNORE_PATH = path.join(PROJECT_ROOT, '.gitignore');
-const EXAMPLE_GITIGNORE_PATH = path.join(PROJECT_ROOT, 'gitignore.example');
+const GITIGNORE_PATH = join(PROJECT_ROOT, '.gitignore');
+const EXAMPLE_GITIGNORE_PATH = join(PROJECT_ROOT, 'gitignore.example');
 
 const RECOMMENDED_IGNORES = [
    '.env',
@@ -23,18 +23,22 @@ const RECOMMENDED_IGNORES = [
    'debug_requests.json',
 ];
 
-export function ensureGitignore() {
+export async function ensureGitignore() {
    let gitignoreContent = '';
    let needsWrite = false;
 
    // If no .gitignore, use example if it exists, or just recommended ignores
-   if (!fs.existsSync(GITIGNORE_PATH)) {
-      if (fs.existsSync(EXAMPLE_GITIGNORE_PATH)) {
-         gitignoreContent = fs.readFileSync(EXAMPLE_GITIGNORE_PATH, 'utf8').trim();
+   try {
+      await access(GITIGNORE_PATH);
+      gitignoreContent = (await readFile(GITIGNORE_PATH, 'utf8')).trim();
+   } catch {
+      try {
+         await access(EXAMPLE_GITIGNORE_PATH);
+         gitignoreContent = (await readFile(EXAMPLE_GITIGNORE_PATH, 'utf8')).trim();
+      } catch {
+         gitignoreContent = '';
       }
       needsWrite = true;
-   } else {
-      gitignoreContent = fs.readFileSync(GITIGNORE_PATH, 'utf8').trim();
    }
 
    // Deduplicate: create a Set of existing lines (trimming whitespace)
@@ -50,10 +54,11 @@ export function ensureGitignore() {
 
    if (missing.length > 0) {
       gitignoreContent += '\n' + missing.join('\n') + '\n';
-      fs.writeFileSync(GITIGNORE_PATH, gitignoreContent.trim() + '\n');
+      await writeFile(GITIGNORE_PATH, gitignoreContent.trim() + '\n');
       log.success('[MAINTENANCE]: .gitignore updated with missing recommended ignores.');
    } else if (needsWrite) {
-      fs.writeFileSync(GITIGNORE_PATH, gitignoreContent.trim() + '\n');
+      await writeFile(GITIGNORE_PATH, gitignoreContent.trim() + '\n');
       log.success('[MAINTENANCE]: .gitignore created from example.');
    }
 }
+

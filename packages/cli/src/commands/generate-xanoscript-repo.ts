@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, lstatSync, rmdirSync, unlinkSync, mkdirSync } from 'fs';
+import { access, readdir, lstat, rm, unlink, mkdir } from 'node:fs/promises';
 import { joinPath, dirname } from '@calycode/utils';
 import { attachCliEventHandlers } from '../utils/event-listener';
 import { replacePlaceholders } from '@calycode/utils';
@@ -8,21 +8,30 @@ import { resolveConfigs } from '../utils/commands/context-resolution';
 import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 /**
- * Clears the contents of a directory.
+ * Recursively removes all files and subdirectories in a directory.
  * @param {string} directory - The directory to clear.
  */
-function clearDirectory(directory) {
-   if (existsSync(directory)) {
-      readdirSync(directory).forEach((file) => {
-         const curPath = joinPath(directory, file);
-         if (lstatSync(curPath).isDirectory()) {
-            clearDirectory(curPath);
-            rmdirSync(curPath);
-         } else {
-            unlinkSync(curPath);
-         }
-      });
+async function clearDirectory(directory: string): Promise<void> {
+   try {
+      await access(directory);
+   } catch {
+      // Directory does not exist; nothing to clear
+      return;
    }
+
+   const files = await readdir(directory);
+   await Promise.all(
+      files.map(async (file) => {
+         const curPath = joinPath(directory, file);
+         const stat = await lstat(curPath);
+         if (stat.isDirectory()) {
+            await clearDirectory(curPath);
+            await rm(curPath, { recursive: true, force: true });
+         } else {
+            await unlink(curPath);
+         }
+      })
+   );
 }
 
 async function generateXanoscriptRepo({ instance, workspace, branch, core, printOutput = false }) {
@@ -46,7 +55,7 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
    });
 
    clearDirectory(outputDir);
-   mkdirSync(outputDir, { recursive: true });
+   await mkdir(outputDir, { recursive: true });
 
    const plannedWrites: { path: string; content: string }[] = await core.buildXanoscriptRepo({
       instance: context.instance,

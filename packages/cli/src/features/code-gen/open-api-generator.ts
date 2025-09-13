@@ -1,16 +1,15 @@
-import { spawn } from 'child_process';
-import { resolve, join } from 'path';
-import { mkdirSync, createWriteStream } from 'fs';
+import { createWriteStream } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+import { spawn } from 'node:child_process';
 
-// [ ] CLI only feature
-export function runOpenApiGenerator({
+export async function runOpenApiGenerator({
    input,
    output,
    generator,
    additionalArgs = [],
-   logger = false, // If true, log to file, else discard logs
+   logger = false,
 }) {
-   return new Promise((resolvePromise, reject) => {
       // Always use npx and the official package
       const cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
       const inputPath = resolve(input).replace(/\\/g, '/');
@@ -31,15 +30,14 @@ export function runOpenApiGenerator({
       let logStream = null;
       let logPath = null;
 
-      // If logger is true, prepare log file and stream
       if (logger) {
          const logsDir = join(process.cwd(), 'output', '_logs');
-         mkdirSync(logsDir, { recursive: true });
+         await mkdir(logsDir, { recursive: true });
          logPath = join(logsDir, `openapi-generator-${Date.now()}.log`);
          logStream = createWriteStream(logPath);
       }
 
-      // Start the process
+   return new Promise((resolvePromise, reject) => {
       const proc = spawn(cliBin, cliArgs, { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
 
       // Always suppress console output!
@@ -47,7 +45,7 @@ export function runOpenApiGenerator({
          proc.stdout.pipe(logStream);
          proc.stderr.pipe(logStream);
       } else {
-         proc.stdout.resume(); // prevent backpressure
+         proc.stdout.resume();
          proc.stderr.resume();
       }
 
@@ -75,3 +73,4 @@ export function runOpenApiGenerator({
       });
    });
 }
+

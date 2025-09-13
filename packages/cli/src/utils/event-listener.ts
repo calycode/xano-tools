@@ -2,11 +2,11 @@ import { intro, outro, log, spinner } from '@clack/prompts';
 import { printOutputDir } from './methods/print-output-dir';
 import { EventName } from '@calycode/types';
 
-export type CoreEventName = 'start' | 'end' | 'progress' | 'error' | 'info';
-export type HandlerFn = (data: any, context?: any) => void;
-export type HandlerMap = Partial<Record<CoreEventName, HandlerFn>>;
+type CoreEventName = 'start' | 'end' | 'progress' | 'error' | 'info';
+type HandlerFn = (data: any, context?: any) => void;
+type HandlerMap = Partial<Record<CoreEventName, HandlerFn>>;
 
-export const defaultHandlers: HandlerMap = {
+const defaultHandlers: HandlerMap = {
    error: (data) => log.error(data.message),
 };
 
@@ -122,4 +122,4 @@ function attachCliEventHandlers(
    });
 }
 
-export { eventHandlers, attachCliEventHandlers };
+export { attachCliEventHandlers };

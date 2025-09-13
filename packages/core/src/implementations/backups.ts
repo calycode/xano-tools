@@ -1,4 +1,4 @@
-import { replacePlaceholders, metaApiRequestBlob, joinPath } from '@calycode/utils';
+import { replacePlaceholders, joinPath } from '@calycode/utils';
 
 /**
  * Exports a backup and emits events for CLI/UI.
@@ -20,7 +20,7 @@ async function exportBackupImplementation({ instance, workspace, branch, core })
          instance,
          workspace,
          branch,
-         startDir
+         startDir,
       });
 
       if (!instanceConfig || !workspaceConfig || !branchConfig) {
@@ -50,13 +50,17 @@ async function exportBackupImplementation({ instance, workspace, branch, core })
          percent: 40,
       });
 
-      const backupBuffer = await metaApiRequestBlob({
-         baseUrl: instanceConfig.url,
-         token: await core.loadToken(instanceConfig.name),
-         method: 'POST',
-         path: `/workspace/${workspaceConfig.id}/export`,
-         body: { branch: branchConfig.label },
-      });
+      const backupStreamRequest = await fetch(
+         `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/export`,
+         {
+            method: 'POST',
+            headers: {
+               Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
+               'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ branch: branchConfig.label }),
+         }
+      );
 
       core.emit('progress', {
          name: 'export-backup',
@@ -67,7 +71,7 @@ async function exportBackupImplementation({ instance, workspace, branch, core })
       const now = new Date();
       const ts = now.toISOString().replace(/[:.]/g, '-');
       const backupPath = joinPath(outputDir, `backup-${ts}.tar.gz`);
-      await core.storage.writeFile(backupPath, backupBuffer);
+      await core.storage.streamToFile(backupStreamRequest.body, backupPath);
 
       core.emit('progress', {
          name: 'export-backup',
@@ -107,7 +111,7 @@ async function restoreBackupImplementation({ instance, workspace, formData, core
    const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
       instance,
       workspace,
-      startDir
+      startDir,
    });
 
    const headers = {
