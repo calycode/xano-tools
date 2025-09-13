@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { extname, join } from 'path';
 
-export async function minifyJsonInDir(dir) {
+export async function minifyJsonInDir(dir: string) {
    const entries = await readdir(dir, { withFileTypes: true });
    for (const entry of entries) {
       const fullPath = join(dir, entry.name);

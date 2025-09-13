@@ -11,8 +11,8 @@ async function main() {
 
    // Extract only the fields we care about
    const entries = statements
-      .filter((st) => st.name && st.display) // Only those with both fields
-      .map((st) => [
+      .filter((st: any) => st.name && st.display) // Only those with both fields
+      .map((st: any) => [
          st.name,
          { display: st.display }, // Add group: st.group if you want
       ]);

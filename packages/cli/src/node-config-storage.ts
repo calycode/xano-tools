@@ -4,7 +4,6 @@
  *
  * Directory structure:
  * - ~/.xano-tools/config.json (global configuration)
- * - ~/.xano-tools/instances/ (instance-specific configurations)
  * - ~/.xano-tools/tokens/ (API tokens with restricted permissions)
  */
 import fs from 'fs';
@@ -19,7 +18,7 @@ const BASE_DIR = path.join(os.homedir(), '.xano-tools');
 const GLOBAL_CONFIG_PATH = path.join(BASE_DIR, 'config.json');
 const TOKENS_DIR = path.join(BASE_DIR, 'tokens');
 const DEFAULT_LOCAL_CONFIG_FILE = 'instance.config.json';
-const MERGE_KEYS = ['lint', 'test'];
+const MERGE_KEYS = ['test'];
 
 /**
  * Walks up the directory tree to find the first directory containing
@@ -227,7 +226,7 @@ export const nodeConfigStorage: ConfigStorage = {
    getStartDir() {
       return process.cwd();
    },
-// 
+//
    // ----- FILESYSTEM OPS -----
    async mkdir(dirPath, options) {
       await fs.promises.mkdir(dirPath, options);

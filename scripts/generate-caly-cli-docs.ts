@@ -3,13 +3,13 @@ import path from 'path';
 import stripAnsi from 'strip-ansi';
 import { program } from '../packages/cli/src/program';
 
-function copyTemplateFiles(templateDir, targetDir) {
+function copyTemplateFiles(templateDir: string, targetDir: string) {
    // Copies everything from templateDir into targetDir, overwriting if needed
    cpSync(templateDir, targetDir, { recursive: true });
    console.log(`Copied template files from ${templateDir} to ${targetDir}.\n`);
 }
 
-function writeDocForCommand(cmd, dir = 'docs/commands') {
+function writeDocForCommand(cmd: any, dir = 'docs/commands') {
    const name = cmd.name();
    const description = cmd.description ? cmd.description() : '';
    const help = stripAnsi(cmd.helpInformation());
@@ -19,7 +19,7 @@ function writeDocForCommand(cmd, dir = 'docs/commands') {
       optionsContent = [
          '### Options',
          '',
-         ...options.map((opt) => {
+         ...options.map((opt: any) => {
             const optionDoc = [`#### ${opt.flags}`, `**Description:** ${opt.description}`].join(
                '\n'
             );
