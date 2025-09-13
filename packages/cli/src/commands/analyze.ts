@@ -1,6 +1,5 @@
-import { mkdir } from 'fs/promises';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname, join } from 'path';
+import { mkdir, writeFile, access } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { log, outro, intro, spinner } from '@clack/prompts';
 import { metaApiGet, replacePlaceholders, sanitizeFileName } from '@calycode/utils';
 import {
@@ -12,7 +11,6 @@ import {
 import { resolveConfigs } from '../utils/commands/context-resolution';
 import { findProjectRoot } from '../utils/commands/project-root-finder';
 
-// [ ] CORE, but needs fs access.
 async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutput = false, core) {
    intro('Starting to analyze functions.');
    let branchFunctions = {};
@@ -81,12 +79,14 @@ async function fetchFunctionsInXanoScript(instance, workspace, branch, printOutp
 
          // Ensure the parent directory exists
          const parentDir = dirname(filePath);
-         if (!existsSync(parentDir)) {
-            mkdirSync(parentDir, { recursive: true });
+         try {
+            await access(parentDir);
+         } catch {
+            await mkdir(parentDir, { recursive: true });
          }
 
          // Write the file
-         writeFileSync(filePath, branchFunctions[item].script);
+         await writeFile(filePath, branchFunctions[item].script);
       }
       s.stop(`Xano Script files are ready -> ${outputDir}`);
    } catch (err) {

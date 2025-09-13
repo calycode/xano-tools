@@ -1,5 +1,5 @@
-import path, { join } from 'path';
-import { readdirSync } from 'fs';
+import { basename, join } from 'node:path';
+import { readdir } from 'node:fs/promises';
 import { openAsBlob } from 'node:fs';
 import { select, confirm, outro } from '@clack/prompts';
 import { replacePlaceholders } from '@calycode/utils';
@@ -48,7 +48,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
 
          let availableBackups;
          try {
-            availableBackups = readdirSync(backupsDir);
+            availableBackups = await readdir(backupsDir);
          } catch {
             outro(`No backups directory found for branch "${branchConfig.label}".`);
             process.exit(1);
@@ -82,7 +82,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
       }
 
       const formData = new FormData();
-      formData.append('file', await openAsBlob(backupFilePath), path.basename(backupFilePath));
+      formData.append('file', await openAsBlob(backupFilePath), basename(backupFilePath));
       formData.append('password', '');
 
       // Pass on the formdata to the core implementation

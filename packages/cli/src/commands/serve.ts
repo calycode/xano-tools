@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn } from 'node:child_process';
 import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
 import { addApiGroupOptions, addFullContextOptions, chooseApiGroupOrAll } from '../utils/index';
 import { resolveConfigs } from '../utils/commands/context-resolution';

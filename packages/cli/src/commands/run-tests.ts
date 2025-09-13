@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { intro, log, spinner } from '@clack/prompts';
 import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
 import {
@@ -52,7 +52,7 @@ async function runTest({
 
    // Take the core implementation for test running:
    // for now testconfig has to exist on the machine prior to running the tests.
-   const testConfigFileContent = await fs.readFile(testConfigPath, { encoding: 'utf-8' });
+   const testConfigFileContent = await readFile(testConfigPath, { encoding: 'utf-8' });
    const testConfig = JSON.parse(testConfigFileContent);
    const s = spinner();
    s.start('Running tests based on the provided spec');
@@ -81,8 +81,8 @@ async function runTest({
          api_group_normalized_name: normalizeApiGroupName(outcome.group.name),
       });
 
-      await fs.mkdir(apiGroupTestPath, { recursive: true });
-      await fs.writeFile(
+      await mkdir(apiGroupTestPath, { recursive: true });
+      await writeFile(
          `${apiGroupTestPath}/${testFileName}`,
          JSON.stringify(outcome.results, null, 2)
       );
