@@ -1,5 +1,13 @@
 # @calycode/types
 
+## 0.2.3
+
+### Patch Changes
+
+- 1fec1a5: refactor: minor cleanup, removal of the linting command..
+  fix: make backup to be stream, to allow bigger workspaces
+  refactor: cleanup of fs / path imports in the cli
+
 ## 0.2.2
 
 ### Patch Changes

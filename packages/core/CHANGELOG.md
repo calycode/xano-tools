@@ -1,5 +1,16 @@
 # @calycode/caly-core
 
+## 0.4.4
+
+### Patch Changes
+
+- 1fec1a5: refactor: minor cleanup, removal of the linting command..
+  fix: make backup to be stream, to allow bigger workspaces
+  refactor: cleanup of fs / path imports in the cli
+- Updated dependencies [1fec1a5]
+  - @calycode/types@0.2.3
+  - @calycode/utils@0.2.4
+
 ## 0.4.3
 
 ### Patch Changes
