@@ -25,9 +25,6 @@ jobs:
         with:
           node-version: 20.x
 
-      - name: Make sure to be on PR branch
-        run: git checkout ${GITHUB_HEAD_REF}
-
       - name: Install packages
         run: pnpm install
 
