@@ -2,8 +2,6 @@
  * Type-safe event emitter that provides strongly-typed event handling.
  * Used as the base class for Caly to enable event-driven architecture.
  *
- * @template E - Object type mapping event names to their data types
- *
  * @example
  * ```typescript
  * interface MyEvents {
