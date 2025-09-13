@@ -28,11 +28,6 @@ jobs:
       - name: Install packages
         run: pnpm install
 
-      - name: Fetch and rebase onto latest main
-        run: |
-          git fetch origin main
-          git rebase origin/main
-
       - name: Build packages
         run: pnpm build:packages
 
