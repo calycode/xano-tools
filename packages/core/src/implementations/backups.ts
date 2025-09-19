@@ -1,9 +1,9 @@
-import { replacePlaceholders, joinPath } from '@calycode/utils';
+import { replacePlaceholders, joinPath, dirname } from '@calycode/utils';
 
 /**
  * Exports a backup and emits events for CLI/UI.
  */
-async function exportBackupImplementation({ instance, workspace, branch, core }) {
+async function exportBackupImplementation({ outputDir, instance, workspace, branch, core }) {
    core.emit('start', {
       name: 'export-backup',
       payload: { instance, workspace, branch },
@@ -35,43 +35,70 @@ async function exportBackupImplementation({ instance, workspace, branch, core })
          percent: 15,
       });
 
-      // Resolve output dir
-      const outputDir = replacePlaceholders(instanceConfig.backups.output, {
-         instance: instanceConfig.name,
-         workspace: workspaceConfig.name,
-         branch: branchConfig.label,
-      });
-
-      await core.storage.mkdir(outputDir, { recursive: true });
-
       core.emit('progress', {
          name: 'export-backup',
          message: 'Requesting backup from Xano API...',
          percent: 40,
       });
 
-      const backupStreamRequest = await fetch(
-         `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/export`,
-         {
-            method: 'POST',
-            headers: {
-               Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
-               'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ branch: branchConfig.label }),
-         }
-      );
-
+      const startTime = Date.now();
       core.emit('progress', {
          name: 'export-backup',
-         message: 'Saving backup file...',
-         percent: 80,
+         message: 'Requesting backup from Xano API...',
+         percent: 40,
+      });
+
+      let backupStreamRequest;
+      try {
+         backupStreamRequest = await fetch(
+            `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/export`,
+            {
+               method: 'POST',
+               headers: {
+                  Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
+                  'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({ branch: branchConfig.label }),
+            }
+         );
+      } catch (err) {
+         core.emit('error', {
+            error: err,
+            message: 'Fetch failed',
+            step: 'fetch',
+            elapsed: Date.now() - startTime,
+         });
+         throw err;
+      }
+
+      core.emit('info', {
+         message: 'Response headers received',
+         headers: backupStreamRequest.headers,
+         status: backupStreamRequest.status,
+         elapsed: Date.now() - startTime,
       });
 
       const now = new Date();
       const ts = now.toISOString().replace(/[:.]/g, '-');
       const backupPath = joinPath(outputDir, `backup-${ts}.tar.gz`);
-      await core.storage.streamToFile(backupStreamRequest.body, backupPath);
+
+      await core.storage.mkdir(outputDir, { recursive: true });
+      try {
+         await core.storage.streamToFile({ path: backupPath, stream: backupStreamRequest.body });
+         core.emit('info', {
+            message: 'Streaming complete',
+            backupPath,
+            elapsed: Date.now() - startTime,
+         });
+      } catch (err) {
+         core.emit('error', {
+            error: err,
+            message: 'Streaming to file failed',
+            step: 'streamToFile',
+            elapsed: Date.now() - startTime,
+         });
+         throw err;
+      }
 
       core.emit('progress', {
          name: 'export-backup',

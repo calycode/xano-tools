@@ -81,7 +81,7 @@ export async function setupInstanceImplementation(
          output: '{@}/{workspace}/{branch}/codegen/{api_group_normalized_name}',
       },
       backups: {
-         output: '{@}/{workspace}{branch}/backups',
+         output: '{@}/{workspace}/{branch}/backups',
       },
       registry: {
          output: '{@}/registry',

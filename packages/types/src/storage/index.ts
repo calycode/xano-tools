@@ -43,7 +43,13 @@ export interface ConfigStorage {
    mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
    readdir(path: string): Promise<string[]>;
    writeFile(path: string, data: string | Uint8Array): Promise<void>;
-   streamToFile(path: string, stream: ReadableStream | NodeJS.ReadableStream): Promise<void>;
+   streamToFile({
+      path,
+      stream,
+   }: {
+      path: string;
+      stream: ReadableStream | NodeJS.ReadableStream;
+   }): Promise<void>;
    readFile(path: string): Promise<string | Uint8Array>;
    exists(path: string): Promise<boolean>;
 
