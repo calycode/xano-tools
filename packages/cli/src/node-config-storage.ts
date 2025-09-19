@@ -237,21 +237,25 @@ export const nodeConfigStorage: ConfigStorage = {
    async writeFile(filePath, data) {
       await fs.promises.writeFile(filePath, data);
    },
-   async streamToFile(
-      destinationPath: string,
-      source: ReadableStream | NodeJS.ReadableStream
-   ): Promise<void> {
-      const dest = fs.createWriteStream(destinationPath, { mode: 0o600 });
+
+   async streamToFile({
+      path,
+      stream,
+   }: {
+      path: string;
+      stream: ReadableStream | NodeJS.ReadableStream;
+   }): Promise<void> {
+      const dest = fs.createWriteStream(path, { mode: 0o600 });
       let nodeStream: NodeJS.ReadableStream;
 
       // Convert if necessary
-      if (typeof (source as any).pipe === 'function') {
+      if (typeof (stream as any).pipe === 'function') {
          // already a NodeJS stream
-         nodeStream = source as NodeJS.ReadableStream;
+         nodeStream = stream as NodeJS.ReadableStream;
       } else {
          // WHATWG stream (from fetch in Node 18+)
          // Can only use fromWeb if available in the environment
-         nodeStream = Readable.fromWeb(source as any);
+         nodeStream = Readable.fromWeb(stream as any);
       }
 
       await new Promise<void>((resolve, reject) => {
@@ -261,9 +265,11 @@ export const nodeConfigStorage: ConfigStorage = {
          nodeStream.on('error', (err) => reject(err));
       });
    },
+
    async readFile(filePath) {
       return await fs.promises.readFile(filePath); // returns Buffer
    },
+
    async exists(filePath) {
       try {
          await fs.promises.access(filePath);

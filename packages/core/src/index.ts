@@ -179,8 +179,9 @@ export class Caly extends TypedEmitter<EventMap> {
     * });
     * ```
     */
-   async exportBackup({ instance, workspace, branch }): Promise<Record<string, string>> {
+   async exportBackup({ instance, workspace, branch, outputDir }): Promise<Record<string, string>> {
       return exportBackupImplementation({
+         outputDir,
          instance,
          workspace,
          branch,

@@ -96,6 +96,29 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
    }
 }
 
+async function exportWizard({ instance, workspace, branch, core, doLog, output }) {
+   attachCliEventHandlers('export-backup', core, arguments);
+
+   const { instanceConfig, workspaceConfig, branchConfig, context } = await resolveConfigs({
+      cliContext: { instance, workspace, branch },
+      core,
+   });
+
+   // Resolve output dir
+   const outputDir = output
+      ? output
+      : replacePlaceholders(instanceConfig.backups.output, {
+           '@': await findProjectRoot(),
+           instance: instanceConfig.name,
+           workspace: workspaceConfig.name,
+           branch: branchConfig.label,
+        });
+
+   const outputObject = await core.exportBackup({ ...context, outputDir });
+
+   printOutputDir(doLog, outputObject.outputDir);
+}
+
 // [ ] Add potentially context awareness like in the other commands
 function registerExportBackupCommand(program, core) {
    const cmd = program
@@ -107,13 +130,14 @@ function registerExportBackupCommand(program, core) {
 
    cmd.action(
       withErrorHandler(async (options) => {
-         attachCliEventHandlers('export-backup', core, options);
-         const outputObject = await core.exportBackup({
-            branch: options.branch,
+         await exportWizard({
             instance: options.instance,
             workspace: options.workspace,
+            branch: options.branch,
+            core: core,
+            doLog: options.printOutputDir,
+            output: options.output,
          });
-         printOutputDir(options.printOutput, outputObject.outputDir);
       })
    );
 }
