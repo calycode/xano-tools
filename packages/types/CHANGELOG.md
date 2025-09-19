@@ -1,5 +1,11 @@
 # @calycode/types
 
+## 0.3.0
+
+### Minor Changes
+
+- 0f463ea: feat: fixing and wrapping up backup exporting command
+
 ## 0.2.3
 
 ### Patch Changes
