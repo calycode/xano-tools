@@ -39,7 +39,7 @@
       "eslint": "^9.35.0",
       "eslint-plugin-import": "^2.32.0",
       "knip": "^5.63.1",
-      "rollup": "^4.50.0",
+      "rollup": "^4.52.0",
       "rollup-plugin-dts": "^6.2.3",
       "strip-ansi": "^7.1.0",
       "trash-cli": "^6.0.0",
