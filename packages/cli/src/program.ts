@@ -3,9 +3,8 @@ import { font } from './utils';
 import pkg from '../../../package.json' with {type: "json"};
 
 // Import commands:
-import { registerCurrentContextCommand, registerSwitchContextCommand } from './commands/context';
+import { registerCurrentContextCommand } from './commands/context';
 import { registerExportBackupCommand, registerRestoreBackupCommand } from './commands/backups';
-//import { registerFetchFunctionsInXanoScript } from './commands/analyze';
 import { registerGenerateCodeCommand } from './commands/generate-code';
 import { registerGenerateOasCommand } from './commands/generate-oas';
 import { registerGenerateRepoCommand } from './commands/generate-repo';
@@ -74,13 +73,11 @@ program
 
 // --- Register your commands here ---
 registerSetupCommand(program, core);
-registerSwitchContextCommand(program, core);
 registerGenerateOasCommand(program, core);
 registerOasServeCommand(program, core);
 registerGenerateCodeCommand(program, core);
 registerGenerateRepoCommand(program, core);
 registerBuildXanoscriptRepoCommand(program, core);
-//registerFetchFunctionsInXanoScript(program, core);
 registerRegistryAddCommand(program, core);
 registerRegistryScaffoldCommand(program, core);
 registerRegistryServeCommand(program);
@@ -105,7 +102,7 @@ program.configureHelp({
     const groups = [
       {
         title: font.combo.boldCyan('Core Commands:'),
-        commands: ['setup', 'switch-context'],
+        commands: ['setup'],
       },
       {
         title: font.combo.boldCyan('Code Generation:'),

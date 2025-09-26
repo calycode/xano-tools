@@ -81,24 +81,6 @@ async function switchContextWizard(
    );
 }
 
-function registerSwitchContextCommand(program, core) {
-   const cmd = program.command('switch-context').description('Switch instance/workspace context');
-   addFullContextOptions(cmd);
-   cmd.action(
-      withErrorHandler(async (opts) => {
-         if (opts.instance && opts.workspace && opts.branch) {
-            await core.switchContext({
-               instance: opts.instance,
-               workspace: opts.workspace,
-               branch: opts.branch,
-            });
-         } else {
-            await switchContextWizard(opts, core);
-         }
-      })
-   );
-}
-
 function registerCurrentContextCommand(program, core) {
    program.command('current-context').action(async () => {
       const startDir = process.cwd();
@@ -107,4 +89,4 @@ function registerCurrentContextCommand(program, core) {
    });
 }
 
-export { registerSwitchContextCommand, registerCurrentContextCommand };
+export { registerCurrentContextCommand };

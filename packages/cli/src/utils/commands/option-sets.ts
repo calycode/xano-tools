@@ -1,4 +1,3 @@
-// [ ] CLI, the whole file
 /**
  * Attach shared context options to a Commander command.
  * @param {Command} cmd - The commander command object
