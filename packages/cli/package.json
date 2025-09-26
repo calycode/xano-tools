@@ -43,10 +43,10 @@
     },
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/cli#readme",
     "dependencies": {
-        "@clack/prompts": "^0.11.0",
         "@calycode/core": "workspace:*",
         "@calycode/types": "workspace:*",
         "@calycode/utils": "workspace:*",
+        "@clack/prompts": "^0.11.0",
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
         "tar": "^7.4.3"

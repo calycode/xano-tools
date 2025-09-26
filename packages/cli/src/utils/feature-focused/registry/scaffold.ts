@@ -16,7 +16,7 @@ async function scaffoldRegistry(
    const definitionPath = join(registryRoot, 'definitions');
    const functionName = 'hello-world';
    const functionRelPath = `functions/${functionName}`;
-   const functionFileName = `${functionName}.xano`;
+   const functionFileName = `${functionName}.xs`;
 
    // Paths
    const functionFilePath = join(registryRoot, componentsRoot, 'functions', functionFileName);
