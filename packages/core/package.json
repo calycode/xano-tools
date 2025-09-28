@@ -44,10 +44,10 @@
         "url": "https://github.com/calycode/xano-tools/issues"
     },
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/core#readme",
-    "dependencies": {
+    "devDependencies": {
+        "uvu": "^0.5.6",
         "@calycode/types": "workspace:*",
-        "@calycode/utils": "workspace:*",
-        "uvu": "^0.5.6"
+        "@calycode/utils": "workspace:*"
     },
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",

@@ -2,6 +2,7 @@
     "name": "@calycode/utils",
     "version": "0.3.0",
     "description": "Utility functions and helpers for the Caly Xano tooling ecosystem",
+    "private": "true",
     "publishConfig": {
         "access": "restricted"
     },
@@ -52,6 +53,6 @@
         "build:types": "tsc",
         "bundle:types": "rollup -c rollup.config.js",
         "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
+        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild && pnpm link -g"
     }
 }

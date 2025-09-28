@@ -2,12 +2,10 @@
    "extends": "../../tsconfig.base.json",
    "compilerOptions": {
       "outDir": "dist",
-      "rootDir": "src",
       "composite": true,
       "noEmit": false,
       "declaration": true,
       "emitDeclarationOnly": true
    },
-   "include": ["src", "../core/src/features/testing/asserts.ts"],
-   "references": [{ "path": "../types" }, { "path": "../utils" }, { "path": "../core" }]
+   "include": ["src", "../core/src/features/testing/asserts.ts"]
 }

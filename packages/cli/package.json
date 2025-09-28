@@ -42,15 +42,15 @@
         "url": "https://github.com/calycode/xano-tools/issues"
     },
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/cli#readme",
-    "dependencies": {
-        "@clack/prompts": "^0.11.0",
+    "devDependencies": {
         "@calycode/core": "workspace:*",
         "@calycode/types": "workspace:*",
         "@calycode/utils": "workspace:*",
+        "shx": "^0.4.0",
+        "@clack/prompts": "^0.11.0",
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
-        "tar": "^7.4.3",
-        "uvu": "^0.5.6"
+        "tar": "^7.4.3"
     },
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",
@@ -58,8 +58,5 @@
         "build:chmod": "shx chmod +x dist/index.cjs",
         "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "xano": "node dist/index.cjs"
-    },
-    "devDependencies": {
-        "shx": "^0.4.0"
     }
 }

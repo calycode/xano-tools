@@ -1,6 +1,6 @@
 {
    "name": "@calycode/xano-tools-workspace",
-   "version": "0.1.1",
+   "version": "0.6.0",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
    "workspaces": [
@@ -13,7 +13,7 @@
       "build": "tsc --build",
       "build:docs": "tsx scripts/generate-caly-cli-docs.ts",
       "build:packages": "pnpm -r --reporter=silent --workspace-concurrency=1 run build",
-      "caly": "pnpm --filter @calycode/cli run caly",
+      "xano": "pnpm --filter @calycode/cli run xano",
       "clean": "pnpm -r run clean && trash dist tsconfig.tsbuildinfo",
       "prepublishOnly": "pnpm run build:packages",
       "serve-registry": "npx serve registry --listen 3030"
