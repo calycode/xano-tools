@@ -8,6 +8,5 @@
       "declaration": true,
       "emitDeclarationOnly": true
    },
-   "include": ["src", "../core/src/features/testing/asserts.ts"],
-   "references": [{ "path": "../types" }, { "path": "../utils" }, { "path": "../core" }]
+   "include": ["src", "../core/src/features/testing/asserts.ts"]
 }
