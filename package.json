@@ -1,6 +1,6 @@
 {
    "name": "@calycode/xano-tools-workspace",
-   "version": "0.1.1",
+   "version": "0.6.0",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
    "workspaces": [
