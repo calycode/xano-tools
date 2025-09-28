@@ -1,5 +1,18 @@
 # @calycode/xano-cli
 
+## 0.5.0
+
+### Minor Changes
+
+- 0f463ea: feat: fixing and wrapping up backup exporting command
+
+### Patch Changes
+
+- Updated dependencies [0f463ea]
+  - @calycode/types@0.3.0
+  - @calycode/utils@0.3.0
+  - @calycode/core@0.5.0
+
 ## 0.4.4
 
 ### Patch Changes

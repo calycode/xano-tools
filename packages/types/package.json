@@ -1,6 +1,6 @@
 {
     "name": "@calycode/types",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "description": "TypeScript type definitions for the Caly Xano tooling ecosystem",
     "private": "true",
     "publishConfig": {
