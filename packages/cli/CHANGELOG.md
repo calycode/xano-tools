@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.7.0
+
+### Minor Changes
+
+- 40a0daa: feat: Posthog integration and basic telemetry collection
+
 ## 0.6.1
 
 ### Patch Changes
