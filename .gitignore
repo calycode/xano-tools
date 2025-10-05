@@ -30,3 +30,5 @@ project-plan.md
 *.tsbuildinfo
 calyInstance.config.js
 calyInstance.test.setup.json
+
+**/.turbo/

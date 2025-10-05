@@ -1,5 +1,5 @@
 import { metaApiRequestBlob } from './api-helper';
-import { FetchAndExtractYamlArgs } from '@calycode/types';
+import { FetchAndExtractYamlArgs } from '@repo/types';
 import { joinPath, dirname } from './path';
 
 // [ ] CORE

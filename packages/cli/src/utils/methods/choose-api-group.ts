@@ -1,6 +1,6 @@
 import { select } from '@clack/prompts';
-import { metaApiGet } from '@calycode/utils';
-import { ApiGroup, ChooseApiGroupOrAllOptions } from '@calycode/types';
+import { metaApiGet } from '@repo/utils';
+import { ApiGroup, ChooseApiGroupOrAllOptions } from '@repo/types';
 
 // [ ] CLI
 export async function chooseApiGroupOrAll({

@@ -1,6 +1,6 @@
 import { updateSpecForGroup } from '../features/oas/generate/methods/update-spec-for-group';
 import type { Caly } from '..';
-import { ApiGroup } from '@calycode/types';
+import { ApiGroup } from '@repo/types';
 
 async function updateOpenapiSpecImplementation(
    storage: Caly['storage'],

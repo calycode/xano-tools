@@ -1,11 +1,10 @@
--  ### Core Commands:
+- Core command
 
    -  [xano - the core command](xano.md)
 
--  ### Features
+-  Commands
 
    -  [`setup`](commands/setup.md)
-   -  [`switch-context`](commands/switch-context.md)
    -  [`generate-oas`](commands/generate-oas.md)
    -  [`serve-oas`](commands/serve-oas.md)
    -  [`generate-code`](commands/generate-code.md)
@@ -19,8 +18,11 @@
    -  [`run-test`](commands/run-test.md)
    -  [`current-context`](commands/current-context.md)
 
----
+- Changelog
 
-<small>Made with💖by the [OSOI.IO](https://osoi.io) Team</small>
+   - [CLI](https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md)
+   - [CORE](https://github.com/calycode/xano-tools/blob/main/packages/core/CHANGELOG.md)
 
+
+<small>For devs with 💖 by devs at [calycode](https://calycode.com).</small>
 <small>Documentation powered by [Docsify.js](https://docsifyjs.org)</small>

@@ -9,7 +9,7 @@ import {
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
-import type { CoreContext } from '@calycode/types';
+import type { CoreContext } from '@repo/types';
 
 async function addToXano({
    componentNames,

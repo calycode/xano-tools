@@ -46,8 +46,8 @@
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/core#readme",
     "devDependencies": {
         "uvu": "^0.5.6",
-        "@calycode/types": "workspace:*",
-        "@calycode/utils": "workspace:*"
+        "@repo/types": "workspace:*",
+        "@repo/utils": "workspace:*"
     },
     "scripts": {
         "clean": "trash dist tsconfig.tsbuildinfo",
@@ -55,6 +55,6 @@
         "build:types": "tsc",
         "bundle:types": "rollup -c rollup.config.js",
         "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
+        "build": "pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

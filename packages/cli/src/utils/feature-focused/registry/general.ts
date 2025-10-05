@@ -1,4 +1,4 @@
-import { metaApiGet, metaApiPost } from '@calycode/utils';
+import { metaApiGet, metaApiPost } from '@repo/utils';
 import { getRegistryIndex } from '../../index';
 
 const typePriority = {

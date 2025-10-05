@@ -1,8 +1,9 @@
 # setup
+>[!NOTE|label:Description]
 > #### Setup Xano instance configurations (interactively or via flags)
 
-```sh
-xano setup [options]
+```term
+$ xano setup [options]
 ```
 ### Options
 
@@ -16,7 +17,8 @@ xano setup [options]
 **Description:** Do not set this instance as the current context
 
 ### setup --help
-```sh
+```term
+$ xano setup --help
 Usage: xano setup [options]
 
 Setup Xano instance configurations (interactively or via flags)

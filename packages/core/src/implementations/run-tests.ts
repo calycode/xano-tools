@@ -1,6 +1,6 @@
 import { testRunner } from '../features/testing';
 import type { Caly } from '..';
-import { ApiGroupConfig, CoreContext, PrepareRequestArgs, AssertDefinition } from '@calycode/types';
+import { ApiGroupConfig, CoreContext, PrepareRequestArgs, AssertDefinition } from '@repo/types';
 
 async function runTestsImplementation({
    context,

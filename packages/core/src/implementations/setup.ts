@@ -1,5 +1,5 @@
-import { ConfigStorage, AssertDefinition } from '@calycode/types';
-import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '@calycode/utils';
+import { ConfigStorage, AssertDefinition } from '@repo/types';
+import { sanitizeInstanceName, fetchWorkspacesAndBranches } from '@repo/utils';
 
 // DEFAULT SETTINGS:
 const DEFAULT_LINT_RULES: Record<string, 'error' | 'warn' | 'off'> = {

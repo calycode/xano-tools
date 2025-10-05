@@ -5,8 +5,8 @@ import {
    AssertOptions,
    CoreContext,
    PrepareRequestArgs,
-} from '@calycode/types';
-import { metaApiGet, prepareRequest } from '@calycode/utils';
+} from '@repo/types';
+import { metaApiGet, prepareRequest } from '@repo/utils';
 import { availableAsserts } from './asserts';
 
 // ----------- UTILS ------------- //

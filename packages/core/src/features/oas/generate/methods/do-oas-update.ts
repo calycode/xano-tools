@@ -1,4 +1,4 @@
-import { joinPath } from '@calycode/utils';
+import { joinPath } from '@repo/utils';
 import { patchOasSpec } from './patch-oas-spec';
 
 interface GeneratedItem {

@@ -5,8 +5,7 @@ import {
    QueryParams,
    Headers,
    HTTPMethod,
-} from '@calycode/types';
-
+} from '@repo/types';
 /**
  * Internal helper for building Xano Metadata API URLs with path parameters and query strings.
  * @param baseUrl - The base URL of the Xano instance (e.g., 'https://x123.xano.io')

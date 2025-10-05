@@ -2,7 +2,7 @@ import { basename, join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { openAsBlob } from 'node:fs';
 import { select, confirm, outro } from '@clack/prompts';
-import { replacePlaceholders } from '@calycode/utils';
+import { replacePlaceholders } from '@repo/utils';
 import {
    addFullContextOptions,
    addPartialContextOptions,

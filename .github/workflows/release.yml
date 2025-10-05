@@ -26,6 +26,7 @@ jobs:
            uses: actions/setup-node@v4
            with:
               node-version: 20.x
+              cache: 'pnpm'
               registry-url: 'https://registry.npmjs.org'
               scope: '@calycode'
               always-auth: true
@@ -33,10 +34,10 @@ jobs:
               NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
          - name: Install dependencies
-           run: pnpm install
+           run: pnpm install --frozen-lockfile
 
          - name: Build packages
-           run: pnpm build:packages
+           run: pnpm build
 
          - name: Publish to npm
            id: changesets
@@ -44,7 +45,7 @@ jobs:
            with:
               commit: 'changeset-release'
               title: 'Release Version'
-              publish: pnpm -r publish --access restricted
+              publish: pnpm -r publish
            env:
               GITHUB_TOKEN: ${{ secrets.CHANGESETS_GH_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

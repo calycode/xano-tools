@@ -1,6 +1,6 @@
 import { intro, outro, log, spinner } from '@clack/prompts';
 import { printOutputDir } from './methods/print-output-dir';
-import { EventName } from '@calycode/types';
+import { EventName } from '@repo/types';
 
 type CoreEventName = 'start' | 'end' | 'progress' | 'error' | 'info';
 type HandlerFn = (data: any, context?: any) => void;

@@ -5,7 +5,7 @@ import {
    BranchConfig,
    ApiGroupConfig,
    CoreContext,
-} from '@calycode/types';
+} from '@repo/types';
 
 async function promptForContext(
    missingFields: string[],

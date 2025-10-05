@@ -1,8 +1,9 @@
 # serve-registry
+>[!NOTE|label:Description]
 > #### Serve the registry locally. This allows you to actually use your registry without deploying it.
 
-```sh
-xano serve-registry [options]
+```term
+$ xano serve-registry [options]
 ```
 ### Options
 
@@ -14,16 +15,15 @@ xano serve-registry [options]
 **Description:** Do you want to enable CORS? By default false.
 
 ### serve-registry --help
-```sh
+```term
+$ xano serve-registry --help
 Usage: xano serve-registry [options]
 
-Serve the registry locally. This allows you to actually use your registry
-without deploying it.
+Serve the registry locally. This allows you to actually use your registry without deploying it.
 
 Options:
   --root <path>    Where did you put your registry?
-  --listen <port>  The port where you want your registry to be served locally.
-                   By default it is 5000.
+  --listen <port>  The port where you want your registry to be served locally. By default it is 5000.
   --cors           Do you want to enable CORS? By default false.
   -h, --help       display help for command
 ```

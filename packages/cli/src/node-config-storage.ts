@@ -12,7 +12,7 @@ import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { x } from 'tar';
-import { ConfigStorage, InstanceConfig } from '@calycode/types';
+import { ConfigStorage, InstanceConfig } from '@repo/types';
 
 const BASE_DIR = path.join(homedir(), '.xano-tools');
 const GLOBAL_CONFIG_PATH = path.join(BASE_DIR, 'config.json');

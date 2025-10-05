@@ -5,7 +5,7 @@ import {
    WorkspaceConfig,
    BranchConfig,
    Context,
-} from '@calycode/types';
+} from '@repo/types';
 import { getCurrentContextConfigImplementation } from './get-current-context';
 
 export async function loadAndValidateContextImplementation({

@@ -1,4 +1,4 @@
-import { normalizeApiGroupName, replacePlaceholders, joinPath, dirname } from '@calycode/utils';
+import { normalizeApiGroupName, replacePlaceholders, joinPath, dirname } from '@repo/utils';
 import {
    addApiGroupOptions,
    addFullContextOptions,
