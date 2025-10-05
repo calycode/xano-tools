@@ -1,4 +1,4 @@
-import { intro, text, password, confirm } from '@clack/prompts';
+import { intro, text, password, confirm, log } from '@clack/prompts';
 import { sanitizeInstanceName } from '@repo/utils';
 import { ensureGitignore, withErrorHandler } from '../utils/index';
 
@@ -40,6 +40,24 @@ async function setupInstanceWizard(core) {
          initialValue: true,
       })) as boolean;
    }
+
+   log.info(
+      `
+      Thank you for using @calycode/cli! 🚀
+
+      To help us improve, we collect anonymous telemetry data via our PostHog instance.
+      Here’s exactly what we track:
+        • Command names (e.g., generate-oas)
+        • Command duration
+        • Technical data:
+            – IP address (IPv6)
+            – Timestamp
+            – PostHog library version
+
+      By continuing to use @calycode/cli, you consent to this data collection.
+      We appreciate your support and commitment to making @calycode/cli better!
+      `
+   );
 
    // Run the core setup logic
    await core.setupInstance({
