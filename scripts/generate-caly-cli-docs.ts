@@ -30,14 +30,14 @@ function writeDocForCommand(cmd: any, dir = 'docs/commands') {
    mkdirSync(dir, { recursive: true });
    const content = [
       `# ${name}`,
-      description && `> #### ${description}\n`,
+      description && `>[!NOTE|label:Description]\n> #### ${description}\n`,
       '',
-      '```sh',
-      `xano ${name} [options]`,
+      '```term',
+      `$ xano ${name} [options]`,
       '```',
       optionsContent,
       `\n### ${name} --help`,
-      '```sh',
+      `\`\`\`term\n$ xano ${name} --help`,
       help.trim(),
       '```',
    ]

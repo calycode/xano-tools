@@ -17,7 +17,7 @@ Usage: xano <command> [options]
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
 
-Current version: 0.1.1
+Current version: 0.6.0
 
 Options:
   -v, --version   output the version number
@@ -27,9 +27,6 @@ Options:
 Core Commands:
   setup              -h, --help
     Setup Xano instance configurations (interactively or via flags)
-
-  switch-context     -h, --help
-    Switch instance/workspace context
 
 
 Code Generation:
@@ -51,7 +48,7 @@ Registry:
     Add a prebuilt component to the current Xano context.
 
   registry-scaffold  -h, --help
-    Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://nextcurve.hu/schemas/registry/registry.json) and [registry item](https://nextcurve.hu/schemas/registry/registry-item.json) schemas.
+    Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry item](https://calycode.com/schemas/registry/registry-item.json) schemas.
 
 
 Backup & Restore:

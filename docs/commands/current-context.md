@@ -1,12 +1,13 @@
 # current-context
-```sh
-xano current-context [options]
+```term
+$ xano current-context [options]
 ```
 ### Options
 
 
 ### current-context --help
-```sh
+```term
+$ xano current-context --help
 Usage: xano current-context [options]
 
 Options:
