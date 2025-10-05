@@ -14,6 +14,7 @@ import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './c
 import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
 import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
 import { Caly } from '@calycode/core';
+import { InitializedPostHog } from './utils/posthog/init';
 import { nodeConfigStorage } from './node-config-storage';
 
 const commandStartTimes = new WeakMap<Command, number>();
@@ -23,11 +24,22 @@ const program = new Command();
 const core = new Caly(nodeConfigStorage);
 
 // Store start time on the command object
-program.hook('preAction', (thisCommand) => {
+program.hook('preAction', (thisCommand, actionCommand) => {
+  console.log(actionCommand.name());
   commandStartTimes.set(thisCommand, Date.now());
+  // [ ] Add some system information to the capture
+  InitializedPostHog.capture({
+    distinctId: 'anonymous',
+    event: 'command_started',
+    properties: {
+      "command": actionCommand.name()
+    }
+  });
+  InitializedPostHog.shutdown();
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
+  console.log(actionCommand.name());
   const start = commandStartTimes.get(thisCommand);
   if (!start) {
     // Could happen if preAction failed, or if there's a bug
@@ -42,6 +54,16 @@ program.hook('postAction', (thisCommand, actionCommand) => {
     : actionCommand.name();
 
   console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
+  // [ ] Add some outcome capture in a very anonymous manner
+  InitializedPostHog.capture({
+    distinctId: 'anonymous',
+    event: 'command_finished',
+    properties: {
+      "command": actionCommand.name(),
+      duration: duration
+    }
+  });
+  InitializedPostHog.shutdown();
 });
 
 program

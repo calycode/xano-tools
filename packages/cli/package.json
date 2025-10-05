@@ -44,12 +44,12 @@
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/cli#readme",
     "devDependencies": {
         "@calycode/core": "workspace:*",
+        "@clack/prompts": "^0.11.0",
         "@repo/types": "workspace:*",
         "@repo/utils": "workspace:*",
-        "shx": "^0.4.0",
-        "@clack/prompts": "^0.11.0",
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
+        "shx": "^0.4.0",
         "tar": "^7.4.3"
     },
     "scripts": {
@@ -58,5 +58,8 @@
         "build:chmod": "shx chmod +x dist/index.cjs",
         "build": "pnpm build:js && pnpm build:chmod && pnpm link -g",
         "xano": "node dist/index.cjs"
+    },
+    "dependencies": {
+        "posthog-node": "^5.9.2"
     }
 }
