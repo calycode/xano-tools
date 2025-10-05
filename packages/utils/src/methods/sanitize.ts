@@ -1,5 +1,5 @@
 // src/utils/sanitize.ts
-import { SanitizeOptions } from '@calycode/types';
+import { SanitizeOptions } from '@repo/types';
 
 const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
    allowedCharsRegex: RegExp;

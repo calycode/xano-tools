@@ -3,18 +3,11 @@
    "version": "0.6.0",
    "type": "module",
    "description": "Supercharge your Xano workflow: automate backups, docs, testing, and version control—no AI guesswork, just reliable, transparent dev tools.",
-   "workspaces": [
-      "packages/cli",
-      "packages/core",
-      "packages/types",
-      "packages/utils"
-   ],
    "scripts": {
-      "build": "tsc --build",
-      "build:docs": "tsx scripts/generate-caly-cli-docs.ts",
-      "build:packages": "pnpm -r --reporter=silent --workspace-concurrency=1 run build",
+      "build": "turbo run build",
+      "clean": "turbo run clean",
+      "build:docs": "pnpm run build && tsx scripts/generate-caly-cli-docs.ts",
       "xano": "pnpm --filter @calycode/cli run xano",
-      "clean": "pnpm -r run clean && trash dist tsconfig.tsbuildinfo",
       "prepublishOnly": "pnpm run build:packages",
       "serve-registry": "npx serve registry --listen 3030"
    },
@@ -44,6 +37,8 @@
       "strip-ansi": "^7.1.0",
       "trash-cli": "^6.0.0",
       "tsx": "^4.20.5",
+      "turbo": "^2.5.8",
       "typescript": "^5.9.2"
-   }
+   },
+   "packageManager": "pnpm@10.15.1"
 }

@@ -1,7 +1,7 @@
 import { access, readdir, lstat, rm, unlink, mkdir } from 'node:fs/promises';
-import { joinPath, dirname } from '@calycode/utils';
+import { joinPath, dirname } from '@repo/utils';
 import { attachCliEventHandlers } from '../utils/event-listener';
-import { replacePlaceholders } from '@calycode/utils';
+import { replacePlaceholders } from '@repo/utils';
 import { printOutputDir } from '../utils';
 import { addFullContextOptions, addPrintOutputFlag, withErrorHandler } from '../utils';
 import { resolveConfigs } from '../utils/commands/context-resolution';

@@ -1,5 +1,5 @@
 import { convertXanoSchemaToJsonSchema } from './convert-xano-schemas';
-import { metaApiGet } from '@calycode/utils';
+import { metaApiGet } from '@repo/utils';
 
 async function generateTableSchemas({ instanceConfig, workspaceConfig, storage }) {
    // Step 1: Fetch all tables

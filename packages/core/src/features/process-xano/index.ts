@@ -1,5 +1,5 @@
 import { processItem } from './core/processItem';
-import { sanitizeFileName } from '@calycode/utils';
+import { sanitizeFileName } from '@repo/utils';
 import { generateStructureDiagrams } from './core/generate-structure-diagrams';
 import type { Caly } from '../../';
 

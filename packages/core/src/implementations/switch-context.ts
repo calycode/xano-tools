@@ -1,4 +1,4 @@
-import { ConfigStorage, CoreContext } from '@calycode/types';
+import { ConfigStorage, CoreContext } from '@repo/types';
 
 export async function switchContextImplementation(
    storage: ConfigStorage,

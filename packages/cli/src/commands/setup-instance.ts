@@ -1,5 +1,5 @@
 import { intro, text, password, confirm } from '@clack/prompts';
-import { sanitizeInstanceName } from '@calycode/utils';
+import { sanitizeInstanceName } from '@repo/utils';
 import { ensureGitignore, withErrorHandler } from '../utils/index';
 
 async function setupInstanceWizard(core) {

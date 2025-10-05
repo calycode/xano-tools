@@ -1,6 +1,6 @@
-import { metaApiGet, sanitizeFileName } from '@calycode/utils';
+import { metaApiGet, sanitizeFileName } from '@repo/utils';
 import type { Caly } from '..';
-import type { CoreContext } from '@calycode/types';
+import type { CoreContext } from '@repo/types';
 
 async function fetchAndProcessEntities({
    baseUrl,

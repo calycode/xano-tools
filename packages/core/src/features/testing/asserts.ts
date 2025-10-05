@@ -1,5 +1,5 @@
 import * as assert from 'uvu/assert';
-import { AssertDefinition } from '@calycode/types';
+import { AssertDefinition } from '@repo/types';
 
 /**
  * Assert that the response status is OK.

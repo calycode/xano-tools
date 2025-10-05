@@ -1,5 +1,5 @@
 // Minimal schema type (customize as needed)
-import { TableSchemaItem } from '@calycode/types';
+import { TableSchemaItem } from '@repo/types';
 
 /**
  * Checks if a schema object is empty or contains no meaningful type information.

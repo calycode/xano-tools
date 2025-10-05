@@ -8,7 +8,7 @@ import {
    EventMap,
    InstanceConfig,
    WorkspaceConfig,
-} from '@calycode/types';
+} from '@repo/types';
 import { TypedEmitter } from './utils/event-handling/event-emitter';
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
 import { doOasUpdate } from './features/oas/generate';

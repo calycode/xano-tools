@@ -7,7 +7,7 @@ import {
    CurrentContextConfig,
    ConfigStorage,
    CoreContext,
-} from '@calycode/types';
+} from '@repo/types';
 
 /**
  * Loads and merges the current context config from the directory tree.

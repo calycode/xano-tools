@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
+import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import { addApiGroupOptions, addFullContextOptions, chooseApiGroupOrAll } from '../utils/index';
 import { resolveConfigs } from '../utils/commands/context-resolution';
 import { findProjectRoot } from '../utils/commands/project-root-finder';

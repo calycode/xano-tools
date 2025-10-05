@@ -1,4 +1,4 @@
-import { joinPath } from '@calycode/utils';
+import { joinPath } from '@repo/utils';
 
 type Query = Partial<{ name: string; verb: string }>;
 type AppQueries = Record<string, Query[]>;

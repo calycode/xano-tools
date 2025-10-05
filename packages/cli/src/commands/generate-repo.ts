@@ -1,7 +1,7 @@
 import { mkdir, access, readdir, lstat, rm, unlink } from 'node:fs/promises';
 import { log, intro, outro } from '@clack/prompts';
 import { load } from 'js-yaml';
-import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@calycode/utils';
+import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
    addFullContextOptions,
    addPrintOutputFlag,

@@ -22,6 +22,7 @@ jobs:
            uses: actions/setup-node@v4
            with:
               node-version: 20.x
+              cache: 'pnpm'
               registry-url: 'https://registry.npmjs.org'
               scope: '@calycode'
               always-auth: true
@@ -29,10 +30,7 @@ jobs:
               NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
          - name: Install dependencies
-           run: pnpm install
-
-         - name: Build packages
-           run: pnpm build:packages
+           run: pnpm install --frozen-lockfile
 
          - name: Update the docs
            run: pnpm build:docs

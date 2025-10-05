@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { intro, log, spinner } from '@clack/prompts';
-import { normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
+import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
    addApiGroupOptions,
    addFullContextOptions,

@@ -1,5 +1,5 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
-import { metaApiGet, normalizeApiGroupName, replacePlaceholders } from '@calycode/utils';
+import { metaApiGet, normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
    addApiGroupOptions,
    addFullContextOptions,
