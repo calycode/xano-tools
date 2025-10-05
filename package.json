@@ -8,7 +8,7 @@
       "clean": "turbo run clean",
       "build:docs": "pnpm run build && tsx scripts/generate-caly-cli-docs.ts",
       "xano": "pnpm --filter @calycode/cli run xano",
-      "prepublishOnly": "pnpm run build:packages",
+      "prepublishOnly": "pnpm run build",
       "serve-registry": "npx serve registry --listen 3030"
    },
    "private": true,
