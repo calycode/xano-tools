@@ -25,21 +25,19 @@ const core = new Caly(nodeConfigStorage);
 
 // Store start time on the command object
 program.hook('preAction', (thisCommand, actionCommand) => {
-  console.log(actionCommand.name());
   commandStartTimes.set(thisCommand, Date.now());
-  // [ ] Add some system information to the capture
   InitializedPostHog.capture({
     distinctId: 'anonymous',
     event: 'command_started',
     properties: {
-      "command": actionCommand.name()
+      $process_person_profile: false,
+      "command": actionCommand.name(),
     }
   });
   InitializedPostHog.shutdown();
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
-  console.log(actionCommand.name());
   const start = commandStartTimes.get(thisCommand);
   if (!start) {
     // Could happen if preAction failed, or if there's a bug
@@ -54,11 +52,11 @@ program.hook('postAction', (thisCommand, actionCommand) => {
     : actionCommand.name();
 
   console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
-  // [ ] Add some outcome capture in a very anonymous manner
   InitializedPostHog.capture({
     distinctId: 'anonymous',
     event: 'command_finished',
     properties: {
+      $process_person_profile: false,
       "command": actionCommand.name(),
       duration: duration
     }

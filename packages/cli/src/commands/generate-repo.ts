@@ -5,12 +5,12 @@ import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@re
 import {
    addFullContextOptions,
    addPrintOutputFlag,
+   attachCliEventHandlers,
+   findProjectRoot,
    printOutputDir,
+   resolveConfigs,
    withErrorHandler,
 } from '../utils/index';
-import { attachCliEventHandlers } from '../utils/event-listener';
-import { resolveConfigs } from '../utils/commands/context-resolution';
-import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 /**
  * Recursively removes all files and subdirectories in a directory.

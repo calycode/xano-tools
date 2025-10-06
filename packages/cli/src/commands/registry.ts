@@ -1,4 +1,5 @@
 import { intro, log } from '@clack/prompts';
+import type { CoreContext } from '@repo/types';
 import {
    addFullContextOptions,
    fetchRegistryFileContent,
@@ -9,7 +10,6 @@ import {
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
-import type { CoreContext } from '@repo/types';
 
 async function addToXano({
    componentNames,

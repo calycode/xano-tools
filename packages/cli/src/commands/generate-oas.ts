@@ -3,13 +3,13 @@ import {
    addApiGroupOptions,
    addFullContextOptions,
    addPrintOutputFlag,
+   attachCliEventHandlers,
    chooseApiGroupOrAll,
+   findProjectRoot,
    printOutputDir,
+   resolveConfigs,
    withErrorHandler,
 } from '../utils/index';
-import { attachCliEventHandlers } from '../utils/event-listener';
-import { resolveConfigs } from '../utils/commands/context-resolution';
-import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 async function updateOasWizard({
    instance,

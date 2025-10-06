@@ -5,13 +5,12 @@ import {
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
+   findProjectRoot,
    printOutputDir,
+   resolveConfigs,
    withErrorHandler,
 } from '../utils/index';
-import { resolveConfigs } from '../utils/commands/context-resolution';
-
 import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
-import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 // [ ] CLI only feature
 async function generateCodeFromOas({
