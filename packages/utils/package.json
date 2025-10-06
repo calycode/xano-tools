@@ -49,6 +49,9 @@
         "@repo/types": "workspace:*"
     },
     "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:js": "tsx esbuild.config.ts",
         "build:types": "tsc",

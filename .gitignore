@@ -32,3 +32,6 @@ calyInstance.config.js
 calyInstance.test.setup.json
 
 **/.turbo/
+
+# Turborepo
+.turbo
