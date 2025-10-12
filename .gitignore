@@ -35,3 +35,6 @@ calyInstance.test.setup.json
 
 # Turborepo
 .turbo
+
+# Jest
+coverage/

@@ -25,7 +25,7 @@
 
 ---
 
-## 🚀 Quick Start
+## 🚀 [Dev] Quick Start
 
 ```
 # 1. Clone the repo
@@ -34,7 +34,7 @@
 pnpm install
 
 # 3. Build the CLI
-pnpm build:packages
+pnpm build
 
 # 4. Run any command
 xano
@@ -89,7 +89,7 @@ jobs:
 
 ### Xano Registry **(WIP)**
 
-I have been astonished by the shadcn/ui CLI and the core principles of code distribution implemented in that tool. While that is primarily for frontend developers, their attempt to generalise their registry pointed me into the direction where I have started rebuilding a registry system for Xano powered by `xanoscript`. The reason for this is to overcome the bugs of Xano Snippets, avoid dependency of external providers of Xano Actions and in general to allow any team to build their own registries. These registries should also server as guidance for LLMs to eventually start generating more and more reliable `xanoscript`.
+I have been astonished by the shadcn/ui CLI and the core principles of code distribution implemented in that tool. While that is primarily for frontend developers, their attempt to generalise their registry pointed me into the direction where I have started rebuilding a registry system for Xano powered by `xanoscript`. The reason for this is to overcome the bugs of Xano Snippets, avoid dependency of external providers of Xano Actions and in general to allow any team to build their own registries with ease. These registries should also serve as guidance for LLMs to eventually start generating more and more reliable `xanoscript`.
 
 <details>
 <summary>How to use the registry feature?</summary>
@@ -110,7 +110,7 @@ I have been astonished by the shadcn/ui CLI and the core principles of code dist
    ```
 
 > **Notes:**
-> Currently there is no way of automatically build out the registry from a collection of `xanoscript` files, so this is why
+> Currently there is no way of automatically building the registry from a collection of `xanoscript` files, so this is why
 > it is important to always keep the registry/definitions/index.json and the individual definition files in sync.
 > Currently there is theoretic support for registry:function and registry:table components, registry:query but registry:snippet is planned.
 > With the registry:snippet I aim to have a shot at fixing Xano's Snippets and make it searchable and reusable by also LLMs.

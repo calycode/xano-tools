@@ -59,7 +59,7 @@
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:js": "tsx esbuild.config.ts",
         "build:chmod": "shx chmod +x dist/index.cjs",
-        "build": "pnpm build:js && pnpm build:chmod && pnpm link -g",
+        "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "xano": "node dist/index.cjs"
     },
     "dependencies": {

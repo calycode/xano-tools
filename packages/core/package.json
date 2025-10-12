@@ -58,6 +58,6 @@
         "build:types": "tsc",
         "bundle:types": "rollup -c rollup.config.js",
         "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "build": "pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
+        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

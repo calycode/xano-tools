@@ -10,32 +10,35 @@ export async function runOpenApiGenerator({
    additionalArgs = [],
    logger = false,
 }) {
-      // Always use npx and the official package
-      const cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-      const inputPath = resolve(input).replace(/\\/g, '/');
-      const outputPath = resolve(output);
+   // [ ] Add list of orval supported generators
+   // [ ] Add orval process runner on the analogy of the openapitools/openapi-generator-cli
 
-      const cliArgs = [
-         '@openapitools/openapi-generator-cli',
-         'generate',
-         '-i',
-         inputPath,
-         '-g',
-         generator,
-         '-o',
-         outputPath,
-         ...additionalArgs,
-      ].filter(Boolean);
+   // Always use npx and the official package
+   const cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+   const inputPath = resolve(input).replace(/\\/g, '/');
+   const outputPath = resolve(output);
 
-      let logStream = null;
-      let logPath = null;
+   const cliArgs = [
+      '@openapitools/openapi-generator-cli',
+      'generate',
+      '-i',
+      inputPath,
+      '-g',
+      generator,
+      '-o',
+      outputPath,
+      ...additionalArgs,
+   ].filter(Boolean);
 
-      if (logger) {
-         const logsDir = join(process.cwd(), 'output', '_logs');
-         await mkdir(logsDir, { recursive: true });
-         logPath = join(logsDir, `openapi-generator-${Date.now()}.log`);
-         logStream = createWriteStream(logPath);
-      }
+   let logStream = null;
+   let logPath = null;
+
+   if (logger) {
+      const logsDir = join(process.cwd(), 'output', '_logs');
+      await mkdir(logsDir, { recursive: true });
+      logPath = join(logsDir, `openapi-generator-${Date.now()}.log`);
+      logStream = createWriteStream(logPath);
+   }
 
    return new Promise((resolvePromise, reject) => {
       const proc = spawn(cliBin, cliArgs, { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -73,4 +76,3 @@ export async function runOpenApiGenerator({
       });
    });
 }
-

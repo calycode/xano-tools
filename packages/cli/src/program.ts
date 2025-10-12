@@ -26,7 +26,7 @@ const core = new Caly(nodeConfigStorage);
 // Store start time on the command object
 program.hook('preAction', (thisCommand, actionCommand) => {
   commandStartTimes.set(thisCommand, Date.now());
-  InitializedPostHog.capture({
+  InitializedPostHog.captureImmediate({
     distinctId: 'anonymous',
     event: 'command_started',
     properties: {
@@ -34,14 +34,11 @@ program.hook('preAction', (thisCommand, actionCommand) => {
       "command": actionCommand.name(),
     }
   });
-  InitializedPostHog.shutdown();
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
   const start = commandStartTimes.get(thisCommand);
   if (!start) {
-    // Could happen if preAction failed, or if there's a bug
-    console.warn('⏱️  Command timer missing start time.');
     return;
   }
   const duration = ((Date.now() - start) / 1000).toFixed(2);
@@ -52,7 +49,7 @@ program.hook('postAction', (thisCommand, actionCommand) => {
     : actionCommand.name();
 
   console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
-  InitializedPostHog.capture({
+  InitializedPostHog.captureImmediate({
     distinctId: 'anonymous',
     event: 'command_finished',
     properties: {

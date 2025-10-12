@@ -334,9 +334,6 @@ export class Caly extends TypedEmitter<EventMap> {
     *   instanceConfig: instanceConfig,
     *   workspaceConfig: workspaceConfig
     * });
-    *
-    * console.log('Enhanced OAS:', result.oas);
-    * console.log('Generated files:', result.generatedItems);
     * ```
     */
    async doOasUpdate({ inputOas, instanceConfig, workspaceConfig }): Promise<{
@@ -373,9 +370,6 @@ export class Caly extends TypedEmitter<EventMap> {
     *   workspace: 'main',
     *   branch: 'master'
     * });
-    *
-    * console.log('Instance URL:', context.instanceConfig.url);
-    * console.log('Workspace ID:', context.workspaceConfig.id);
     * ```
     */
    async loadAndValidateContext({ instance, workspace, branch, startDir }): Promise<{
@@ -402,7 +396,6 @@ export class Caly extends TypedEmitter<EventMap> {
     * ```typescript
     * // Get current context
     * const currentContext = await calyInstance.getCurrentContextConfig();
-    * console.log('Current instance:', currentContext.instance);
     *
     * // Override specific context values
     * const overriddenContext = await calyInstance.getCurrentContextConfig(null, {
@@ -431,8 +424,6 @@ export class Caly extends TypedEmitter<EventMap> {
     * @example
     * ```typescript
     * const config = await calyInstance.loadGlobalConfig();
-    * console.log('Current instance:', config.currentContext.instance);
-    * console.log('Available instances:', config.instances);
     * ```
     */
    async loadGlobalConfig(): Promise<any> {
