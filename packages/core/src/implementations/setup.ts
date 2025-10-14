@@ -95,7 +95,10 @@ export async function setupInstanceImplementation(
 
    await Promise.all(
       workspaces.map(async (workspace) => {
-         const workspaceCleanName = sanitizeInstanceName(workspace.name);
+         // [ ] consider an additional case handling if the workspace.name contains non direcatory name safe chars...
+         // for now just use the exact same workspace name in the directory creation as it is on xano.
+         //const workspaceCleanName = sanitizeInstanceName(workspace.name);
+         const workspaceCleanName = workspace.name;
          const workspaceDir = `${options.projectRoot}/${workspaceCleanName}`;
          workspaceDirMap[workspace.name] = workspaceDir;
          await storage.mkdir(workspaceDir, { recursive: true });
