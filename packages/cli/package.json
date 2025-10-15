@@ -3,7 +3,6 @@
     "version": "0.7.0",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "publishConfig": {
-        "access": "restricted",
         "tag": "latest"
     },
     "license": "MIT",
@@ -53,10 +52,13 @@
         "tar": "^7.4.3"
     },
     "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:js": "tsx esbuild.config.ts",
         "build:chmod": "shx chmod +x dist/index.cjs",
-        "build": "pnpm build:js && pnpm build:chmod && pnpm link -g",
+        "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "xano": "node dist/index.cjs"
     },
     "dependencies": {

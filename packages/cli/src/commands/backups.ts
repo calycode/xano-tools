@@ -7,12 +7,12 @@ import {
    addFullContextOptions,
    addPartialContextOptions,
    addPrintOutputFlag,
+   attachCliEventHandlers,
+   findProjectRoot,
    printOutputDir,
+   resolveConfigs,
    withErrorHandler,
 } from '../utils/index';
-import { attachCliEventHandlers } from '../utils/event-listener';
-import { resolveConfigs } from '../utils/commands/context-resolution';
-import { findProjectRoot } from '../utils/commands/project-root-finder';
 const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {

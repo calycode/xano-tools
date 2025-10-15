@@ -1,11 +1,14 @@
 import { access, readdir, lstat, rm, unlink, mkdir } from 'node:fs/promises';
-import { joinPath, dirname } from '@repo/utils';
-import { attachCliEventHandlers } from '../utils/event-listener';
-import { replacePlaceholders } from '@repo/utils';
-import { printOutputDir } from '../utils';
-import { addFullContextOptions, addPrintOutputFlag, withErrorHandler } from '../utils';
-import { resolveConfigs } from '../utils/commands/context-resolution';
-import { findProjectRoot } from '../utils/commands/project-root-finder';
+import { joinPath, dirname, replacePlaceholders } from '@repo/utils';
+import {
+   addFullContextOptions,
+   addPrintOutputFlag,
+   attachCliEventHandlers,
+   findProjectRoot,
+   printOutputDir,
+   resolveConfigs,
+   withErrorHandler,
+} from '../utils';
 
 /**
  * Recursively removes all files and subdirectories in a directory.

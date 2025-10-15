@@ -13,6 +13,29 @@
         },
         "clean": {
             "cache": false
+        },
+        "test": {
+            "cache": true,
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": []
+        },
+        "test:watch": {
+            "cache": true,
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": []
+        },
+        "test:coverage": {
+            "cache": true,
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": [
+                "coverage/**"
+            ]
         }
     }
 }

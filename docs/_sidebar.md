@@ -1,4 +1,4 @@
-- Core command
+-  Core command
 
    -  [xano - the core command](xano.md)
 
@@ -18,11 +18,14 @@
    -  [`run-test`](commands/run-test.md)
    -  [`current-context`](commands/current-context.md)
 
-- Changelog
+-  Changelog
 
-   - [CLI](https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md)
-   - [CORE](https://github.com/calycode/xano-tools/blob/main/packages/core/CHANGELOG.md)
+   -  [CLI](https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md)
+   -  [CORE](https://github.com/calycode/xano-tools/blob/main/packages/core/CHANGELOG.md)
 
+-  Community
+
+   -  [calycode on Discord](https://mee6.xyz/i/8a9p4ORFtm)
 
 <small>For devs with 💖 by devs at [calycode](https://calycode.com).</small>
 <small>Documentation powered by [Docsify.js](https://docsifyjs.org)</small>

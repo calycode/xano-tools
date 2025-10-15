@@ -6,7 +6,7 @@ const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
 } = {
    normalizeUnicode: true,
    removeDiacritics: true,
-   allowedCharsRegex: /a-zA-Z0-9_-/, // Default: allow letters, numbers, dash, underscore
+   allowedCharsRegex: /[a-zA-Z0-9-]/, // for dashes, no underscore by default
    replacementChar: '-',
    collapseRepeats: true,
    trimReplacement: true,
@@ -32,9 +32,7 @@ const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
  * ```
  */
 function sanitizeString(input: string, options: SanitizeOptions = {}): string {
-   // Merge user options with defaults
    const opts = { ...defaultOptions, ...options };
-
    let s = input;
 
    if (opts.normalizeUnicode) {
@@ -43,14 +41,23 @@ function sanitizeString(input: string, options: SanitizeOptions = {}): string {
    if (opts.removeDiacritics) {
       s = s.replace(/[\u0300-\u036F]/g, '');
    }
+
+   if (opts.replacementChar === '-') {
+      s = s.replace(/[\s_]+/g, '-');
+   } else if (opts.replacementChar === '_') {
+      s = s.replace(/[\s-]+/g, '_');
+   }
+
    s = s.replace(new RegExp(`[^${opts.allowedCharsRegex.source}]`, 'g'), opts.replacementChar);
 
    if (opts.collapseRepeats) {
       s = s.replace(new RegExp(`\\${opts.replacementChar}+`, 'g'), opts.replacementChar);
    }
+
    if (opts.trimReplacement) {
       s = s.replace(new RegExp(`^\\${opts.replacementChar}+|\\${opts.replacementChar}+$`, 'g'), '');
    }
+
    if (opts.toLowerCase) {
       s = s.toLowerCase();
    }
@@ -112,9 +119,8 @@ function sanitizeInstanceName(name: string): string {
  * ```
  */
 function sanitizeFileName(fileName: string): string {
-   // Override for file names: underscores, no lowercase
    return sanitizeString(fileName, {
-      allowedCharsRegex: /[a-zA-Z0-9._/-]/, // allow dot for extension, can adjust as needed
+      allowedCharsRegex: /[a-zA-Z0-9._-]/,
       replacementChar: '_',
       toLowerCase: false,
    });

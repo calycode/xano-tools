@@ -70,8 +70,6 @@ async function scaffoldRegistry(
    await writeFile(functionFilePath, sampleFunctionContent, 'utf8');
    await writeFile(functionDefPath, JSON.stringify(sampleRegistryItem, null, 2), 'utf8');
    await writeFile(indexPath, JSON.stringify(sampleIndex, null, 2), 'utf8');
-
-   console.log(`✅ Registry scaffolded at "${registryRoot}" with a sample component!`);
 }
 
 export { scaffoldRegistry };

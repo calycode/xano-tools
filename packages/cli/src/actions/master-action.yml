@@ -39,7 +39,7 @@ runs:
            # This step uses npx to download and run the setup command.
            # For private packages, the consuming workflow must configure node-auth prior to this step.
            echo "::group::Configuring Xano CLI Instance"
-           npx --yes @calycode/xano-tools@${{ inputs.version }} setup \
+           npx --yes @calycode/cli@${{ inputs.version }} setup \
              --name "${{ inputs.instance-name }}" \
              --url "${{ inputs.instance-url }}" \
              --token "${{ inputs.api-token }}" \
@@ -59,7 +59,7 @@ runs:
                continue # Skip empty lines
              fi
              echo "::group::Running: caly $command_line"
-             OUTPUT=$(npx --yes @calycode/xano-tools@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }} --print-output-dir)
+             OUTPUT=$(npx --yes @calycode/cli@${{ inputs.version }} $command_line --instance=${{ inputs.instance-name }} --print-output-dir)
              DIRS=$(echo "$OUTPUT" | grep 'OUTPUT_DIR=' | cut -d'=' -f2-)
              if [ -n "$DIRS" ]; then
                OUTPUT_DIRS="${OUTPUT_DIRS}${DIRS}"$'\n'

@@ -2,7 +2,6 @@ import { access, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { log } from '@clack/prompts';
 
-// [ ] CLI
 const PROJECT_ROOT = process.cwd();
 const GITIGNORE_PATH = join(PROJECT_ROOT, '.gitignore');
 const EXAMPLE_GITIGNORE_PATH = join(PROJECT_ROOT, 'gitignore.example');

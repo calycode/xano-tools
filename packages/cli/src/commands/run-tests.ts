@@ -6,11 +6,11 @@ import {
    addFullContextOptions,
    addPrintOutputFlag,
    chooseApiGroupOrAll,
+   findProjectRoot,
    printOutputDir,
+   resolveConfigs,
    withErrorHandler,
 } from '../utils/index';
-import { resolveConfigs } from '../utils/commands/context-resolution';
-import { findProjectRoot } from '../utils/commands/project-root-finder';
 
 async function runTest({
    instance,

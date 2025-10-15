@@ -2,7 +2,7 @@
     "name": "@repo/types",
     "version": "0.4.0",
     "description": "TypeScript type definitions for the Caly Xano tooling ecosystem",
-    "private": "true",
+    "private": true,
     "publishConfig": {
         "access": "restricted"
     },
@@ -41,10 +41,13 @@
     },
     "homepage": "https://github.com/calycode/xano-tools/tree/main/#readme",
     "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:types": "tsc",
         "bundle:types": "rollup -c rollup.config.js",
         "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "build": "pnpm build:types && pnpm bundle:types && pnpm postbuild"
+        "build": "pnpm clean && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

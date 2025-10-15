@@ -43,19 +43,19 @@ async function setupInstanceWizard(core) {
 
    log.info(
       `
-      Thank you for using @calycode/cli! 🚀
+Thank you for using @calycode/cli! 🚀
 
-      To help us improve, we collect anonymous telemetry data via our PostHog instance.
-      Here’s exactly what we track:
-        • Command names (e.g., generate-oas)
-        • Command duration
-        • Technical data:
-            – IP address (IPv6)
-            – Timestamp
-            – PostHog library version
+To help us improve, we collect anonymous telemetry data via our PostHog instance.
+Here’s exactly what we track:
+   • Command names (e.g., generate-oas)
+   • Command duration
+   • Technical data:
+      – IP address (IPv6)
+      – Timestamp
+      – PostHog library version
 
-      By continuing to use @calycode/cli, you consent to this data collection.
-      We appreciate your support and commitment to making @calycode/cli better!
+By continuing to use @calycode/cli, you consent to this data collection.
+We appreciate your support and commitment to making @calycode/cli better!
       `
    );
 

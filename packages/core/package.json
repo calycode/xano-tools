@@ -2,9 +2,7 @@
     "name": "@calycode/core",
     "version": "0.6.2",
     "description": "Core functionality for the Caly Xano tooling providing programmatic access to Xano workflows",
-    "publishConfig": {
-        "access": "restricted"
-    },
+    "publishConfig": {},
     "license": "MIT",
     "author": "Mihály Tóth | @calycode",
     "keywords": [
@@ -50,11 +48,14 @@
         "@repo/utils": "workspace:*"
     },
     "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:js": "tsx esbuild.config.ts",
         "build:types": "tsc",
         "bundle:types": "rollup -c rollup.config.js",
         "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
-        "build": "pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
+        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
     }
 }

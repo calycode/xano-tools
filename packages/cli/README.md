@@ -1,15 +1,19 @@
 # @calycode/cli
 
-Command-line interface for the Caly-Xano CLI providing terminal access to Xano development workflows.
+Command-line interface for the providing terminal access to Xano development workflows.
+
+> !WARNING
+> WIP and BETA. While we aim to make this CLI robust and reliable partner in everyday Xano work,
+> several aspects might be fragile at this point. Use at own risk and we strongly suggest
+> exploring the possibilities in sandboxed, or a free Xano instance to avoid production environment disruptions.
 
 ## Overview
 
 The CLI package provides:
 
--  Command-line interface with 10+ commands
--  Node.js filesystem-based configuration storage
+-  Command-line interface
 -  Interactive prompts and progress logs
--  Integration with external tools (OpenAPI Generator, serve, etc.)
+-  Automation ready commands to create reliable CI/CD-like experiences for Xano
 
 ## Installation
 
@@ -17,165 +21,25 @@ The CLI package provides:
 
 ```bash
 npm install -g @calycode/cli
+## pnpm install @calycode/cli -g
 xano --help
 ```
 
 ### NPX Usage
 
 ```bash
-npx @calycode/cli --help
+npx @calycode/cli <command> <options>
+## e.g.
+## npx @calycode/cli generate-oas --help
 ```
 
-## Commands
+## Docs
 
-### Instance Management
+See more detailed documentation here: [@calycode/cli docs](https://calycode.com/cli/docs)
 
-#### `setup`
+## Context Inheritance
 
-Setup a new Xano instance configuration:
-
-```bash
-xano setup
-# Interactive prompts for instance name, URL, and API key
-
-xano setup --name production --url https://x123.xano.io --api-key your-key
-# Non-interactive setup
-```
-
-#### `current-context`
-
-Display the current active context:
-
-```bash
-xano current-context
-# Shows: stored json configuration
-```
-
-#### `switch-context`
-
-Switch to a different instance, workspace, or branch:
-
-```bash
-xano switch-context
-# Interactive prompts
-
-xano switch-context --instance staging --workspace main --branch develop
-# Non-interactive switch
-```
-
-### OpenAPI Operations
-
-#### `generate-oas`
-
-Generate improved OpenAPI specifications:
-
-```bash
-xano generate-oas --group user-api
-# Generate for specific API group
-
-xano generate-oas --all
-# Generate for all API groups
-
-xano generate-oas --instance production --workspace main --branch master --group api
-# Specify context
-```
-
-#### `serve-oas`
-
-Serve OpenAPI specifications locally:
-
-```bash
-xano serve-oas
-# Starts local server at http://localhost:5999
-```
-
-#### `generate-code`
-
-Generate client (and server) libraries from OpenAPI specs (see available [generators](https://openapi-generator.tech/docs/generators)):
-
-```bash
-xano generate-code --generator typescript-fetch
-xano generate-code --generator python
-```
-
-### Backup & Restore
-
-#### `export-backup`
-
-Export workspace backup:
-
-```bash
-xano export-backup
-xano export-backup --instance production --workspace main --branch master
-```
-
-#### `restore-backup`
-
-Restore workspace from backup (cannot specify branch on restoration):
-
-```bash
-xano restore-backup --file backup.tar.gz --target-workspace staging
-```
-
-### Registry Operations (**WIP**)
-
-#### `registry-scaffold`
-
-Create a new registry structure:
-
-```bash
-xano registry-scaffold --output ./my-registry
-```
-
-#### `registry-add`
-
-Install components to Xano from registry:
-
-```bash
-xano registry-add --registry ./local-registry --item user-auth
-xano registry-add --registry https://registry.example.com --item payment-system
-```
-
-#### `serve-registry`
-
-Serve local registry:
-
-```bash
-xano serve-registry --registry ./my-registry --port 5000
-```
-
-### Development Tools
-
-#### `generate-repo`
-
-Generate browsable repository from workspace:
-
-```bash
-xano generate-repo
-```
-
-## Configuration
-
-### Configuration Directory
-
-calystores configuration in `~/.xano-tools/`:
-
--  `config.json` - Global configuration
--  `instances/` - Instance-specific configurations
--  `tokens/` - API tokens (restricted permissions)
-
-### Environment Variables
-
-Override Metadata API tokens using environment variables:
-
-```bash
-export XANO_TOKEN_PRODUCTION=your-production-token
-export XANO_TOKEN_STAGING=your-staging-token
-```
-
-### Context Inheritance
-
-Commands inherit context from:
+Every command inherit context from:
 
 1. Command-line flags (highest priority)
 2. Current context configuration
@@ -183,7 +47,7 @@ Commands inherit context from:
 
 ## Examples
 
-### Complete Workflow
+### Setup instance, generate openapi spec and `ts` client code and serve the open api spec locally.
 
 ```bash
 # Setup instance
@@ -202,14 +66,12 @@ xano serve-oas
 
 ```bash
 # Setup multiple instances
-xano setup --name production --url https://prod.xano.io --api-key prod-key
-xano setup --name staging --url https://staging.xano.io --api-key staging-key
+xano setup --name production --url https://prod.my-instance.xano.io --api-key prod-key
+xano setup --name staging --url https://staging.my-instance.xano.io --api-key staging-key
 
-# Switch between environments
-xano switch-context --instance staging
 xano generate-oas --group api
+# You will be prompted to select all missing context information via prompts.
 
-xano switch-context --instance production
 xano export-backup
 ```
 
@@ -221,11 +83,60 @@ xano export-backup
 # GitHub Actions example
 - name: Generate API Documentation
   run: |
-     npx @calycode/cli generate-oas --all
-     npx @calycode/cli generate-code --generator typescript-fetch
+     npx -y @calycode/cli generate-oas --all
+     npx -y @calycode/cli generate-code --generator typescript-fetch
   env:
      XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
 ```
+
+### Using in GitHub Actions
+
+You can use this CLI as a GitHub Action as well to automate your Xano workflows.
+
+Here is an example job that checks out your repository and uses the local composite action (`./dist/actions/master-action.yml`), which in turn securely downloads and runs the CLI as npm package via the npx command.
+
+```yaml
+jobs:
+   sync:
+      runs-on: ubuntu-latest
+
+      steps:
+         - uses: actions/checkout@v4
+
+         # 1. Setup Node.js and authenticate to the npm registry
+         - uses: actions/setup-node@v4
+           with:
+              node-version: '20'
+              registry-url: 'https://registry.npmjs.org'
+
+         # 2. Use the Xano CLI Action from your repository
+         # This composite action handles setup and (multiple or single) command execution by calling the published npm package.
+         - name: Run Caly-Xano Commands
+           uses: ./dist/actions/master-action.yml
+           with:
+              # Xano Instance name, used to identify the created configuration during command execution
+              instance-name: 'production'
+              instance-url: ${{ secrets.XANO_URL }}
+              # Xano Metadata API token. Make sure to set it up as a secret
+              api-token: ${{ secrets.XANO_API_TOKEN }}
+              version: 'latest' # or a specific version like '0.1.1'
+              # You can specify multiple commands in new lines and the action will execute them in order.
+              # See the [documentation](/docs/README.md) for command docs.
+              run: |
+                 generate-oas --all
+```
+
+### Usage with git
+
+In order to actually use the CLI with proper git support it is advised to also define the `--output` flag when running the commands.
+This allows users to override the output and as a result keep a proper git history.
+The flow is as follows:
+
+1. run the xano setup command
+2. make sure you have git installed on your machine
+3. run git init
+4. run a command e.g. `generate-repo --output lib` and then commit these changes to your desired branch
+5. create new branch (possibly name similarly as on your Xano) and run the `generate-repo --output lib` again. After a new commit and push you know have a fully git-enabled comparison of your two Xano branches.
 
 ## License
 

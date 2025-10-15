@@ -9,6 +9,8 @@ function getItemDir({ key, item, dirPath, appMapping }) {
    if (key === 'query' && item.app?.id) {
       const appName = appMapping[item.app.id] || `app_${item.app.id}`;
       baseDir = joinPath('app', appName, sanitizeFileName(itemName));
+   } else if (key === 'app') {
+      baseDir = joinPath(dirPath, itemName);
    } else {
       baseDir = joinPath(dirPath, sanitizeFileName(itemName));
    }
