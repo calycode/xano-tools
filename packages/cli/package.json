@@ -3,7 +3,6 @@
     "version": "0.7.0",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "publishConfig": {
-        "access": "restricted",
         "tag": "latest"
     },
     "license": "MIT",

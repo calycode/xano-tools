@@ -2,9 +2,7 @@
     "name": "@calycode/core",
     "version": "0.6.2",
     "description": "Core functionality for the Caly Xano tooling providing programmatic access to Xano workflows",
-    "publishConfig": {
-        "access": "restricted"
-    },
+    "publishConfig": {},
     "license": "MIT",
     "author": "Mihály Tóth | @calycode",
     "keywords": [
