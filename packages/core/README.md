@@ -1,6 +1,17 @@
-# @calycode/caly-core
+# @calycode/core
 
-Core functionality for the Caly-Xano CLI providing programmatic access to Xano development workflows.
+Core functionality for the @calycode/cli providing programmatic access to Xano development workflows.
+The implementation is meant to be platform agnostic, so to write a consumer of this core featureset
+starts with writing a storage implementation.
+
+## Installation
+
+```bash
+npm install @calycode/core
+
+# or pnpm
+# pnpm add @calycode/core
+```
 
 ## Overview
 
@@ -8,25 +19,22 @@ The core package provides the main `Caly` class that orchestrates all Xano opera
 - Instance setup and configuration management
 - OpenAPI specification generation
 - Workspace backup and restore operations
-- Context switching and validation
-- Exposes events during execution to allow for rich feedback on consumer side
+- Context loading and validation
+- Exposes events during execution to allow for rich feedback on consumer side (_WIP_)
 
 ## Key Features
 
 ### Instance Management
 - Setup new Xano instances with authentication
-- Switch between different instances, workspaces, and branches
 - Validate configuration contexts
 
 ### OpenAPI Generation
 - Generate comprehensive OpenAPI specifications from Xano APIs
 - Support for multiple API groups
-- Enhanced schemas with examples and metadata
 
 ### Backup & Restore
 - Export complete workspace backups
 - Restore workspaces from backup data
-- Support for cross-instance migrations
 
 ### Repository Generation
 - Convert Xano workspace data into browsable file structures
@@ -51,66 +59,12 @@ await calyInstance.setupInstance({
 });
 ```
 
-### Context Management
-
-```typescript
-// Switch to a different context
-await calyInstance.switchContext({
-  instance: 'staging',
-  workspace: 'main',
-  branch: 'develop'
-});
-
-// Load and validate context
-const context = await calyInstance.loadAndValidateContext({
-  instance: 'production',
-  workspace: 'main',
-  branch: 'master'
-});
-```
-
-### OpenAPI Generation
-
-```typescript
-// Generate OAS for specific API groups
-const results = await calyInstance.updateOpenapiSpec(
-  'production',
-  'main',
-  'master',
-  ['user-api', 'admin-api']
-);
-
-// Generate OAS for all API groups
-const allResults = await calyInstance.updateOpenapiSpec(
-  'production',
-  'main',
-  'master',
-  ['all']
-);
-```
-
-### Backup Operations
-
-```typescript
-// Export workspace backup
-const backupData = await calyInstance.exportBackup({
-  instance: 'production',
-  workspace: 'main',
-  branch: 'master'
-});
-
-// Restore from backup (suggested to pass on the backupFile as a stream as backups can be big)
-const formData = new FormData();
-formData.append('backup', backupFile);
-
-await calyInstance.restoreBackup({
-  instance: 'staging',
-  workspace: 'main',
-  formData: formData
-});
-```
+> [!NOTE]
+> For exact core feature implementation see the code.
 
 ### Event Handling
+
+In the consumers of the 'core' you can listen for events as per the example and as a result give more detailed progress feedback to the user.
 
 ```typescript
 // Listen for events
@@ -123,28 +77,10 @@ calyInstance.on('oas-generated', (data) => {
 });
 ```
 
-## Architecture
-
-The Caly class extends `TypedEmitter` to provide a type-safe event system. All operations emit events that can be consumed by CLI interfaces or other integrations.
-
 ### Storage Abstraction
 
-Caly uses a `ConfigStorage` interface to abstract filesystem operations, allowing it to work in different environments (Node.js, browser, etc.). This means that you **need** to implement your own storage implementation to use the Caly class.
+Caly uses a `ConfigStorage` interface to abstract filesystem operations, allowing it to work in different environments (Node.js, browser, etc.). This means that you **need** to implement your own storage implementation to use the Caly class. e.g. the @calycode/cli implements a Node.js based storage implementation.
 
-### Error Handling
-
-All methods include comprehensive error handling with descriptive error messages and proper exception types.
-
-## Installation
-
-```bash
-npm install @calycode/caly-core
-```
-
-## Dependencies
-
-- `@calycode/types` - TypeScript type definitions
-- `@calycode/utils` - Utility functions
 
 ## License
 
