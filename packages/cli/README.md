@@ -2,6 +2,11 @@
 
 Command-line interface for the providing terminal access to Xano development workflows.
 
+> !WARNING
+> WIP and BETA. While we aim to make this CLI robust and reliable partner in everyday Xano work,
+> several aspects might be fragile at this point. Use at own risk and we strongly suggest
+> exploring the possibilities in sandboxed, or a free Xano instance to avoid production environment disruptions.
+
 ## Overview
 
 The CLI package provides:
@@ -126,11 +131,12 @@ jobs:
 In order to actually use the CLI with proper git support it is advised to also define the `--output` flag when running the commands.
 This allows users to override the output and as a result keep a proper git history.
 The flow is as follows:
+
 1. run the xano setup command
 2. make sure you have git installed on your machine
 3. run git init
 4. run a command e.g. `generate-repo --output lib` and then commit these changes to your desired branch
-5. create new branch (possibly name similarly as on your Xano) and run the `generate-repo --output lib` again. After a new commit and push you know have a fully git-enabled comparison of your two Xano branches. 
+5. create new branch (possibly name similarly as on your Xano) and run the `generate-repo --output lib` again. After a new commit and push you know have a fully git-enabled comparison of your two Xano branches.
 
 ## License
 
