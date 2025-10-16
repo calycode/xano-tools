@@ -17,7 +17,8 @@ $ xano registry-scaffold [options]
 $ xano registry-scaffold --help
 Usage: xano registry-scaffold [options]
 
-Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry
+Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you
+have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry
 item](https://calycode.com/schemas/registry/registry-item.json) schemas.
 
 Options:

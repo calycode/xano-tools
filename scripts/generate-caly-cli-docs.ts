@@ -90,6 +90,8 @@ function generateCliDocs() {
    } catch (err) {
       console.error('Error generating CLI docs:', err);
       process.exit(1);
+   } finally {
+      process.exit(0);
    }
 }
 
