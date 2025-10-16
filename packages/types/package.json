@@ -1,6 +1,6 @@
 {
     "name": "@repo/types",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "description": "TypeScript type definitions for the Caly Xano tooling ecosystem",
     "private": true,
     "publishConfig": {
