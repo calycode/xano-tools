@@ -1,0 +1,21 @@
+{
+    "$schema": "https://context7.com/schema/context7.json",
+    "projectTitle": "@calycode/cli",
+    "description": "Community-driven CLI tool for Xano Backend, to automate documentation generation, version control, testing and so much more.",
+    "branch": "main",
+    "excludeFolders": [
+        "scripts",
+        "util-resources",
+        ".github",
+        ".changeset",
+        "packages/**/src",
+        "packages/**/__tests__"
+    ],
+    "excludeFiles": [],
+    "rules": [
+        "Use when required to run commands to backup a xano workspace",
+        "Use when extracting xanoscript from Xano workspace",
+        "Use when generating improved OpenAPI specification from Xano workspace",
+        "Use when needed to generate client side code for a Xano backend"
+    ]
+}

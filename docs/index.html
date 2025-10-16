@@ -259,6 +259,202 @@
       <script src="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/js/custom.js"></script>
       <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
 
+      <!-- Copy docs button plugin -->
+      <script>
+         (function () {
+            function getCurrentMarkdownUrl() {
+               let route = window.location.hash
+                  ? window.location.hash.replace(/^#\//, '').replace(/\.md$/, '')
+                  : '';
+               if (!route) return 'README.md';
+               if (!route.endsWith('.md')) route += '.md';
+               return route;
+            }
+            function getCurrentPageUrl() {
+               const { origin, pathname } = window.location;
+               let mdUrl = getCurrentMarkdownUrl();
+               let baseUrl = origin + pathname.replace(/\/$/, '/'); // ensure trailing slash
+               return baseUrl + mdUrl;
+            }
+            async function fetchMarkdown(urls) {
+               for (const url of urls) {
+                  try {
+                     const res = await fetch(url);
+                     if (res.ok) return await res.text();
+                  } catch {}
+               }
+               return null;
+            }
+            function llmUrl(llm, pageUrl) {
+               const encoded = encodeURIComponent(pageUrl);
+               switch (llm) {
+                  case 'chatgpt':
+                     return `https://chatgpt.com/?hints=search&prompt=Read+from+${encoded}+so+I+can+ask+questions+about+it.`;
+                  case 'claude':
+                     return `https://claude.ai/new?q=Read%20from%20${encoded}%20so%20I%20can%20ask%20questions%20about%20it.`;
+                  case 'perplexity':
+                     return `https://www.perplexity.ai/search/new?q=Read%20from%20${encoded}%20so%20I%20can%20ask%20questions%20about%20it.`;
+               }
+            }
+            function removeExisting() {
+               const prev = document.getElementById('mintlify-copy-page-menu');
+               if (prev) prev.remove();
+            }
+            function injectMenu() {
+               removeExisting();
+               const article = document.querySelector('.content article');
+               if (!article) return;
+
+               const container = document.createElement('div');
+               container.id = 'mintlify-copy-page-menu';
+               container.className = 'flex justify-end mb-2';
+
+               const wrapper = document.createElement('div');
+               wrapper.className = 'relative';
+
+               const btn = document.createElement('button');
+               btn.type = 'button';
+               btn.className = `
+               flex min-w-[182px] items-center gap-2 px-4 py-2
+               rounded-md border border-[var(--color-mono-3)]
+               bg-[var(--color-mono-2)] text-[var(--color-mono-6)]
+               hover:bg-[var(--color-mono-1)] transition
+               shadow-sm font-medium text-base
+             `;
+               btn.style.display = 'flex';
+               btn.innerHTML = `
+               <span class="text-lg">📄</span>
+               <span>Copy page</span>
+               <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 20 20">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l3-3 3 3m0 6l-3 3-3-3"/>
+               </svg>
+             `;
+
+               const dropdown = document.createElement('div');
+               dropdown.className = `
+               absolute right-0 top-12 z-50 min-w-[324px]
+               bg-[var(--color-mono-2)] border border-[var(--color-mono-3)]
+               rounded-xl shadow-xl py-2
+               text-small hidden
+             `;
+
+               function makeItem(icon, text, desc, onclick) {
+                  const item = document.createElement('button');
+                  item.type = 'button';
+                  item.className = `
+                 flex w-full items-start gap-3 px-5 py-3 text-left
+                 hover:bg-[var(--color-mono-1)] transition rounded-lg
+               `;
+                  item.style.display = 'flex';
+                  item.onclick = onclick;
+
+                  const iconSpan = document.createElement('span');
+                  iconSpan.innerHTML = icon;
+                  iconSpan.className = 'text-xl flex-shrink-0';
+
+                  const textDiv = document.createElement('div');
+                  textDiv.innerHTML = `<div class="font-medium">${text}</div><div class="text-[var(--color-mono-5)] text-sm">${desc}</div>`;
+
+                  item.appendChild(iconSpan);
+                  item.appendChild(textDiv);
+                  return item;
+               }
+
+               const copyItem = makeItem(
+                  '📋',
+                  'Copy page',
+                  'Copy page as Markdown for LLMs',
+                  async function (e) {
+                     e.stopPropagation();
+                     const url = getCurrentMarkdownUrl();
+                     // Try current, then fallback to README.md
+                     const md = await fetchMarkdown([url, 'README.md']);
+                     if (md) {
+                        await navigator.clipboard.writeText(md);
+                        btn.querySelector('span:nth-child(2)').textContent = 'Copied!';
+                        setTimeout(
+                           () => (btn.querySelector('span:nth-child(2)').textContent = 'Copy page'),
+                           1200
+                        );
+                     }
+                     dropdown.classList.add('hidden');
+                  }
+               );
+
+               const viewItem = makeItem(
+                  '📝',
+                  'View as Markdown <span class="ml-1 text-xs">↗</span>',
+                  'View this page as plain text',
+                  function (e) {
+                     e.stopPropagation();
+                     window.open(getCurrentMarkdownUrl(), '_blank');
+                     dropdown.classList.add('hidden');
+                  }
+               );
+
+               const gptItem = makeItem(
+                  '<img src="https://chat.openai.com/favicon.ico" class="w-5 h-5 inline">',
+                  'Open in ChatGPT <span class="ml-1 text-xs">↗</span>',
+                  'Ask questions about this page',
+                  function (e) {
+                     e.stopPropagation();
+                     window.open(llmUrl('chatgpt', getCurrentPageUrl()), '_blank');
+                     dropdown.classList.add('hidden');
+                  }
+               );
+               const claudeItem = makeItem(
+                  '<img src="https://claude.ai/favicon.ico" class="w-5 h-5 inline">',
+                  'Open in Claude <span class="ml-1 text-xs">↗</span>',
+                  'Ask questions about this page',
+                  function (e) {
+                     e.stopPropagation();
+                     window.open(llmUrl('claude', getCurrentPageUrl()), '_blank');
+                     dropdown.classList.add('hidden');
+                  }
+               );
+               const perplexityItem = makeItem(
+                  '<img src="https://ppl-ai-public.s3.amazonaws.com/static/img/pplx-default-preview.png" class="w-5 h-5 inline">',
+                  'Open in Perplexity <span class="ml-1 text-xs">↗</span>',
+                  'Ask questions about this page',
+                  function (e) {
+                     e.stopPropagation();
+                     window.open(llmUrl('perplexity', getCurrentPageUrl()), '_blank');
+                     dropdown.classList.add('hidden');
+                  }
+               );
+
+               dropdown.appendChild(copyItem);
+               dropdown.appendChild(viewItem);
+               dropdown.appendChild(gptItem);
+               dropdown.appendChild(claudeItem);
+               dropdown.appendChild(perplexityItem);
+
+               btn.onclick = function (e) {
+                  e.stopPropagation();
+                  dropdown.classList.toggle('hidden');
+               };
+               document.body.addEventListener('click', function () {
+                  dropdown.classList.add('hidden');
+               });
+
+               wrapper.appendChild(btn);
+               wrapper.appendChild(dropdown);
+               container.appendChild(wrapper);
+
+               article.insertBefore(container, article.firstChild);
+            }
+
+            // Docsify plugin registration
+            window.$docsify = window.$docsify || {};
+            window.$docsify.plugins = (window.$docsify.plugins || []).concat(function (hook, vm) {
+               hook.doneEach(function () {
+                  setTimeout(injectMenu, 150);
+               });
+            });
+         })();
+      </script>
+
+      <!-- Mouse highlight animation -->
       <script>
          const highlight = document.getElementById('mouse-highlight');
          function updateHighlight(e) {
