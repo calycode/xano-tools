@@ -1,5 +1,11 @@
 # @calycode/types
 
+## 0.4.1
+
+### Patch Changes
+
+- a10185b: chore: added context7 config, fixed doc generation script, added copy docs button
+
 ## 0.4.0
 
 ### Minor Changes

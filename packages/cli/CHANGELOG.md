@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.7.2
+
+### Patch Changes
+
+- a10185b: chore: added context7 config, fixed doc generation script, added copy docs button
+
 ## 0.7.1
 
 ### Patch Changes
