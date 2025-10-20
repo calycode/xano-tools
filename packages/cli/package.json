@@ -3,7 +3,8 @@
     "version": "0.7.2",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "publishConfig": {
-        "tag": "latest"
+        "tag": "latest",
+        "access": "public"
     },
     "license": "MIT",
     "author": "Mihály Tóth | @calycode",
