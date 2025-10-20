@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.7.3
+
+### Patch Changes
+
+- 2925959: chore: adjusting publishConfig to be public
+
 ## 0.7.2
 
 ### Patch Changes

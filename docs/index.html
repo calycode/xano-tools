@@ -237,6 +237,11 @@
                crossChapterText: true,
             },
             loadNavBar: false,
+            pageActionItems: {
+               button: {
+                  label: 'Copy page',
+               },
+            },
             plugins: [
                function (hook, vm) {
                   hook.beforeEach((content) => beforeEach(content));
@@ -260,7 +265,8 @@
       <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
 
       <!-- Page actions plugin -->
-      <script src="//cdn.jsdelivr.net/npm/docsify-page-actions-menu"></script>
+      <script src="//cdn.jsdelivr.net/npm/docsify-page-actions-menu@latest"></script>
+
       <!-- Mouse highlight animation -->
       <script>
          const highlight = document.getElementById('mouse-highlight');
