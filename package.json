@@ -16,7 +16,7 @@
    },
    "private": true,
    "publishConfig": {
-      "access": "restricted"
+      "access": "public"
    },
    "keywords": [
       "Xano",
