@@ -1,6 +1,6 @@
 {
     "name": "@calycode/cli",
-    "version": "0.7.2",
+    "version": "0.7.3",
     "description": "Command-line interface for Xano providing terminal access to Xano workflows",
     "publishConfig": {
         "tag": "latest",
