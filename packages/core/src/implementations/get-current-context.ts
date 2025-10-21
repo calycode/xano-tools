@@ -53,7 +53,10 @@ async function getCurrentContextConfigImplementation({
          ) ?? null;
    }
    if (!branchConfig) {
-      branchConfig = (workspaceConfig.branches ?? []).find((b) => b.label === branch) ?? null;
+      branchConfig =
+         (workspaceConfig.branches ?? []).find((b) => b.label === branch) ??
+         workspaceConfig.branches[0] ??
+         null;
    }
 
    // If you have apigroups as well, extract here

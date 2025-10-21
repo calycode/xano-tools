@@ -1,7 +1,7 @@
 import { basename, join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { openAsBlob } from 'node:fs';
-import { select, confirm, outro } from '@clack/prompts';
+import { select, confirm, outro, log } from '@clack/prompts';
 import { replacePlaceholders } from '@repo/utils';
 import {
    addFullContextOptions,
@@ -71,6 +71,9 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
       }
 
       if (!forceConfirm) {
+         log.warning(
+            'DANGER! This feature is wip, and is NOT recommended for production use!\nXano will reset the business logic of all branches and import only the selected backup.\nThe data in the tables will be persisted, the tables are persisted, but all non-live branches and their custom business logic WILL BE LOST!\nUse at own risk.'
+         );
          const restorationConfirmation = await confirm({
             message: `You are about to restore "${instanceConfig.name} > ${workspaceConfig.name}" from backup "${backupFilePath}". Continue?`,
          });
@@ -88,8 +91,8 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
       // Pass on the formdata to the core implementation
       await core.restoreBackup({
          formData,
-         instance,
-         workspace,
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
       });
    } catch (err) {
       process.exit(1);
