@@ -1,5 +1,13 @@
 # @calycode/caly-core
 
+## 0.6.7
+
+### Patch Changes
+
+- 08e491c: fix: fixing xanoscript generation command, by including the `include_xanoscript` in the metadata api request
+- 08e491c: chore: set the initial value on the backup wizard to false to prevent accidential backup execution
+- 08e491c: fix: fixing some aspects of the test runner that were causing failing jobs, wrong dynamic data population and header setting
+
 ## 0.6.6
 
 ### Patch Changes
