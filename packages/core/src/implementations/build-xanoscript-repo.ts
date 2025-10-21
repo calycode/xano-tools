@@ -22,6 +22,7 @@ async function fetchAndProcessEntities({
       path: path,
       query: {
          branch: branchLabel,
+         include_xanoscript: true,
          page: 1,
          per_page: 500,
          sort: 'name',

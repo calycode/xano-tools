@@ -118,8 +118,15 @@ async function testRunner({
       // Actually run the test based on config (support runtime values)
       for (const endpoint of testConfig) {
          const testStart = Date.now();
-
-         const { path, method, headers, queryParams, requestBody, store, customAsserts } = endpoint;
+         const {
+            path,
+            method,
+            headers = {},
+            queryParams,
+            requestBody,
+            store,
+            customAsserts,
+         } = endpoint;
 
          // Setup all asserts that are available for this endpoint
          const assertsToRun: AssertOptions[] = [];
@@ -157,12 +164,13 @@ async function testRunner({
                   return param;
                }
             );
-            const resolvedHeaders = replaceDynamicValues(headers, {
-               ...DEFAULT_HEADERS,
-               ...runtimeValues,
-            });
+            const resolvedHeaders = replaceDynamicValues(
+               { ...headers, ...DEFAULT_HEADERS },
+               {
+                  ...runtimeValues,
+               }
+            );
             const resolvedRequestBody = replaceDynamicValues(requestBody, runtimeValues);
-
             const preparedRequest = prepareRequest({
                baseUrl: `${instanceConfig.url}/api:${group.canonical}`,
                path,
