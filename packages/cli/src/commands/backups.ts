@@ -76,6 +76,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
          );
          const restorationConfirmation = await confirm({
             message: `You are about to restore "${instanceConfig.name} > ${workspaceConfig.name}" from backup "${backupFilePath}". Continue?`,
+            initialValue: false,
          });
 
          if (!restorationConfirmation) {

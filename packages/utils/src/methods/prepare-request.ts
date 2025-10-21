@@ -88,7 +88,13 @@ export function prepareRequest({
    // 6. Prepare body
    let preparedBody: string | undefined = undefined;
    if (body && typeof body === 'object' && Object.keys(body).length > 0) {
-      preparedBody = JSON.stringify(mockFromSchema(body));
+      if (body.type || body.properties || body.items) {
+         // Looks like a schema
+         preparedBody = JSON.stringify(mockFromSchema(body));
+      } else {
+         // Looks like actual data
+         preparedBody = JSON.stringify(body);
+      }
    }
 
    return {
