@@ -1,5 +1,12 @@
 # @calycode/caly-core
 
+## 0.6.6
+
+### Patch Changes
+
+- 12bd8cf: fix: fixing issues with backup restoration
+  chore: added warning to the backup restoration command.
+
 ## 0.6.5
 
 ### Patch Changes

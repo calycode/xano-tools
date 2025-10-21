@@ -1,5 +1,12 @@
 # @calycode/xano-cli
 
+## 0.7.4
+
+### Patch Changes
+
+- 12bd8cf: fix: fixing issues with backup restoration
+  chore: added warning to the backup restoration command.
+
 ## 0.7.3
 
 ### Patch Changes
