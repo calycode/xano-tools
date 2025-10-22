@@ -34,7 +34,12 @@ async function fetchAndProcessEntities({
    for (const item of allItems) {
       const { name, xanoscript } = item;
       const sanitizedName = sanitizeFileName(name);
-      const path = entity === 'api' ? sanitizedName : `${entity}/${sanitizedName}`;
+      const path =
+         entity === 'api'
+            ? sanitizedName
+            : entity === 'table'
+            ? `dbo/${sanitizedName}`
+            : `${entity}/${sanitizedName}`;
       const metaDataContent = item;
       delete metaDataContent.xanoscript;
       tempResults.push({
@@ -121,6 +126,7 @@ async function buildXanoscriptRepoImplementation({
          per_page: 500,
          sort: 'name',
          order: 'asc',
+         include_xanoscript: true,
       },
    });
    const apiGroups = apiGroupsResponse.items ?? [];
@@ -153,7 +159,7 @@ async function buildXanoscriptRepoImplementation({
       results.push(
          ...tempResults.map((item) => ({
             // ADd the apigroup name to the path for nice folder structure
-            path: `${apiGroupPath}/${item.path}`,
+            path: `app/${apiGroupPath}/${item.path}`,
             content: item.content,
          }))
       );
@@ -171,4 +177,3 @@ async function buildXanoscriptRepoImplementation({
 
 export { buildXanoscriptRepoImplementation };
 
-//

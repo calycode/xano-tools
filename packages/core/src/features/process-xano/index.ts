@@ -2,6 +2,7 @@ import { processItem } from './core/processItem';
 import { sanitizeFileName } from '@repo/utils';
 import { generateStructureDiagrams } from './core/generate-structure-diagrams';
 import type { Caly } from '../../';
+import { buildXanoscriptRepoImplementation } from '../../implementations/build-xanoscript-repo';
 
 const buildMapping = (entities, keyBuilder) =>
    Array.isArray(entities)
@@ -12,7 +13,21 @@ const buildMapping = (entities, keyBuilder) =>
         }, {})
       : {};
 
-async function rebuildDirectoryStructure(jsonData, core: Caly) {
+async function rebuildDirectoryStructure({
+   jsonData,
+   storage,
+   core,
+   instance,
+   workspace,
+   branch,
+}: {
+   jsonData: any;
+   storage: any;
+   core: Caly;
+   instance?: string;
+   workspace?: string;
+   branch?: string;
+}) {
    const { dbo, app, query, function: func, addon, trigger, task, middleware } = jsonData.payload;
 
    core.emit('start', { name: 'generate-repo', payload: null });
@@ -69,7 +84,14 @@ async function rebuildDirectoryStructure(jsonData, core: Caly) {
 
    core.emit('end', { name: 'generate-repo', payload: null });
 
+   const xanoScriptRepoOutput = await buildXanoscriptRepoImplementation({
+      storage: storage,
+      core: core,
+      options: { instance, workspace, branch },
+   });
+
    return [
+      ...(xanoScriptRepoOutput ?? []),
       ...stagedProcessOutput,
       ...generateStructureDiagrams(appQueries, appMapping, appDescriptions),
    ];

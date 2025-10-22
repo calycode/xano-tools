@@ -208,8 +208,26 @@ export class Caly extends TypedEmitter<EventMap> {
     * }
     * ```
     */
-   async generateRepo(jsonData: any): Promise<{ path: string; content: string }[]> {
-      const response = await generateRepoImplementation(jsonData, this);
+   async generateRepo({
+      jsonData,
+      instance,
+      workspace,
+      branch,
+   }: {
+      jsonData: any;
+      instance?: string;
+      workspace?: string;
+      branch?: string;
+   }): Promise<{ path: string; content: string }[]> {
+      const response = await generateRepoImplementation({
+         jsonData,
+         storage: this.storage,
+         core: this,
+         instance,
+         workspace,
+         branch,
+      });
+
       return response;
    }
 

@@ -128,17 +128,18 @@ ${'-'.repeat(60)}`
    );
 }
 
-// [ ] CLI
 function registerRunTestCommand(program, core) {
    const cmd = program
       .command('run-test')
-      .description('Run an API test suite via the OpenAPI spec. WIP...');
+      .description(
+         'Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json '
+      );
 
    addFullContextOptions(cmd);
    addApiGroupOptions(cmd);
    addPrintOutputFlag(cmd);
 
-   cmd.option('--test-config-path <path>', 'Path to a test configuration file.').action(
+   cmd.option('--test-config-path <path>', 'Local path to the test configuration file.').action(
       withErrorHandler(async (options) => {
          await runTest({
             ...options,

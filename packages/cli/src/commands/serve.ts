@@ -84,9 +84,9 @@ function registerRegistryServeCommand(program) {
    program
       .command('serve-registry')
       .description(
-         'Serve the registry locally. This allows you to actually use your registry without deploying it.'
+         'Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.'
       )
-      .option('--root <path>', 'Where did you put your registry?')
+      .option('--root <path>', 'Where did you put your registry? (Local path to the registry directory)')
       .option(
          '--listen <port>',
          'The port where you want your registry to be served locally. By default it is 5000.'
@@ -104,7 +104,7 @@ function registerRegistryServeCommand(program) {
 function registerOasServeCommand(program, core) {
    const cmd = program
       .command('serve-oas')
-      .description('Serve the Open API specification locally for quick visual check.');
+      .description('Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.');
    addFullContextOptions(cmd);
    addApiGroupOptions(cmd);
    cmd.option(

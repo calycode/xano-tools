@@ -100,7 +100,12 @@ async function generateRepo({
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
    const jsonData = load(fileContents);
 
-   const plannedWrites: { path: string; content: string }[] = await core.generateRepo(jsonData);
+   const plannedWrites: { path: string; content: string }[] = await core.generateRepo({
+      jsonData,
+      instance: instanceConfig.name,
+      workspace: workspaceConfig.name,
+      branch: branchConfig.label,
+   });
    log.step(`Writing Repository to the output directory -> ${outputDir}`);
    await Promise.all(
       plannedWrites.map(async ({ path, content }) => {
@@ -120,14 +125,14 @@ async function generateRepo({
 function registerGenerateRepoCommand(program, core) {
    const cmd = program
       .command('generate-repo')
-      .description('Process Xano workspace into repo structure')
-      .option('--input <file>', 'workspace yaml file')
-      .option('--output <dir>', 'output directory (overrides config)');
+      .description('Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.')
+      .option('-I, --input <file>', 'Workspace yaml file from a local source, if present.')
+      .option('-O, --output <dir>', 'Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.');
 
    addFullContextOptions(cmd);
    addPrintOutputFlag(cmd);
 
-   cmd.option('--fetch', 'Specify this if you want to fetch the workspace schema from Xano').action(
+   cmd.option('-F, --fetch', 'Forces fetching the workspace schema from the Xano instance via metadata API.').action(
       withErrorHandler(async (opts) => {
          await generateRepo({
             instance: opts.instance,
