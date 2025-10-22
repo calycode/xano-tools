@@ -1,5 +1,12 @@
 # @calycode/caly-core
 
+## 0.6.8
+
+### Patch Changes
+
+- 574beeb: chore: updating and expanding on the documentation of each command
+- 574beeb: feat: including xanoscript in the main repository generation (tables, functions, apis)
+
 ## 0.6.7
 
 ### Patch Changes

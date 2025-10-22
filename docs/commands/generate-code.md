@@ -22,7 +22,7 @@ $ xano generate-code [options]
 #### --generator <generator>
 **Description:** Generator to use, see all options at: https://openapi-generator.tech/docs/generators
 #### --args <args>
-**Description:** Additional arguments to pass to the generator. See https://openapi-generator.tech/docs/usage#generate
+**Description:** Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate
 #### --debug
 **Description:** Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false
 
@@ -49,7 +49,8 @@ Options:
   --print-output-dir       Expose usable output path for further reuse.
   --generator <generator>  Generator to use, see all options at:
                            https://openapi-generator.tech/docs/generators
-  --args <args>            Additional arguments to pass to the generator. See
+  --args <args>            Additional arguments to pass to the generator. For
+                           options for each generator see
                            https://openapi-generator.tech/docs/usage#generate
   --debug                  Specify this flag in order to allow logging. Logs
                            will appear in output/_logs. Default: false
