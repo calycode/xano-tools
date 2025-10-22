@@ -1,5 +1,12 @@
 # @calycode/xano-cli
 
+## 0.7.6
+
+### Patch Changes
+
+- 574beeb: chore: updating and expanding on the documentation of each command
+- 574beeb: feat: including xanoscript in the main repository generation (tables, functions, apis)
+
 ## 0.7.5
 
 ### Patch Changes

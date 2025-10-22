@@ -1,6 +1,6 @@
 {
     "name": "@calycode/core",
-    "version": "0.6.7",
+    "version": "0.6.8",
     "description": "Core functionality for the Caly Xano tooling providing programmatic access to Xano workflows",
     "publishConfig": {
         "tag": "latest",
