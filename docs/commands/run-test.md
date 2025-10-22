@@ -1,6 +1,6 @@
 # run-test
 >[!NOTE|label:Description]
-> #### Run an API test suite via the OpenAPI spec. WIP...
+> #### Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json 
 
 ```term
 $ xano run-test [options]
@@ -20,14 +20,16 @@ $ xano run-test [options]
 #### --print-output-dir
 **Description:** Expose usable output path for further reuse.
 #### --test-config-path <path>
-**Description:** Path to a test configuration file.
+**Description:** Local path to the test configuration file.
 
 ### run-test --help
 ```term
 $ xano run-test --help
 Usage: xano run-test [options]
 
-Run an API test suite via the OpenAPI spec. WIP...
+Run an API test suite via the OpenAPI spec. To execute this command a
+specification is required. Find the schema here:
+https://calycode.com/schemas/testing/config.json
 
 Options:
   --instance <instance>      The instance name. This is used to fetch the
@@ -41,6 +43,6 @@ Options:
   --all                      Regenerate for all API groups in the workspace /
                              branch of the current context.
   --print-output-dir         Expose usable output path for further reuse.
-  --test-config-path <path>  Path to a test configuration file.
+  --test-config-path <path>  Local path to the test configuration file.
   -h, --help                 display help for command
 ```

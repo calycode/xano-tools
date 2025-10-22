@@ -1,6 +1,6 @@
 # generate-xs-repo
 >[!NOTE|label:Description]
-> #### Process Xano workspace into repo structure
+> #### Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
 
 ```term
 $ xano generate-xs-repo [options]
@@ -21,7 +21,10 @@ $ xano generate-xs-repo [options]
 $ xano generate-xs-repo --help
 Usage: xano generate-xs-repo [options]
 
-Process Xano workspace into repo structure
+Process Xano workspace into repo structure. Supports table, function and apis as
+of know. Xano VSCode extension is the preferred solution over this command.
+Outputs of this process are also included in the default repo generation
+command.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance

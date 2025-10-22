@@ -1,6 +1,6 @@
 # serve-oas
 >[!NOTE|label:Description]
-> #### Serve the Open API specification locally for quick visual check.
+> #### Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.
 
 ```term
 $ xano serve-oas [options]
@@ -27,7 +27,8 @@ $ xano serve-oas [options]
 $ xano serve-oas --help
 Usage: xano serve-oas [options]
 
-Serve the Open API specification locally for quick visual check.
+Serve the Open API specification locally for quick visual check, or to test your
+APIs via the Scalar API reference.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance

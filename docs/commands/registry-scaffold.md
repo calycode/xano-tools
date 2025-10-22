@@ -8,7 +8,7 @@ $ xano registry-scaffold [options]
 ### Options
 
 #### --output <path>
-**Description:** Output path for the registry
+**Description:** Local output path for the registry
 #### --instance <instance>
 **Description:** The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
 
@@ -24,7 +24,7 @@ the [registry](https://calycode.com/schemas/registry/registry.json) and
 schemas.
 
 Options:
-  --output <path>        Output path for the registry
+  --output <path>        Local output path for the registry
   --instance <instance>  The instance name. This is used to fetch the instance
                          configuration. The value provided at the setup command.
   -h, --help             display help for command

@@ -1,16 +1,16 @@
 # generate-repo
 >[!NOTE|label:Description]
-> #### Process Xano workspace into repo structure
+> #### Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
 
 ```term
 $ xano generate-repo [options]
 ```
 ### Options
 
-#### --input <file>
-**Description:** workspace yaml file
-#### --output <dir>
-**Description:** output directory (overrides config)
+#### -I, --input <file>
+**Description:** Workspace yaml file from a local source, if present.
+#### -O, --output <dir>
+**Description:** Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.
 #### --instance <instance>
 **Description:** The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
 #### --workspace <workspace>
@@ -19,19 +19,23 @@ $ xano generate-repo [options]
 **Description:** The branch name. This is used to select the branch configuration. Same as on Xano Interface.
 #### --print-output-dir
 **Description:** Expose usable output path for further reuse.
-#### --fetch
-**Description:** Specify this if you want to fetch the workspace schema from Xano
+#### -F, --fetch
+**Description:** Forces fetching the workspace schema from the Xano instance via metadata API.
 
 ### generate-repo --help
 ```term
 $ xano generate-repo --help
 Usage: xano generate-repo [options]
 
-Process Xano workspace into repo structure
+Process Xano workspace into repo structure. We use the export-schema metadata
+API to offer the full details. However that is enriched with the Xanoscripts
+after Xano 2.0 release.
 
 Options:
-  --input <file>           workspace yaml file
-  --output <dir>           output directory (overrides config)
+  -I, --input <file>       Workspace yaml file from a local source, if present.
+  -O, --output <dir>       Output directory (overrides default config), useful
+                           when ran from a CI/CD pipeline and want to ensure
+                           consistent output location.
   --instance <instance>    The instance name. This is used to fetch the instance
                            configuration. The value provided at the setup
                            command.
@@ -40,7 +44,7 @@ Options:
   --branch <branch>        The branch name. This is used to select the branch
                            configuration. Same as on Xano Interface.
   --print-output-dir       Expose usable output path for further reuse.
-  --fetch                  Specify this if you want to fetch the workspace
-                           schema from Xano
+  -F, --fetch              Forces fetching the workspace schema from the Xano
+                           instance via metadata API.
   -h, --help               display help for command
 ```

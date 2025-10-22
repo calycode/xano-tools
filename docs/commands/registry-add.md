@@ -1,6 +1,6 @@
 # registry-add
 >[!NOTE|label:Description]
-> #### Add a prebuilt component to the current Xano context.
+> #### Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.
 
 ```term
 $ xano registry-add [options]
@@ -23,7 +23,8 @@ $ xano registry-add [options]
 $ xano registry-add --help
 Usage: xano registry-add [options]
 
-Add a prebuilt component to the current Xano context.
+Add a prebuilt component to the current Xano context, essentially by pushing an
+item from the registry to the Xano instance.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance

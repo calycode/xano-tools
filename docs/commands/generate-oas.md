@@ -1,6 +1,6 @@
 # generate-oas
 >[!NOTE|label:Description]
-> #### Update and generate OpenAPI spec(s) for the current context.
+> #### Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
 
 ```term
 $ xano generate-oas [options]
@@ -25,7 +25,10 @@ $ xano generate-oas [options]
 $ xano generate-oas --help
 Usage: xano generate-oas [options]
 
-Update and generate OpenAPI spec(s) for the current context.
+Update and generate OpenAPI spec(s) for the current context, or all API groups
+simultaneously. This generates an opinionated API documentation powered by
+Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+
+version.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance
