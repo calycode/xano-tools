@@ -12,7 +12,6 @@ import {
 } from '../utils/index';
 import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
 
-// [ ] CLI only feature
 async function generateCodeFromOas({
    instance,
    workspace,
@@ -131,7 +130,7 @@ function registerGenerateCodeCommand(program, core) {
    )
       .option(
          '--args <args>',
-         'Additional arguments to pass to the generator. See https://openapi-generator.tech/docs/usage#generate'
+         'Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate'
       )
       .option(
          '--debug',

@@ -82,7 +82,7 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
 function registerBuildXanoscriptRepoCommand(program, core) {
    const cmd = program
       .command('generate-xs-repo')
-      .description('Process Xano workspace into repo structure');
+      .description('Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.');
 
    addFullContextOptions(cmd);
    addPrintOutputFlag(cmd);

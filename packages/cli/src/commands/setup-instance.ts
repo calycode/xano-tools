@@ -8,17 +8,21 @@ async function setupInstanceWizard(core) {
    // Gather info from user
    let nameInput = (
       (await text({
-         message: 'Name this Xano instance (e.g. prod, staging, client-a):',
+         message:
+            'Give an easy to remember name to this Xano instance (e.g. prod, staging, client-a), you will use this to identify it during command usage:',
       })) as string
    ).trim();
    const instanceName = sanitizeInstanceName(nameInput);
    const url = (
-      (await text({ message: `What's the base URL for "${instanceName}"?` })) as string
+      (await text({
+         message: `What's the base URL for "${instanceName}"? This is your instance URL.`,
+      })) as string
    ).trim();
    const apiKey = await password({ message: `Enter the Metadata API key for "${instanceName}":` });
    const defaultPath = `xano/${instanceName}`;
    let userDirectory = (await text({
-      message: 'Where do you want the repo to be initialized at?',
+      message:
+         'Where do you want the repo to be initialized at? (What is the local folder where we will set up your project)',
       placeholder: defaultPath,
    })) as string;
    if (userDirectory) {
@@ -52,7 +56,6 @@ Here’s exactly what we track:
    • Technical data:
       – IP address (IPv6)
       – Timestamp
-      – PostHog library version
 
 By continuing to use @calycode/cli, you consent to this data collection.
 We appreciate your support and commitment to making @calycode/cli better!
@@ -72,11 +75,16 @@ We appreciate your support and commitment to making @calycode/cli better!
 export function registerSetupCommand(program, core) {
    program
       .command('setup')
-      .description('Setup Xano instance configurations (interactively or via flags)')
+      .description(
+         'Setup Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.'
+      )
       .option('--name <name>', 'Instance name (for non-interactive setup)')
       .option('--url <url>', 'Instance base URL (for non-interactive setup)')
       .option('--token <token>', 'Metadata API token (for non-interactive setup)')
-      .option('--no-set-current', 'Do not set this instance as the current context')
+      .option(
+         '--no-set-current',
+         'Flag to not set this instance as the current context, by default it is set.'
+      )
       .action(
          withErrorHandler(async (opts) => {
             ensureGitignore();
@@ -89,7 +97,6 @@ export function registerSetupCommand(program, core) {
                   setAsCurrent: opts.setCurrent,
                });
             } else {
-               // Interactive wizard for local development
                await setupInstanceWizard(core);
             }
          })

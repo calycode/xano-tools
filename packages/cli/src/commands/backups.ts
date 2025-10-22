@@ -150,12 +150,12 @@ function registerExportBackupCommand(program, core) {
 function registerRestoreBackupCommand(program, core) {
    const cmd = program
       .command('restore-backup')
-      .description('Restore a backup to a Xano Workspace via Metadata API');
+      .description('Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.');
 
    addPartialContextOptions(cmd);
 
-   cmd.option('--source-backup <file>', 'Path to the backup file to restore')
-      .option('--force', 'Force restoration without confirmation')
+   cmd.option('-S, --source-backup <file>', 'Local path to the backup file to restore.')
+      .option('--force', 'Force restoration without confirmation, not advised to be specified, useful when ran from a CI/CD pipeline and consequences are acknowledged.')
       .action(
          withErrorHandler(async (options) => {
             await restorationWizard({

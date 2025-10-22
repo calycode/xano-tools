@@ -69,7 +69,6 @@ async function updateOasWizard({
    for (const { group, generatedItems } of allGroupResults) {
       const apiGroupNameNorm = normalizeApiGroupName(group);
 
-      // [x] This is going to be relative to the working dir, but we have to force the structure...
       const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
          '@': await findProjectRoot(),
          instance: instanceConfig.name,
@@ -96,7 +95,7 @@ async function updateOasWizard({
 function registerGenerateOasCommand(program, core) {
    const cmd = program
       .command('generate-oas')
-      .description('Update and generate OpenAPI spec(s) for the current context.');
+      .description('Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.');
 
    addFullContextOptions(cmd);
    addApiGroupOptions(cmd);

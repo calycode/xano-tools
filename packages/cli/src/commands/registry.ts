@@ -127,7 +127,9 @@ async function installComponentToXano(file, resolvedContext, core) {
 function registerRegistryAddCommand(program, core) {
    const cmd = program
       .command('registry-add')
-      .description('Add a prebuilt component to the current Xano context.');
+      .description(
+         'Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.'
+      );
 
    addFullContextOptions(cmd);
    cmd.option('--components', 'Comma-separated list of components to add')
@@ -160,7 +162,7 @@ function registerRegistryScaffoldCommand(program, core) {
       .description(
          'Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry item](https://calycode.com/schemas/registry/registry-item.json) schemas.'
       )
-      .option('--output <path>', 'Output path for the registry')
+      .option('--output <path>', 'Local output path for the registry')
       .option(
          '--instance <instance>',
          'The instance name. This is used to fetch the instance configuration. The value provided at the setup command.'
