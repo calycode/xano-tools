@@ -1,5 +1,12 @@
 # @calycode/caly-core
 
+## 0.6.9
+
+### Patch Changes
+
+- bc0d509: fix: fixing default registry item .xs function to match new syntax
+- bc0d509: chore: added test-config.schema, now it's easier to actually know what a test config should look like
+
 ## 0.6.8
 
 ### Patch Changes

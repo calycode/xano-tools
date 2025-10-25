@@ -1,5 +1,14 @@
 # @calycode/xano-cli
 
+## 0.7.7
+
+### Patch Changes
+
+- bc0d509: fix: fixing default registry item .xs function to match new syntax
+- bc0d509: fix: several fixes for the registry related command, updated scaffolded registry directory structure, fixed url processing from env, fixed multiple issues with adding items to the remote Xano instance
+- bc0d509: chore: added test-config.schema, now it's easier to actually know what a test config should look like
+- bc0d509: chore: updated the output of the registry-add command for better readibility and to expose the errors that Xano returns --> thus allowing actually remote linting of .xs files as well
+
 ## 0.7.6
 
 ### Patch Changes
