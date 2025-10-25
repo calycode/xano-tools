@@ -1,23 +1,28 @@
 const registryCache = new Map();
-const REGISTRY_URL = process.env.Caly_REGISTRY_URL || 'http://localhost:5500/registry-definitions';
 
-// [ ] CLI, whole file
 /**
  * Fetch one or more registry paths, with caching.
  */
 async function fetchRegistry(paths) {
+   const REGISTRY_URL = process.env.CALY_REGISTRY_URL || 'http://localhost:5500/registry';
    const results = [];
    for (const path of paths) {
       if (registryCache.has(path)) {
          results.push(await registryCache.get(path));
          continue;
       }
-      const promise = fetch(`${REGISTRY_URL}/${path}`).then(async (res) => {
-         if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
-         return res.json();
-      });
+      const promise = fetch(`${REGISTRY_URL}/${path}`)
+         .then(async (res) => {
+            if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
+            return res.json();
+         })
+         .catch((err) => {
+            registryCache.delete(path);
+            throw err;
+         });
       registryCache.set(path, promise);
-      results.push(await promise);
+      const resolvedPromise = await promise;
+      results.push(resolvedPromise);
    }
    return results;
 }
@@ -45,6 +50,7 @@ async function getRegistryItem(name) {
  * Get a registry item content by path.
  */
 async function fetchRegistryFileContent(path) {
+   const REGISTRY_URL = process.env.CALY_REGISTRY_URL || 'http://localhost:5500/registry';
    // Remove leading slash if present
    const normalized = path.replace(/^\/+/, '');
    const url = `${REGISTRY_URL}/${normalized}`;

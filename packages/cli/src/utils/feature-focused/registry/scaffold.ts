@@ -13,7 +13,7 @@ async function scaffoldRegistry(
    }
 ) {
    const componentsRoot = 'components';
-   const definitionPath = join(registryRoot, 'definitions');
+   const definitionPath = join(registryRoot);
    const functionName = 'hello-world';
    const functionRelPath = `functions/${functionName}`;
    const functionFileName = `${functionName}.xs`;
@@ -22,10 +22,12 @@ async function scaffoldRegistry(
    const functionFilePath = join(registryRoot, componentsRoot, 'functions', functionFileName);
    const functionDefPath = join(definitionPath, 'functions', `${functionName}.json`);
    const indexPath = join(definitionPath, 'index.json');
+   const extensionLessFileName = functionFileName.endsWith('.xs')
+      ? functionFileName.slice(0, -3)
+      : functionFileName;
 
    // Sample content
-   const sampleFunctionContent = `
-   function ${functionFileName} {
+   const sampleFunctionContent = `function "${extensionLessFileName}" {
     input {
       int score
     }
@@ -34,11 +36,8 @@ async function scaffoldRegistry(
         value = $input.score + 1
       }
     }
-    response {
-      value = $x1
-    }
-  }
-`;
+    response = $x1
+  }`;
 
    // Descriptor
    const sampleRegistryItem = {

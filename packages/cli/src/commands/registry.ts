@@ -10,6 +10,7 @@ import {
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
+import { resolveConfigs } from '../utils/index';
 
 async function addToXano({
    componentNames,
@@ -19,17 +20,17 @@ async function addToXano({
    componentNames: string[];
    context: CoreContext;
    core: any;
-}) {
-   // [ ] !!! fix: to use the context resolver !!!!
-   const startDir = process.cwd();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance: context.instance,
-      workspace: context.workspace,
-      branch: context.branch,
-      startDir,
+}): Promise<{
+   installed: Array<{ component: string; file: string; response: any }>;
+   failed: Array<{ component: string; file: string; error: string; response?: any }>;
+   skipped: Array<any>;
+}> {
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({
+      cliContext: context,
+      core,
    });
 
-   intro('Add components to your Xano instance');
+   intro('Adding components to your Xano instance:');
 
    if (!componentNames?.length) componentNames = (await promptForComponents()) as string[];
 
@@ -40,39 +41,58 @@ async function addToXano({
          const registryItem = await getRegistryItem(componentName);
          const sortedFiles = sortFilesByType(registryItem.files);
          for (const file of sortedFiles) {
-            const success = await installComponentToXano(
+            const installResult = await installComponentToXano(
                file,
-               {
-                  instanceConfig,
-                  workspaceConfig,
-                  branchConfig,
-               },
+               { instanceConfig, workspaceConfig, branchConfig },
                core
             );
-            if (success)
-               results.installed.push({ component: componentName, file: file.target || file.path });
-            else
+            if (installResult.success) {
+               results.installed.push({
+                  component: componentName,
+                  file: file.target || file.path,
+                  response: installResult.body,
+               });
+            } else {
                results.failed.push({
                   component: componentName,
                   file: file.target || file.path,
-                  error: 'Installation failed',
+                  error: installResult.error || 'Installation failed',
+                  response: installResult.body,
                });
+            }
          }
-         log.step(`Installed: ${componentName}`);
       } catch (error) {
          results.failed.push({ component: componentName, error: error.message });
       }
    }
+
+   // --- Output summary table ---
+   if (results.installed.length) {
+      log.success('Installed components:');
+      results.installed.forEach(({ component, file }) => {
+         log.info(`${component}\nFile: ${file}\n---`);
+      });
+   }
+   if (results.failed.length) {
+      log.error('Failed components:');
+      results.failed.forEach(({ component, file, error }) => {
+         log.warn(`${component}\nFile: ${file}\nError: ${error}\n---`);
+      });
+   }
+   if (!results.installed.length && !results.failed.length) {
+      log.info('\nNo components were installed.');
+   }
+
    return results;
 }
 
-// [ ] CORE
 /**
- * Function that creates the required components in Xano.
+ * Installs a component file to Xano.
  *
- * @param {*} file
- * @param {*} resolvedContext
- * @returns {Boolean} - success: true, failure: false
+ * @param {Object} file - The component file metadata.
+ * @param {Object} resolvedContext - The resolved context configs.
+ * @param {any} core - Core utilities.
+ * @returns {Promise<{ success: boolean, error?: string, body?: any }>}
  */
 async function installComponentToXano(file, resolvedContext, core) {
    const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
@@ -82,18 +102,12 @@ async function installComponentToXano(file, resolvedContext, core) {
       'registry:table': `workspace/${workspaceConfig.id}/table`,
    };
 
-   // If query, extend the default urlMapping with the populated query creation API group.
    if (file.type === 'registry:query') {
       const targetApiGroup = await getApiGroupByName(
          file['api-group-name'],
-         {
-            instanceConfig,
-            workspaceConfig,
-            branchConfig,
-         },
+         { instanceConfig, workspaceConfig, branchConfig },
          core
       );
-
       urlMapping[
          'registry:query'
       ] = `workspace/${workspaceConfig.id}/apigroup/${targetApiGroup.id}/api?branch=${branchConfig.label}`;
@@ -103,11 +117,7 @@ async function installComponentToXano(file, resolvedContext, core) {
    const xanoApiUrl = `${instanceConfig.url}/api:meta`;
 
    try {
-      // [ ] TODO: implement override checking. For now just try the POST and Xano will throw error anyways...
-
-      // Fetch the text content of the registry file (xano-script)
       const content = await fetchRegistryFileContent(file.path);
-
       const response = await fetch(`${xanoApiUrl}/${urlMapping[file.type]}`, {
          method: 'POST',
          headers: {
@@ -116,11 +126,51 @@ async function installComponentToXano(file, resolvedContext, core) {
          },
          body: content,
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      return true;
+
+      let body;
+      try {
+         body = await response.json();
+      } catch (jsonErr) {
+         // If response is not JSON, treat as failure
+         return {
+            success: false,
+            error: `Invalid JSON response: ${jsonErr.message}`,
+         };
+      }
+
+      // 1. If HTTP error, always fail
+      if (!response.ok) {
+         return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText} - ${body?.message || ''}`,
+            body,
+         };
+      }
+
+      // 2. If "code" and "message" fields are present, treat as error (API-level error)
+      if (body && body.code && body.message) {
+         return {
+            success: false,
+            error: `${body.code}: ${body.message}`,
+            body,
+         };
+      }
+
+      // 3. If "xanoscript" is present and has a non-ok status, treat as error
+      if (body && body.xanoscript && body.xanoscript.status !== 'ok') {
+         return {
+            success: false,
+            error: `XanoScript error: ${body.xanoscript.message || 'Unknown error'}`,
+            body,
+         };
+      }
+
+      // If all checks pass, treat as success
+      return { success: true, body };
    } catch (error) {
+      // Only catch truly unexpected errors (network, programming, etc.)
       console.error(`Failed to install ${file.target || file.path}:`, error);
-      return false;
+      return { success: false, error: error.message };
    }
 }
 
@@ -132,28 +182,30 @@ function registerRegistryAddCommand(program, core) {
       );
 
    addFullContextOptions(cmd);
-   cmd.option('--components', 'Comma-separated list of components to add')
-      .option(
-         '--registry <url>',
-         'URL to the component registry. Default: http://localhost:5500/registry/definitions'
-      )
-      .action(
-         withErrorHandler(async (options) => {
-            if (options.registry) {
-               process.env.Caly_REGISTRY_URL = options.registry;
-            }
-
-            await addToXano({
-               componentNames: options.components,
-               context: {
-                  instance: options.instance,
-                  workspace: options.workspace,
-                  branch: options.branch,
-               },
-               core,
-            });
-         })
-      );
+   cmd.argument(
+      '<components...>',
+      'Space delimited list of components to add to your Xano instance.'
+   );
+   cmd.option(
+      '--registry <url>',
+      'URL to the component registry. Default: http://localhost:5500/registry/definitions'
+   ).action(
+      withErrorHandler(async (components, options) => {
+         if (options.registry) {
+            console.log('command registry option: ', options.registry);
+            process.env.CALY_REGISTRY_URL = options.registry;
+         }
+         await addToXano({
+            componentNames: components,
+            context: {
+               instance: options.instance,
+               workspace: options.workspace,
+               branch: options.branch,
+            },
+            core,
+         });
+      })
+   );
 }
 
 function registerRegistryScaffoldCommand(program, core) {
