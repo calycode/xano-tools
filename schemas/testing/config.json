@@ -1,0 +1,48 @@
+{
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "title": "TestConfig",
+   "type": "array",
+   "items": {
+      "type": "object",
+      "required": ["path", "method", "headers", "queryParams", "requestBody", "customAsserts"],
+      "properties": {
+         "path": {
+            "type": "string"
+         },
+         "method": {
+            "type": "string"
+         },
+         "headers": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+         },
+         "queryParams": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+         },
+         "requestBody": {},
+         "store": {
+            "type": "array",
+            "items": {
+               "type": "object",
+               "required": ["key", "path"],
+               "properties": {
+                  "key": { "type": "string" },
+                  "path": { "type": "string" }
+               }
+            }
+         },
+         "customAsserts": {
+            "type": "object",
+            "additionalProperties": {
+               "type": "object",
+               "required": ["level"],
+               "properties": {
+                  "fn": {},
+                  "level": { "type": "string" }
+               }
+            }
+         }
+      }
+   }
+}
