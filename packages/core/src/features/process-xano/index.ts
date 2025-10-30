@@ -28,7 +28,7 @@ async function rebuildDirectoryStructure({
    workspace?: string;
    branch?: string;
 }) {
-   const { dbo, app, query, function: func, addon, trigger, task, middleware } = jsonData.payload;
+   const { addon, app, dbo, function: func, middleware, query, task, trigger } = jsonData.payload;
 
    core.emit('start', { name: 'generate-repo', payload: null });
 
