@@ -21,17 +21,17 @@ $ xano registry-add [options]
 $ xano registry-add --help
 Usage: xano registry-add [options] <components...>
 
-Add a prebuilt component to the current Xano context, essentially by pushing an
-item from the registry to the Xano instance.
+Add a prebuilt component to the current Xano context, essentially by pushing
+an item from the registry to the Xano instance.
 
 Arguments:
   components               Space delimited list of components to add to your
                            Xano instance.
 
 Options:
-  --instance <instance>    The instance name. This is used to fetch the instance
-                           configuration. The value provided at the setup
-                           command.
+  --instance <instance>    The instance name. This is used to fetch the
+                           instance configuration. The value provided at the
+                           setup command.
   --workspace <workspace>  The workspace name. This is used to fetch the
                            workspace configuration. Same as on Xano interface.
   --branch <branch>        The branch name. This is used to select the branch

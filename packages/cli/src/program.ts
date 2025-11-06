@@ -16,6 +16,7 @@ import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscri
 import { Caly } from '@calycode/core';
 import { InitializedPostHog } from './utils/posthog/init';
 import { nodeConfigStorage } from './node-config-storage';
+import { registergenerateInternalDocsCommand } from './commands/generate-internal-docs';
 
 const commandStartTimes = new WeakMap<Command, number>();
 
@@ -94,6 +95,7 @@ registerGenerateOasCommand(program, core);
 registerOasServeCommand(program, core);
 registerGenerateCodeCommand(program, core);
 registerGenerateRepoCommand(program, core);
+registergenerateInternalDocsCommand(program, core);
 registerBuildXanoscriptRepoCommand(program, core);
 registerRegistryAddCommand(program, core);
 registerRegistryScaffoldCommand(program, core);
@@ -123,7 +125,7 @@ program.configureHelp({
       },
       {
         title: font.combo.boldCyan('Code Generation:'),
-        commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-xs-repo', 'generate-functions'],
+        commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-internal-docs'],
       },
       {
         title: font.combo.boldCyan('Registry:'),

@@ -20,6 +20,7 @@ import { runTestsImplementation } from './implementations/run-tests';
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
+import { generateInternalDocsImplementation } from './implementations/generate-internal-docs';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
@@ -87,6 +88,7 @@ export class Caly extends TypedEmitter<EventMap> {
    }
 
    /**
+    * @deprecated This has been deprecated in favor for feature invokation level overrides.
     * Switches the current active context to a different instance, workspace, or branch.
     * Updates the global configuration to reflect the new active context.
     *
@@ -264,6 +266,33 @@ export class Caly extends TypedEmitter<EventMap> {
             branch,
          },
       });
+      return response;
+   }
+
+   /**
+    * Creates a browseable internal documentation by processing the 'internal documentation' from each item in the system, combined with the inline comments and descriptions that are found inside the function stacks.
+    *
+    */
+   async generateInternalDocs({
+      jsonData,
+      instance,
+      workspace,
+      branch,
+   }: {
+      jsonData: any;
+      instance?: string;
+      workspace?: string;
+      branch?: string;
+   }): Promise<{ path: string; content: string }[]> {
+      const response = await generateInternalDocsImplementation({
+         jsonData,
+         storage: this.storage,
+         core: this,
+         instance,
+         workspace,
+         branch,
+      });
+
       return response;
    }
 

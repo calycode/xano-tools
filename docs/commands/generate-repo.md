@@ -32,13 +32,14 @@ API to offer the full details. However that is enriched with the Xanoscripts
 after Xano 2.0 release.
 
 Options:
-  -I, --input <file>       Workspace yaml file from a local source, if present.
+  -I, --input <file>       Workspace yaml file from a local source, if
+                           present.
   -O, --output <dir>       Output directory (overrides default config), useful
                            when ran from a CI/CD pipeline and want to ensure
                            consistent output location.
-  --instance <instance>    The instance name. This is used to fetch the instance
-                           configuration. The value provided at the setup
-                           command.
+  --instance <instance>    The instance name. This is used to fetch the
+                           instance configuration. The value provided at the
+                           setup command.
   --workspace <workspace>  The workspace name. This is used to fetch the
                            workspace configuration. Same as on Xano interface.
   --branch <branch>        The branch name. This is used to select the branch
