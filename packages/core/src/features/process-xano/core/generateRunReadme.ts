@@ -21,7 +21,7 @@ function getFunctionLink(method, functionMapping) {
    const functionId = method.context?.function?.id;
    if (functionId && functionMapping[functionId]) {
       const functionName = functionMapping[functionId].name;
-      const functionPath = `/src/function/${functionName.replace(/\//g, '_')}/`;
+      const functionPath = `/src/function/${functionName}/`;
       return `**[${functionName}](${functionPath})**`;
    }
    return '';

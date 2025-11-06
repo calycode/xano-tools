@@ -71,6 +71,9 @@ export async function setupInstanceImplementation(
       process: {
          output: '{@}/{workspace}/{branch}/src',
       },
+      internalDocs: {
+         output: '{@}/{workspace}/{branch}/internal-docs',
+      },
       xanoscript: {
          output: '{@}/{workspace}/{branch}/xanoscript',
       },

@@ -28,6 +28,9 @@ function getItemDir({
 
    // Compute the base directory depending on the item type
    switch (key) {
+      case 'function': {
+         return joinPath(dirPath, item.name);
+      }
       case 'query': {
          // Use mapped app name if available
          const appId = item.app?.id;
