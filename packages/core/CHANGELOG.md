@@ -1,5 +1,14 @@
 # @calycode/caly-core
 
+## 0.7.0
+
+### Minor Changes
+
+- 63e04b2: feat: include mcp_server, addon, agent, middleware in the workspace xs export
+- a949bf7: chore: add query VERBS into xanoscript generation, to avoid overrides
+  chore: cleanup of repo directory structure generation, added notes to the function
+  feat: integrating xanoscript into repo-generation
+
 ## 0.6.9
 
 ### Patch Changes
