@@ -17,18 +17,33 @@ export async function runOpenApiGenerator({
    const cliBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
    const inputPath = resolve(input).replace(/\\/g, '/');
    const outputPath = resolve(output);
+   let cliArgs = ['-y'];
 
-   const cliArgs = [
-      '@openapitools/openapi-generator-cli',
-      'generate',
-      '-i',
-      inputPath,
-      '-g',
-      generator,
-      '-o',
-      outputPath,
-      ...additionalArgs,
-   ].filter(Boolean);
+   if (generator.startsWith('orval-')) {
+      const actualOrvalClient = generator.substring(6);
+      cliArgs = [
+         'orval',
+         '--client',
+         actualOrvalClient,
+         '--input',
+         inputPath,
+         '--output',
+         outputPath,
+         ...additionalArgs,
+      ];
+   } else {
+      cliArgs = [
+         '@openapitools/openapi-generator-cli',
+         'generate',
+         '-i',
+         inputPath,
+         '-g',
+         generator,
+         '-o',
+         outputPath,
+         ...additionalArgs,
+      ].filter(Boolean);
+   }
 
    let logStream = null;
    let logPath = null;
