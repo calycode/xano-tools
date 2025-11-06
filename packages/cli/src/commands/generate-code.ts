@@ -113,11 +113,12 @@ async function generateCodeFromOas({
    outro(`Code successfully generated! Process took: ${duration}ms`);
 }
 
+// [ ] TODO, create positional argument for the 'remaining' args and not the --args flag
 function registerGenerateCodeCommand(program, core) {
    const cmd = program
       .command('generate-code')
       .description(
-         'Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.'
+         'Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.'
       );
 
    addFullContextOptions(cmd);
@@ -126,7 +127,7 @@ function registerGenerateCodeCommand(program, core) {
 
    cmd.option(
       '--generator <generator>',
-      'Generator to use, see all options at: https://openapi-generator.tech/docs/generators'
+      'Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.'
    )
       .option(
          '--args <args>',
