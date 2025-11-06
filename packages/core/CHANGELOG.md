@@ -1,5 +1,16 @@
 # @calycode/caly-core
 
+## 0.8.0
+
+### Minor Changes
+
+- 1cd2eba: feat: new command `generate-internal-docs` that creates a directory of docsfiy powered browseable documentation for your workspace rendered from markdown on client (Docsify)
+  chore: update docs to include the new command
+
+### Patch Changes
+
+- 1cd2eba: fix: fixing multiple issues with the generated markdown of the workspace, that was causing broken links
+
 ## 0.7.0
 
 ### Minor Changes

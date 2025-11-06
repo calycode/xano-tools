@@ -27,13 +27,13 @@ $ xano serve-oas [options]
 $ xano serve-oas --help
 Usage: xano serve-oas [options]
 
-Serve the Open API specification locally for quick visual check, or to test
-your APIs via the Scalar API reference.
+Serve the Open API specification locally for quick visual check, or to test your
+APIs via the Scalar API reference.
 
 Options:
-  --instance <instance>    The instance name. This is used to fetch the
-                           instance configuration. The value provided at the
-                           setup command.
+  --instance <instance>    The instance name. This is used to fetch the instance
+                           configuration. The value provided at the setup
+                           command.
   --workspace <workspace>  The workspace name. This is used to fetch the
                            workspace configuration. Same as on Xano interface.
   --branch <branch>        The branch name. This is used to select the branch
