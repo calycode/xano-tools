@@ -1,9 +1,9 @@
-# generate-repo
+# generate-internal-docs
 >[!NOTE|label:Description]
-> #### Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
+> #### Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
 
 ```term
-$ xano generate-repo [options]
+$ xano generate-internal-docs [options]
 ```
 ### Options
 
@@ -22,14 +22,14 @@ $ xano generate-repo [options]
 #### -F, --fetch
 **Description:** Forces fetching the workspace schema from the Xano instance via metadata API.
 
-### generate-repo --help
+### generate-internal-docs --help
 ```term
-$ xano generate-repo --help
-Usage: xano generate-repo [options]
+$ xano generate-internal-docs --help
+Usage: xano generate-internal-docs [options]
 
-Process Xano workspace into repo structure. We use the export-schema metadata
-API to offer the full details. However that is enriched with the Xanoscripts
-after Xano 2.0 release.
+Collect all descriptions, and internal documentation from a Xano instance and
+combine it into a nice documentation suite that can be hosted on a static
+hosting.
 
 Options:
   -I, --input <file>       Workspace yaml file from a local source, if present.

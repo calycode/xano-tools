@@ -36,10 +36,9 @@ Options:
                              instance configuration. The value provided at the
                              setup command.
   --workspace <workspace>    The workspace name. This is used to fetch the
-                             workspace configuration. Same as on Xano
-                             interface.
-  --branch <branch>          The branch name. This is used to select the
-                             branch configuration. Same as on Xano Interface.
+                             workspace configuration. Same as on Xano interface.
+  --branch <branch>          The branch name. This is used to select the branch
+                             configuration. Same as on Xano Interface.
   --group <name>             API group name. Same as on Xano Interface.
   --all                      Regenerate for all API groups in the workspace /
                              branch of the current context.

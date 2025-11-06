@@ -32,13 +32,13 @@ $ xano generate-code --help
 Usage: xano generate-code [options]
 
 Create a library based on the OpenAPI specification. If the openapi
-specification has not yet been generated, this will generate that as well as
-the first step.
+specification has not yet been generated, this will generate that as well as the
+first step.
 
 Options:
-  --instance <instance>    The instance name. This is used to fetch the
-                           instance configuration. The value provided at the
-                           setup command.
+  --instance <instance>    The instance name. This is used to fetch the instance
+                           configuration. The value provided at the setup
+                           command.
   --workspace <workspace>  The workspace name. This is used to fetch the
                            workspace configuration. Same as on Xano interface.
   --branch <branch>        The branch name. This is used to select the branch
