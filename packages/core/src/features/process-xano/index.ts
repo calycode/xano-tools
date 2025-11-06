@@ -33,7 +33,7 @@ async function rebuildDirectoryStructure({
    core.emit('start', { name: 'generate-repo', payload: null });
 
    // Mappings
-   const appMapping = buildMapping(app, (a) => a.name.replace(/\//g, '_'));
+   const appMapping = buildMapping(app, (a) => sanitizeFileName(a.name));
    const appDescriptions = buildMapping(app, (a) => a.description || '//...');
    const functionMapping = buildMapping(func, (f) => ({
       name: f.name,
@@ -42,7 +42,7 @@ async function rebuildDirectoryStructure({
    }));
    const dboMapping = buildMapping(dbo, (d) => ({
       name: d.name,
-      path: `dbo/${sanitizeFileName(d.name)}`,
+      path: `table/${sanitizeFileName(d.name)}`,
       description: d.description ?? '',
    }));
    const appQueries = {};

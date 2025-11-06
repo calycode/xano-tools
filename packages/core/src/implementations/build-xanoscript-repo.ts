@@ -55,9 +55,11 @@ async function fetchAndProcessEntities({
       const sanitizedName = sanitizeFileName(name);
       const path =
          entity === 'api'
-            ? sanitizedName
+            ? `${sanitizedName}/${item.verb.toUpperCase()}`
             : entity === 'table'
             ? `table/${sanitizedName}`
+            : entity === 'apigroup'
+            ? `app/${sanitizedName}`
             : `${entity}/${sanitizedName}`;
       const metaDataContent = item;
       delete metaDataContent.xanoscript;
