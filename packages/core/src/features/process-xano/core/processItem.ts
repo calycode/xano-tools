@@ -2,24 +2,53 @@ import { generateQueryLogicDescription } from './generateRunReadme';
 import { convertXanoDBDescription } from '../adapters/dbmlGenerator';
 import { sanitizeFileName, joinPath } from '@repo/utils';
 
-function getItemDir({ key, item, dirPath, appMapping }) {
-   let baseDir;
-   let itemName = item.name || 'unnamed';
+/**
+ * Determines the target directory path for a given schema item, normalizing names for human-friendly structure.
+ * Handles special cases for item types (e.g., 'dbo', 'query', 'trigger') and integrates API group mappings.
+ *
+ * @param {string} key - The schema item type (e.g., 'dbo', 'query', 'app', 'trigger').
+ * @param {Object} item - The schema item object, with metadata and Xano schema.
+ * @param {string} dirPath - The base directory path for output.
+ * @param {Object} appMapping - Maps app IDs to human-friendly names.
+ * @returns {string} The computed directory path for the item.
+ */
+function getItemDir({
+   key,
+   item,
+   dirPath,
+   appMapping,
+}: {
+   key: string;
+   item: any;
+   dirPath: string;
+   appMapping: Record<string, string>;
+}): string {
+   // Get a safe, human-friendly item name
+   const itemName = sanitizeFileName(item.name ?? 'unnamed');
 
-   if (key === 'query' && item.app?.id) {
-      const appName = appMapping[item.app.id] || `app_${item.app.id}`;
-      baseDir = joinPath('app', appName, sanitizeFileName(itemName));
-   } else if (key === 'app') {
-      baseDir = joinPath(dirPath, itemName);
-   } else {
-      baseDir = joinPath(dirPath, sanitizeFileName(itemName));
+   // Compute the base directory depending on the item type
+   switch (key) {
+      case 'query': {
+         // Use mapped app name if available
+         const appId = item.app?.id;
+         const appName = appId ? sanitizeFileName(appMapping[appId] ?? `app_${appId}`) : undefined;
+         let baseDir = appId ? joinPath('app', appName, itemName) : joinPath(dirPath, itemName);
+         // Add verb subfolder if present
+         if (item.verb) baseDir = joinPath(baseDir, item.verb);
+         return baseDir;
+      }
+      case 'app':
+         return joinPath(dirPath, itemName);
+      case 'dbo':
+         return joinPath('table', itemName);
+      case 'trigger':
+         if (item.obj_type === 'database') {
+            return joinPath('table', key, itemName);
+         }
+         return joinPath(dirPath, itemName);
+      default:
+         return joinPath(dirPath, itemName);
    }
-
-   // Queries may have a verb subfolder
-   if (key === 'query' && item.verb) {
-      baseDir = joinPath(baseDir, item.verb);
-   }
-   return baseDir;
 }
 
 function makeReadmeContent({ key, item, functionMapping, dboMapping }) {

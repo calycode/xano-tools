@@ -2,6 +2,25 @@ import { metaApiGet, sanitizeFileName } from '@repo/utils';
 import type { Caly } from '..';
 import type { CoreContext } from '@repo/types';
 
+const SUPPORTED_ENTITIES = [
+   'addon',
+   'agent',
+   'agent/trigger',
+   'apigroup',
+   'function',
+   'mcp_server',
+   'mcp_server/trigger',
+   'middleware',
+   'realtime/channel',
+   'realtime/channel/trigger',
+   'table',
+   'table/trigger',
+   'task',
+   'tool',
+   'trigger',
+   'workflow_test',
+];
+
 async function fetchAndProcessEntities({
    baseUrl,
    token,
@@ -36,9 +55,11 @@ async function fetchAndProcessEntities({
       const sanitizedName = sanitizeFileName(name);
       const path =
          entity === 'api'
-            ? sanitizedName
+            ? `${sanitizedName}/${item.verb.toUpperCase()}`
             : entity === 'table'
-            ? `dbo/${sanitizedName}`
+            ? `table/${sanitizedName}`
+            : entity === 'apigroup'
+            ? `app/${sanitizedName}`
             : `${entity}/${sanitizedName}`;
       const metaDataContent = item;
       delete metaDataContent.xanoscript;
@@ -89,13 +110,13 @@ async function buildXanoscriptRepoImplementation({
    const branchLabel = branchConfig.label;
    // Supported entities: functions, tables, api groups > apis
    // [ ] Add hidden pagination to make sure that all functions and queries are captured.
-   for (const entity of ['function', 'table']) {
+   for (const entity of SUPPORTED_ENTITIES) {
       core.emit('progress', {
          name: 'xs-repo-generation',
          payload: {
             entity,
          },
-         percent: ((['function', 'table'].indexOf(entity) + 1) / 3) * 60,
+         percent: ((SUPPORTED_ENTITIES.indexOf(entity) + 1) / 3) * 60,
       });
       const tempResults = await fetchAndProcessEntities({
          baseUrl,
@@ -111,7 +132,7 @@ async function buildXanoscriptRepoImplementation({
          payload: {
             entity,
          },
-         percent: ((['function', 'table'].indexOf(entity) + 1) / 2) * 60,
+         percent: ((SUPPORTED_ENTITIES.indexOf(entity) + 1) / 2) * 60,
       });
    }
 
@@ -158,7 +179,7 @@ async function buildXanoscriptRepoImplementation({
 
       results.push(
          ...tempResults.map((item) => ({
-            // ADd the apigroup name to the path for nice folder structure
+            // Add the apigroup name to the path for nice folder structure
             path: `app/${apiGroupPath}/${item.path}`,
             content: item.content,
          }))
@@ -176,4 +197,3 @@ async function buildXanoscriptRepoImplementation({
 }
 
 export { buildXanoscriptRepoImplementation };
-

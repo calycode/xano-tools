@@ -31,7 +31,7 @@ function getDboLink(method, dboMapping) {
    const dboId = method.context?.dbo?.id;
    if (dboId && dboMapping[dboId]) {
       const dboName = dboMapping[dboId].name;
-      const dboPath = `/src/dbo/${dboName.replace(/\//g, '_')}/`;
+      const dboPath = `/src/table/${dboName.replace(/\//g, '_')}/`;
       return `**[${dboName}](${dboPath})**`;
    }
    return '';
