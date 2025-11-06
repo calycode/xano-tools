@@ -1,6 +1,6 @@
 # generate-code
 >[!NOTE|label:Description]
-> #### Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.
+> #### Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
 
 ```term
 $ xano generate-code [options]
@@ -20,7 +20,7 @@ $ xano generate-code [options]
 #### --print-output-dir
 **Description:** Expose usable output path for further reuse.
 #### --generator <generator>
-**Description:** Generator to use, see all options at: https://openapi-generator.tech/docs/generators
+**Description:** Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.
 #### --args <args>
 **Description:** Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate
 #### --debug
@@ -33,7 +33,7 @@ Usage: xano generate-code [options]
 
 Create a library based on the OpenAPI specification. If the openapi
 specification has not yet been generated, this will generate that as well as the
-first step.
+first step. Supports **all** openapi tools generators + orval clients.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance
@@ -48,7 +48,9 @@ Options:
                            branch of the current context.
   --print-output-dir       Expose usable output path for further reuse.
   --generator <generator>  Generator to use, see all options at:
-                           https://openapi-generator.tech/docs/generators
+                           https://openapi-generator.tech/docs/generators or the
+                           full list of orval clients. To use orval client,
+                           write the generator as this: orval-<orval-client>.
   --args <args>            Additional arguments to pass to the generator. For
                            options for each generator see
                            https://openapi-generator.tech/docs/usage#generate

@@ -34,7 +34,7 @@ Code Generation:
     Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
 
   generate-code           -h, --help
-    Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step.
+    Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
 
   generate-repo           -h, --help
     Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
