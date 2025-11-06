@@ -21,20 +21,21 @@ $ xano restore-backup [options]
 $ xano restore-backup --help
 Usage: xano restore-backup [options]
 
-Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will
-override all business logic and restore the original v1 branch. Data will be
-also restored from the backup file.
+Restore a backup to a Xano Workspace via Metadata API. DANGER! This action
+will override all business logic and restore the original v1 branch. Data will
+be also restored from the backup file.
 
 Options:
   --instance <instance>       The instance name. This is used to fetch the
-                              instance configuration. The value provided at the
-                              setup command.
+                              instance configuration. The value provided at
+                              the setup command.
   --workspace <workspace>     The workspace name. This is used to fetch the
                               workspace configuration. Same as on Xano
                               interface.
   -S, --source-backup <file>  Local path to the backup file to restore.
   --force                     Force restoration without confirmation, not
                               advised to be specified, useful when ran from a
-                              CI/CD pipeline and consequences are acknowledged.
+                              CI/CD pipeline and consequences are
+                              acknowledged.
   -h, --help                  display help for command
 ```

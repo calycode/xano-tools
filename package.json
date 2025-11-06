@@ -8,6 +8,7 @@
       "test:watch": "turbo run test:watch",
       "test:coverage": "turbo run test:coverage",
       "build": "turbo run build",
+      "build:docs:styles": "npx tailwindcss -i util-resources/tailwind-input.css -o util-resources/docs-template/styles.css --minify",
       "clean": "turbo run clean",
       "build:docs": "pnpm run build && tsx scripts/generate-caly-cli-docs.ts",
       "xano": "pnpm --filter @calycode/cli run xano",
@@ -41,11 +42,12 @@
       "rollup": "^4.50.0",
       "rollup-plugin-dts": "^6.2.3",
       "strip-ansi": "^7.1.0",
+      "tailwindcss": "^3.4.18",
       "trash-cli": "^6.0.0",
       "ts-jest": "^29.4.4",
       "tsx": "^4.20.5",
       "turbo": "^2.5.8",
       "typescript": "^5.9.2"
    },
-   "packageManager": "pnpm@10.18.3"
+   "packageManager": "pnpm@10.20.0"
 }

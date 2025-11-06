@@ -1,292 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8" />
-      <title>@calycode/cli Docs</title>
-      <meta
-         http-equiv="X-UA-Compatible"
-         content="IE=edge,chrome=1"
-      />
-      <meta
-         name="description"
-         content="Description"
-      />
-      <meta
-         name="viewport"
-         content="width=device-width, initial-scale=1.0, minimum-scale=1.0"
-      />
-      <link
-         rel="stylesheet"
-         href="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/core.min.css"
-      />
-      <link
-         rel="stylesheet"
-         href="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/css/custom.css"
-      />
-      <link
-         href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap"
-         rel="stylesheet"
-      />
-      <link
-         href="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/addons/core-dark.min.css"
-         rel="stylesheet"
-      />
-      <script src="https://cdn.tailwindcss.com"></script>
-      <script>
-         tailwind.config = {
-            theme: {
-               extend: {
-                  colors: {
-                     'primary-dark': '#222326',
-                     primary: '#3C3D40',
-                     secondary: '#666A73',
-                     muted: '#9FA3A6',
-                     light: '#D7D7D9',
-                  },
-                  fontFamily: {
-                     sans: ['Noto Sans', 'ui-sans-serif', 'system-ui'],
-                  },
-               },
+
+<head>
+   <meta charset="UTF-8" />
+   <title>@calycode/cli Docs</title>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+   <meta name="description"
+      content="Documentation site for @calycode/cli, which is a powerful CLI for automating and improving developer experience of Xano Nocode Backend users." />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/core.min.css" />
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/css/custom.css" />
+   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet" />
+   <link href="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/addons/core-dark.min.css" rel="stylesheet" />
+   <link href="./styles.css" rel="stylesheet" />
+   <link href="./custom-styles.css" rel="stylesheet" />
+</head>
+
+<body class="loading sidebar-chevron-left sidebar-group-box sidebar-toggle-chevron">
+   <!-- SVG Blurred Background + Dark Overlay -->
+   <div class="fixed inset-0 w-full h-full pointer-events-none -z-10">
+      <!-- ... SVG code from blog ... -->
+      <div id="mouse-highlight" class="pointer-events-none absolute inset-0"
+         style="z-index: 10; mix-blend-mode: lighten; transition: opacity 0.3s; opacity: 0.5"></div>
+      <div class="absolute inset-0 bg-[#222326] opacity-85"></div>
+   </div>
+   <div id="app"></div>
+   <script>
+      window.$docsify = {
+         el: '#app',
+         name: '@calycode/cli Docs',
+         nameLink: '#/',
+         alias: {
+            '/': '#/',
+            '/.*/_sidebar.md': '/_sidebar.md',
+         },
+         repo: 'https://github.com/calycode/xano-tools.git',
+         autoHeader: true,
+         loadSidebar: true,
+         logo: '/_media/logo.png',
+         notFoundPage: true,
+         auto2top: true,
+         search: 'auto',
+         copyCode: {
+            buttonText: 'copy',
+         },
+         pagination: {
+            previousText: 'Previous',
+            nextText: 'Next',
+            crossChapter: true,
+            crossChapterText: true,
+         },
+         loadNavBar: false,
+         pageActionItems: {
+            button: {
+               label: 'Copy page',
             },
-         };
-      </script>
-      <style>
-         body {
-            font-family: 'Noto Sans', ui-sans-serif, system-ui;
-         }
-
-         :root {
-            --theme-color: #45f3ff;
-            --content-max-width: 104ch;
-            --sidebar-toggle-alignment: start; /* start center end */
-            --sidebar-toggle-bg: var(--color-mono-2);
-            --sidebar-toggle-bg-hover: var(--button-bg);
-            --sidebar-toggle-color: var(--color-mono-4);
-            --sidebar-toggle-color-hover: var(--button-color);
-            --sidebar-toggle-height: 42px;
-            --sidebar-toggle-margin-block: 24px;
-            --sidebar-toggle-width: 32px;
-
-            /* termynal style variables */
-            --termynal-bg: var(--code-bg);
-            --termynal-color: var(--code-color);
-            --termynal-color-subtle: var(--color-mono-5);
-            --termynal-highlight-color: var(--theme-color);
-            --termynal-cursor: #00ff00;
-            --termynal-font: var(--font-family-mono);
-            --termynal-font-size: var(--font-size-m);
-            --termynal-border-radius: var(--border-radius);
-         }
-
-         /* Dark mode toggle */
-         #dark-mode-toggle {
-            display: block;
-            padding: 4px 8px;
-            border-radius: 8px;
-            border: none;
-            background: var(--color-mono-2);
-            color: var(--theme-color);
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background 0.2s;
-         }
-         #dark-mode-toggle:hover {
-            background: var(--color-mono-4);
-            color: var(--theme-color);
-         }
-
-         /* Terminaly plugin styles customized to work with light and dark mode both */
-         [data-termynal] {
-            width: 100%;
-            max-width: 100%;
-            background: var(--termynal-bg);
-            color: var(--termynal-color);
-            font-size: var(--termynal-font-size);
-            font-family: var(--termynal-font);
-            border-radius: var(--termynal-border-radius);
-            padding: 38px 15px 10px;
-            position: relative;
-            -webkit-box-sizing: border-box;
-            box-sizing: border-box;
-            z-index: 1;
-         }
-
-         /* termynal window-control-icons */
-         [data-termynal]:before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            display: inline-block;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            /* A little hack to display the window buttons in one pseudo element. */
-            background: #d9515d;
-            -webkit-box-shadow: 25px 0 0 #f4c025, 50px 0 0 #3ec930;
-            box-shadow: 25px 0 0 #f4c025, 50px 0 0 #3ec930;
-         }
-
-         /* termynal label */
-         [data-termynal]:after {
-            content: 'bash';
-            position: absolute;
-            color: var(--termynal-color-subtle);
-            top: 5px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-         }
-
-         a[data-terminal-control] {
-            color: var(--termynal-highlight-color);
-            position: absolute;
-            top: 5px;
-            right: 15px;
-            z-index: 2;
-            text-decoration: none;
-         }
-         a[data-terminal-control]:hover {
-            color: var(--termynal-highlight-color);
-            font-weight: 700;
-         }
-
-         [data-ty] {
-            display: block;
-         }
-
-         [data-ty]:before {
-            /* Set up defaults and ensure empty lines are displayed. */
-            content: '';
-            display: inline-block;
-            vertical-align: middle;
-         }
-
-         [data-ty='input']:before,
-         [data-ty-prompt]:before {
-            margin-right: 0.75em;
-            color: var(--termynal-color);
-         }
-
-         [data-ty='input']:before {
-            content: '$';
-         }
-
-         [data-ty][data-ty-prompt]:before {
-            content: attr(data-ty-prompt);
-         }
-
-         [data-ty-cursor]:after {
-            content: attr(data-ty-cursor);
-            font-family: var(--termynal-font-family);
-            margin-left: 0.5em;
-            -webkit-animation: blink 1s infinite;
-            animation: blink 1s infinite;
-         }
-
-         /* Cursor animation */
-
-         @-webkit-keyframes blink {
-            50% {
-               opacity: 0;
-            }
-         }
-
-         @keyframes blink {
-            50% {
-               opacity: 0;
-            }
-         }
-      </style>
-   </head>
-   <body class="loading sidebar-chevron-left sidebar-group-box sidebar-toggle-chevron">
-      <!-- SVG Blurred Background + Dark Overlay -->
-      <div class="fixed inset-0 w-full h-full pointer-events-none -z-10">
-         <!-- ... SVG code from blog ... -->
-         <div
-            id="mouse-highlight"
-            class="pointer-events-none absolute inset-0"
-            style="z-index: 10; mix-blend-mode: lighten; transition: opacity 0.3s; opacity: 0.5"
-         ></div>
-         <div class="absolute inset-0 bg-[#222326] opacity-85"></div>
-      </div>
-      <div id="app"></div>
-      <script>
-         window.$docsify = {
-            el: '#app',
-            name: '@calycode/cli Docs',
-            nameLink: '#/',
-            alias: {
-               '/': '#/',
-               '/.*/_sidebar.md': '/_sidebar.md',
+         },
+         plugins: [
+            function (hook, vm) {
+               hook.beforeEach((content) => beforeEach(content));
+               hook.doneEach(() => {
+                  setupTermynal();
+                  showRandomAnnouncement('announce-left', 5000);
+                  showRandomAnnouncement('announce-right', 10000);
+               });
             },
-            repo: 'https://github.com/calycode/xano-tools.git',
-            autoHeader: true,
-            loadSidebar: true,
-            logo: '/_media/logo.png',
-            notFoundPage: true,
-            auto2top: true,
-            search: 'auto',
-            copyCode: {
-               buttonText: 'copy',
-            },
-            pagination: {
-               previousText: 'Previous',
-               nextText: 'Next',
-               crossChapter: true,
-               crossChapterText: true,
-            },
-            loadNavBar: false,
-            pageActionItems: {
-               button: {
-                  label: 'Copy page',
-               },
-            },
-            plugins: [
-               function (hook, vm) {
-                  hook.beforeEach((content) => beforeEach(content));
-                  hook.doneEach(() => {
-                     setupTermynal();
-                     showRandomAnnouncement('announce-left', 5000);
-                     showRandomAnnouncement('announce-right', 10000);
-                  });
-               },
-            ],
-         };
-      </script>
+         ],
+      };
+   </script>
 
-      <!-- Scripts -->
-      <script src="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/docsify.min.js"></script>
-      <script src="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/plugins/search.min.js"></script>
-      <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-      <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/js/termynal.js"></script>
-      <script src="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/js/custom.js"></script>
-      <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+   <!-- Scripts -->
+   <script src="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/docsify.min.js"></script>
+   <script src="//cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/plugins/search.min.js"></script>
+   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+   <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/js/termynal.js"></script>
+   <script src="https://cdn.jsdelivr.net/gh/sxin0/docsify-termynal@main/dist/js/custom.js"></script>
+   <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
 
-      <!-- Page actions plugin -->
-      <script src="//cdn.jsdelivr.net/npm/docsify-page-actions-menu@latest"></script>
+   <!-- Page actions plugin -->
+   <script src="//cdn.jsdelivr.net/npm/docsify-page-actions-menu@latest"></script>
 
-      <!-- Mouse highlight animation -->
-      <script>
-         const highlight = document.getElementById('mouse-highlight');
-         function updateHighlight(e) {
-            const w = window.innerWidth,
-               h = window.innerHeight;
-            const x = (e.clientX / w) * 100,
-               y = (e.clientY / h) * 100;
-            highlight.style.background = `radial-gradient(circle at ${x}% ${y}%,
+   <!-- Mouse highlight animation -->
+   <script>
+      const highlight = document.getElementById('mouse-highlight');
+      function updateHighlight(e) {
+         const w = window.innerWidth,
+            h = window.innerHeight;
+         const x = (e.clientX / w) * 100,
+            y = (e.clientY / h) * 100;
+         highlight.style.background = `radial-gradient(circle at ${x}% ${y}%,
    rgba(69,243,255,0.22) 0%, rgba(69,243,255,0.12) 14%, rgba(69,243,255,0.03) 48%, transparent
    80%)`;
-         }
-         window.addEventListener('mousemove', updateHighlight);
-         window.addEventListener(
-            'touchstart',
-            () => {
-               highlight.style.opacity = 0;
-            },
-            { once: true }
-         );
-      </script>
-   </body>
+      }
+      window.addEventListener('mousemove', updateHighlight);
+      window.addEventListener(
+         'touchstart',
+         () => {
+            highlight.style.opacity = 0;
+         },
+         { once: true }
+      );
+   </script>
+</body>
+
 </html>
