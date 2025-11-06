@@ -1,5 +1,15 @@
 # @calycode/xano-cli
 
+## 0.10.0
+
+### Minor Changes
+
+- 2d31bbf: feat: initial version of orval client code generation
+
+### Patch Changes
+
+- 2d31bbf: chore: added sidebar collapsing on the documentation sites.
+
 ## 0.9.0
 
 ### Minor Changes
