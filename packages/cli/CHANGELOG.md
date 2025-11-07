@@ -1,5 +1,14 @@
 # @calycode/xano-cli
 
+## 0.11.0
+
+### Minor Changes
+
+- 6aa0425: chore: adjusted install order to improve installability,
+  chore: refactors for registry,
+  feat: added skipped components output
+  feat: registry improvements - added support for full-set of metadata api enabled entities,
+
 ## 0.10.1
 
 ### Patch Changes
