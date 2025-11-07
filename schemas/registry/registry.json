@@ -12,7 +12,7 @@
         "items": {
             "type": "array",
             "items": {
-                "$ref": "https://nextcurve.hu/schemas/registry/registry-item.json"
+                "$ref": "https://calycode.com/schemas/registry/registry-item.json"
             }
         }
     },
