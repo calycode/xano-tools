@@ -2,10 +2,23 @@ import { metaApiGet, metaApiPost } from '@repo/utils';
 import { getRegistryIndex } from '../../index';
 
 const typePriority = {
-   'registry:table': 1,
+   'registry:table': 0,
+   'registry:addon': 1,
    'registry:function': 2,
-   'registry:query': 3,
-   // All other types get a default (lower) priority
+   'registry:apigroup': 3,
+   'registry:query': 4,
+   'registry:middleware': 5,
+   'registry:task': 6,
+   'registry:tool': 7,
+   'registry:mcp': 8,
+   'registry:agent': 9,
+   'registry:realtime': 10,
+   'registry:workspace/trigger': 11,
+   'registry:table/trigger': 12,
+   'registry:mcp/trigger': 13,
+   'registry:agent/trigger': 14,
+   'registry:realtime/trigger': 15,
+   'registry:test': 16,
 };
 
 function sortFilesByType(files) {

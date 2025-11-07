@@ -6,11 +6,25 @@ import {
    getApiGroupByName,
    getRegistryItem,
    promptForComponents,
+   resolveInstallUrl,
    scaffoldRegistry,
    sortFilesByType,
    withErrorHandler,
 } from '../utils/index';
 import { resolveConfigs } from '../utils/index';
+import { printInstallSummary } from '../utils/feature-focused/registry/output-printing';
+
+function isAlreadyExistsError(errorObj: any): boolean {
+   if (!errorObj || typeof errorObj !== 'object') return false;
+   if (errorObj.code !== 'ERROR_FATAL') return false;
+   const msg = errorObj.message?.toLowerCase() || '';
+   // Expand patterns as needed for robustness:
+   return (
+      msg.includes('already being used') ||
+      msg.includes('already exists') ||
+      msg.includes('duplicate') // Add more patterns if needed
+   );
+}
 
 async function addToXano({
    componentNames,
@@ -52,7 +66,15 @@ async function addToXano({
                   file: file.target || file.path,
                   response: installResult.body,
                });
+            } else if (installResult.body && isAlreadyExistsError(installResult.body)) {
+               // Skipped due to already existing
+               results.skipped.push({
+                  component: componentName,
+                  file: file.target || file.path,
+                  error: installResult.body.message,
+               });
             } else {
+               // Other failures
                results.failed.push({
                   component: componentName,
                   file: file.target || file.path,
@@ -67,21 +89,7 @@ async function addToXano({
    }
 
    // --- Output summary table ---
-   if (results.installed.length) {
-      log.success('Installed components:');
-      results.installed.forEach(({ component, file }) => {
-         log.info(`${component}\nFile: ${file}\n---`);
-      });
-   }
-   if (results.failed.length) {
-      log.error('Failed components:');
-      results.failed.forEach(({ component, file, error }) => {
-         log.warn(`${component}\nFile: ${file}\nError: ${error}\n---`);
-      });
-   }
-   if (!results.installed.length && !results.failed.length) {
-      log.info('\nNo components were installed.');
-   }
+   printInstallSummary(results, log);
 
    return results;
 }
@@ -96,29 +104,32 @@ async function addToXano({
  */
 async function installComponentToXano(file, resolvedContext, core) {
    const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
+   let apiGroupId;
 
-   const urlMapping = {
-      'registry:function': `workspace/${workspaceConfig.id}/function?branch=${branchConfig.label}`,
-      'registry:table': `workspace/${workspaceConfig.id}/table`,
-   };
-
+   // For types that require dynamic IDs, resolve them first
    if (file.type === 'registry:query') {
       const targetApiGroup = await getApiGroupByName(
          file['api-group-name'],
          { instanceConfig, workspaceConfig, branchConfig },
          core
       );
-      urlMapping[
-         'registry:query'
-      ] = `workspace/${workspaceConfig.id}/apigroup/${targetApiGroup.id}/api?branch=${branchConfig.label}`;
+      apiGroupId = targetApiGroup.id;
    }
+
+   const installUrl = resolveInstallUrl(file.type, {
+      instanceConfig,
+      workspaceConfig,
+      branchConfig,
+      file,
+      apiGroupId,
+   });
 
    const xanoToken = await core.loadToken(instanceConfig.name);
    const xanoApiUrl = `${instanceConfig.url}/api:meta`;
 
    try {
       const content = await fetchRegistryFileContent(file.path);
-      const response = await fetch(`${xanoApiUrl}/${urlMapping[file.type]}`, {
+      const response = await fetch(`${xanoApiUrl}/${installUrl}`, {
          method: 'POST',
          headers: {
             Authorization: `Bearer ${xanoToken}`,
@@ -131,14 +142,12 @@ async function installComponentToXano(file, resolvedContext, core) {
       try {
          body = await response.json();
       } catch (jsonErr) {
-         // If response is not JSON, treat as failure
          return {
             success: false,
             error: `Invalid JSON response: ${jsonErr.message}`,
          };
       }
 
-      // 1. If HTTP error, always fail
       if (!response.ok) {
          return {
             success: false,
@@ -147,7 +156,6 @@ async function installComponentToXano(file, resolvedContext, core) {
          };
       }
 
-      // 2. If "code" and "message" fields are present, treat as error (API-level error)
       if (body && body.code && body.message) {
          return {
             success: false,
@@ -156,7 +164,6 @@ async function installComponentToXano(file, resolvedContext, core) {
          };
       }
 
-      // 3. If "xanoscript" is present and has a non-ok status, treat as error
       if (body && body.xanoscript && body.xanoscript.status !== 'ok') {
          return {
             success: false,
@@ -165,10 +172,8 @@ async function installComponentToXano(file, resolvedContext, core) {
          };
       }
 
-      // If all checks pass, treat as success
       return { success: true, body };
    } catch (error) {
-      // Only catch truly unexpected errors (network, programming, etc.)
       console.error(`Failed to install ${file.target || file.path}:`, error);
       return { success: false, error: error.message };
    }
