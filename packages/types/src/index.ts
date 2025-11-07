@@ -287,3 +287,39 @@ export interface AssertOptions {
 }
 
 export type AssertDefinition = Record<string, { fn?: (context: any) => void; level: Level }>;
+
+// --------- Registry item types ----------- //
+export type RegistryItemType =
+   | 'registry:table'
+   | 'registry:addon'
+   | 'registry:function'
+   | 'registry:apigroup'
+   | 'registry:query'
+   | 'registry:middleware'
+   | 'registry:task'
+   | 'registry:tool'
+   | 'registry:mcp'
+   | 'registry:agent'
+   | 'registry:realtime'
+   | 'registry:workspace/trigger'
+   | 'registry:table/trigger'
+   | 'registry:mcp/trigger'
+   | 'registry:agent/trigger'
+   | 'registry:realtime/trigger'
+   | 'registry:test';
+
+export type InstallUrlParams = {
+   instanceConfig: any;
+   workspaceConfig: any;
+   branchConfig: any;
+   file: any;
+   apiGroupId?: string;
+};
+
+export type UrlMappingFn = (params: InstallUrlParams) => string;
+
+export type InstallResults = {
+   installed: Array<{ component: string; file: string; response: any }>;
+   failed: Array<{ component: string; file: string; error: string; response?: any }>;
+   skipped: Array<{ component: string; file: string; error: string }>;
+};
