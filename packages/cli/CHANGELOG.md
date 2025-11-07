@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.10.1
+
+### Patch Changes
+
+- 307aafe: chore: refactor of codegeneration command, allow variadic argument to passthrough all additional args for both orval and openapi-tools-generator
+
 ## 0.10.0
 
 ### Minor Changes
