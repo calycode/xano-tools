@@ -113,7 +113,6 @@ async function generateCodeFromOas({
    outro(`Code successfully generated! Process took: ${duration}ms`);
 }
 
-// [ ] TODO, create positional argument for the 'remaining' args and not the --args flag
 function registerGenerateCodeCommand(program, core) {
    const cmd = program
       .command('generate-code')
@@ -130,25 +129,20 @@ function registerGenerateCodeCommand(program, core) {
       'Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.'
    )
       .option(
-         '--args <args>',
-         'Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate'
-      )
-      .option(
          '--debug',
          'Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false'
       )
+      .allowUnknownOption()
+      .argument(
+         '[passthroughArgs...]',
+         'Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example'
+      )
       .action(
-         withErrorHandler(async (opts) => {
+         withErrorHandler(async (opts, passthroughArgs) => {
             const stack: { generator: string; args: string[] } = {
-               generator: 'typescript-fetch',
-               args: [],
+               generator: opts.generator || 'typescript-fetch',
+               args: passthroughArgs || [],
             };
-            if (opts.generator) {
-               stack.generator = opts.generator;
-            }
-            if (opts.args) {
-               stack.args = opts.args.split(',');
-            }
             await generateCodeFromOas({
                instance: opts.instance,
                workspace: opts.workspace,
