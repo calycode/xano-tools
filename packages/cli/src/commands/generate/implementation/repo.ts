@@ -3,14 +3,11 @@ import { log, intro, outro } from '@clack/prompts';
 import { load } from 'js-yaml';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
-   addFullContextOptions,
-   addPrintOutputFlag,
    attachCliEventHandlers,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
-   withErrorHandler,
-} from '../utils/index';
+} from '../../../utils/index';
 
 /**
  * Recursively removes all files and subdirectories in a directory.
@@ -122,30 +119,4 @@ async function generateRepo({
    outro('Directory structure rebuilt successfully!');
 }
 
-function registerGenerateRepoCommand(program, core) {
-   const cmd = program
-      .command('generate-repo')
-      .description('Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.')
-      .option('-I, --input <file>', 'Workspace yaml file from a local source, if present.')
-      .option('-O, --output <dir>', 'Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.');
-
-   addFullContextOptions(cmd);
-   addPrintOutputFlag(cmd);
-
-   cmd.option('-F, --fetch', 'Forces fetching the workspace schema from the Xano instance via metadata API.').action(
-      withErrorHandler(async (opts) => {
-         await generateRepo({
-            instance: opts.instance,
-            workspace: opts.workspace,
-            branch: opts.branch,
-            input: opts.input,
-            output: opts.output,
-            fetch: opts.fetch,
-            printOutput: opts.printOutputDir,
-            core: core,
-         });
-      })
-   );
-}
-
-export { registerGenerateRepoCommand };
+export { generateRepo };

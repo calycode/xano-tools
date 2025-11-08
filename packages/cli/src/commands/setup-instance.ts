@@ -72,11 +72,11 @@ We appreciate your support and commitment to making @calycode/cli better!
    });
 }
 
-export function registerSetupCommand(program, core) {
+export function registerInitCommand(program, core) {
    program
-      .command('setup')
+      .command('init')
       .description(
-         'Setup Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.'
+         'Initialize the CLI with Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.'
       )
       .option('--name <name>', 'Instance name (for non-interactive setup)')
       .option('--url <url>', 'Instance base URL (for non-interactive setup)')

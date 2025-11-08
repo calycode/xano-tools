@@ -1,22 +1,19 @@
 import { Command } from 'commander';
 import { font } from './utils';
-import pkg from '../../../package.json' with {type: "json"};
+import pkg from '../package.json' with { type: "json" };
 
 // Import commands:
-import { registerCurrentContextCommand } from './commands/context';
-import { registerExportBackupCommand, registerRestoreBackupCommand } from './commands/backups';
-import { registerGenerateCodeCommand } from './commands/generate-code';
-import { registerGenerateOasCommand } from './commands/generate-oas';
-import { registerGenerateRepoCommand } from './commands/generate-repo';
-import { registerSetupCommand } from './commands/setup-instance';
-import { registerRunTestCommand } from './commands/run-tests';
-import { registerRegistryAddCommand, registerRegistryScaffoldCommand } from './commands/registry';
-import { registerOasServeCommand, registerRegistryServeCommand } from './commands/serve';
-import { registerBuildXanoscriptRepoCommand } from './commands/generate-xanoscript-repo';
+import { registerContextCommands } from './commands/context';
+import { registerBackupCommands } from './commands/backup';
+import { registerInitCommand } from './commands/setup-instance';
+import { registerTestCommands } from './commands/test';
+import { registerRegistryCommands } from './commands/registry';
+import { registerServeCommands } from './commands/serve';
 import { Caly } from '@calycode/core';
 import { InitializedPostHog } from './utils/posthog/init';
 import { nodeConfigStorage } from './node-config-storage';
-import { registergenerateInternalDocsCommand } from './commands/generate-internal-docs';
+import { registerGenerateCommands } from './commands/generate';
+import { collectVisibleLeafCommands, getFullCommandPath } from './utils/commands/main-program-utils';
 
 const commandStartTimes = new WeakMap<Command, number>();
 
@@ -26,28 +23,23 @@ const core = new Caly(nodeConfigStorage);
 
 // Store start time on the command object
 program.hook('preAction', (thisCommand, actionCommand) => {
-  commandStartTimes.set(thisCommand, Date.now());
-  InitializedPostHog.captureImmediate({
-    distinctId: 'anonymous',
-    event: 'command_started',
-    properties: {
-      $process_person_profile: false,
-      "command": actionCommand.name(),
-    }
-  });
+   commandStartTimes.set(thisCommand, Date.now());
+   InitializedPostHog.captureImmediate({
+      distinctId: 'anonymous',
+      event: 'command_started',
+      properties: {
+         $process_person_profile: false,
+         command: actionCommand.name(),
+      },
+   });
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
   const start = commandStartTimes.get(thisCommand);
-  if (!start) {
-    return;
-  }
+  if (!start) return;
   const duration = ((Date.now() - start) / 1000).toFixed(2);
 
-  // Show the full command path for clarity
-  const commandPath = actionCommand.parent
-    ? `${actionCommand.parent.name()} ${actionCommand.name()}`
-    : actionCommand.name();
+  const commandPath = getFullCommandPath(actionCommand);
 
   console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
   InitializedPostHog.captureImmediate({
@@ -55,19 +47,19 @@ program.hook('postAction', (thisCommand, actionCommand) => {
     event: 'command_finished',
     properties: {
       $process_person_profile: false,
-      "command": actionCommand.name(),
-      duration: duration
-    }
+      command: commandPath,
+      duration: duration,
+    },
   });
   InitializedPostHog.shutdown();
 });
 
 program
-  .name('xano')
-  .version(version, '-v, --version', 'output the version number')
-  .usage('<command> [options]')
-  .description(
-    font.color.cyan(`
+   .name('xano')
+   .version(version, '-v, --version', 'output the version number')
+   .usage('<command> [options]')
+   .description(
+      font.color.cyan(`
 +==================================================================================================+
 |                                                                                                  |
 |    ██████╗ █████╗ ██╗  ██╗   ██╗    ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
@@ -79,115 +71,126 @@ program
 |                                                                                                  |
 +==================================================================================================+
 `) +
-    '\n\n' +
-    font.color.yellowBright('Supercharge your Xano workflow: ') +
-    font.color.white('automate ') + font.combo.boldCyan('backups') + font.color.white(', ') +
-    font.combo.boldCyan('docs') + font.color.white(', ') +
-    font.combo.boldCyan('testing') + font.color.white(', and ') +
-    font.combo.boldCyan('version control') + font.color.white(' — no AI guesswork, just reliable, transparent dev tools.') +
-    '\n\n' +
-    `Current version: ${version}`
-  );
+         '\n\n' +
+         font.color.yellowBright('Supercharge your Xano workflow: ') +
+         font.color.white('automate ') +
+         font.combo.boldCyan('backups') +
+         font.color.white(', ') +
+         font.combo.boldCyan('docs') +
+         font.color.white(', ') +
+         font.combo.boldCyan('testing') +
+         font.color.white(', and ') +
+         font.combo.boldCyan('version control') +
+         font.color.white(' — no AI guesswork, just reliable, transparent dev tools.') +
+         '\n\n' +
+         `Current version: ${version}`
+   );
 
-// --- Register your commands here ---
-registerSetupCommand(program, core);
-registerGenerateOasCommand(program, core);
-registerOasServeCommand(program, core);
-registerGenerateCodeCommand(program, core);
-registerGenerateRepoCommand(program, core);
-registergenerateInternalDocsCommand(program, core);
-registerBuildXanoscriptRepoCommand(program, core);
-registerRegistryAddCommand(program, core);
-registerRegistryScaffoldCommand(program, core);
-registerRegistryServeCommand(program);
-registerExportBackupCommand(program, core);
-registerRestoreBackupCommand(program, core);
-registerRunTestCommand(program, core);
-registerCurrentContextCommand(program, core);
+registerInitCommand(program, core);
+registerGenerateCommands(program, core);
+registerServeCommands(program, core);
+registerRegistryCommands(program, core);
+registerBackupCommands(program, core);
+registerTestCommands(program, core);
+registerContextCommands(program, core);
 
 // --- Custom Help Formatter ---
 program.configureHelp({
-  formatHelp(cmd, helper) {
-    const allCmds = helper.visibleCommands(cmd);
+   formatHelp(cmd, helper) {
+      // 1. Collect all visible leaf commands with their full paths
+      const allLeafCmds = collectVisibleLeafCommands(cmd);
 
-    // For alignment: determine the longest command name
-    const longestName = allCmds.reduce(
-      (len, c) => Math.max(len, c.name().length),
-      0
-    );
+      // 2. For alignment: determine the longest command path string
+      const allNames = allLeafCmds.map((c) => c.path.join(' '));
+      const longestName = allNames.reduce((len, n) => Math.max(len, n.length), 0);
+      const pad = (str, len) => str + ' '.repeat(len - str.length);
 
-    const pad = (str, len) => str + ' '.repeat(len - str.length);
+      // 3. Define your desired groups (with full string paths)
+      const groups = [
+         {
+            title: font.combo.boldCyan('Core Commands:'),
+            commands: ['init'],
+         },
+         {
+            title: font.combo.boldCyan('Generation Commands:'),
+            commands: [
+               'generate spec',
+               'generate codegen',
+               'generate repo',
+               'generate xanoscript',
+               'generate docs',
+            ],
+         },
+         {
+            title: font.combo.boldCyan('Registry:'),
+            commands: ['registry add', 'registry scaffold'],
+         },
+         {
+            title: font.combo.boldCyan('Serve:'),
+            commands: ['serve spec', 'serve registry'],
+         },
+         {
+            title: font.combo.boldCyan('Backups:'),
+            commands: ['backup export', 'backup restore'],
+         },
+         {
+            title: font.combo.boldCyan('Testing & Linting:'),
+            commands: ['test run'],
+         },
+         {
+            title: font.combo.boldCyan('Other:'),
+            commands: ['context show'],
+         },
+      ];
 
-    const groups = [
-      {
-        title: font.combo.boldCyan('Core Commands:'),
-        commands: ['setup'],
-      },
-      {
-        title: font.combo.boldCyan('Code Generation:'),
-        commands: ['generate-oas', 'oas-serve', 'generate-code', 'generate-repo', 'generate-internal-docs'],
-      },
-      {
-        title: font.combo.boldCyan('Registry:'),
-        commands: ['registry-add', 'registry-scaffold', 'registry-serve'],
-      },
-      {
-        title: font.combo.boldCyan('Backup & Restore:'),
-        commands: ['export-backup', 'restore-backup'],
-      },
-      {
-        title: font.combo.boldCyan('Testing & Linting:'),
-        commands: ['run-test'],
-      },
-      {
-        title: font.combo.boldCyan('Other:'),
-        commands: ['current-context'],
-      },
-    ];
+      // 4. Map full path strings to command objects
+      const cmdMap = Object.fromEntries(allLeafCmds.map((c) => [c.path.join(' '), c]));
 
-    // Map command names to command objects for lookup
-    const cmdMap = Object.fromEntries(allCmds.map(cmd => [cmd.name(), cmd]));
+      // 5. Track which commands are used
+      const used = new Set(groups.flatMap((g) => g.commands));
+      const ungrouped = allLeafCmds.map((c) => c.path.join(' ')).filter((name) => !used.has(name));
 
-    // Usage line
-    let output = [
-      font.weight.bold(`\nUsage: xano <command> [options]\n`)
-    ];
-
-    // Banner and description
-    if (cmd.description()) {
-      output.push(cmd.description() + '\n');
-    }
-
-    // Options
-    output.push(font.weight.bold('Options:'));
-    output.push(
-      `  -v, --version   ${font.color.gray('output the version number')}\n` +
-      `  -h, --help      ${font.color.gray('display help for command')}\n`
-    );
-
-    // Command Groups
-    for (const group of groups) {
-      output.push('\n' + group.title);
-      for (const cname of group.commands) {
-        const c = cmdMap[cname];
-        if (c) {
-          // Only show -h, --help in main help for brevity
-          const opts = '  ' + font.color.gray('-h, --help');
-          // Align command names
-          output.push(
-            `  ${font.weight.bold(pad(c.name(), longestName))}${opts}\n    ${c.description()}\n`
-          );
-        }
+      if (ungrouped.length) {
+         groups.push({
+            title: font.combo.boldCyan('Other:'),
+            commands: ungrouped,
+         });
       }
-    }
 
-    // Footer/help link
-    output.push(
-      font.color.gray('Need help? Visit https://github.com/calycode/xano-tools\n')
-    );
+      // 6. Usage line
+      let output = [font.weight.bold(`\nUsage: xano <command> [options]\n`)];
 
-    return output.join('\n');
-  }
+      // Banner and description
+      if (cmd.description()) {
+         output.push(cmd.description() + '\n');
+      }
+
+      // Options
+      output.push(font.weight.bold('Options:'));
+      output.push(
+         `  -v, --version   ${font.color.gray('output the version number')}\n` +
+            `  -h, --help      ${font.color.gray('display help for command')}\n`
+      );
+
+      // 7. Command Groups
+      for (const group of groups) {
+         output.push('\n' + group.title);
+         for (const cname of group.commands) {
+            const c = cmdMap[cname];
+            if (c) {
+               const opts = '  ' + font.color.gray('-h, --help');
+               output.push(
+                  `   ${font.weight.bold(font.color.yellowBright(pad(cname, longestName)))}${opts}\n      ${c.description}\n`
+               );
+            }
+         }
+      }
+
+      // Footer/help link
+      output.push(font.color.gray('Need help? Visit https://github.com/calycode/xano-tools\n'));
+
+      return output.join('\n');
+   },
 });
 
 export { program };

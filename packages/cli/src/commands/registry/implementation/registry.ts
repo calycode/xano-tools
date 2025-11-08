@@ -1,7 +1,6 @@
 import { intro, log } from '@clack/prompts';
 import type { CoreContext } from '@repo/types';
 import {
-   addFullContextOptions,
    fetchRegistryFileContent,
    getApiGroupByName,
    getRegistryItem,
@@ -9,10 +8,9 @@ import {
    resolveInstallUrl,
    scaffoldRegistry,
    sortFilesByType,
-   withErrorHandler,
-} from '../utils/index';
-import { resolveConfigs } from '../utils/index';
-import { printInstallSummary } from '../utils/feature-focused/registry/output-printing';
+} from '../../../utils/index';
+import { resolveConfigs } from '../../../utils/index';
+import { printInstallSummary } from '../../../utils/feature-focused/registry/output-printing';
 
 function isAlreadyExistsError(errorObj: any): boolean {
    if (!errorObj || typeof errorObj !== 'object') return false;
@@ -179,58 +177,4 @@ async function installComponentToXano(file, resolvedContext, core) {
    }
 }
 
-function registerRegistryAddCommand(program, core) {
-   const cmd = program
-      .command('registry-add')
-      .description(
-         'Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.'
-      );
-
-   addFullContextOptions(cmd);
-   cmd.argument(
-      '<components...>',
-      'Space delimited list of components to add to your Xano instance.'
-   );
-   cmd.option(
-      '--registry <url>',
-      'URL to the component registry. Default: http://localhost:5500/registry/definitions'
-   ).action(
-      withErrorHandler(async (components, options) => {
-         if (options.registry) {
-            console.log('command registry option: ', options.registry);
-            process.env.CALY_REGISTRY_URL = options.registry;
-         }
-         await addToXano({
-            componentNames: components,
-            context: {
-               instance: options.instance,
-               workspace: options.workspace,
-               branch: options.branch,
-            },
-            core,
-         });
-      })
-   );
-}
-
-function registerRegistryScaffoldCommand(program, core) {
-   program
-      .command('registry-scaffold')
-      .description(
-         'Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry item](https://calycode.com/schemas/registry/registry-item.json) schemas.'
-      )
-      .option('--output <path>', 'Local output path for the registry')
-      .option(
-         '--instance <instance>',
-         'The instance name. This is used to fetch the instance configuration. The value provided at the setup command.'
-      )
-      .action(
-         withErrorHandler(async (options) => {
-            await scaffoldRegistry({
-               registryRoot: options.output,
-            });
-         })
-      );
-}
-
-export { registerRegistryAddCommand, registerRegistryScaffoldCommand };
+export { addToXano, scaffoldRegistry };

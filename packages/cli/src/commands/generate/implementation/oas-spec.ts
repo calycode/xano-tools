@@ -1,15 +1,11 @@
 import { normalizeApiGroupName, replacePlaceholders, joinPath, dirname } from '@repo/utils';
 import {
-   addApiGroupOptions,
-   addFullContextOptions,
-   addPrintOutputFlag,
    attachCliEventHandlers,
    chooseApiGroupOrAll,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
-   withErrorHandler,
-} from '../utils/index';
+} from '../../../utils/index';
 
 async function updateOasWizard({
    instance,
@@ -92,28 +88,4 @@ async function updateOasWizard({
    }
 }
 
-function registerGenerateOasCommand(program, core) {
-   const cmd = program
-      .command('generate-oas')
-      .description('Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.');
-
-   addFullContextOptions(cmd);
-   addApiGroupOptions(cmd);
-   addPrintOutputFlag(cmd);
-
-   cmd.action(
-      withErrorHandler(async (opts) => {
-         await updateOasWizard({
-            instance: opts.instance,
-            workspace: opts.workspace,
-            branch: opts.branch,
-            group: opts.group,
-            isAll: opts.all,
-            printOutput: opts.printOutputDir,
-            core: core,
-         });
-      })
-   );
-}
-
-export { registerGenerateOasCommand };
+export { updateOasWizard };
