@@ -1,9 +1,9 @@
-# generate spec
+# serve
 >[!NOTE|label:Description]
-> #### Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
+> #### Serve locally available assets for quick preview or local reuse.
 
 ```term
-$ xano generate spec [options]
+$ xano serve [options]
 ```
 ### Options
 
@@ -17,18 +17,17 @@ $ xano generate spec [options]
 **Description:** API group name. Same as on Xano Interface.
 #### --all
 **Description:** Regenerate for all API groups in the workspace / branch of the current context.
-#### --print-output-dir
-**Description:** Expose usable output path for further reuse.
+#### --listen <port>
+**Description:** The port where you want your registry to be served locally. By default it is 5000.
+#### --cors
+**Description:** Do you want to enable CORS? By default false.
 
-### generate spec --help
+### serve --help
 ```term
-$ xano generate spec --help
-Usage: xano generate spec [options]
+$ xano serve --help
+Usage: xano serve [options] [command]
 
-Update and generate OpenAPI spec(s) for the current context, or all API groups
-simultaneously. This generates an opinionated API documentation powered by
-Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+
-version.
+Serve locally available assets for quick preview or local reuse.
 
 Options:
   --instance <instance>    The instance name. This is used to fetch the instance
@@ -41,6 +40,16 @@ Options:
   --group <name>           API group name. Same as on Xano Interface.
   --all                    Regenerate for all API groups in the workspace /
                            branch of the current context.
-  --print-output-dir       Expose usable output path for further reuse.
+  --listen <port>          The port where you want your registry to be served
+                           locally. By default it is 5000.
+  --cors                   Do you want to enable CORS? By default false.
   -h, --help               display help for command
+
+Commands:
+  registry [options]       Serve the registry locally. This allows you to
+                           actually use your registry without deploying it to
+                           any remote host.
+  spec                     Serve the Open API specification locally for quick
+                           visual check, or to test your APIs via the Scalar API
+                           reference.
 ```

@@ -19,8 +19,8 @@ Options:
 Commands:
   export [options]   Backup Xano Workspace via Metadata API
   restore [options]  Restore a backup to a Xano Workspace via Metadata API.
-                     DANGER! This action will override all business logic
-                     and restore the original v1 branch. Data will be also
-                     restored from the backup file.
+                     DANGER! This action will override all business logic and
+                     restore the original v1 branch. Data will be also restored
+                     from the backup file.
   help [command]     display help for command
 ```

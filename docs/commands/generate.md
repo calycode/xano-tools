@@ -11,8 +11,8 @@ $ xano generate [options]
 $ xano generate --help
 Usage: xano generate [options] [command]
 
-Transforamtive operations that allow you to view you Xano through a fresh
-set of eyes.
+Transforamtive operations that allow you to view you Xano through a fresh set of
+eyes.
 
 Options:
   -h, --help                              display help for command
