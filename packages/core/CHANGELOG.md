@@ -1,5 +1,19 @@
 # @calycode/caly-core
 
+## 0.10.0
+
+### Minor Changes
+
+- c6e6c56: > BREAKING changes
+
+  > Commands have been completely renamed and restructured.
+
+  refactor: breaking changes in commands naming
+  refactor: reorganised command registration
+  chore: updated documentation generation to match new command naming
+  chore: removed unused exports
+  fix: fixed package.json reference in commander config to present correct version code
+
 ## 0.9.0
 
 ### Minor Changes
