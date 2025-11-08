@@ -1,6 +1,6 @@
 import { RegistryItemType, InstallUrlParams, UrlMappingFn } from '@repo/types';
 
-export const registryUrlMapping: Record<RegistryItemType, UrlMappingFn> = {
+const registryUrlMapping: Record<RegistryItemType, UrlMappingFn> = {
    'registry:table': ({ workspaceConfig }) => `workspace/${workspaceConfig.id}/table`,
    'registry:function': ({ workspaceConfig, branchConfig }) =>
       `workspace/${workspaceConfig.id}/function?branch=${branchConfig.label}`,

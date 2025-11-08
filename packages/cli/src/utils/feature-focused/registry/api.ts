@@ -66,10 +66,4 @@ function clearRegistryCache() {
    registryCache.clear();
 }
 
-export {
-   fetchRegistry,
-   getRegistryIndex,
-   getRegistryItem,
-   fetchRegistryFileContent,
-   clearRegistryCache,
-};
+export { getRegistryIndex, getRegistryItem, fetchRegistryFileContent, clearRegistryCache };

@@ -4,15 +4,11 @@ import { openAsBlob } from 'node:fs';
 import { select, confirm, outro, log } from '@clack/prompts';
 import { replacePlaceholders } from '@repo/utils';
 import {
-   addFullContextOptions,
-   addPartialContextOptions,
-   addPrintOutputFlag,
    attachCliEventHandlers,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
-   withErrorHandler,
-} from '../utils/index';
+} from '../../../utils';
 const { FormData } = globalThis;
 
 async function restorationWizard({ instance, workspace, sourceBackup, forceConfirm, core }) {
@@ -123,50 +119,4 @@ async function exportWizard({ instance, workspace, branch, core, doLog, output }
    printOutputDir(doLog, outputObject.outputDir);
 }
 
-// [ ] Add potentially context awareness like in the other commands
-function registerExportBackupCommand(program, core) {
-   const cmd = program
-      .command('export-backup')
-      .description('Backup Xano Workspace via Metadata API');
-
-   addFullContextOptions(cmd);
-   addPrintOutputFlag(cmd);
-
-   cmd.action(
-      withErrorHandler(async (options) => {
-         await exportWizard({
-            instance: options.instance,
-            workspace: options.workspace,
-            branch: options.branch,
-            core: core,
-            doLog: options.printOutputDir,
-            output: options.output,
-         });
-      })
-   );
-}
-
-// CLI
-function registerRestoreBackupCommand(program, core) {
-   const cmd = program
-      .command('restore-backup')
-      .description('Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.');
-
-   addPartialContextOptions(cmd);
-
-   cmd.option('-S, --source-backup <file>', 'Local path to the backup file to restore.')
-      .option('--force', 'Force restoration without confirmation, not advised to be specified, useful when ran from a CI/CD pipeline and consequences are acknowledged.')
-      .action(
-         withErrorHandler(async (options) => {
-            await restorationWizard({
-               instance: options.instance,
-               workspace: options.workspace,
-               sourceBackup: options.sourceBackup,
-               forceConfirm: options.force,
-               core: core,
-            });
-         })
-      );
-}
-
-export { registerExportBackupCommand, registerRestoreBackupCommand };
+export { restorationWizard, exportWizard };

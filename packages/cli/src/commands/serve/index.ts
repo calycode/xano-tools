@@ -1,0 +1,59 @@
+import { addApiGroupOptions, addFullContextOptions } from '../../utils';
+import { serveOas, serveRegistry } from './implementation/serve';
+
+function registerServeCommands(program, core) {
+   const serveNamespace = program
+      .command('serve')
+      .description('Serve locally available assets for quick preview or local reuse.');
+
+   // Add the registry.
+   serveNamespace
+      .command('registry')
+      .description(
+         'Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.'
+      )
+      .option(
+         '--root <path>',
+         'Where did you put your registry? (Local path to the registry directory)'
+      )
+      .option(
+         '--listen <port>',
+         'The port where you want your registry to be served locally. By default it is 5000.'
+      )
+      .option('--cors', 'Do you want to enable CORS? By default false.')
+      .action((options) => {
+         serveRegistry({
+            root: options.root,
+            listen: options.listen,
+            cors: options.cors,
+         });
+      });
+
+   // Add the specification serving
+   serveNamespace
+      .command('spec')
+      .description(
+         'Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.'
+      );
+   addFullContextOptions(serveNamespace);
+   addApiGroupOptions(serveNamespace);
+   serveNamespace
+      .option(
+         '--listen <port>',
+         'The port where you want your registry to be served locally. By default it is 5000.'
+      )
+      .option('--cors', 'Do you want to enable CORS? By default false.')
+      .action((options) => {
+         serveOas({
+            instance: options.instance,
+            workspace: options.workspace,
+            branch: options.branch,
+            group: options.group,
+            listen: options.listen,
+            cors: options.cors,
+            core,
+         });
+      });
+}
+
+export { registerServeCommands };

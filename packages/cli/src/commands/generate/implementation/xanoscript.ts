@@ -1,14 +1,11 @@
 import { access, readdir, lstat, rm, unlink, mkdir } from 'node:fs/promises';
 import { joinPath, dirname, replacePlaceholders } from '@repo/utils';
 import {
-   addFullContextOptions,
-   addPrintOutputFlag,
    attachCliEventHandlers,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
-   withErrorHandler,
-} from '../utils';
+} from '../../../utils';
 
 /**
  * Recursively removes all files and subdirectories in a directory.
@@ -79,25 +76,4 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
    printOutputDir(printOutput, outputDir);
 }
 
-function registerBuildXanoscriptRepoCommand(program, core) {
-   const cmd = program
-      .command('generate-xs-repo')
-      .description('Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.');
-
-   addFullContextOptions(cmd);
-   addPrintOutputFlag(cmd);
-
-   cmd.action(
-      withErrorHandler(async (opts) => {
-         await generateXanoscriptRepo({
-            instance: opts.instance,
-            workspace: opts.workspace,
-            branch: opts.branch,
-            core: core,
-            printOutput: opts.printOutputDir,
-         });
-      })
-   );
-}
-
-export { registerBuildXanoscriptRepoCommand };
+export { generateXanoscriptRepo };

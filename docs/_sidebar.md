@@ -1,22 +1,34 @@
--  Core command
+- [xano - the core command](xano.md)
+- **Commands**
+- **generate**
 
-   -  [xano - the core command](xano.md)
+  - [generate codegen](commands/generate-codegen.md)
 
--  Commands
+  - [generate docs](commands/generate-docs.md)
 
-   -  [`setup`](commands/setup.md)
-   -  [`generate-oas`](commands/generate-oas.md)
-   -  [`serve-oas`](commands/serve-oas.md)
-   -  [`generate-code`](commands/generate-code.md)
-   -  [`generate-repo`](commands/generate-repo.md)
-   -  [`generate-xs-repo`](commands/generate-xs-repo.md)
-   -  [`registry-add`](commands/registry-add.md)
-   -  [`registry-scaffold`](commands/registry-scaffold.md)
-   -  [`serve-registry`](commands/serve-registry.md)
-   -  [`export-backup`](commands/export-backup.md)
-   -  [`restore-backup`](commands/restore-backup.md)
-   -  [`run-test`](commands/run-test.md)
-   -  [`current-context`](commands/current-context.md)
+  - [generate spec](commands/generate-spec.md)
+
+  - [generate repo](commands/generate-repo.md)
+
+  - [generate xanoscript](commands/generate-xanoscript.md)
+
+- [init](commands/init.md)
+- **test**
+
+  - [test run](commands/test-run.md)
+- **context**
+
+  - [context show](commands/context-show.md)
+- **backup**
+
+  - [backup export](commands/backup-export.md)
+
+  - [backup restore](commands/backup-restore.md)
+- **registry**
+
+  - [registry add](commands/registry-add.md)
+
+  - [registry scaffold](commands/registry-scaffold.md)
 
 -  Changelog
 
@@ -25,7 +37,9 @@
 
 -  Community
 
-   -  [calycode on Discord](https://mee6.xyz/i/8a9p4ORFtm)
+   -  [calycode on Discord](https://links.calycode.com/discord)
 
 <small>For devs with 💖 by devs at [calycode](https://calycode.com).</small>
+
 <small>Documentation powered by [Docsify.js](https://docsifyjs.org)</small>
+      

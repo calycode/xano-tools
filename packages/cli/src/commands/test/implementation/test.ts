@@ -2,15 +2,43 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { intro, log, spinner } from '@clack/prompts';
 import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
-   addApiGroupOptions,
-   addFullContextOptions,
-   addPrintOutputFlag,
    chooseApiGroupOrAll,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
-   withErrorHandler,
-} from '../utils/index';
+} from '../../../utils/index';
+
+function printTestSummary(results) {
+   const total = results.length;
+   const succeeded = results.filter((r) => r.success).length;
+   const failed = total - succeeded;
+   const totalDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0);
+
+   // Table header
+   log.message(
+      `${'='.repeat(60)}
+ Test Results Summary
+ ${'-'.repeat(60)}
+ ${'Status'.padEnd(4)} | ${'Method'.padEnd(6)} | ${'Path'.padEnd(24)} | ${'Duration (ms)'}
+ ${'-'.repeat(60)}`
+   );
+
+   // Table rows
+   for (const r of results) {
+      const status = r.success ? '✅' : '❌';
+      log.message(
+         `${status.padEnd(4)} | ${r.method.padEnd(6)} | ${r.path.padEnd(24)} | ${(
+            r.duration || 0
+         ).toString()}`
+      );
+   }
+
+   log.message(
+      `${'-'.repeat(60)}
+ Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Total Duration: ${totalDuration} ms
+ ${'-'.repeat(60)}`
+   );
+}
 
 async function runTest({
    instance,
@@ -95,60 +123,4 @@ async function runTest({
    }
 }
 
-// [ ] CLI
-function printTestSummary(results) {
-   const total = results.length;
-   const succeeded = results.filter((r) => r.success).length;
-   const failed = total - succeeded;
-   const totalDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0);
-
-   // Table header
-   log.message(
-      `${'='.repeat(60)}
-Test Results Summary
-${'-'.repeat(60)}
-${'Status'.padEnd(4)} | ${'Method'.padEnd(6)} | ${'Path'.padEnd(24)} | ${'Duration (ms)'}
-${'-'.repeat(60)}`
-   );
-
-   // Table rows
-   for (const r of results) {
-      const status = r.success ? '✅' : '❌';
-      log.message(
-         `${status.padEnd(4)} | ${r.method.padEnd(6)} | ${r.path.padEnd(24)} | ${(
-            r.duration || 0
-         ).toString()}`
-      );
-   }
-
-   log.message(
-      `${'-'.repeat(60)}
-Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Total Duration: ${totalDuration} ms
-${'-'.repeat(60)}`
-   );
-}
-
-function registerRunTestCommand(program, core) {
-   const cmd = program
-      .command('run-test')
-      .description(
-         'Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json '
-      );
-
-   addFullContextOptions(cmd);
-   addApiGroupOptions(cmd);
-   addPrintOutputFlag(cmd);
-
-   cmd.option('--test-config-path <path>', 'Local path to the test configuration file.').action(
-      withErrorHandler(async (options) => {
-         await runTest({
-            ...options,
-            isAll: options.all,
-            printOutput: options.printOutputDir,
-            core,
-         });
-      })
-   );
-}
-
-export { registerRunTestCommand };
+export { runTest };

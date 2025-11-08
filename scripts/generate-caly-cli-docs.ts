@@ -3,31 +3,55 @@ import path from 'path';
 import stripAnsi from 'strip-ansi';
 import { program } from '../packages/cli/src/program';
 
+const DOCS_DIR = 'docs/commands';
+
 function copyTemplateFiles(templateDir: string, targetDir: string) {
-   // Copies everything from templateDir into targetDir, overwriting if needed
    cpSync(templateDir, targetDir, { recursive: true });
    console.log(`Copied template files from ${templateDir} to ${targetDir}.\n`);
 }
 
-function writeDocForCommand(cmd: any, dir = 'docs/commands') {
-   const name = cmd.name();
+function isDeprecated(cmd: any) {
+   const desc = cmd.description ? cmd.description() : '';
+   return desc.trim().startsWith('[DEPRECATED]');
+}
+
+// Recursively traverse commands, skipping deprecated, and generate docs for each
+function walkCommands(cmd: any, parentNames: string[] = [], sidebarLines: string[] = []) {
+   if (isDeprecated(cmd)) return;
+
+   const nameParts = [...parentNames, cmd.name()];
+   const docPath = path.join(DOCS_DIR, nameParts.join('-') + '.md');
+   const relDocPath = 'commands/' + nameParts.join('-') + '.md';
+
+   writeDocForCommand(cmd, docPath, nameParts);
+
+   // For sidebar: skip commands with subcommands (we'll show their subs instead)
+   if (cmd.commands && cmd.commands.length > 0) {
+      // Section title for namespace
+      sidebarLines.push(`- ${'  '.repeat(parentNames.length)}**${cmd.name()}**`);
+      cmd.commands.forEach((subCmd: any) => walkCommands(subCmd, nameParts, sidebarLines));
+   } else {
+      // Leaf command
+      sidebarLines.push(
+         `\n${'  '.repeat(parentNames.length)}- [${nameParts.join(' ')}](${relDocPath})`
+      );
+   }
+}
+
+function writeDocForCommand(cmd: any, docPath: string, nameParts: string[]) {
+   const name = nameParts.join(' ');
    const description = cmd.description ? cmd.description() : '';
    const help = stripAnsi(cmd.helpInformation());
    const options = cmd.options;
-   let optionsContent: string = '';
-   if (options) {
+   let optionsContent = '';
+   if (options && options.length > 0) {
       optionsContent = [
          '### Options',
          '',
-         ...options.map((opt: any) => {
-            const optionDoc = [`#### ${opt.flags}`, `**Description:** ${opt.description}`].join(
-               '\n'
-            );
-            return optionDoc;
-         }),
+         ...options.map((opt: any) => `#### ${opt.flags}\n**Description:** ${opt.description}`),
       ].join('\n');
    }
-   mkdirSync(dir, { recursive: true });
+   mkdirSync(path.dirname(docPath), { recursive: true });
    const content = [
       `# ${name}`,
       description && `>[!NOTE|label:Description]\n> #### ${description}\n`,
@@ -43,8 +67,7 @@ function writeDocForCommand(cmd: any, dir = 'docs/commands') {
    ]
       .filter(Boolean)
       .join('\n');
-   writeFileSync(path.join(dir, `${name}.md`), content);
-   return name;
+   writeFileSync(docPath, content);
 }
 
 function generateCliDocs() {
@@ -67,12 +90,29 @@ function generateCliDocs() {
       );
       console.log('Generated main help. \n');
 
-      // 3. Generate docs for each command and collect their names
-      const commandNames = program.commands.map((cmd) => writeDocForCommand(cmd));
-      console.log('Generated docs for each command.\n ');
+      // 3. Recursively generate docs and sidebar
+      const sidebarLines = ['- [xano - the core command](xano.md)', '- **Commands**'];
+      program.commands.forEach((cmd) => walkCommands(cmd, [], sidebarLines));
+      const finalSidebar = [
+         ...sidebarLines,
+         `
+-  Changelog
 
-      // 4. Generate a Table of Contents
+   -  [CLI](https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md)
+   -  [CORE](https://github.com/calycode/xano-tools/blob/main/packages/core/CHANGELOG.md)
 
+-  Community
+
+   -  [calycode on Discord](https://links.calycode.com/discord)
+
+<small>For devs with 💖 by devs at [calycode](https://calycode.com).</small>
+
+<small>Documentation powered by [Docsify.js](https://docsifyjs.org)</small>
+      `,
+      ];
+      writeFileSync('docs/_sidebar.md', finalSidebar.join('\n'));
+
+      // 4. Generate README as before
       const mainReadmeContent = readFileSync('README.md', 'utf-8');
       const tocLines = [
          '# @calycode/cli Docs',

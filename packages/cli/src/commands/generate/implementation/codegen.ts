@@ -1,16 +1,12 @@
 import { log, outro, intro, spinner } from '@clack/prompts';
 import { metaApiGet, normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
-   addApiGroupOptions,
-   addFullContextOptions,
-   addPrintOutputFlag,
    chooseApiGroupOrAll,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
-   withErrorHandler,
-} from '../utils/index';
-import { runOpenApiGenerator } from '../features/code-gen/open-api-generator';
+} from '../../../utils/index';
+import { runOpenApiGenerator } from '../../../features/code-gen/open-api-generator';
 
 async function generateCodeFromOas({
    instance,
@@ -113,49 +109,4 @@ async function generateCodeFromOas({
    outro(`Code successfully generated! Process took: ${duration}ms`);
 }
 
-function registerGenerateCodeCommand(program, core) {
-   const cmd = program
-      .command('generate-code')
-      .description(
-         'Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.'
-      );
-
-   addFullContextOptions(cmd);
-   addApiGroupOptions(cmd);
-   addPrintOutputFlag(cmd);
-
-   cmd.option(
-      '--generator <generator>',
-      'Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.'
-   )
-      .option(
-         '--debug',
-         'Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false'
-      )
-      .allowUnknownOption()
-      .argument(
-         '[passthroughArgs...]',
-         'Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example'
-      )
-      .action(
-         withErrorHandler(async (opts, passthroughArgs) => {
-            const stack: { generator: string; args: string[] } = {
-               generator: opts.generator || 'typescript-fetch',
-               args: passthroughArgs || [],
-            };
-            await generateCodeFromOas({
-               instance: opts.instance,
-               workspace: opts.workspace,
-               branch: opts.branch,
-               group: opts.group,
-               isAll: opts.all,
-               stack: stack,
-               logger: opts.debug,
-               printOutput: opts.printOutputDir,
-               core: core,
-            });
-         })
-      );
-}
-
-export { registerGenerateCodeCommand };
+export { generateCodeFromOas };
