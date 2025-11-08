@@ -1,5 +1,7 @@
 - [xano - the core command](xano.md)
 - **Commands**
+
+- [init](commands/init.md)
 - **generate**
 
   - [generate codegen](commands/generate-codegen.md)
@@ -11,24 +13,27 @@
   - [generate repo](commands/generate-repo.md)
 
   - [generate xanoscript](commands/generate-xanoscript.md)
+- **serve**
 
-- [init](commands/init.md)
+  - [serve registry](commands/serve-registry.md)
+
+  - [serve spec](commands/serve-spec.md)
+- **registry**
+
+  - [registry add](commands/registry-add.md)
+
+  - [registry scaffold](commands/registry-scaffold.md)
+- **backup**
+
+  - [backup export](commands/backup-export.md)
+
+  - [backup restore](commands/backup-restore.md)
 - **test**
 
   - [test run](commands/test-run.md)
 - **context**
 
   - [context show](commands/context-show.md)
-- **backup**
-
-  - [backup export](commands/backup-export.md)
-
-  - [backup restore](commands/backup-restore.md)
-- **registry**
-
-  - [registry add](commands/registry-add.md)
-
-  - [registry scaffold](commands/registry-scaffold.md)
 
 -  Changelog
 

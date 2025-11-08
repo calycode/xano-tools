@@ -17,7 +17,7 @@ Usage: xano <command> [options]
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
 
-Current version: 0.6.0
+Current version: 0.12.0
 
 Options:
   -v, --version   output the version number
@@ -25,48 +25,59 @@ Options:
 
 
 Core Commands:
-  setup                   -h, --help
-    [DEPRECATED] Use the `init` command instead. Setup Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.
+   init                 -h, --help
+      Initialize the CLI with Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.
 
 
-Code Generation:
-  generate-oas            -h, --help
-    [DEPRECATED] Use the `generate spec` command instead. Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
+Generation Commands:
+   generate spec        -h, --help
+      Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
 
-  generate-code           -h, --help
-    [DEPRECATED] Use the `generate codegen` command instead. Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
+   generate codegen     -h, --help
+      Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
 
-  generate-repo           -h, --help
-    [DEPRECATED] Use the `generate repo` command instead. Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
+   generate repo        -h, --help
+      Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
 
-  generate-internal-docs  -h, --help
-    [DEPRECATED] Use the `generate docs` command instead. Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
+   generate xanoscript  -h, --help
+      Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
+
+   generate docs        -h, --help
+      Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
 
 
 Registry:
-  registry-add            -h, --help
-    [DEPRECATED] Use the `registry add` command instead. Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.
+   registry add         -h, --help
+      Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.
 
-  registry-scaffold       -h, --help
-    [DEPRECATED] Use the `registry scaffold` command instead. Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry item](https://calycode.com/schemas/registry/registry-item.json) schemas.
+   registry scaffold    -h, --help
+      Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry item](https://calycode.com/schemas/registry/registry-item.json) schemas.
 
 
-Backup & Restore:
-  export-backup           -h, --help
-    [DEPRECATED] Use the `backup export` command instead.
+Serve:
+   serve spec           -h, --help
+      Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.
 
-  restore-backup          -h, --help
-    [DEPRECATED] Use the `backup restore` command instead. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.
+   serve registry       -h, --help
+      Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.
+
+
+Backups:
+   backup export        -h, --help
+      Backup Xano Workspace via Metadata API
+
+   backup restore       -h, --help
+      Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.
 
 
 Testing & Linting:
-  run-test                -h, --help
-    [DEPRECATED] Use the `test run` command instead. Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json 
+   test run             -h, --help
+      Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json 
 
 
 Other:
-  current-context         -h, --help
-    [DEPRECATED] Use the `context show` command instead.
+   context show         -h, --help
+      Show the current known context.
 
 Need help? Visit https://github.com/calycode/xano-tools
 ```
