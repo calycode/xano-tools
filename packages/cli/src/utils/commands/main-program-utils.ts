@@ -186,8 +186,10 @@ function applyCustomHelpToAllCommands(cmd) {
       cmd.configureHelp({ formatHelp: customFormatHelp });
    }
 
-   for (const sub of cmd.commands) {
-      applyCustomHelpToAllCommands(sub);
+   if (cmd.commands && cmd.commands.length > 0) {
+      for (const sub of cmd.commands) {
+         applyCustomHelpToAllCommands(sub);
+      }
    }
 }
 
