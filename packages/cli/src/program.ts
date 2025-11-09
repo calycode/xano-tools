@@ -13,7 +13,10 @@ import { Caly } from '@calycode/core';
 import { InitializedPostHog } from './utils/posthog/init';
 import { nodeConfigStorage } from './node-config-storage';
 import { registerGenerateCommands } from './commands/generate';
-import { collectVisibleLeafCommands, getFullCommandPath } from './utils/commands/main-program-utils';
+import {
+   getFullCommandPath,
+   applyCustomHelpToAllCommands,
+} from './utils/commands/main-program-utils';
 
 const commandStartTimes = new WeakMap<Command, number>();
 
@@ -35,23 +38,23 @@ program.hook('preAction', (thisCommand, actionCommand) => {
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
-  const start = commandStartTimes.get(thisCommand);
-  if (!start) return;
-  const duration = ((Date.now() - start) / 1000).toFixed(2);
+   const start = commandStartTimes.get(thisCommand);
+   if (!start) return;
+   const duration = ((Date.now() - start) / 1000).toFixed(2);
 
-  const commandPath = getFullCommandPath(actionCommand);
+   const commandPath = getFullCommandPath(actionCommand);
 
-  console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
-  InitializedPostHog.captureImmediate({
-    distinctId: 'anonymous',
-    event: 'command_finished',
-    properties: {
-      $process_person_profile: false,
-      command: commandPath,
-      duration: duration,
-    },
-  });
-  InitializedPostHog.shutdown();
+   console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
+   InitializedPostHog.captureImmediate({
+      distinctId: 'anonymous',
+      event: 'command_finished',
+      properties: {
+         $process_person_profile: false,
+         command: commandPath,
+         duration: duration,
+      },
+   });
+   InitializedPostHog.shutdown();
 });
 
 program
@@ -95,102 +98,6 @@ registerTestCommands(program, core);
 registerContextCommands(program, core);
 
 // --- Custom Help Formatter ---
-program.configureHelp({
-   formatHelp(cmd, helper) {
-      // 1. Collect all visible leaf commands with their full paths
-      const allLeafCmds = collectVisibleLeafCommands(cmd);
-
-      // 2. For alignment: determine the longest command path string
-      const allNames = allLeafCmds.map((c) => c.path.join(' '));
-      const longestName = allNames.reduce((len, n) => Math.max(len, n.length), 0);
-      const pad = (str, len) => str + ' '.repeat(len - str.length);
-
-      // 3. Define your desired groups (with full string paths)
-      const groups = [
-         {
-            title: font.combo.boldCyan('Core Commands:'),
-            commands: ['init'],
-         },
-         {
-            title: font.combo.boldCyan('Generation Commands:'),
-            commands: [
-               'generate spec',
-               'generate codegen',
-               'generate repo',
-               'generate xanoscript',
-               'generate docs',
-            ],
-         },
-         {
-            title: font.combo.boldCyan('Registry:'),
-            commands: ['registry add', 'registry scaffold'],
-         },
-         {
-            title: font.combo.boldCyan('Serve:'),
-            commands: ['serve spec', 'serve registry'],
-         },
-         {
-            title: font.combo.boldCyan('Backups:'),
-            commands: ['backup export', 'backup restore'],
-         },
-         {
-            title: font.combo.boldCyan('Testing & Linting:'),
-            commands: ['test run'],
-         },
-         {
-            title: font.combo.boldCyan('Other:'),
-            commands: ['context show'],
-         },
-      ];
-
-      // 4. Map full path strings to command objects
-      const cmdMap = Object.fromEntries(allLeafCmds.map((c) => [c.path.join(' '), c]));
-
-      // 5. Track which commands are used
-      const used = new Set(groups.flatMap((g) => g.commands));
-      const ungrouped = allLeafCmds.map((c) => c.path.join(' ')).filter((name) => !used.has(name));
-
-      if (ungrouped.length) {
-         groups.push({
-            title: font.combo.boldCyan('Other:'),
-            commands: ungrouped,
-         });
-      }
-
-      // 6. Usage line
-      let output = [font.weight.bold(`\nUsage: xano <command> [options]\n`)];
-
-      // Banner and description
-      if (cmd.description()) {
-         output.push(cmd.description() + '\n');
-      }
-
-      // Options
-      output.push(font.weight.bold('Options:'));
-      output.push(
-         `  -v, --version   ${font.color.gray('output the version number')}\n` +
-            `  -h, --help      ${font.color.gray('display help for command')}\n`
-      );
-
-      // 7. Command Groups
-      for (const group of groups) {
-         output.push('\n' + group.title);
-         for (const cname of group.commands) {
-            const c = cmdMap[cname];
-            if (c) {
-               const opts = '  ' + font.color.gray('-h, --help');
-               output.push(
-                  `   ${font.weight.bold(font.color.yellowBright(pad(cname, longestName)))}${opts}\n      ${c.description}\n`
-               );
-            }
-         }
-      }
-
-      // Footer/help link
-      output.push(font.color.gray('Need help? Visit https://github.com/calycode/xano-tools\n'));
-
-      return output.join('\n');
-   },
-});
+applyCustomHelpToAllCommands(program);
 
 export { program };
