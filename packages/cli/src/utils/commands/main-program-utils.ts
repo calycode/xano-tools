@@ -20,7 +20,6 @@ function getFullCommandPath(cmd) {
 }
 
 function collectVisibleLeafCommands(cmd, parentPath = []) {
-   const isDeprecated = (c) => c.description && c.description().trim().startsWith('[DEPRECATED]');
    const path = [...parentPath, cmd.name()].filter((segment) => segment !== 'xano');
    let results = [];
 
