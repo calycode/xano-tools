@@ -9,14 +9,21 @@ $ xano context [options]
 ### context --help
 ```term
 $ xano context --help
-Usage: xano context [options] [command]
-
 Context related operations.
 
+Usage: xano context [options] [command]
+
 Options:
-  -h, --help      display help for command
+  -h, --help
+    display help for command
 
 Commands:
-  show            Show the current known context.
-  help [command]  display help for command
+  show
+    Show the current known context.
+
+  help
+    display help for command
+
+
+Need help? Visit https://github.com/calycode/xano-tools
 ```

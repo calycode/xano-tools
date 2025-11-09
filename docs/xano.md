@@ -17,7 +17,7 @@ Usage: xano <command> [options]
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
 
-Current version: 0.12.0
+Current version: 0.12.1
 
 Options:
   -v, --version   output the version number
@@ -30,20 +30,17 @@ Core Commands:
 
 
 Generation Commands:
-   generate spec        -h, --help
-      Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
-
    generate codegen     -h, --help
       Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
+
+   generate docs        -h, --help
+      Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
 
    generate repo        -h, --help
       Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
 
-   generate xanoscript  -h, --help
-      Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
-
-   generate docs        -h, --help
-      Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
+   generate spec        -h, --help
+      Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
 
 
 Registry:
@@ -76,8 +73,11 @@ Testing & Linting:
 
 
 Other:
+   generate xanoscript  -h, --help
+      Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
+
    context show         -h, --help
       Show the current known context.
 
-Need help? Visit https://github.com/calycode/xano-tools
+Need help? Visit https://github.com/calycode/xano-tools or reach out to us on https://links.calycode.com/discord
 ```
