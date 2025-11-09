@@ -2,4 +2,4 @@
 "@calycode/cli": patch
 ---
 
-chore: help command styling for easy scimming
+chore: help command styling for easy skimming

@@ -122,10 +122,6 @@ function customFormatHelpForRoot(cmd) {
          title: font.combo.boldCyan('Testing & Linting:'),
          commands: ['test run'],
       },
-      {
-         title: font.combo.boldCyan('Other:'),
-         commands: ['context show'],
-      },
    ];
 
    // 4. Map full path strings to command objects
