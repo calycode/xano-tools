@@ -17,16 +17,23 @@ $ xano serve registry [options]
 ### serve registry --help
 ```term
 $ xano serve registry --help
+Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.
+
 Usage: xano serve registry [options]
 
-Serve the registry locally. This allows you to actually use your registry
-without deploying it to any remote host.
-
 Options:
-  --root <path>    Where did you put your registry? (Local path to the registry
-                   directory)
-  --listen <port>  The port where you want your registry to be served locally.
-                   By default it is 5000.
-  --cors           Do you want to enable CORS? By default false.
-  -h, --help       display help for command
+  --root <path>
+    Where did you put your registry? (Local path to the registry directory)
+
+  --listen <port>
+    The port where you want your registry to be served locally. By default it is 5000.
+
+  --cors
+    Do you want to enable CORS? By default false.
+
+  -h, --help
+    display help for command
+
+
+Need help? Visit https://github.com/calycode/xano-tools
 ```
