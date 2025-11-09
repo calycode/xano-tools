@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.12.1
+
+### Patch Changes
+
+- da63b16: chore: help command styling for easy skimming
+
 ## 0.12.0
 
 ### Minor Changes
