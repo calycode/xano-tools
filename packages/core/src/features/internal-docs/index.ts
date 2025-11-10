@@ -21,6 +21,7 @@ const INTERNAL_DOCS_ASSETS = {
       :root {
          --theme-color: #1b62f8;
          --content-max-width: 104ch;
+         --content-margin-inline: 16px;
          --sidebar-toggle-alignment: start;
          /* start center end */
          --sidebar-toggle-bg: var(--color-mono-2);
