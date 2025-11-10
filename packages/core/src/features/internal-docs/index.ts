@@ -211,6 +211,13 @@ Docs powered by [Docsify](https:docsifyjs.org)
     `,
 };
 
+/**
+ * Remove leading "/src/" or "src/" from a URL or path, if present.
+ */
+function removeLeadingSrc(url: string): string {
+   return url.replace(/^(\.\/)?(\/?src\/)/, '/');
+}
+
 function capitalize(str: string) {
    return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -232,7 +239,7 @@ function generateAllFolderReadmes(paths: string[]): DocFile[] {
    const results: DocFile[] = [];
 
    for (const folder of allFolders) {
-      const readmePath = `${folder}/README.md`;
+      const readmePath = `${removeLeadingSrc(folder)}/README.md`;
       if (fileSet.has(readmePath.toLowerCase())) continue; // Already has a README
 
       // Find all direct children (folders or files, but not README.md itself)
@@ -250,9 +257,9 @@ function generateAllFolderReadmes(paths: string[]): DocFile[] {
 
       let md = `# ${folder.split('/').pop()}\n\n`;
       md += `˙\n\n > [!INFO|label:Description]\n> This is just a brief table of contents. See what's inside below:`;
-      md += `## Contents:\n\n`;
+      md += `\n\n## Contents:\n\n`;
       for (const child of children.sort()) {
-         md += `- [${child}](/${folder}/${child}/)\n`;
+         md += `- [${child}](/${removeLeadingSrc(folder)}/${child}/)\n`;
       }
       results.push({ path: readmePath, content: md });
    }
