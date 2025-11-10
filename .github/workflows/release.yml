@@ -46,21 +46,8 @@ jobs:
            uses: changesets/action@v1
            with:
               commit: "changeset-release"
-              title: "Release Version"
+              title: "Release Version [@coderabbitai ignore]"
               publish: pnpm -r publish
            env:
               GITHUB_TOKEN: ${{ secrets.CHANGESETS_GH_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-         - name: Log Changesets outputs
-           run: |
-              echo "published: ${{ steps.changesets.outputs.published }}"
-              echo "publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}"
-              echo "hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}"
-
-         # Upload docs to GCP ONLY after publishing
-         - name: Upload docs
-           if: steps.changesets.outputs.published == 'true'
-           uses: "./.github/actions/upload-docs"
-           with:
-              gcp_credentials: "${{ secrets.GCP_CREDENTIALS }}"
