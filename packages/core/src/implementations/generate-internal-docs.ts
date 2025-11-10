@@ -23,29 +23,53 @@ function removeLeadingSrc(url: string): string {
    return url.replace(/^\/?src\//, '/');
 }
 
+function getParentDir(path: string): string {
+   // Remove trailing slash if present
+   path = path.replace(/\/$/, '');
+   // Remove last segment (file or directory)
+   const parts = path.split('/');
+   parts.pop();
+   return parts.join('/');
+}
+
 /**
  * Fix links in markdown content:
  * - Normalizes dynamic segments in the URL.
  * - Removes leading "src/" or "/src/" from the URL.
  * - Adjusts links to README.md and directories for Docsify.
+ * - Replaces leading './' in links with the parent directory of current_path.
  */
-function fixMarkdownLinks(content: string, allPaths: string[]): string {
+function fixMarkdownLinks(content: string, current_path: string, allPaths: string[]): string {
+   const parentDir = getParentDir(current_path);
+
    return content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
       let cleanUrl = url.replace(/\\/g, '/');
+
+      // Magic: Replace leading './' with parentDir if present
+      if (cleanUrl.startsWith('./')) {
+         cleanUrl = (parentDir ? parentDir + '/' : '') + cleanUrl.slice(2);
+         // Remove possible double slashes
+         cleanUrl = cleanUrl.replace(/\/{2,}/g, '/');
+      }
+
       cleanUrl = removeLeadingSrc(cleanUrl);
       cleanUrl = normalizeDynamicSegments(cleanUrl);
 
       // Handle links to README.md
       if (cleanUrl.endsWith('/README.md')) {
          cleanUrl = cleanUrl.replace(/README\.md$/, '');
-         if (!cleanUrl.endsWith('/')) cleanUrl += '/';
+         if (cleanUrl === '') {
+            cleanUrl = '/';
+         } else if (!cleanUrl.endsWith('/')) {
+            cleanUrl += '/';
+         }
       } else if (
          allPaths.includes(joinPath(cleanUrl, 'README.md')) ||
          allPaths.includes(cleanUrl + '/README.md')
       ) {
-         // If it's a folder, ensure trailing slash
          if (!cleanUrl.endsWith('/')) cleanUrl += '/';
       }
+
       // Remove double slashes except for protocol (e.g., http://)
       cleanUrl = cleanUrl.replace(/([^:]\/)\/+/g, '$1');
       return `[${text}](${cleanUrl})`;
@@ -95,7 +119,7 @@ async function generateInternalDocsImplementation({
    // Now process content with all link fixes
    const processedMarkdownItems = markdownItems.map((item) => ({
       ...item,
-      content: fixDynamicLinksInMarkdown(fixMarkdownLinks(item.content, allPaths)),
+      content: fixDynamicLinksInMarkdown(fixMarkdownLinks(item.content, item.path, allPaths)),
    }));
 
    const generatedReadmes = generateAllFolderReadmes(allPaths);
