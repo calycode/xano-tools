@@ -212,18 +212,35 @@ Docs powered by [Docsify](https:docsifyjs.org)
 };
 
 /**
- * Remove leading "/src/" or "src/" from a URL or path, if present.
+ * Normalize a path by replacing an initial "./", "src/", or "/src/" segment with a single leading "/".
+ *
+ * @param url - The URL or filesystem path to normalize; may start with "./", "src/", or "/src/".
+ * @returns The input path with a leading "./", "src/", or "/src/" replaced by "/" (otherwise returns the original string).
  */
 function removeLeadingSrc(url: string): string {
    return url.replace(/^(\.\/)?(\/?src\/)/, '/');
 }
 
+/**
+ * Capitalizes the first character of the given string.
+ *
+ * @param str - The input string; if empty, the empty string is returned.
+ * @returns The input string with its first character converted to uppercase.
+ */
 function capitalize(str: string) {
    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 type DocFile = { path: string; content: string };
 
+/**
+ * Generate README.md files for folders that do not already contain a README, based on the provided file paths.
+ *
+ * Each generated README lists the folder's direct children (subfolders or files) as a simple contents section.
+ *
+ * @param paths - Array of file paths used to infer folder structure
+ * @returns An array of DocFile objects, each with `path` set to the new README path and `content` containing the generated Markdown for that folder
+ */
 function generateAllFolderReadmes(paths: string[]): DocFile[] {
    const fileSet = new Set(paths.map((p) => p.toLowerCase()));
    const folderSet = new Set<string>();
