@@ -21,6 +21,7 @@ const INTERNAL_DOCS_ASSETS = {
       :root {
          --theme-color: #1b62f8;
          --content-max-width: 104ch;
+         --content-margin-inline: 16px;
          --sidebar-toggle-alignment: start;
          /* start center end */
          --sidebar-toggle-bg: var(--color-mono-2);
@@ -210,12 +211,36 @@ Docs powered by [Docsify](https:docsifyjs.org)
     `,
 };
 
+/**
+ * Normalize a path by replacing an initial "./", "src/", or "/src/" segment with a single leading "/".
+ *
+ * @param url - The URL or filesystem path to normalize; may start with "./", "src/", or "/src/".
+ * @returns The input path with a leading "./", "src/", or "/src/" replaced by "/" (otherwise returns the original string).
+ */
+function removeLeadingSrc(url: string): string {
+   return url.replace(/^(\.\/)?(\/?src\/)/, '/');
+}
+
+/**
+ * Capitalizes the first character of the given string.
+ *
+ * @param str - The input string; if empty, the empty string is returned.
+ * @returns The input string with its first character converted to uppercase.
+ */
 function capitalize(str: string) {
    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 type DocFile = { path: string; content: string };
 
+/**
+ * Generate README.md files for folders that do not already contain a README, based on the provided file paths.
+ *
+ * Each generated README lists the folder's direct children (subfolders or files) as a simple contents section.
+ *
+ * @param paths - Array of file paths used to infer folder structure
+ * @returns An array of DocFile objects, each with `path` set to the new README path and `content` containing the generated Markdown for that folder
+ */
 function generateAllFolderReadmes(paths: string[]): DocFile[] {
    const fileSet = new Set(paths.map((p) => p.toLowerCase()));
    const folderSet = new Set<string>();
@@ -231,7 +256,7 @@ function generateAllFolderReadmes(paths: string[]): DocFile[] {
    const results: DocFile[] = [];
 
    for (const folder of allFolders) {
-      const readmePath = `${folder}/README.md`;
+      const readmePath = `${removeLeadingSrc(folder)}/README.md`;
       if (fileSet.has(readmePath.toLowerCase())) continue; // Already has a README
 
       // Find all direct children (folders or files, but not README.md itself)
@@ -249,9 +274,9 @@ function generateAllFolderReadmes(paths: string[]): DocFile[] {
 
       let md = `# ${folder.split('/').pop()}\n\n`;
       md += `˙\n\n > [!INFO|label:Description]\n> This is just a brief table of contents. See what's inside below:`;
-      md += `## Contents:\n\n`;
+      md += `\n\n## Contents:\n\n`;
       for (const child of children.sort()) {
-         md += `- [${child}](/${folder}/${child}/)\n`;
+         md += `- [${child}](/${removeLeadingSrc(folder)}/${child}/)\n`;
       }
       results.push({ path: readmePath, content: md });
    }

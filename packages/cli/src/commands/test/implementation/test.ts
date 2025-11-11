@@ -1,4 +1,5 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { intro, log, spinner } from '@clack/prompts';
 import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
@@ -8,6 +9,17 @@ import {
    resolveConfigs,
 } from '../../../utils/index';
 
+/**
+ * Prints a formatted summary table of test outcomes to the log.
+ *
+ * Logs a header, one row per result showing status, HTTP method, path, and duration, and a final summary line with totals and aggregate duration.
+ *
+ * @param results - Array of test result objects. Each object should include:
+ *   - `success` (boolean): whether the test passed,
+ *   - `method` (string): HTTP method used,
+ *   - `path` (string): endpoint path,
+ *   - `duration` (number, optional): duration of the test in milliseconds
+ */
 function printTestSummary(results) {
    const total = results.length;
    const succeeded = results.filter((r) => r.success).length;
@@ -40,6 +52,40 @@ function printTestSummary(results) {
    );
 }
 
+/**
+ * Load a test configuration from a file path supporting `.json`, `.js`, and `.ts` files.
+ *
+ * For `.json` files the content is read and parsed as JSON. For `.js` and `.ts` files the module is required and the `default` export is returned if present, otherwise the module itself is returned.
+ *
+ * @param testConfigPath - Filesystem path to the test configuration file
+ * @returns The loaded test configuration object
+ * @throws Error if the file extension is not `.json`, `.js`, or `.ts`
+ */
+async function loadTestConfig(testConfigPath) {
+   const ext = path.extname(testConfigPath).toLowerCase();
+   if (ext === '.json') {
+      const content = await readFile(testConfigPath, 'utf8');
+      return JSON.parse(content);
+   } else if (ext === '.js') {
+      const config = require(path.resolve(testConfigPath));
+      return config.default || config;
+   } else {
+      throw new Error('Unsupported test config file type.');
+   }
+}
+
+/**
+ * Runs API tests for selected API groups using a provided test configuration and writes per-group results to disk.
+ *
+ * @param instance - Name or alias of the target instance
+ * @param workspace - Workspace name within the instance
+ * @param branch - Branch label within the workspace
+ * @param group - Specific API group name to run; when omitted and `isAll` is false the user may be prompted
+ * @param testConfigPath - Filesystem path to the test configuration file (supported: .json, .js, .ts)
+ * @param isAll - If true, run tests for all API groups without prompting
+ * @param printOutput - If true, display the output directory path after writing results
+ * @param core - Runtime provider exposing `loadToken` and `runTests` used to execute tests and load credentials
+ */
 async function runTest({
    instance,
    workspace,
@@ -80,8 +126,7 @@ async function runTest({
 
    // Take the core implementation for test running:
    // for now testconfig has to exist on the machine prior to running the tests.
-   const testConfigFileContent = await readFile(testConfigPath, { encoding: 'utf-8' });
-   const testConfig = JSON.parse(testConfigFileContent);
+   const testConfig = await loadTestConfig(testConfigPath);
    const s = spinner();
    s.start('Running tests based on the provided spec');
    const testResults = await core.runTests({
