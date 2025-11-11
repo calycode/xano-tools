@@ -1,5 +1,15 @@
 # @calycode/xano-cli
 
+## 0.13.0
+
+### Minor Changes
+
+- e16f667: feat: processing js and json testconfig files as well to allow advanced asserts
+
+### Patch Changes
+
+- be43c27: fix: minor fixes for the internal documentation generation
+
 ## 0.12.1
 
 ### Patch Changes
