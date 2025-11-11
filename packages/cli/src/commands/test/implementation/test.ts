@@ -1,4 +1,5 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { intro, log, spinner } from '@clack/prompts';
 import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
@@ -38,6 +39,25 @@ function printTestSummary(results) {
  Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Total Duration: ${totalDuration} ms
  ${'-'.repeat(60)}`
    );
+}
+
+/**
+ * Load and prepare the test config, either from a .json file or a .js file.
+ * If test config is written in .js, then custom asserts are also allowed and possible (useful for advance cases).
+ * @param {string} testConfigPath - where's the testconfig that we want to use?
+ * @returns
+ */
+async function loadTestConfig(testConfigPath) {
+   const ext = path.extname(testConfigPath).toLowerCase();
+   if (ext === '.json') {
+      const content = await readFile(testConfigPath, 'utf8');
+      return JSON.parse(content);
+   } else if (ext === '.js' || ext === '.ts') {
+      const config = require(path.resolve(testConfigPath));
+      return config.default || config;
+   } else {
+      throw new Error('Unsupported test config file type.');
+   }
 }
 
 async function runTest({
@@ -80,8 +100,7 @@ async function runTest({
 
    // Take the core implementation for test running:
    // for now testconfig has to exist on the machine prior to running the tests.
-   const testConfigFileContent = await readFile(testConfigPath, { encoding: 'utf-8' });
-   const testConfig = JSON.parse(testConfigFileContent);
+   const testConfig = await loadTestConfig(testConfigPath);
    const s = spinner();
    s.start('Running tests based on the provided spec');
    const testResults = await core.runTests({
