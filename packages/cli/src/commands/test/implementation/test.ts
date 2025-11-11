@@ -9,6 +9,17 @@ import {
    resolveConfigs,
 } from '../../../utils/index';
 
+/**
+ * Prints a formatted summary table of test outcomes to the log.
+ *
+ * Logs a header, one row per result showing status, HTTP method, path, and duration, and a final summary line with totals and aggregate duration.
+ *
+ * @param results - Array of test result objects. Each object should include:
+ *   - `success` (boolean): whether the test passed,
+ *   - `method` (string): HTTP method used,
+ *   - `path` (string): endpoint path,
+ *   - `duration` (number, optional): duration of the test in milliseconds
+ */
 function printTestSummary(results) {
    const total = results.length;
    const succeeded = results.filter((r) => r.success).length;
@@ -42,10 +53,13 @@ function printTestSummary(results) {
 }
 
 /**
- * Load and prepare the test config, either from a .json file or a .js file.
- * If test config is written in .js, then custom asserts are also allowed and possible (useful for advance cases).
- * @param {string} testConfigPath - where's the testconfig that we want to use?
- * @returns
+ * Load a test configuration from a file path supporting `.json`, `.js`, and `.ts` files.
+ *
+ * For `.json` files the content is read and parsed as JSON. For `.js` and `.ts` files the module is required and the `default` export is returned if present, otherwise the module itself is returned.
+ *
+ * @param testConfigPath - Filesystem path to the test configuration file
+ * @returns The loaded test configuration object
+ * @throws Error if the file extension is not `.json`, `.js`, or `.ts`
  */
 async function loadTestConfig(testConfigPath) {
    const ext = path.extname(testConfigPath).toLowerCase();
@@ -60,6 +74,18 @@ async function loadTestConfig(testConfigPath) {
    }
 }
 
+/**
+ * Runs API tests for selected API groups using a provided test configuration and writes per-group results to disk.
+ *
+ * @param instance - Name or alias of the target instance
+ * @param workspace - Workspace name within the instance
+ * @param branch - Branch label within the workspace
+ * @param group - Specific API group name to run; when omitted and `isAll` is false the user may be prompted
+ * @param testConfigPath - Filesystem path to the test configuration file (supported: .json, .js, .ts)
+ * @param isAll - If true, run tests for all API groups without prompting
+ * @param printOutput - If true, display the output directory path after writing results
+ * @param core - Runtime provider exposing `loadToken` and `runTests` used to execute tests and load credentials
+ */
 async function runTest({
    instance,
    workspace,
