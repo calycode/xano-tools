@@ -52,7 +52,7 @@ async function loadTestConfig(testConfigPath) {
    if (ext === '.json') {
       const content = await readFile(testConfigPath, 'utf8');
       return JSON.parse(content);
-   } else if (ext === '.js' || ext === '.ts') {
+   } else if (ext === '.js') {
       const config = require(path.resolve(testConfigPath));
       return config.default || config;
    } else {
