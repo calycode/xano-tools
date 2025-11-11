@@ -1,5 +1,11 @@
 # @calycode/caly-core
 
+## 0.10.1
+
+### Patch Changes
+
+- be43c27: fix: minor fixes for the internal documentation generation
+
 ## 0.10.0
 
 ### Minor Changes
