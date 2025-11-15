@@ -13,6 +13,8 @@ $ xano init [options]
 **Description:** Instance base URL (for non-interactive setup)
 #### --token <token>
 **Description:** Metadata API token (for non-interactive setup)
+#### --directory <directory>
+**Description:** Directory where to init the repo (for non-interactive setup)
 #### --no-set-current
 **Description:** Flag to not set this instance as the current context, by default it is set.
 
@@ -32,6 +34,9 @@ Options:
 
   --token <token>
     Metadata API token (for non-interactive setup)
+
+  --directory <directory>
+    Directory where to init the repo (for non-interactive setup)
 
   --no-set-current
     Flag to not set this instance as the current context, by default it is set.
