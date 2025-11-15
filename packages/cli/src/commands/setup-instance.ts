@@ -82,6 +82,10 @@ export function registerInitCommand(program, core) {
       .option('--url <url>', 'Instance base URL (for non-interactive setup)')
       .option('--token <token>', 'Metadata API token (for non-interactive setup)')
       .option(
+         '--directory <directory>',
+         'Directory where to init the repo (for non-interactive setup)'
+      )
+      .option(
          '--no-set-current',
          'Flag to not set this instance as the current context, by default it is set.'
       )
@@ -90,8 +94,13 @@ export function registerInitCommand(program, core) {
             ensureGitignore();
             if (opts.name && opts.url && opts.token) {
                // Non-interactive mode for CI/CD
+               let targetDir = `${process.cwd()}/xano`;
+               if (opts.directory) {
+                  targetDir = opts.directory;
+               }
                await core.setupInstance({
                   name: opts.name,
+                  projectRoot: targetDir,
                   url: opts.url,
                   apiKey: opts.token,
                   setAsCurrent: opts.setCurrent,
