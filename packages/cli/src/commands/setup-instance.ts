@@ -94,13 +94,19 @@ export function registerInitCommand(program, core) {
             ensureGitignore();
             if (opts.name && opts.url && opts.token) {
                // Non-interactive mode for CI/CD
-               let targetDir = `${process.cwd()}/xano`;
+               let userDirectory;
                if (opts.directory) {
-                  targetDir = opts.directory;
+                  opts.directory.trim();
+                  if (opts.directory === '.') {
+                     userDirectory = process.cwd();
+                  }
+               } else {
+                  userDirectory = 'xano';
                }
+
                await core.setupInstance({
                   name: opts.name,
-                  projectRoot: targetDir,
+                  projectRoot: userDirectory,
                   url: opts.url,
                   apiKey: opts.token,
                   setAsCurrent: opts.setCurrent,
