@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.13.2
+
+### Patch Changes
+
+- 37886c4: fix: issue with init command in non-interactive environment
+
 ## 0.13.1
 
 ### Patch Changes
