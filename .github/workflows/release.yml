@@ -6,6 +6,11 @@ on:
       branches:
          - main
 
+# Set up for Trusted Publishing by NPM
+permissions: 
+   id-token: write
+   contents: read
+
 jobs:
    release:
       if: github.repository == 'calycode/xano-tools' && github.repository_owner == 'calycode'
