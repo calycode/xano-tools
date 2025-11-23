@@ -7,10 +7,16 @@
             "type": "string"
         },
         "homepage": {
+            "type": "string",
+            "format": "uri"
+        },
+        "description": {
             "type": "string"
         },
         "items": {
             "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
             "items": {
                 "$ref": "https://calycode.com/schemas/registry/registry-item.json"
             }
@@ -20,7 +26,5 @@
         "name",
         "homepage",
         "items"
-    ],
-    "uniqueItems": true,
-    "minItems": 1
+    ]
 }

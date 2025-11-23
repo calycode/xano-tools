@@ -6,7 +6,6 @@ async function ensureDirForFile(filePath: string) {
    await mkdir(dir, { recursive: true });
 }
 
-// [ ] CLI
 async function scaffoldRegistry(
    { registryRoot }: { registryRoot?: string } = {
       registryRoot: 'registry',
@@ -49,7 +48,6 @@ async function scaffoldRegistry(
          {
             path: `${componentsRoot}/functions/${functionFileName}`,
             type: 'registry:function',
-            target: `/caly/${functionName}`,
          },
       ],
    };

@@ -32,28 +32,9 @@
             ],
             "description": "The type of the item. This is used to determine the type and target path of the item when resolved for a Xano instance."
         },
-        "description": {
-            "type": "string",
-            "description": "The description of the item. This is used to provide a **brief** overview of the item."
-        },
-        "title": {
-            "type": "string",
-            "description": "The human-readable title for your registry item. Keep it short and descriptive. This can be used for searching or selecting in the CLI."
-        },
-        "author": {
-            "type": "string",
-            "description": "The author of the item. Recommended format: username \u003Curl\u003E"
-        },
-        "registryDependencies": {
-            "type": "array",
-            "description": "An array of registry items that this item depends on. Use the name of the item to reference it. Referencing items in external registries is NOT supported.",
-            "items": {
-                "type": "string"
-            }
-        },
         "files": {
             "type": "array",
-            "description": "The main payload of the registry item. This is an array of files that are part of the registry item. Each file is an object with a path, content, type, and target.",
+            "description": "The main payload of the registry item. This is an array of files that are part of the registry item. Each file is an object with a path, content, type.",
             "items": {
                 "type": "object",
                 "properties": {
@@ -63,7 +44,7 @@
                     },
                     "content": {
                         "type": "string",
-                        "description": "The content of the file. Optional."
+                        "description": "The content of the file. Optional, in case of Xano it can be the text representation of a .xs file."
                     },
                     "type": {
                         "type": "string",
@@ -86,25 +67,25 @@
                             "registry:realtime/trigger",
                             "registry:test",
                             "registry:snippet",
-                            "registry:file",
                             "registry:item"
                         ],
                         "description": "The type of the file. This is used to determine the type of the file when resolved for a Xano instance and is also used to determine the required Metadata API path for resolution."
                     },
-                    "target": {
-                        "type": "string",
-                        "description": "The target path of the file. This is the path to the file in the project."
-                    },
-                    "api-group-name": {
+                    "apiGroupName": {
                         "type": "string",
                         "description": "The name of the api group into which a specific registry:query should be added. Only required for registry:query."
+                    },
+                    "meta": {
+                        "type": "object",
+                        "description": "Additional metadata for the registry item's component. This is an object with any key value pairs. Put here anything that Xano can meaningfully accept or that helps you identify the current item. e.g. updated_at or similar.",
+                        "additionalProperties": true
                     }
                 },
                 "if": {
                     "properties": {
                         "type": {
                             "enum": [
-                                "registry:file"
+                                "registry:query"
                             ]
                         }
                     }
@@ -113,54 +94,60 @@
                     "required": [
                         "path",
                         "type",
-                        "target"
+                        "apiGroupName"
                     ]
                 },
                 "else": {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "enum": [
-                                    "registry:query"
-                                ]
-                            }
-                        }
-                    },
-                    "then": {
-                        "required": [
-                            "path",
-                            "type",
-                            "api-group-name"
-                        ]
-                    },
-                    "else": {
-                        "required": [
-                            "path",
-                            "type"
-                        ]
-                    }
-                }
-            },
-            "meta": {
-                "type": "object",
-                "description": "Additional metadata for the registry item. This is an object with any key value pairs. Put here anything that Xano can meaningfully accept or that helps you identify the current item. e.g. updated_at or similar.",
-                "additionalProperties": true
-            },
-            "docs": {
-                "type": "string",
-                "description": "The documentation for the registry item. This is a markdown string."
-            },
-            "categories": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "description": "The categories of the registry item. This is an array of strings. Helps in search and categorisation."
+                    "required": [
+                        "path",
+                        "type"
+                    ]
                 }
             }
+        },
+        "description": {
+            "type": "string",
+            "description": "The description of the item. This is used to provide a **brief** overview of the item."
+        },
+        "docs": {
+            "type": "string",
+            "description": "The documentation for the registry item. This is a markdown string. This can be a longer explanation of how to use the item, or can have embedded images / videos etc, in the registry preview, will be rendered with Docsify."
+        },
+        "postInstallHint": {
+            "type": "string",
+            "description": "A short hint that will be presented in the console, after installing this component. Useful to take notes of variables or required customizations to make a registry item work smoothly."
+        },
+        "title": {
+            "type": "string",
+            "description": "The human-readable title for your registry item. Keep it short and descriptive. This can be used for searching or selecting in the CLI."
+        },
+        "author": {
+            "type": "string",
+            "description": "The author of the item. Recommended format: username \u003Curl\u003E"
+        },
+        "registryDependencies": {
+            "type": "array",
+            "description": "An array of registry items that this item depends on. Use the name of the item to reference it. Referencing items in external registries is NOT supported.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "categories": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "description": "The categories of the registry item. This is an array of strings. Helps in search and categorisation."
+            }
+        },
+        "meta": {
+            "type": "object",
+            "description": "Additional metadata for the registry item. This is an object with any key value pairs. Put here extra content, that you consider useful in making this registry item be easy to understand.",
+            "additionalProperties": true
         }
     },
     "required": [
         "name",
-        "type"
+        "type",
+        "files"
     ]
 }

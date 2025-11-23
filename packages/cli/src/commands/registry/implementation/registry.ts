@@ -61,21 +61,21 @@ async function addToXano({
             if (installResult.success) {
                results.installed.push({
                   component: componentName,
-                  file: file.target || file.path,
+                  file: file.path,
                   response: installResult.body,
                });
             } else if (installResult.body && isAlreadyExistsError(installResult.body)) {
                // Skipped due to already existing
                results.skipped.push({
                   component: componentName,
-                  file: file.target || file.path,
+                  file: file.path,
                   error: installResult.body.message,
                });
             } else {
                // Other failures
                results.failed.push({
                   component: componentName,
-                  file: file.target || file.path,
+                  file: file.path,
                   error: installResult.error || 'Installation failed',
                   response: installResult.body,
                });
@@ -107,7 +107,7 @@ async function installComponentToXano(file, resolvedContext, core) {
    // For types that require dynamic IDs, resolve them first
    if (file.type === 'registry:query') {
       const targetApiGroup = await getApiGroupByName(
-         file['api-group-name'],
+         file.apiGroupName,
          { instanceConfig, workspaceConfig, branchConfig },
          core
       );
