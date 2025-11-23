@@ -24,6 +24,13 @@ function isAlreadyExistsError(errorObj: any): boolean {
    );
 }
 
+/**
+ * Adds one or more registry components to a Xano instance, attempting to install each component file and collecting success, skip, and failure outcomes.
+ *
+ * @param componentNames - Registry component names to install; if empty, the user will be prompted to select components.
+ * @param context - CLI context used to resolve instance, workspace, and branch configuration; defaults to an empty object.
+ * @returns An object with `installed` (entries with `component`, `file` path, and `response`), `failed` (entries with `component`, `file`, `error`, and optional `response`), and `skipped` (entries for items skipped because the resource already exists).
+ */
 async function addToXano({
    componentNames,
    context = {},
@@ -61,21 +68,21 @@ async function addToXano({
             if (installResult.success) {
                results.installed.push({
                   component: componentName,
-                  file: file.target || file.path,
+                  file: file.path,
                   response: installResult.body,
                });
             } else if (installResult.body && isAlreadyExistsError(installResult.body)) {
                // Skipped due to already existing
                results.skipped.push({
                   component: componentName,
-                  file: file.target || file.path,
+                  file: file.path,
                   error: installResult.body.message,
                });
             } else {
                // Other failures
                results.failed.push({
                   component: componentName,
-                  file: file.target || file.path,
+                  file: file.path,
                   error: installResult.error || 'Installation failed',
                   response: installResult.body,
                });
@@ -93,12 +100,11 @@ async function addToXano({
 }
 
 /**
- * Installs a component file to Xano.
+ * Install a single component file into the configured Xano instance.
  *
- * @param {Object} file - The component file metadata.
- * @param {Object} resolvedContext - The resolved context configs.
- * @param {any} core - Core utilities.
- * @returns {Promise<{ success: boolean, error?: string, body?: any }>}
+ * @param file - Component file metadata (e.g., `type`, `path`, `target`, and for query files `apiGroupName`) that identifies what to install and where.
+ * @param resolvedContext - Resolved configuration objects: `instanceConfig`, `workspaceConfig`, and `branchConfig`.
+ * @returns An object with `success: true` and the parsed response `body` on success; on failure `success: false` and `error` contains a human-readable message, `body` may include the raw response when available.
  */
 async function installComponentToXano(file, resolvedContext, core) {
    const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
@@ -107,7 +113,7 @@ async function installComponentToXano(file, resolvedContext, core) {
    // For types that require dynamic IDs, resolve them first
    if (file.type === 'registry:query') {
       const targetApiGroup = await getApiGroupByName(
-         file['api-group-name'],
+         file.apiGroupName,
          { instanceConfig, workspaceConfig, branchConfig },
          core
       );

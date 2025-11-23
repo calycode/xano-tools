@@ -10,46 +10,101 @@ import {
 } from '../../../utils/index';
 
 /**
- * Prints a formatted summary table of test outcomes to the log.
+ * Print a formatted table of test outcomes and an optional detailed warnings section to the log.
  *
- * Logs a header, one row per result showing status, HTTP method, path, and duration, and a final summary line with totals and aggregate duration.
+ * The table includes columns for status, HTTP method, path, warnings count, and duration (ms),
+ * followed by an aggregate summary line with total, passed, failed, and total duration.
  *
  * @param results - Array of test result objects. Each object should include:
- *   - `success` (boolean): whether the test passed,
- *   - `method` (string): HTTP method used,
- *   - `path` (string): endpoint path,
- *   - `duration` (number, optional): duration of the test in milliseconds
+ *   - `success`: whether the test passed
+ *   - `method`: HTTP method used for the test
+ *   - `path`: endpoint path exercised by the test
+ *   - `duration` (optional): duration of the test in milliseconds
+ *   - `warnings` (optional): array of warning objects; each warning should include `key` and `message`
  */
 function printTestSummary(results) {
+   // Collect all rows for sizing
+   const rows = results.map((r) => {
+      const status = r.success ? '✅' : '❌';
+      const method = r.method || '';
+      const path = r.path || '';
+      const warningsCount = r.warnings && Array.isArray(r.warnings) ? r.warnings.length : 0;
+      const duration = (r.duration || 0).toString();
+      return { status, method, path, warnings: warningsCount.toString(), duration };
+   });
+
+   // Calculate max width for each column (including header)
+   const headers = {
+      status: 'Status',
+      method: 'Method',
+      path: 'Path',
+      warnings: 'Warnings',
+      duration: 'Duration (ms)',
+   };
+
+   const colWidths = {
+      status: Math.max(headers.status.length, ...rows.map((r) => r.status.length)),
+      method: Math.max(headers.method.length, ...rows.map((r) => r.method.length)),
+      path: Math.max(headers.path.length, ...rows.map((r) => r.path.length)),
+      warnings: Math.max(headers.warnings.length, ...rows.map((r) => r.warnings.length)),
+      duration: Math.max(headers.duration.length, ...rows.map((r) => r.duration.length)),
+   };
+
+   // Helper to pad cell
+   const pad = (str, len) => str.padEnd(len);
+
+   const sepLine = '-'.repeat(
+      colWidths.status +
+         colWidths.method +
+         colWidths.path +
+         colWidths.warnings +
+         colWidths.duration +
+         13
+   );
+
+   // Header
+   log.message(`${'='.repeat(sepLine.length)}
+ Test Results Summary
+ ${sepLine}
+ ${pad(headers.status, colWidths.status)} | ${pad(headers.method, colWidths.method)} | ${pad(
+      headers.path,
+      colWidths.path
+   )} | ${pad(headers.warnings, colWidths.warnings)} | ${pad(headers.duration, colWidths.duration)}
+ ${sepLine}`);
+
+   // Rows
+   for (const r of rows) {
+      log.message(
+         `${pad(r.status, colWidths.status)} | ${pad(r.method, colWidths.method)} | ${pad(
+            r.path,
+            colWidths.path
+         )} | ${pad(r.warnings, colWidths.warnings)} | ${pad(r.duration, colWidths.duration)}`
+      );
+   }
+
+   // Summary
    const total = results.length;
    const succeeded = results.filter((r) => r.success).length;
    const failed = total - succeeded;
    const totalDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0);
 
-   // Table header
    log.message(
-      `${'='.repeat(60)}
- Test Results Summary
- ${'-'.repeat(60)}
- ${'Status'.padEnd(4)} | ${'Method'.padEnd(6)} | ${'Path'.padEnd(24)} | ${'Duration (ms)'}
- ${'-'.repeat(60)}`
-   );
-
-   // Table rows
-   for (const r of results) {
-      const status = r.success ? '✅' : '❌';
-      log.message(
-         `${status.padEnd(4)} | ${r.method.padEnd(6)} | ${r.path.padEnd(24)} | ${(
-            r.duration || 0
-         ).toString()}`
-      );
-   }
-
-   log.message(
-      `${'-'.repeat(60)}
+      `${sepLine}
  Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Total Duration: ${totalDuration} ms
- ${'-'.repeat(60)}`
+ ${sepLine}`
    );
+
+   // Print out the warnings list:
+   const testsWithWarnings = results.filter((r) => r.warnings && r.warnings.length > 0);
+   if (testsWithWarnings.length > 0) {
+      log.message('\nWarnings details:');
+      for (const r of testsWithWarnings) {
+         log.message(`- ${r.method} ${r.path}:`);
+         for (const warn of r.warnings) {
+            log.message(`    [${warn.key}] ${warn.message}`);
+         }
+      }
+   }
 }
 
 /**
@@ -75,9 +130,13 @@ async function loadTestConfig(testConfigPath) {
 }
 
 /**
- * Runs API tests for selected API groups using a provided test configuration and writes per-group results to disk.
+ * Run API tests for selected API groups, write per-group JSON results to disk, and print a formatted summary.
  *
- * @param instance - Name or alias of the target instance
+ * Resolves the target instance/workspace/branch, selects API groups (optionally prompting), loads the test
+ * configuration, executes tests via the provided runtime `core`, writes each group's results to a timestamped
+ * JSON file under the configured output path, and prints a summary table and optional output directory path.
+ *
+ * @param instance - Target instance name or alias used to resolve configuration
  * @param workspace - Workspace name within the instance
  * @param branch - Branch label within the workspace
  * @param group - Specific API group name to run; when omitted and `isAll` is false the user may be prompted
