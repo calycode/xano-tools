@@ -21,35 +21,88 @@ import {
  *   - `duration` (number, optional): duration of the test in milliseconds
  */
 function printTestSummary(results) {
+   // Collect all rows for sizing
+   const rows = results.map((r) => {
+      const status = r.success ? '✅' : '❌';
+      const method = r.method || '';
+      const path = r.path || '';
+      const warningsCount = r.warnings && Array.isArray(r.warnings) ? r.warnings.length : 0;
+      const duration = (r.duration || 0).toString();
+      return { status, method, path, warnings: warningsCount.toString(), duration };
+   });
+
+   // Calculate max width for each column (including header)
+   const headers = {
+      status: 'Status',
+      method: 'Method',
+      path: 'Path',
+      warnings: 'Warnings',
+      duration: 'Duration (ms)',
+   };
+
+   const colWidths = {
+      status: Math.max(headers.status.length, ...rows.map((r) => r.status.length)),
+      method: Math.max(headers.method.length, ...rows.map((r) => r.method.length)),
+      path: Math.max(headers.path.length, ...rows.map((r) => r.path.length)),
+      warnings: Math.max(headers.warnings.length, ...rows.map((r) => r.warnings.length)),
+      duration: Math.max(headers.duration.length, ...rows.map((r) => r.duration.length)),
+   };
+
+   // Helper to pad cell
+   const pad = (str, len) => str.padEnd(len);
+
+   const sepLine = '-'.repeat(
+      colWidths.status +
+         colWidths.method +
+         colWidths.path +
+         colWidths.warnings +
+         colWidths.duration +
+         13
+   );
+
+   // Header
+   log.message(`${'='.repeat(sepLine.length)}
+ Test Results Summary
+ ${sepLine}
+ ${pad(headers.status, colWidths.status)} | ${pad(headers.method, colWidths.method)} | ${pad(
+      headers.path,
+      colWidths.path
+   )} | ${pad(headers.warnings, colWidths.warnings)} | ${pad(headers.duration, colWidths.duration)}
+ ${sepLine}`);
+
+   // Rows
+   for (const r of rows) {
+      log.message(
+         `${pad(r.status, colWidths.status)} | ${pad(r.method, colWidths.method)} | ${pad(
+            r.path,
+            colWidths.path
+         )} | ${pad(r.warnings, colWidths.warnings)} | ${pad(r.duration, colWidths.duration)}`
+      );
+   }
+
+   // Summary
    const total = results.length;
    const succeeded = results.filter((r) => r.success).length;
    const failed = total - succeeded;
    const totalDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0);
 
-   // Table header
    log.message(
-      `${'='.repeat(60)}
- Test Results Summary
- ${'-'.repeat(60)}
- ${'Status'.padEnd(4)} | ${'Method'.padEnd(6)} | ${'Path'.padEnd(24)} | ${'Duration (ms)'}
- ${'-'.repeat(60)}`
-   );
-
-   // Table rows
-   for (const r of results) {
-      const status = r.success ? '✅' : '❌';
-      log.message(
-         `${status.padEnd(4)} | ${r.method.padEnd(6)} | ${r.path.padEnd(24)} | ${(
-            r.duration || 0
-         ).toString()}`
-      );
-   }
-
-   log.message(
-      `${'-'.repeat(60)}
+      `${sepLine}
  Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Total Duration: ${totalDuration} ms
- ${'-'.repeat(60)}`
+ ${sepLine}`
    );
+
+   // Print out the warnings list:
+   const testsWithWarnings = results.filter((r) => r.warnings && r.warnings.length > 0);
+   if (testsWithWarnings.length > 0) {
+      log.message('\nWarnings details:');
+      for (const r of testsWithWarnings) {
+         log.message(`- ${r.method} ${r.path}:`);
+         for (const warn of r.warnings) {
+            log.message(`    [${warn.key}] ${warn.message}`);
+         }
+      }
+   }
 }
 
 /**

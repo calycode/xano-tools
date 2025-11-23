@@ -4,7 +4,7 @@
    "type": "array",
    "items": {
       "type": "object",
-      "required": ["path", "method", "headers", "queryParams", "requestBody", "customAsserts"],
+      "required": ["path", "method", "requestBody", "customAsserts"],
       "properties": {
          "path": {
             "type": "string"
@@ -17,8 +17,15 @@
             "additionalProperties": { "type": "string" }
          },
          "queryParams": {
-            "type": "object",
-            "additionalProperties": { "type": "string" }
+            "type": "array",
+            "items": {
+               "type": "object",
+               "properties": {
+                  "name": { "type": "string" },
+                  "value": {}
+               },
+               "required": ["name", "value"]
+            }
          },
          "requestBody": {},
          "store": {
@@ -39,10 +46,14 @@
                "required": ["level"],
                "properties": {
                   "fn": {},
-                  "level": { "type": "string" }
+                  "level": {
+                     "type": "string",
+                     "enum": ["error", "warn", "off"]
+                  }
                }
             }
          }
-      }
+      },
+      "additionalProperties": false
    }
 }

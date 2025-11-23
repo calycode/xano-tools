@@ -134,7 +134,6 @@ async function testRunner({
          const customAssertKeys = customAsserts ? Object.keys(customAsserts) : [];
 
          if (customAssertKeys.length > 0) {
-            // Use only asserts provided in customAsserts (with their specified levels/fns)
             for (const key of customAssertKeys) {
                const assertOpt = customAsserts[key];
                if (assertOpt && typeof assertOpt.fn === 'function' && assertOpt.level !== 'off') {
@@ -145,7 +144,6 @@ async function testRunner({
                }
             }
          } else {
-            // Use all available asserts (with their default levels/fns)
             for (const [key, assertOpt] of Object.entries(availableAsserts)) {
                if (assertOpt.level !== 'off') {
                   assertsToRun.push({
