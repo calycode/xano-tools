@@ -33,13 +33,15 @@ function collectInitialRuntimeValues(cliEnvVars = {}) {
 /**
  * Prints a formatted summary table of test outcomes to the log.
  *
- * Logs a header, one row per result showing status, HTTP method, path, and duration, and a final summary line with totals and aggregate duration.
+ * The table includes columns for status, HTTP method, path, warnings count, and duration (ms),
+ * followed by an aggregate summary line with total, passed, failed, and total duration.
  *
  * @param results - Array of test result objects. Each object should include:
- *   - `success` (boolean): whether the test passed,
- *   - `method` (string): HTTP method used,
- *   - `path` (string): endpoint path,
- *   - `duration` (number, optional): duration of the test in milliseconds
+ *   - `success`: whether the test passed
+ *   - `method`: HTTP method used for the test
+ *   - `path`: endpoint path exercised by the test
+ *   - `duration` (optional): duration of the test in milliseconds
+ *   - `warnings` (optional): array of warning objects; each warning should include `key` and `message`
  */
 function printTestSummary(results) {
    // Collect all rows for sizing
@@ -149,9 +151,13 @@ async function loadTestConfig(testConfigPath) {
 }
 
 /**
- * Runs API tests for selected API groups using a provided test configuration and writes per-group results to disk.
+ * Run API tests for selected API groups, write per-group JSON results to disk, and print a formatted summary.
  *
- * @param instance - Name or alias of the target instance
+ * Resolves the target instance/workspace/branch, selects API groups (optionally prompting), loads the test
+ * configuration, executes tests via the provided runtime `core`, writes each group's results to a timestamped
+ * JSON file under the configured output path, and prints a summary table and optional output directory path.
+ *
+ * @param instance - Target instance name or alias used to resolve configuration
  * @param workspace - Workspace name within the instance
  * @param branch - Branch label within the workspace
  * @param group - Specific API group name to run; when omitted and `isAll` is false the user may be prompted

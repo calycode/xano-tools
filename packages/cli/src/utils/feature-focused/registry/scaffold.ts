@@ -1,11 +1,21 @@
 import { dirname, join } from 'node:path';
 import { mkdir, writeFile } from 'node:fs/promises';
 
+/**
+ * Ensures the parent directory for the provided file path exists, creating it recursively if needed.
+ *
+ * @param filePath - Path to the target file whose containing directory should exist
+ */
 async function ensureDirForFile(filePath: string) {
    const dir = dirname(filePath);
    await mkdir(dir, { recursive: true });
 }
 
+/**
+ * Creates a sample registry scaffold (components, function implementation, function definition, and index) under the specified registry root.
+ *
+ * @param registryRoot - Root directory where registry files will be written. Defaults to `'registry'`.
+ */
 async function scaffoldRegistry(
    { registryRoot }: { registryRoot?: string } = {
       registryRoot: 'registry',

@@ -42,9 +42,24 @@ function getByPath(obj, path) {
 }
 
 /**
- * testConfig is actually an array of objects defining in what order and which
- * endpoints to run, also optionally define custom asserts (either inline func, or predefined asserts)
- * ApiGroupConfig allows for extra keys. In this case it should include an 'oas' key
+ * Execute the configured API tests across the provided API groups and return per-group results.
+ *
+ * For each group, ensures an OpenAPI spec is available (fetching and patching from the remote API if absent),
+ * runs the endpoints defined by `testConfig` in order, evaluates assertions (built-in or custom),
+ * optionally extracts runtime values from JSON responses into a shared runtime store, and records timing,
+ * successes, errors, and warnings for each endpoint.
+ *
+ * @param context - Execution context containing instance, workspace, and branch identifiers
+ * @param groups - Array of API group configurations; each group may include an `oas` property (OpenAPI) and a `canonical` identifier used to build request base URLs
+ * @param testConfig - Ordered array of endpoint test definitions. Each entry should include:
+ *   - `path` and `method` for the request
+ *   - `headers`, `queryParams`, and `requestBody` for request composition
+ *   - optional `store` mappings [{ key, path }] to extract values from JSON responses into runtime variables
+ *   - optional `customAsserts` to override or provide per-endpoint assertions
+ *
+ * @returns An array of objects, one per input group, each containing the original `group` and a `results` array.
+ *          Each result includes `path`, `method`, `success` (true if no assertion errors), `errors` (or null),
+ *          `warnings` (or null), and `duration` (milliseconds)
  */
 async function testRunner({
    context,
