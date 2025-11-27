@@ -11,8 +11,8 @@ import {
 
 /**
  *
- * @param cliOptions
- * @returns
+ * @param cliEnvVars - object of CLI provided env vars (e.g., {DEMO_ADMIN_PWD: 'xyz'})
+ * @returns flat object with ENVIRONMENT.* keys
  */
 function collectInitialRuntimeValues(cliEnvVars = {}) {
    // 1. Collect process.env XANO_* vars (Node only)
@@ -21,13 +21,14 @@ function collectInitialRuntimeValues(cliEnvVars = {}) {
       if (k.startsWith('XANO_')) envVars[k] = v;
    }
 
-   // 2. Merge CLI over ENV, namespaced
-   return {
-      ENVIRONMENT: {
-         ...envVars,
-         ...cliEnvVars,
-      },
-   };
+   // 2. Merge CLI over ENV, CLI wins
+   const merged = { ...envVars, ...cliEnvVars };
+
+   const result = {};
+   for (const [k, v] of Object.entries(merged)) {
+      result[`${k}`] = v;
+   }
+   return result;
 }
 
 /**
@@ -224,7 +225,7 @@ async function runTest({
       },
       groups: groups,
       testConfig,
-      initialRuntimeValues
+      initialRuntimeValues,
    });
    s.stop();
 

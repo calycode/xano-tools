@@ -33,13 +33,14 @@ function registerTestCommands(program, core) {
       .action(
          withErrorHandler(async (options) => {
             const cliTestEnvVars = {};
-            for (const arg of options.testEnv) {
-               const [key, ...rest] = arg.split('=');
-               if (key && rest.length > 0) {
-                  cliTestEnvVars[key] = rest.join('=');
+            if (options.testEnv) {
+               for (const arg of options.testEnv) {
+                  const [key, ...rest] = arg.split('=');
+                  if (key && rest.length > 0) {
+                     cliTestEnvVars[key] = rest.join('=');
+                  }
                }
             }
-
             await runTest({
                ...options,
                isAll: options.all,
