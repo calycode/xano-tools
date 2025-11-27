@@ -1,4 +1,9 @@
-import { addApiGroupOptions, addFullContextOptions, addPrintOutputFlag, withErrorHandler } from '../../utils';
+import {
+   addApiGroupOptions,
+   addFullContextOptions,
+   addPrintOutputFlag,
+   withErrorHandler,
+} from '../../utils';
 import { runTest } from './implementation/test';
 
 function registerTestCommands(program, core) {
@@ -21,13 +26,26 @@ function registerTestCommands(program, core) {
 
    runTestsCommand
       .option('--test-config-path <path>', 'Local path to the test configuration file.')
+      .option(
+         '--test-env <keyValue...>',
+         'Inject environment variables (KEY=VALUE) for tests. Can be repeated to set multiple.'
+      )
       .action(
          withErrorHandler(async (options) => {
+            const cliTestEnvVars = {};
+            for (const arg of options.testEnv) {
+               const [key, ...rest] = arg.split('=');
+               if (key && rest.length > 0) {
+                  cliTestEnvVars[key] = rest.join('=');
+               }
+            }
+
             await runTest({
                ...options,
                isAll: options.all,
                printOutput: options.printOutputDir,
                core,
+               cliTestEnvVars,
             });
          })
       );

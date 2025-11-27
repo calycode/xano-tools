@@ -10,6 +10,27 @@ import {
 } from '../../../utils/index';
 
 /**
+ *
+ * @param cliOptions
+ * @returns
+ */
+function collectInitialRuntimeValues(cliEnvVars = {}) {
+   // 1. Collect process.env XANO_* vars (Node only)
+   const envVars = {};
+   for (const [k, v] of Object.entries(process.env)) {
+      if (k.startsWith('XANO_')) envVars[k] = v;
+   }
+
+   // 2. Merge CLI over ENV, namespaced
+   return {
+      ENVIRONMENT: {
+         ...envVars,
+         ...cliEnvVars,
+      },
+   };
+}
+
+/**
  * Prints a formatted summary table of test outcomes to the log.
  *
  * Logs a header, one row per result showing status, HTTP method, path, and duration, and a final summary line with totals and aggregate duration.
@@ -148,6 +169,7 @@ async function runTest({
    isAll = false,
    printOutput = false,
    core,
+   cliTestEnvVars,
 }: {
    instance: string;
    workspace: string;
@@ -157,6 +179,7 @@ async function runTest({
    isAll: boolean;
    printOutput: boolean;
    core: any;
+   cliTestEnvVars: any;
 }) {
    intro('☣️   Starting up the testing...');
 
@@ -182,6 +205,11 @@ async function runTest({
    const testConfig = await loadTestConfig(testConfigPath);
    const s = spinner();
    s.start('Running tests based on the provided spec');
+
+   // Collect env vars to set up
+   const initialRuntimeValues = collectInitialRuntimeValues(cliTestEnvVars);
+
+   // Run tests
    const testResults = await core.runTests({
       context: {
          instance: instanceConfig.name,
@@ -190,6 +218,7 @@ async function runTest({
       },
       groups: groups,
       testConfig,
+      initialRuntimeValues
    });
    s.stop();
 

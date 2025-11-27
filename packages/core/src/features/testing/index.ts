@@ -52,6 +52,7 @@ async function testRunner({
    testConfig,
    core,
    storage,
+   initialRuntimeValues,
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -66,6 +67,7 @@ async function testRunner({
    }[];
    core: Caly;
    storage: Caly['storage'];
+   initialRuntimeValues: Record<string, any>;
 }): Promise<
    {
       group: ApiGroupConfig;
@@ -94,7 +96,7 @@ async function testRunner({
       'X-Data-Source': 'test',
       'X-Branch': branchConfig.label,
    };
-   let runtimeValues = {};
+   let runtimeValues = initialRuntimeValues ?? {};
 
    let finalOutput = [];
 
