@@ -67,7 +67,7 @@ async function testRunner({
    testConfig,
    core,
    storage,
-   initialRuntimeValues,
+   initialRuntimeValues = {},
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -82,7 +82,7 @@ async function testRunner({
    }[];
    core: Caly;
    storage: Caly['storage'];
-   initialRuntimeValues: Record<string, any>;
+   initialRuntimeValues?: Record<string, any>;
 }): Promise<
    {
       group: ApiGroupConfig;
