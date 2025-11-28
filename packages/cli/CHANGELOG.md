@@ -1,5 +1,15 @@
 # @calycode/xano-cli
 
+## 0.14.0
+
+### Minor Changes
+
+- 6260409: fix: fixes for test runner, improved test-config-schema, including warning count in the test summary output.
+
+### Patch Changes
+
+- 7fc75d2: chore: cleanup registry schema, unify casing, adjust schema for future
+
 ## 0.13.2
 
 ### Patch Changes
