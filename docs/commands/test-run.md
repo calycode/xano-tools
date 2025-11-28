@@ -21,6 +21,8 @@ $ xano test run [options]
 **Description:** Expose usable output path for further reuse.
 #### --test-config-path <path>
 **Description:** Local path to the test configuration file.
+#### --test-env <keyValue...>
+**Description:** Inject environment variables (KEY=VALUE) for tests. Can be repeated to set multiple.
 
 ### test run --help
 ```term
@@ -50,6 +52,9 @@ Options:
 
   --test-config-path <path>
     Local path to the test configuration file.
+
+  --test-env <keyValue...>
+    Inject environment variables (KEY=VALUE) for tests. Can be repeated to set multiple.
 
   -h, --help
     display help for command
