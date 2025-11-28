@@ -1,5 +1,11 @@
 # @calycode/caly-core
 
+## 0.11.0
+
+### Minor Changes
+
+- 6260409: fix: fixes for test runner, improved test-config-schema, including warning count in the test summary output.
+
 ## 0.10.1
 
 ### Patch Changes
