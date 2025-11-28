@@ -10,7 +10,25 @@ import {
 } from '../../../utils/index';
 
 /**
- * Print a formatted table of test outcomes and an optional detailed warnings section to the log.
+ *
+ * @param cliEnvVars - object of CLI provided env vars (e.g., {DEMO_ADMIN_PWD: 'xyz'})
+ * @returns flat object with keys as-is, to be used with {{ENVIRONMENT.KEY}} template pattern
+ */
+function collectInitialRuntimeValues(cliEnvVars = {}) {
+   // 1. Collect process.env XANO_* vars (Node only)
+   const envVars = {};
+   for (const [k, v] of Object.entries(process.env)) {
+      if (k.startsWith('XANO_')) envVars[k] = v;
+   }
+
+   // 2. Merge CLI over ENV, CLI wins
+   const merged = { ...envVars, ...cliEnvVars };
+
+   return merged;
+}
+
+/**
+ * Prints a formatted summary table of test outcomes to the log.
  *
  * The table includes columns for status, HTTP method, path, warnings count, and duration (ms),
  * followed by an aggregate summary line with total, passed, failed, and total duration.
@@ -154,6 +172,7 @@ async function runTest({
    isAll = false,
    printOutput = false,
    core,
+   cliTestEnvVars,
 }: {
    instance: string;
    workspace: string;
@@ -163,6 +182,7 @@ async function runTest({
    isAll: boolean;
    printOutput: boolean;
    core: any;
+   cliTestEnvVars: any;
 }) {
    intro('☣️   Starting up the testing...');
 
@@ -188,6 +208,11 @@ async function runTest({
    const testConfig = await loadTestConfig(testConfigPath);
    const s = spinner();
    s.start('Running tests based on the provided spec');
+
+   // Collect env vars to set up
+   const initialRuntimeValues = collectInitialRuntimeValues(cliTestEnvVars);
+
+   // Run tests
    const testResults = await core.runTests({
       context: {
          instance: instanceConfig.name,
@@ -196,6 +221,7 @@ async function runTest({
       },
       groups: groups,
       testConfig,
+      initialRuntimeValues,
    });
    s.stop();
 

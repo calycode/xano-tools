@@ -7,9 +7,9 @@ on:
          - main
 
 # Set up for Trusted Publishing by NPM
-permissions: 
+permissions:
    id-token: write
-   contents: read
+   contents: write
 
 jobs:
    release:

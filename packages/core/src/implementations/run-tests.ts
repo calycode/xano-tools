@@ -8,6 +8,7 @@ async function runTestsImplementation({
    testConfig,
    core,
    storage,
+   initialRuntimeValues,
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -22,6 +23,7 @@ async function runTestsImplementation({
    }[];
    core: Caly;
    storage: Caly['storage'];
+   initialRuntimeValues: Record<string, any>;
 }): Promise<
    {
       group: ApiGroupConfig;
@@ -35,7 +37,7 @@ async function runTestsImplementation({
       }[];
    }[]
 > {
-   return await testRunner({ context, groups, testConfig, core, storage });
+   return await testRunner({ context, groups, testConfig, core, storage, initialRuntimeValues });
 }
 
 export { runTestsImplementation };

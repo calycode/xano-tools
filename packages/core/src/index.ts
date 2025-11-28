@@ -336,10 +336,12 @@ export class Caly extends TypedEmitter<EventMap> {
       context,
       groups,
       testConfig,
+      initialRuntimeValues,
    }: {
       context: Context;
       groups: ApiGroupConfig[];
       testConfig: any;
+      initialRuntimeValues: Record<string, any>;
    }): Promise<
       {
          group: ApiGroupConfig;
@@ -359,6 +361,7 @@ export class Caly extends TypedEmitter<EventMap> {
          testConfig,
          core: this,
          storage: this.storage,
+         initialRuntimeValues,
       });
    }
 
