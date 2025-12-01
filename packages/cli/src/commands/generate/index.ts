@@ -108,6 +108,11 @@ function registerGenerateCommands(program, core) {
    addApiGroupOptions(specGenCommand);
    addPrintOutputFlag(specGenCommand);
 
+   specGenCommand.option(
+      '--include-tables',
+      'Requests table schema fetching and inclusion into the generate spec. By default tables are not included.'
+   );
+
    specGenCommand.action(
       withErrorHandler(async (opts) => {
          await updateOasWizard({
@@ -118,6 +123,7 @@ function registerGenerateCommands(program, core) {
             isAll: opts.all,
             printOutput: opts.printOutputDir,
             core: core,
+            includeTables: opts.includeTables,
          });
       })
    );

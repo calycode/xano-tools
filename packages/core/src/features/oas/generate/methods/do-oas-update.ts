@@ -15,15 +15,23 @@ async function doOasUpdate({
    inputOas,
    instanceConfig,
    workspaceConfig,
-   storage, // Used for meta lookups, not FS
+   storage,
+   includeTables = false,
 }: {
    inputOas: any;
    instanceConfig: any;
    workspaceConfig: any;
    storage: any;
+   includeTables: boolean;
 }): Promise<DoOasUpdateOutput> {
    // Patch and enrich OAS
-   const oas = await patchOasSpec({ oas: inputOas, instanceConfig, workspaceConfig, storage });
+   const oas = await patchOasSpec({
+      oas: inputOas,
+      instanceConfig,
+      workspaceConfig,
+      storage,
+      includeTables,
+   });
 
    // Prepare output artifacts (relative paths)
    const generatedItems: GeneratedItem[] = [
