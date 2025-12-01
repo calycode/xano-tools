@@ -1,15 +1,24 @@
 import { cleanupResponseSchemas } from './cleanup-response-schemas';
+import { extractTagsToGlobal } from './extract-tags-to-global-level';
 import { generateTableSchemas } from '..';
 
-async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
-
+async function patchOasSpec({
+   oas,
+   instanceConfig,
+   workspaceConfig,
+   storage,
+   includeTables = false,
+}) {
    const newOas = { ...oas };
-   const tableSchemas = await generateTableSchemas({ instanceConfig, workspaceConfig, storage });
+   const tableSchemas = includeTables
+      ? await generateTableSchemas({ instanceConfig, workspaceConfig, storage })
+      : {};
 
    newOas.openapi = '3.1.1';
 
-   newOas.components = {
+   newOas.tags = extractTagsToGlobal(newOas.paths);
 
+   newOas.components = {
       ...(oas.components ?? {}),
 
       responses: {
@@ -83,16 +92,22 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             properties: {
                code: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 64,
                   example: 'ERROR_CODE_ACCESS_DENIED',
                },
                message: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 256,
                   example: 'Forbidden access.',
                },
                payload: {
                   anyOf: [
                      {
                         type: 'string',
+                        format: 'const',
+                        maxLength: 1024,
                      },
                      { type: 'null' },
                      { type: 'object', properties: {}, additionalProperties: true },
@@ -106,16 +121,22 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             properties: {
                code: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 64,
                   example: 'ERROR_CODE_UNAUTHORIZED',
                },
                message: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 256,
                   example: 'Authentication required.',
                },
                payload: {
                   anyOf: [
                      {
                         type: 'string',
+                        format: 'const',
+                        maxLength: 1024,
                      },
                      { type: 'null' },
                      { type: 'object', properties: {}, additionalProperties: true },
@@ -129,16 +150,22 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             properties: {
                code: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 64,
                   example: 'ERROR_FATAL',
                },
                message: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 256,
                   example: 'Something went wrong.',
                },
                payload: {
                   anyOf: [
                      {
                         type: 'string',
+                        format: 'const',
+                        maxLength: 1024,
                      },
                      { type: 'null' },
                      { type: 'object', properties: {}, additionalProperties: true },
@@ -152,16 +179,22 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             properties: {
                code: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 64,
                   example: 'ERROR_CODE_TOO_MANY_REQUESTS',
                },
                message: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 256,
                   example: 'Hit quota limits.',
                },
                payload: {
                   anyOf: [
                      {
                         type: 'string',
+                        format: 'const',
+                        maxLength: 1024,
                      },
                      { type: 'null' },
                      { type: 'object', properties: {}, additionalProperties: true },
@@ -175,16 +208,22 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             properties: {
                code: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 64,
                   example: 'ERROR_CODE_NOT_FOUND',
                },
                message: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 256,
                   example: 'The requested resource cannot be found.',
                },
                payload: {
                   anyOf: [
                      {
                         type: 'string',
+                        format: 'const',
+                        maxLength: 1024,
                      },
                      { type: 'null' },
                      { type: 'object', properties: {}, additionalProperties: true },
@@ -198,16 +237,22 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             properties: {
                code: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 64,
                   example: 'ERROR_CODE_BAD_REQUEST',
                },
                message: {
                   type: 'string',
+                  format: 'const',
+                  maxLength: 256,
                   example: 'The provided inputs are not correct.',
                },
                payload: {
                   anyOf: [
                      {
                         type: 'string',
+                        format: 'const',
+                        maxLength: 1024,
                      },
                      { type: 'null' },
                      { type: 'object', properties: {}, additionalProperties: true },
@@ -225,7 +270,6 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             bearerFormat: 'JWT',
          }),
       },
-
    };
 
    newOas.security = newOas.security || [{ bearerAuth: [] }];
@@ -235,4 +279,4 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
    return oasWithPatchedResponseSchemas;
 }
 
-export { patchOasSpec }
+export { patchOasSpec };

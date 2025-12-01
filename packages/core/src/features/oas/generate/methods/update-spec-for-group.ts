@@ -12,6 +12,7 @@ async function updateSpecForGroup({
    workspaceConfig,
    storage,
    core,
+   includeTables = false,
 }: {
    group: any;
    instanceConfig: any;
@@ -19,6 +20,7 @@ async function updateSpecForGroup({
    branchConfig: any;
    storage: any;
    core: any;
+   includeTables: boolean;
 }): Promise<{
    oas: string;
    generatedItems: GeneratedItem[];
@@ -36,6 +38,7 @@ async function updateSpecForGroup({
       instanceConfig,
       workspaceConfig,
       storage,
+      includeTables,
    });
 
    // Optionally emit info for consumer

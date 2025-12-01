@@ -15,6 +15,7 @@ async function updateOasWizard({
    isAll = false,
    printOutput = false,
    core,
+   includeTables = false,
 }: {
    instance: string;
    workspace: string;
@@ -23,6 +24,7 @@ async function updateOasWizard({
    isAll: boolean;
    printOutput: boolean;
    core;
+   includeTables?: boolean;
 }) {
    attachCliEventHandlers('generate-oas', core, {
       instance,
@@ -60,7 +62,8 @@ async function updateOasWizard({
       workspaceConfig.name,
       branchConfig.label,
       groups,
-      startDir
+      startDir,
+      includeTables
    );
    for (const { group, generatedItems } of allGroupResults) {
       const apiGroupNameNorm = normalizeApiGroupName(group);
