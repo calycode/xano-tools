@@ -1,5 +1,17 @@
 # @calycode/caly-core
 
+## 0.12.0
+
+### Minor Changes
+
+- db93d85: chore: by default do not generate table schemas into the OAS spec, but allow that via flag
+
+### Patch Changes
+
+- d9da43b: chore: extract the tags from the paths to the global to comply better with OAS
+  chore: set maxLength to strings on the error codes (owasp:api4:2019-string-limit)
+  chore: set type to strings (owasp:api4:2019-string-restricted)
+
 ## 0.11.0
 
 ### Minor Changes
