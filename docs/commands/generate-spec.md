@@ -19,6 +19,8 @@ $ xano generate spec [options]
 **Description:** Regenerate for all API groups in the workspace / branch of the current context.
 #### --print-output-dir
 **Description:** Expose usable output path for further reuse.
+#### --include-tables
+**Description:** Requests table schema fetching and inclusion into the generate spec. By default tables are not included.
 
 ### generate spec --help
 ```term
@@ -45,6 +47,9 @@ Options:
 
   --print-output-dir
     Expose usable output path for further reuse.
+
+  --include-tables
+    Requests table schema fetching and inclusion into the generate spec. By default tables are not included.
 
   -h, --help
     display help for command
