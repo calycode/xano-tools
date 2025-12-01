@@ -10,6 +10,7 @@ async function updateOpenapiSpecImplementation(
       workspace: string;
       branch: string;
       groups: ApiGroup[];
+      includeTables?: boolean;
    },
    startDir: string
 ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
@@ -42,6 +43,7 @@ async function updateOpenapiSpecImplementation(
                branchConfig,
                storage,
                core,
+               includeTables: options.includeTables ?? false,
             });
 
             return { group: grp.name, oas, generatedItems };

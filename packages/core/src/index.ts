@@ -146,7 +146,8 @@ export class Caly extends TypedEmitter<EventMap> {
       workspace: string,
       branch: string,
       groups: any,
-      startDir: string
+      startDir: string,
+      includeTables?: boolean
    ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
       return updateOpenapiSpecImplementation(
          this.storage,
@@ -156,6 +157,7 @@ export class Caly extends TypedEmitter<EventMap> {
             workspace,
             branch,
             groups,
+            includeTables,
          },
          startDir
       );
@@ -386,7 +388,12 @@ export class Caly extends TypedEmitter<EventMap> {
     * });
     * ```
     */
-   async doOasUpdate({ inputOas, instanceConfig, workspaceConfig }): Promise<{
+   async doOasUpdate({
+      inputOas,
+      instanceConfig,
+      workspaceConfig,
+      includeTables = false,
+   }): Promise<{
       oas: any;
       generatedItems: {
          path: string;
@@ -398,6 +405,7 @@ export class Caly extends TypedEmitter<EventMap> {
          instanceConfig,
          workspaceConfig,
          storage: this.storage,
+         includeTables,
       });
    }
 

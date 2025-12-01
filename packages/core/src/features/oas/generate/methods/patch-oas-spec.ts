@@ -1,15 +1,21 @@
 import { cleanupResponseSchemas } from './cleanup-response-schemas';
 import { generateTableSchemas } from '..';
 
-async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
-
+async function patchOasSpec({
+   oas,
+   instanceConfig,
+   workspaceConfig,
+   storage,
+   includeTables = false,
+}) {
    const newOas = { ...oas };
-   const tableSchemas = await generateTableSchemas({ instanceConfig, workspaceConfig, storage });
+   const tableSchemas = includeTables
+      ? await generateTableSchemas({ instanceConfig, workspaceConfig, storage })
+      : {};
 
    newOas.openapi = '3.1.1';
 
    newOas.components = {
-
       ...(oas.components ?? {}),
 
       responses: {
@@ -225,7 +231,6 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
             bearerFormat: 'JWT',
          }),
       },
-
    };
 
    newOas.security = newOas.security || [{ bearerAuth: [] }];
@@ -235,4 +240,4 @@ async function patchOasSpec({ oas, instanceConfig, workspaceConfig, storage }) {
    return oasWithPatchedResponseSchemas;
 }
 
-export { patchOasSpec }
+export { patchOasSpec };
