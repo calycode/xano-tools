@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.16.0
+
+### Minor Changes
+
+- 3db8259: fix: **BREAKING CHANGE** fixing a breaking change in the Xano Metadata API for the workspace/{workspace_id}/export-schema endpoint causing the repo and internal docs generator commands to fail
+
 ## 0.15.0
 
 ### Minor Changes

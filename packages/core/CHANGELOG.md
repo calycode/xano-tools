@@ -1,5 +1,11 @@
 # @calycode/caly-core
 
+## 0.13.0
+
+### Minor Changes
+
+- 3db8259: fix: **BREAKING CHANGE** fixing a breaking change in the Xano Metadata API for the workspace/{workspace_id}/export-schema endpoint causing the repo and internal docs generator commands to fail
+
 ## 0.12.0
 
 ### Minor Changes
