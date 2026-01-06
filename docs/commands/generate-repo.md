@@ -8,7 +8,7 @@ $ xano generate repo [options]
 ### Options
 
 #### -I, --input <file>
-**Description:** Workspace yaml file from a local source, if present.
+**Description:** Workspace schema file (.yaml [legacy] or .json) from a local source, if present.
 #### -O, --output <dir>
 **Description:** Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.
 #### --instance <instance>
@@ -31,7 +31,7 @@ Usage: xano generate repo [options]
 
 Options:
   -I, --input <file>
-    Workspace yaml file from a local source, if present.
+    Workspace schema file (.yaml [legacy] or .json) from a local source, if present.
 
   -O, --output <dir>
     Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.
