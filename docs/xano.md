@@ -17,7 +17,7 @@ Usage: xano <command> [options]
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
 
-Current version: 0.15.0
+Current version: 0.16.0
 
 Options:
   -v, --version   output the version number
