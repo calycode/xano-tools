@@ -68,7 +68,7 @@ function registerGenerateCommands(program, core) {
       .description(
          'Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.'
       )
-      .option('-I, --input <file>', 'Workspace yaml file from a local source, if present.')
+      .option('-I, --input <file>', 'Workspace schema file (.yaml [legacy] or .json) from a local source, if present.')
       .option(
          '-O, --output <dir>',
          'Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.'
@@ -134,7 +134,10 @@ function registerGenerateCommands(program, core) {
       .description(
          'Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.'
       )
-      .option('-I, --input <file>', 'Workspace yaml file from a local source, if present.')
+      .option(
+         '-I, --input <file>',
+         'Workspace schema file (.yaml [legacy] or .json) from a local source, if present.'
+      )
       .option(
          '-O, --output <dir>',
          'Output directory (overrides default config), useful when ran from a CI/CD pipeline and want to ensure consistent output location.'

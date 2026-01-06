@@ -291,16 +291,21 @@ export const nodeConfigStorage: ConfigStorage = {
          // Extract with tar
          await x({ file: tarGzPath, cwd: tempDir });
 
-         // Read all files in tempDir
-         const files = await fs.promises.readdir(tempDir);
-         for (const file of files) {
-            if (file.endsWith('.yaml')) {
-               result[file] = await fs.promises.readFile(join(tempDir, file));
+         const entries = await fs.promises.readdir(tempDir, { recursive: true });
+
+         for (const file of entries) {
+            // Check for both extensions
+            if (file.endsWith('.yaml') || file.endsWith('.json')) {
+               const fullPath = join(tempDir, file);
+               // Ensure we are reading a file, not a directory that happens to end in .json
+               const stat = await fs.promises.stat(fullPath);
+               if (stat.isFile()) {
+                  result[file] = await fs.promises.readFile(fullPath);
+               }
             }
          }
       } finally {
-         // Clean up tempDir here
-         await fs.promises.rm(tempDir, { recursive: true });
+         await fs.promises.rm(tempDir, { recursive: true, force: true });
       }
 
       return result;

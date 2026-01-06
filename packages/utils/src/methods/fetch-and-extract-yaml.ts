@@ -47,9 +47,14 @@ export async function fetchAndExtractYaml({
 
    // Find the .yaml file inside outDir
    const files: string[] = await core.storage.readdir(outDir);
-   const yamlFile = files.find((f) => f.endsWith('.yaml'));
-   if (!yamlFile) throw new Error('No .yaml found in the exported archive!');
-   const yamlFilePath = joinPath(outDir, yamlFile);
+   const schemaFile = files.find((f) => f.endsWith('.json') || f.endsWith('.yaml'));
+
+   if (!schemaFile) {
+      throw new Error(
+         `No schema file (.json or .yaml) found in the exported archive! Found: ${files.join(', ')}`
+      );
+   }
+   const schemaFilePath = joinPath(outDir, schemaFile);
 
    core.emit('progress', {
       name: 'fetch-extract-yaml',
@@ -57,5 +62,5 @@ export async function fetchAndExtractYaml({
       percent: 100,
    });
 
-   return yamlFilePath;
+   return schemaFilePath;
 }

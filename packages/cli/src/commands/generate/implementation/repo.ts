@@ -101,12 +101,31 @@ async function generateRepo({
 
    intro('Building directory structure...');
 
-   if (!inputFile) throw new Error('Input YAML file is required');
+   if (!inputFile) throw new Error('Input schema file (.json or .yaml) is required');
    if (!outputDir) throw new Error('Output directory is required');
 
-   log.step(`Reading and parsing YAML file -> ${inputFile}`);
+   log.step(`Reading and parsing schema file -> ${inputFile}`);
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
-   const jsonData = load(fileContents);
+
+   let jsonData: any;
+   try {
+      if (inputFile.endsWith('.json')) {
+         jsonData = JSON.parse(fileContents);
+      } else if (inputFile.endsWith('.yaml') || inputFile.endsWith('.yml')) {
+         jsonData = load(fileContents);
+      } else {
+         // Fallback: Try JSON, then YAML if extension is missing or weird
+         try {
+            jsonData = JSON.parse(fileContents);
+         } catch {
+            jsonData = load(fileContents);
+         }
+      }
+   } catch (err) {
+      throw new Error(`Failed to parse schema file: ${err.message}`);
+   }
+
+   // 3. Proceed with generation
    const plannedWrites: { path: string; content: string }[] = await core.generateRepo({
       jsonData,
       instance: instanceConfig.name,
