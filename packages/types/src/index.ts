@@ -306,7 +306,41 @@ export type RegistryItemType =
    | 'registry:mcp/trigger'
    | 'registry:agent/trigger'
    | 'registry:realtime/trigger'
-   | 'registry:test';
+   | 'registry:test'
+   | 'registry:snippet'
+   | 'registry:file'
+   | 'registry:item';
+
+/**
+ * Represents a file within a registry item, either external (path-based) or embedded (content-based).
+ */
+export interface RegistryItemFile {
+   path: string;
+   content?: string;
+   type: RegistryItemType;
+   apiGroupName?: string;
+   meta?: Record<string, any>;
+}
+
+/**
+ * Represents a registry item that can be installed into a Xano instance.
+ * Supports hybrid content/file approach: either specify files (external) or content (embedded).
+ */
+export interface RegistryItem {
+   name: string;
+   type: RegistryItemType;
+   title?: string;
+   description?: string;
+   docs?: string;
+   postInstallHint?: string;
+   author?: string;
+   registryDependencies?: string[];
+   categories?: string[];
+   meta?: Record<string, any>;
+   // Hybrid approach: either files (for external files) or content (for embedded)
+   files?: RegistryItemFile[];
+   content?: string;
+}
 
 export type InstallUrlParams = {
    instanceConfig: any;
