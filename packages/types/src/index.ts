@@ -315,11 +315,12 @@ export type RegistryItemType =
  * Represents a file within a registry item, either external (path-based) or embedded (content-based).
  */
 export interface RegistryItemFile {
-   path: string;
-   content?: string;
-   type: RegistryItemType;
-   apiGroupName?: string;
-   meta?: Record<string, any>;
+    path?: string;
+    content?: string;
+    type: RegistryItemType;
+    apiGroupName?: string;
+    apiGroupId?: string;
+    meta?: Record<string, any>;
 }
 
 /**

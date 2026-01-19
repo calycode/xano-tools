@@ -1,13 +1,14 @@
 import {
-   ApiGroupConfig,
-   BranchConfig,
-   ConfigStorage,
-   Context,
-   CoreContext,
-   CurrentContextConfig,
-   EventMap,
-   InstanceConfig,
-   WorkspaceConfig,
+    ApiGroupConfig,
+    BranchConfig,
+    ConfigStorage,
+    Context,
+    CoreContext,
+    CurrentContextConfig,
+    EventMap,
+    InstanceConfig,
+    RegistryItem,
+    WorkspaceConfig,
 } from '@repo/types';
 import { TypedEmitter } from './utils/event-handling/event-emitter';
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
@@ -19,6 +20,7 @@ import { loadAndValidateContextImplementation } from './implementations/load-and
 import { runTestsImplementation } from './implementations/run-tests';
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
+import { getRegistryItem } from './features/registry/api';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import { generateInternalDocsImplementation } from './implementations/generate-internal-docs';
 import { getRegistryIndex } from './features/registry/api';
@@ -536,14 +538,13 @@ export class Caly extends TypedEmitter<EventMap> {
      * Get a specific registry item by name.
      */
     async getRegistryItem(componentName: string, registryUrl: string) {
-       const index = await this.getRegistryIndex(registryUrl);
-       return index.find(item => item.name === componentName);
+        return getRegistryItem(componentName, registryUrl);
     }
 
     async installRegistryItemToXano(
-       item: any,
-       resolvedContext: { instanceConfig: any; workspaceConfig: any; branchConfig: any },
-       registryUrl: string,
+        item: RegistryItem,
+        resolvedContext: { instanceConfig: InstanceConfig; workspaceConfig: WorkspaceConfig; branchConfig: BranchConfig },
+        registryUrl: string,
     ) {
        const results = await installRegistryItemToXano(item, resolvedContext, registryUrl, this);
        return results;

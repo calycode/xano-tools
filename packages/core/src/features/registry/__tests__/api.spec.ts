@@ -95,5 +95,15 @@ describe('Registry API', () => {
 
             expect(global.fetch).toHaveBeenCalledWith(`${mockRegistryUrl}/path/file.js`);
         });
+
+        it('should throw error when fetch fails', async () => {
+            const item = {};
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: false,
+                status: 404,
+            });
+
+            await expect(fetchRegistryFileContent(item, 'path/file.js', mockRegistryUrl)).rejects.toThrow('Failed to fetch file content: path/file.js (404)');
+        });
     });
 });
