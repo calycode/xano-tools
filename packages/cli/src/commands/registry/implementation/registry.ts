@@ -51,19 +51,22 @@ async function addToXano({
             continue;
          }
 
-         // Resolve apiGroupIds for query files
-         if (registryItem.files) {
-            for (const file of registryItem.files) {
-               if (file.type === 'registry:query') {
-                  const apiGroup = await getApiGroupByName(
-                     file.apiGroupName,
-                     { instanceConfig, workspaceConfig, branchConfig },
-                     core,
-                  );
-                  file.apiGroupId = apiGroup.id;
-               }
-            }
-         }
+          // Resolve apiGroupIds for query files
+          if (registryItem.files) {
+             for (const file of registryItem.files) {
+                if (file.type === 'registry:query') {
+                   if (!file.apiGroupName) {
+                      throw new Error(`Missing apiGroupName for file ${file.path || 'unnamed'} in registry item ${registryItem.name || registryItem.id}`);
+                   }
+                   const apiGroup = await getApiGroupByName(
+                      file.apiGroupName,
+                      { instanceConfig, workspaceConfig, branchConfig },
+                      core,
+                   );
+                   file.apiGroupId = apiGroup.id;
+                }
+             }
+          }
 
          const installResults = await core.installRegistryItemToXano(
             registryItem,

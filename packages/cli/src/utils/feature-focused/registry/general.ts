@@ -32,10 +32,6 @@ function sortFilesByType(files) {
 async function promptForComponents(core, registryUrl) {
      try {
         const registry = await core.getRegistryIndex(registryUrl);
-        console.log('Available components:');
-        registry.items.forEach((item, index) => {
-           console.log(`${index + 1}. ${item.name} - ${item.description}`);
-        });
 
          const options = registry.items.map((item) => ({
             value: item.name,

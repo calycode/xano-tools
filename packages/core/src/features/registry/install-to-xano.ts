@@ -3,16 +3,11 @@ import type { Caly } from '../..';
 import { sortFilesByType } from './general';
 
 interface InstallParams {
-   instanceConfig: InstanceConfig | null;
-   workspaceConfig: WorkspaceConfig;
-   branchConfig: BranchConfig;
-   apiGroupId?: string | number;
-   file?: {
-      tableId?: string;
-      mcpId?: string;
-      agentId?: string;
-      realtimeId?: string;
-   };
+    instanceConfig: InstanceConfig | null;
+    workspaceConfig: WorkspaceConfig;
+    branchConfig: BranchConfig;
+    apiGroupId?: string | number;
+    file?: any;
 }
 
 type UrlResolver = (params: InstallParams) => string;
@@ -65,13 +60,21 @@ async function installRegistryItemToXano(
    registryUrl: string,
    core: Caly,
 ) {
-   const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
-   const results = { installed: [], failed: [], skipped: [] };
+    const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
+    const results = { installed: [], failed: [], skipped: [] };
 
-    // Sort files
-    let filesToInstall = sortFilesByType(item.files || []);
+     // Sort files
+     let filesToInstall = sortFilesByType(item.files || []);
 
-    for (const file of filesToInstall) {
+     // Handle content-only registry items
+     if (filesToInstall.length === 0 && item.content) {
+        filesToInstall = [{ path: item.name || 'inline', content: item.content, type: item.type }];
+     }
+
+     // Load token once
+     const xanoToken = await core.loadToken(instanceConfig.name);
+
+     for (const file of filesToInstall) {
        try {
           // Get content: use inline content if present, else fetch from file path
           let content;
@@ -99,18 +102,17 @@ async function installRegistryItemToXano(
             apiGroupId = file.apiGroupId;
          }
 
-         // Post to Xano
-         const xanoToken = await core.loadToken(instanceConfig.name);
-         const xanoApiUrl = `${instanceConfig.url}/api:meta`;
-         const installUrl = resolveInstallUrl(file.type, {
-            instanceConfig,
-            workspaceConfig,
-            branchConfig,
-            file,
-            apiGroupId,
-         });
+          // Post to Xano
+          const xanoApiUrl = `${instanceConfig.url}/api:meta`;
+          const installUrl = resolveInstallUrl(file.type, {
+             instanceConfig,
+             workspaceConfig,
+             branchConfig,
+             file,
+             apiGroupId,
+          });
 
-         const response = await fetch(`${xanoApiUrl}/${installUrl}`, {
+          const response = await fetch(`${xanoApiUrl}${installUrl}`, {
             method: 'POST',
             headers: {
                Authorization: `Bearer ${xanoToken}`,

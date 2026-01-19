@@ -4,27 +4,24 @@ const registryCache = new Map();
  * Fetch one or more registry paths, with caching.
  */
 async function fetchRegistry(paths, registryUrl) {
-   const results = [];
-   for (const path of paths) {
-      const cacheKey = `${registryUrl}/${path}`;
-      if (registryCache.has(cacheKey)) {
-         results.push(await registryCache.get(cacheKey));
-         continue;
-      }
-      const promise = fetch(`${registryUrl}/${path}`)
-         .then(async (res) => {
-            if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
-            return res.json();
-         })
-         .catch((err) => {
-            registryCache.delete(cacheKey);
-            throw err;
-         });
-      registryCache.set(cacheKey, promise);
-      const resolvedPromise = await promise;
-      results.push(resolvedPromise);
-   }
-   return results;
+    const promises = paths.map(async (path) => {
+       const cacheKey = `${registryUrl}/${path}`;
+       if (registryCache.has(cacheKey)) {
+          return await registryCache.get(cacheKey);
+       }
+       const promise = fetch(`${registryUrl}/${path}`)
+          .then(async (res) => {
+             if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
+             return res.json();
+          })
+          .catch((err) => {
+             registryCache.delete(cacheKey);
+             throw err;
+          });
+       registryCache.set(cacheKey, promise);
+       return await promise;
+    });
+    return await Promise.all(promises);
 }
 
 /**
