@@ -1,48 +1,63 @@
 import { metaApiGet, metaApiPost } from '@repo/utils';
-import { getRegistryIndex } from '../../index';
+import { multiselect, isCancel } from '@clack/prompts';
 
 const typePriority = {
-   'registry:table': 0,
-   'registry:addon': 1,
-   'registry:function': 2,
-   'registry:apigroup': 3,
-   'registry:query': 4,
-   'registry:middleware': 5,
-   'registry:task': 6,
-   'registry:tool': 7,
-   'registry:mcp': 8,
-   'registry:agent': 9,
-   'registry:realtime': 10,
-   'registry:workspace/trigger': 11,
-   'registry:table/trigger': 12,
-   'registry:mcp/trigger': 13,
-   'registry:agent/trigger': 14,
-   'registry:realtime/trigger': 15,
-   'registry:test': 16,
+   'registry:table': 1,
+   'registry:addon': 2,
+   'registry:function': 3,
+   'registry:apigroup': 4,
+   'registry:query': 5,
+   'registry:middleware': 6,
+   'registry:task': 7,
+   'registry:tool': 8,
+   'registry:mcp': 9,
+   'registry:agent': 10,
+   'registry:realtime': 11,
+   'registry:workspace/trigger': 12,
+   'registry:table/trigger': 13,
+   'registry:mcp/trigger': 14,
+   'registry:agent/trigger': 15,
+   'registry:realtime/trigger': 16,
+   'registry:test': 17,
 };
 
 function sortFilesByType(files) {
    return files.slice().sort((a, b) => {
-      const aPriority = typePriority[a.type] || 99;
       const bPriority = typePriority[b.type] || 99;
+      const aPriority = typePriority[a.type] || 99;
       return aPriority - bPriority;
    });
 }
 
-async function promptForComponents() {
-   try {
-      const registry = await getRegistryIndex();
-      console.log('Available components:');
-      registry.items.forEach((item, index) => {
-         console.log(`${index + 1}. ${item.name} - ${item.description}`);
-      });
-      // For now, just select the first one or use a prompt library for real selection
-      return ['function-1'];
-   } catch (error) {
-      console.error('Failed to fetch available components:', error);
-      return [];
-   }
-}
+async function promptForComponents(core, registryUrl) {
+     try {
+        const registry = await core.getRegistryIndex(registryUrl);
+        console.log('Available components:');
+        registry.items.forEach((item, index) => {
+           console.log(`${index + 1}. ${item.name} - ${item.description}`);
+        });
+
+         const options = registry.items.map((item) => ({
+            value: item.name,
+            label: `${item.name} - ${item.description}`,
+         }));
+
+         const selected = await multiselect({
+            message: 'Select components to add:',
+            options,
+            required: true,
+         });
+
+         if (isCancel(selected)) {
+            return [];
+         }
+
+         return selected;
+     } catch (error) {
+        console.error('Failed to fetch available components:', error);
+        return [];
+     }
+ }
 
 // [ ] Extract to core utilities
 async function getApiGroupByName(
