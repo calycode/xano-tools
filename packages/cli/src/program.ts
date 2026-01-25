@@ -9,6 +9,7 @@ import { registerInitCommand } from './commands/setup-instance';
 import { registerTestCommands } from './commands/test';
 import { registerRegistryCommands } from './commands/registry';
 import { registerServeCommands } from './commands/serve';
+import { registerOpencodeCommands } from './commands/opencode';
 import { Caly } from '@calycode/core';
 import { InitializedPostHog } from './utils/posthog/init';
 import { nodeConfigStorage } from './node-config-storage';
@@ -96,8 +97,11 @@ registerRegistryCommands(program, core);
 registerBackupCommands(program, core);
 registerTestCommands(program, core);
 registerContextCommands(program, core);
+// registerOpencodeCommands(program, core);
+registerOpencodeCommands(program, core);
 
 // --- Custom Help Formatter ---
 applyCustomHelpToAllCommands(program);
 
-export { program };
+export { program, core };
+

@@ -38,3 +38,6 @@ calyInstance.test.setup.json
 
 # Jest
 coverage/
+
+# Native binary assets
+**/*/.sea-cache/

@@ -1,5 +1,6 @@
 import { addApiGroupOptions, addFullContextOptions } from '../../utils';
 import { serveOas, serveRegistry } from './implementation/serve';
+import { serveOpencode } from './implementation/opencode';
 
 function registerServeCommands(program, core) {
    const serveNamespace = program
@@ -30,14 +31,14 @@ function registerServeCommands(program, core) {
       });
 
    // Add the specification serving
-   serveNamespace
+   const specCommand = serveNamespace
       .command('spec')
       .description(
          'Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.'
       );
-   addFullContextOptions(serveNamespace);
-   addApiGroupOptions(serveNamespace);
-   serveNamespace
+   addFullContextOptions(specCommand);
+   addApiGroupOptions(specCommand);
+   specCommand
       .option(
          '--listen <port>',
          'The port where you want your registry to be served locally. By default it is 5000.'
@@ -54,6 +55,18 @@ function registerServeCommands(program, core) {
             core,
          });
       });
+
+    // Add OpenCode serving
+    serveNamespace
+        .command('opencode')
+        .description('Serve the OpenCode AI server locally.')
+        .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
+        .action((options) => {
+            serveOpencode({
+                port: options.port ? parseInt(options.port, 10) : undefined,
+            });
+        });
 }
 
 export { registerServeCommands };
+
