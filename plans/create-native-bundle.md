@@ -36,56 +36,26 @@ Extension → JSON message → Native Host → `npx opencode-ai@latest serve --p
 
 ## Extended Plan: Create Native Bundle
 
-### Additional Security & Trust Measures
-- **Binary Verification**: Implement SHA256 checksums for downloaded OpenCode binaries. Fetch checksums from a trusted source (e.g., GitHub releases API) and verify before caching.
-- **Certificate Pinning**: Pin SSL certificates for all network requests to prevent MITM attacks.
-- **Permission Minimization**: Native host runs with minimal privileges; avoid admin/sudo for manifest installation where possible (use user directories).
-- **Sandboxing**: Consider containerizing the native host process for additional isolation.
+### Phase 1: Basic Bundling & Manifest Setup (Complete)
+- [x] **Add `pkg` dependency**: Added to `@calycode/cli`.
+- [x] **Configure bundling script**: Added `bundle` script to `package.json`.
+- [x] **Implement `opencode` commands**: Added `xano opencode init` and `xano opencode serve`.
+- [x] **Generate Manifest**: Implemented logic to create manifest files for macOS/Linux/Windows.
+- [x] **Bundling**: Verified `pkg` creates executable binaries.
+- [x] **Native Host Wrapper**: Implemented logic to generate wrapper scripts (`calycode-host.bat` / `calycode-host.sh`) that call the bundled executable with `native-host` arguments.
+- [x] **Native Messaging Protocol**: Implemented `startNativeHost` function in the CLI to handle Chrome's stdin/stdout messaging protocol.
+- [x] **Windows Registry**: Logic added to log the required registry key for Windows users.
+- [x] **Bug Fixes**: Resolved bundling issues (undefined function error) by switching `registerOpencodeCommands` to async/await and potentially fixing cyclic dependencies or initialization order.
 
-### Error Handling & Resilience
-- **Graceful Failures**: If OpenCode server fails to start, provide clear error messages and fallback options (e.g., manual npx command).
-- **Port Conflicts**: Check port 4096 availability before spawning; offer port selection if occupied.
-- **Network Issues**: Handle download failures with retries and offline mode detection.
-- **Manifest Installation**: Detect and handle permission errors during manifest setup (e.g., prompt for admin on Windows/Linux).
-- **Health Checks**: Implement periodic server health pings in native host; auto-restart on failures.
+### Phase 2: Security & Resilience (Pending)
+- [ ] **Binary Verification**: Implement SHA256 checksums.
+- [ ] **Error Handling**: Improve robustness of server spawning.
+- [ ] **Auto-Updates**: Check for new versions.
 
-### Updates & Maintenance
-- **Auto-Updates**: Check for new OpenCode versions on startup; prompt user to update cached binaries.
-- **Version Pinning**: Allow users to pin specific OpenCode versions via config for stability.
-- **Cache Management**: Implement cache cleanup for old binaries; limit cache size to prevent disk bloat.
+### Phase 3: Polish & Release (Pending)
+- [ ] **CI Integration**: Automate `pnpm bundle` in GitHub Actions.
+- [ ] **Documentation**: Update README with native usage instructions.
 
-### User Experience Enhancements
-- **Progress Indicators**: Show download/installation progress with spinners/logs during setup.
-- **Uninstall Command**: Add `xano opencode uninstall` to remove manifests, cache, and binaries.
-- **Status Command**: `xano opencode status` to check server health, version, and native host registration.
-- **Logging**: Enable debug logs to `~/.calycode/logs/` for troubleshooting.
-
-### Platform-Specific Considerations
-- **macOS**: Handle SIP (System Integrity Protection) for manifest locations; consider notarization for binaries.
-- **Windows**: Use PowerShell for registry operations if needed; handle UAC prompts gracefully.
-- **Linux**: Support multiple browsers (Chrome/Chromium/Firefox); detect distro-specific paths.
-- **Cross-Platform Testing**: Test on multiple OS versions; use CI for automated builds.
-
-### Development & Deployment
-- **Build Pipeline**: Integrate bundling into CI/CD; automate binary generation and checksum creation.
-- **Dependency Auditing**: Scan bundled dependencies for vulnerabilities before releases.
-- **Documentation**: Update CLI help and README with native bundle instructions; include troubleshooting guide.
-- **Beta Testing**: Release alpha binaries for user feedback before stable release.
-
-### Monorepo Integration
-- **Bundle Source**: Build the native executable from `packages/cli/` using `pkg` (configured in `packages/cli/package.json`). Add bundling scripts to root `package.json` (e.g., `pnpm build:bundle` that runs `turbo run bundle`).
-- **Package Structure**: 
-  - Output binaries to `dist/bin/` (e.g., `calycode-win.exe`, `calycode-macos`, `calycode-linux`).
-  - Include native host wrapper as a bundled script/asset within the executable.
-  - Use monorepo's `schemas/` for manifest templates; generate manifests dynamically via `@calycode/core`.
-- **Workflow**: 
-  - `pnpm build:bundle` creates cross-platform binaries.
-  - Release via GitHub Actions to downloads; extension calls binary via `chrome.runtime.sendNativeMessage("calycode", {...})` to spawn server on port 4096.
-  - No UI dependencies; keep binary focused on CLI + native messaging bridge.
-
-### Timeline Extension
-- **Phase 1 (1 day)**: Implement basic bundling and manifest setup.
-- **Phase 2 (1-2 days)**: Add security, error handling, and updates.
-- **Phase 3 (1 day)**: Testing, documentation, and polish.
-
-This ensures robust, secure, and user-friendly native integration while maintaining simplicity.
+## Next Steps
+1.  **Test the Full Flow**: Manually test the Windows binary with a mock Chrome extension or test script to verify `native-host` communication works as expected.
+2.  **CI/CD**: Set up the GitHub Action to build and release these binaries automatically.
