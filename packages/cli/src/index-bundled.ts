@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { isSea } from 'node:sea';
 import { program } from './program';
-import { setupOpencode } from './commands/serve/implementation/opencode';
+import { setupOpencode } from './commands/opencode/implementation';
 import { HOST_APP_INFO } from './utils/host-constants';
 
 // This entry point is specific for the bundled binary to handle "double-click" behavior.

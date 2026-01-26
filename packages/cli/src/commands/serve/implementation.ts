@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
-import { chooseApiGroupOrAll, findProjectRoot, resolveConfigs } from '../../../utils/index';
+import { chooseApiGroupOrAll, findProjectRoot, resolveConfigs } from '../../utils/index';
 
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
    const { instanceConfig, workspaceConfig, branchConfig } = await resolveConfigs({

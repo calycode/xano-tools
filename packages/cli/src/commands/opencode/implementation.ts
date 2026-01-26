@@ -1,11 +1,23 @@
+import { font } from '../../utils/methods/font';
 import { log } from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
-import { HOST_APP_INFO } from '../../../utils/host-constants';
+import { isSea } from 'node:sea';
+import { HOST_APP_INFO } from '../../utils/host-constants';
 
 const OPENCODE_PKG = 'opencode-ai@latest';
+
+const ALLOWED_CORS_ORIGINS = [
+   'https://app.xano.com',
+   'https://services.calycode.com',
+   'chrome-extension://lnhipaeaeiegnlokhokfokndgadkohfe',
+];
+
+function getCorsArgs() {
+   return ALLOWED_CORS_ORIGINS.flatMap((origin) => ['--cors', origin]);
+}
 
 /**
  * Proxy command to the underlying OpenCode AI CLI.
@@ -26,8 +38,6 @@ async function proxyOpencode(args: string[]) {
          if (code === 0) {
             resolve();
          } else {
-            // We don't reject here because the child process already likely printed the error
-            // and we want to exit with the same code.
             process.exit(code || 1);
          }
       });
@@ -40,6 +50,36 @@ async function proxyOpencode(args: string[]) {
 
 // --- Native Messaging Protocol Helpers ---
 
+function displayNativeHostBanner() {
+   // We use console.error so we don't interfere with stdout (which is used for Native Messaging)
+   console.error(
+      font.color.cyan(`
++==================================================================================================+
+|                                                                                                  |
+|    ██████╗ █████╗ ██╗  ██╗   ██╗    ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
+|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
+|   ██║     ███████║██║   ╚████╔╝█████╗╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
+|   ██║     ██╔══██║██║    ╚██╔╝ ╚════╝██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
+|   ╚██████╗██║  ██║███████╗██║       ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
+|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝       ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
+|                                                                                                  |
++==================================================================================================+
+`),
+   );
+
+   console.error('\n' + font.combo.boldGreen('  ✅ Native Host Active'));
+   console.error(font.color.gray('  You can keep this window minimized, but do not close it.'));
+   console.error(
+      font.color.gray('  This process enables the CalyCode extension to communicate with your system.'),
+   );
+
+   console.error('\n' + font.combo.boldCyan('  Useful Links:'));
+   console.error('  - Documentation: ' + font.color.white('https://calycode.com/docs'));
+   console.error('  - Extension:     ' + font.color.white('https://calycode.com/extension'));
+   console.error('  - OpenCode:      ' + font.color.white('https://opencode.ai'));
+   console.error('\n');
+}
+
 function sendMessage(message: any) {
    const buffer = Buffer.from(JSON.stringify(message));
    const header = Buffer.alloc(4);
@@ -49,6 +89,8 @@ function sendMessage(message: any) {
 }
 
 async function startNativeHost() {
+   displayNativeHostBanner();
+
    // 1. Start the OpenCode server in the background
    const port = 4096;
    const serverUrl = `http://localhost:${port}`;
@@ -70,12 +112,10 @@ async function startNativeHost() {
       // The plan mentions downloading/caching the OpenCode binary.
       // For this MVP step, we'll stick to 'npx' assuming the user environment or bundled environment.
 
-      const proc = spawn('npx -y', [OPENCODE_PKG, 'serve', '--port', String(port)], {
-         detached: true,
+      const proc = spawn('npx -y', [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()], {
          stdio: 'ignore', // server output shouldn't interfere with native messaging stdout
          shell: true,
       });
-      proc.unref(); // Let it run independently
 
       sendMessage({ status: 'starting', url: serverUrl, message: 'Server process spawned' });
    }
@@ -129,11 +169,27 @@ function handleMessage(msg: any) {
    }
 }
 
-async function serveOpencode({ port = 4096 }: { port?: number }) {
+async function serveOpencode({ port = 4096, detach = false }: { port?: number; detach?: boolean }) {
+   if (detach) {
+      log.info(`Starting OpenCode server on port ${port} in background...`);
+      const proc = spawn(
+         'npx -y',
+         [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
+         {
+            detached: true,
+            stdio: 'ignore',
+            shell: true,
+         },
+      );
+      proc.unref();
+      log.success('OpenCode server started in background.');
+      return;
+   }
+
    return new Promise<void>((resolve, reject) => {
       log.info(`Starting OpenCode server on port ${port}...`);
 
-      const proc = spawn('npx -y', [OPENCODE_PKG, 'serve', '--port', String(port)], {
+      const proc = spawn('npx -y', [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()], {
          stdio: 'inherit',
          shell: true,
       });
@@ -178,11 +234,11 @@ async function setupOpencode({ extensionId }: { extensionId: string }) {
    // Determine how to call the CLI
    // If we are in pkg (bundled), process.execPath is the binary.
    // If we are in node, process.execPath is node, and we need the script path.
-   const isPkg = (process as any).pkg !== undefined;
+   const isBundled = isSea();
 
    let wrapperContent = '';
    if (isWin) {
-      if (isPkg) {
+      if (isBundled) {
          wrapperContent = `@echo off\n"${executablePath}" opencode native-host`;
       } else {
          // Development mode: node path + script path
@@ -190,7 +246,7 @@ async function setupOpencode({ extensionId }: { extensionId: string }) {
          wrapperContent = `@echo off\n"${executablePath}" "${process.argv[1]}" opencode native-host`;
       }
    } else {
-      if (isPkg) {
+      if (isBundled) {
          wrapperContent = `#!/bin/sh\n"${executablePath}" opencode native-host`;
       } else {
          wrapperContent = `#!/bin/sh\n"${executablePath}" "${process.argv[1]}" opencode native-host`;
@@ -224,13 +280,50 @@ async function setupOpencode({ extensionId }: { extensionId: string }) {
    } else if (platform === 'win32') {
       // Windows requires registry key
       manifestPath = path.join(homeDir, '.calycode', `${HOST_APP_INFO.reverseAppId}.json`);
-      log.warn(
-         'On Windows, you must also create a registry key pointing to this manifest file. Automatic registry modification is not yet implemented.',
-      );
-      log.info(
-         `Registry Key: HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_APP_INFO.reverseAppId}`,
-      );
-      log.info(`Value (Default): ${manifestPath}`);
+
+      try {
+         // Use full HKEY_CURRENT_USER instead of HKCU for clarity/safety
+         const regKey = `HKEY_CURRENT_USER\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_APP_INFO.reverseAppId}`;
+         // Use reg.exe to add the key.
+         // /ve adds the default value. /t REG_SZ specifies type. /d specifies data. /f forces overwrite.
+         const regArgs = ['add', regKey, '/ve', '/t', 'REG_SZ', '/d', manifestPath, '/f'];
+
+         log.info(`Executing registry command: reg ${regArgs.join(' ')}`);
+
+         await new Promise<void>((resolve) => {
+            const proc = spawn('reg', regArgs, { stdio: 'ignore' });
+
+            proc.on('close', (code) => {
+               if (code === 0) {
+                  log.success(`Registry key added: ${regKey}`);
+
+                  // Verify it immediately
+                  try {
+                     const verifyArgs = ['query', regKey, '/ve'];
+                     const verifyProc = spawn('reg', verifyArgs, { stdio: 'pipe' });
+                     verifyProc.stdout.on('data', (d) =>
+                        log.info(`Registry Verification: ${d.toString().trim()}`),
+                     );
+                  } catch (e) {
+                     /* ignore verify error */
+                  }
+               } else {
+                  log.error(`Failed to add registry key. Exit code: ${code}`);
+                  log.warn('You may need to add it manually:');
+                  log.info(`Key: ${regKey}`);
+                  log.info(`Value: ${manifestPath}`);
+               }
+               resolve();
+            });
+
+            proc.on('error', (err) => {
+               log.error(`Failed to spawn registry command: ${err.message}`);
+               resolve();
+            });
+         });
+      } catch (error: any) {
+         log.error(`Error adding registry key: ${error.message}`);
+      }
    } else {
       throw new Error(`Unsupported platform: ${platform}`);
    }
