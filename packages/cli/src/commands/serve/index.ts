@@ -1,6 +1,6 @@
 import { addApiGroupOptions, addFullContextOptions } from '../../utils';
-import { serveOas, serveRegistry } from './implementation/serve';
-import { serveOpencode } from './implementation/opencode';
+import { serveOas, serveRegistry } from './implementation';
+import { serveOpencode } from '../opencode/implementation';
 
 function registerServeCommands(program, core) {
    const serveNamespace = program

@@ -1,14 +1,10 @@
-import { HOST_APP_INFO } from '../utils/host-constants';
-import {
-   setupOpencode,
-   serveOpencode,
-   startNativeHost,
-   proxyOpencode,
-} from './serve/implementation/opencode';
+import { HOST_APP_INFO } from '../../utils/host-constants';
+import { setupOpencode, serveOpencode, startNativeHost, proxyOpencode } from './implementation';
 
 async function registerOpencodeCommands(program) {
    const opencodeNamespace = program
       .command('opencode')
+      .alias('oc')
       .description('Manage OpenCode AI integration and tools.')
       .allowUnknownOption(); // Allow passing through unknown flags to the underlying CLI
 
@@ -27,9 +23,11 @@ async function registerOpencodeCommands(program) {
       .command('serve')
       .description('Serve the OpenCode AI server locally (alias for "xano serve opencode").')
       .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
+      .option('-d, --detach', 'Run the server in the background (detached mode)')
       .action(async (options) => {
          await serveOpencode({
             port: options.port ? parseInt(options.port, 10) : undefined,
+            detach: options.detach,
          });
       });
 
