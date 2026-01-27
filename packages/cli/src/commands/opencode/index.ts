@@ -1,4 +1,3 @@
-import { HOST_APP_INFO } from '../../utils/host-constants';
 import { setupOpencode, serveOpencode, startNativeHost, proxyOpencode } from './implementation';
 
 async function registerOpencodeCommands(program) {
@@ -14,9 +13,8 @@ async function registerOpencodeCommands(program) {
          'Initialize OpenCode native host integration for use in the @calycode | extension.',
       )
       .action(async () => {
-         await setupOpencode({
-            extensionId: HOST_APP_INFO.extensionId,
-         });
+         // Uses all extension IDs from HOST_APP_INFO.allowedExtensionIds by default
+         await setupOpencode();
       });
 
    opencodeNamespace
