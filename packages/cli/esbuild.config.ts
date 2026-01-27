@@ -16,7 +16,7 @@ const distDir = resolve(__dirname, 'dist');
 
       // Bundle the application with esbuild
       const result = await build({
-         entryPoints: [resolve(rootDir, 'src/index-bundled.ts')], // Using the new entry point for bundled binaries
+         entryPoints: [resolve(rootDir, 'src/index.ts')],
          bundle: true,
          platform: 'node',
          plugins: [],
