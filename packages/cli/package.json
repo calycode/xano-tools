@@ -50,6 +50,7 @@
         "@vercel/ncc": "^0.38.4",
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
+        "postject": "1.0.0-alpha.6",
         "shx": "^0.4.0",
         "tar": "^7.4.3"
     },
@@ -62,8 +63,22 @@
         "build:chmod": "shx chmod +x dist/index.cjs",
         "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "bundle:ncc": "pnpm ncc build dist/index.cjs -o dist/cli.cjs && shx cp README.md LICENSE dist/cli.cjs/",
-        "bundle": "pnpm bundle:ncc",
+        "bundle:sea": "tsx build-sea.ts",
+        "bundle": "pnpm bundle:ncc && pnpm bundle:sea",
         "xano": "node dist/index.cjs"
+    },
+    "pkg": {
+        "name": "@calycode-cli-installer",
+        "targets": [
+            "node18-win-x64",
+            "node18-linux-x64",
+            "node18-macos-x64",
+            "node18-macos-arm64"
+        ],
+        "assets": [
+            "dist/actions/**/*"
+        ],
+        "outputPath": "dist/bin"
     },
     "dependencies": {
         "opencode-ai": "^1.1.35",

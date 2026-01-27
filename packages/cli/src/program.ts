@@ -41,6 +41,7 @@ program.hook('preAction', (thisCommand, actionCommand) => {
 program.hook('postAction', (thisCommand, actionCommand) => {
    const start = commandStartTimes.get(thisCommand);
    if (!start) return;
+   if (actionCommand.name() === 'native-host') return;
    const duration = ((Date.now() - start) / 1000).toFixed(2);
 
    const commandPath = getFullCommandPath(actionCommand);

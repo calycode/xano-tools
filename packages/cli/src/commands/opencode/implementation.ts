@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
-import { isSea } from 'node:sea';
 import { HOST_APP_INFO } from '../../utils/host-constants';
 
 const OPENCODE_PKG = 'opencode-ai@latest';
@@ -73,7 +72,9 @@ function displayNativeHostBanner(logPath?: string) {
    console.error('\n' + font.combo.boldGreen('  Native Host Active'));
    console.error(font.color.gray('  You can keep this window minimized, but do not close it.'));
    console.error(
-      font.color.gray('  This process enables the CalyCode extension to communicate with your system.'),
+      font.color.gray(
+         '  This process enables the CalyCode extension to communicate with your system.',
+      ),
    );
 
    if (logPath) {
@@ -92,6 +93,8 @@ function sendMessage(message: any) {
    const buffer = Buffer.from(JSON.stringify(message));
    const header = Buffer.alloc(4);
    header.writeUInt32LE(buffer.length, 0);
+
+   // Use the raw file descriptor to avoid any stream logic
    process.stdout.write(header);
    process.stdout.write(buffer);
 }
@@ -180,7 +183,7 @@ async function startNativeHost() {
       platform: process.platform,
    });
 
-   displayNativeHostBanner(logger.getLogPath());
+   //displayNativeHostBanner(logger.getLogPath());
 
    let serverProc: ReturnType<typeof spawn> | null = null;
 
@@ -251,7 +254,11 @@ async function startNativeHost() {
          });
 
          logger.log('Server process spawned, waiting for ready...');
-         sendMessage({ status: 'starting', url: serverUrl, message: 'Server process spawned, waiting for ready...' });
+         sendMessage({
+            status: 'starting',
+            url: serverUrl,
+            message: 'Server process spawned, waiting for ready...',
+         });
 
          // Wait for server to actually be ready
          const isReady = await waitForServerReady(serverUrl);
@@ -311,17 +318,17 @@ async function startNativeHost() {
    // 2. Listen for messages from Chrome (stdin)
    // Chrome sends length-prefixed JSON.
    // CRITICAL: On Windows, stdin must be in raw binary mode for Native Messaging
-   
+
    // Ensure stdin is in flowing mode and properly configured
    if (process.stdin.isTTY) {
       logger.log('Warning: stdin is a TTY, Native Messaging may not work correctly');
    }
-   
+
    // Resume stdin in case it's paused (Node.js default behavior)
    process.stdin.resume();
-   
+
    // Log stdin state for debugging
-   logger.log('stdin configured', { 
+   logger.log('stdin configured', {
       readable: process.stdin.readable,
       isTTY: process.stdin.isTTY,
    });
@@ -365,7 +372,7 @@ async function startNativeHost() {
    // Handle stdin close - Chrome extension disconnected
    // This is CRITICAL to prevent ghost server processes
    process.stdin.on('end', () => {
-      logger.log('stdin end event received', { 
+      logger.log('stdin end event received', {
          receivedAnyData: inputBuffer.length > 0 || expectedLength !== null,
          bufferLength: inputBuffer.length,
       });
@@ -420,10 +427,14 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
    return new Promise<void>((resolve, reject) => {
       log.info(`Starting OpenCode server on port ${port}...`);
 
-      const proc = spawn('npx -y', [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()], {
-         stdio: 'inherit',
-         shell: true,
-      });
+      const proc = spawn(
+         'npx -y',
+         [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
+         {
+            stdio: 'inherit',
+            shell: true,
+         },
+      );
 
       proc.on('close', (code) => {
          if (code === 0) {
@@ -464,81 +475,71 @@ async function setupOpencode({ extensionIds }: { extensionIds?: string[] } = {})
    // Determine how to call the CLI
    // If we are in pkg (bundled), process.execPath is the binary.
    // If we are in node, process.execPath is node, and we need the script path.
-   const isBundled = isSea();
 
    let manifestExePath: string;
-   
+
    if (isWin) {
-      if (isBundled) {
-         // For bundled binary on Windows, point manifest directly to the .exe
-         // Chrome Native Messaging works best with direct .exe paths that don't need wrappers
-         manifestExePath = executablePath;
-         
-         log.info(`Using bundled executable directly: ${manifestExePath}`);
-      } else {
-         // Development mode on Windows:
-         // Batch files have known issues with binary stdin/stdout for Native Messaging.
-         // 
-         // The recommended solution for Windows is to use a VBScript (.vbs) or 
-         // Windows Script Host (.wsf) wrapper that properly handles stdin/stdout.
-         // However, these also have limitations with binary data.
-         //
-         // The most reliable approach is to use a small compiled launcher or
-         // directly reference node.exe with the script in a way Chrome accepts.
-         //
-         // For development, we'll try a batch file with minimal commands.
-         // If this doesn't work, users can run `xano opencode native-host` directly
-         // from a terminal for testing, or build the bundled exe.
-         
-         const wrapperDir = path.join(homeDir, '.calycode', 'bin');
-         if (!fs.existsSync(wrapperDir)) {
-            fs.mkdirSync(wrapperDir, { recursive: true });
-         }
-         
-         const scriptPath = process.argv[1];
-         
-         // Try approach 1: Direct batch file (minimal, single-line execution)
-         const wrapperPath = path.join(wrapperDir, 'calycode-host.bat');
-         // Use the @ prefix to suppress echo, and quote all paths
-         // The %* passes any additional arguments
-         const wrapperContent = `@"${executablePath}" "${scriptPath}" opencode native-host %*\r\n`;
-         fs.writeFileSync(wrapperPath, wrapperContent);
-         
-         // Also create a fallback JSON launcher config that could be used
-         // by a future compiled launcher
-         const launcherConfig = {
-            node: executablePath,
-            script: scriptPath,
-            args: ['opencode', 'native-host'],
-         };
-         const launcherConfigPath = path.join(wrapperDir, 'launcher-config.json');
-         fs.writeFileSync(launcherConfigPath, JSON.stringify(launcherConfig, null, 2));
-         
-         manifestExePath = wrapperPath;
-         
-         log.info(`Created wrapper script: ${wrapperPath}`);
-         log.info(`Node path: ${executablePath}`);
-         log.info(`Script path: ${scriptPath}`);
-         log.info(`Wrapper content: ${wrapperContent.trim()}`);
-         log.warn('Note: Development mode on Windows uses a batch file wrapper.');
-         log.warn('If Native Messaging fails, try building the bundled exe instead.');
+      // Development mode on Windows:
+      // Batch files have known issues with binary stdin/stdout for Native Messaging.
+      //
+      // The recommended solution for Windows is to use a VBScript (.vbs) or
+      // Windows Script Host (.wsf) wrapper that properly handles stdin/stdout.
+      // However, these also have limitations with binary data.
+      //
+      // The most reliable approach is to use a small compiled launcher or
+      // directly reference node.exe with the script in a way Chrome accepts.
+      //
+      // For development, we'll try a batch file with minimal commands.
+      // If this doesn't work, users can run `xano opencode native-host` directly
+      // from a terminal for testing, or build the bundled exe.
+
+      const wrapperDir = path.join(homeDir, '.calycode', 'bin');
+      if (!fs.existsSync(wrapperDir)) {
+         fs.mkdirSync(wrapperDir, { recursive: true });
       }
+
+      const wrapperPath = path.join(wrapperDir, 'calycode-host.bat');
+      let wrapperContent = '';
+
+      // Detect if running from the bundled executable or regular node
+      // SEA apps usually have the executable as process.execPath
+      const isBundled = process.execPath.toLowerCase().endsWith('caly.exe') || (process as any).pkg;
+
+      if (isBundled) {
+         // Bundled: simpler, just call the exe
+         // @echo off prevents the command itself from being printed
+         wrapperContent = `@echo off\r\n`;
+         wrapperContent += `"${process.execPath}" opencode native-host %*\r\n`;
+      } else {
+         // Node/NPM/NPX:
+         // We need to find the entry point.
+         // process.argv[1] is reliable for the current session.
+         // To support the global install scenario, we use that path.
+         
+         wrapperContent = `@echo off\r\n`;
+         wrapperContent += `"${process.execPath}" "${process.argv[1]}" opencode native-host %*\r\n`;
+      }
+
+      fs.writeFileSync(wrapperPath, wrapperContent);
+      manifestExePath = wrapperPath;
+
+      log.info(`Created wrapper script: ${wrapperPath}`);
+      // log.info(`Script path: ${scriptPath}`); // Removed logging of scriptPath as it is no longer defined separately
+      log.info(`Wrapper content: ${wrapperContent.trim()}`);
+      log.warn('Note: Development mode on Windows uses a batch file wrapper.');
+      log.warn('If Native Messaging fails, try building the bundled exe instead.');
    } else {
       // Unix-like systems - shell scripts work fine
       const wrapperDir = path.join(homeDir, '.calycode', 'bin');
       if (!fs.existsSync(wrapperDir)) {
          fs.mkdirSync(wrapperDir, { recursive: true });
       }
-      
+
       const wrapperPath = path.join(wrapperDir, 'calycode-host.sh');
       let wrapperContent: string;
-      
-      if (isBundled) {
-         wrapperContent = `#!/bin/sh\nexec "${executablePath}" opencode native-host\n`;
-      } else {
-         wrapperContent = `#!/bin/sh\nexec "${executablePath}" "${process.argv[1]}" opencode native-host\n`;
-      }
-      
+
+      wrapperContent = `#!/bin/sh\nexec "${executablePath}" "${process.argv[1]}" opencode native-host\n`;
+
       fs.writeFileSync(wrapperPath, wrapperContent);
       fs.chmodSync(wrapperPath, '755');
       manifestExePath = wrapperPath;

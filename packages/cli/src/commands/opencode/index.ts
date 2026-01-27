@@ -35,6 +35,10 @@ async function registerOpencodeCommands(program) {
          'Internal command used by Chrome Native Messaging to communicate with the extension.',
       )
       .action(async () => {
+         // Redirect all console.log to console.error (stderr)
+         // so they don't break the native messaging protocol
+         console.log = console.error;
+         console.info = console.error;
          await startNativeHost();
       });
 
