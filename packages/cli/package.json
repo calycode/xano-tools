@@ -81,6 +81,7 @@
         "outputPath": "dist/bin"
     },
     "dependencies": {
+        "dotenv": "^16.4.5",
         "opencode-ai": "^1.1.35",
         "posthog-node": "^5.9.2"
     }
