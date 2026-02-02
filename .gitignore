@@ -43,4 +43,4 @@ coverage/
 **/*/.sea-cache/
 
 # Xano's ai supporting assets:
-util-resources/xano-agentic-setups/**/*
+util-resources/xano-agentic-setups/
