@@ -4,10 +4,42 @@ import {
    AssertDefinition,
    AssertOptions,
    CoreContext,
-   PrepareRequestArgs,
 } from '@repo/types';
 import { metaApiGet, prepareRequest } from '@repo/utils';
 import { availableAsserts } from './asserts';
+
+// Re-export types for consumers (will be available once types package is rebuilt)
+// For now, define inline to avoid build issues
+interface TestConfigEntry {
+   path: string;
+   method: string;
+   headers: Record<string, string>;
+   queryParams: Array<{ name: string; in: 'path' | 'query' | 'header' | 'cookie'; value: any }> | null;
+   requestBody: any;
+   store?: Array<{ key: string; path: string }>;
+   customAsserts?: AssertDefinition;
+}
+
+interface TestResult {
+   path: string;
+   method: string;
+   success: boolean;
+   errors: Array<{ key: string; message: string }> | string | null;
+   warnings: Array<{ key: string; message: string }> | null;
+   duration: number;
+}
+
+interface TestGroupResult {
+   group: ApiGroupConfig;
+   results: TestResult[];
+}
+
+interface AssertContext {
+   requestOutcome: Response;
+   result: any;
+   method: string;
+   path: string;
+}
 
 // ----------- UTILS ------------- //
 const replaceDynamicValues = (obj, replacements) => {
@@ -71,31 +103,11 @@ async function testRunner({
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
-   testConfig: {
-      path: string;
-      method: string;
-      headers: { [key: string]: string };
-      queryParams: PrepareRequestArgs['parameters'];
-      requestBody: any;
-      store?: { key: string; path: string }[];
-      customAsserts: AssertDefinition;
-   }[];
+   testConfig: TestConfigEntry[];
    core: Caly;
    storage: Caly['storage'];
    initialRuntimeValues?: Record<string, any>;
-}): Promise<
-   {
-      group: ApiGroupConfig;
-      results: {
-         path: string;
-         method: string;
-         success: boolean;
-         errors: any;
-         warnings: any;
-         duration: number;
-      }[];
-   }[]
-> {
+}): Promise<TestGroupResult[]> {
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
@@ -113,7 +125,7 @@ async function testRunner({
    };
    let runtimeValues = initialRuntimeValues ?? {};
 
-   let finalOutput = [];
+   let finalOutput: TestGroupResult[] = [];
 
    for (const group of groups) {
       // Make sure we have OpenaAPI specs to run our tests against
@@ -131,7 +143,7 @@ async function testRunner({
          group.oas = patchedOas.oas;
       }
 
-      const results = [];
+      const results: TestResult[] = [];
       // Actually run the test based on config (support runtime values)
       for (const endpoint of testConfig) {
          const testStart = Date.now();
@@ -173,12 +185,10 @@ async function testRunner({
 
          try {
             // Resolve values and prepare request:
-            const resolvedQueryParams: PrepareRequestArgs['parameters'] = (queryParams ?? []).map(
-               (param) => {
-                  param.value = replaceDynamicValues(param.value, runtimeValues);
-                  return param;
-               }
-            );
+            const resolvedQueryParams = (queryParams ?? []).map((param) => ({
+               ...param,
+               value: replaceDynamicValues(param.value, runtimeValues),
+            }));
             const resolvedHeaders = replaceDynamicValues(
                { ...headers, ...DEFAULT_HEADERS },
                {
@@ -202,14 +212,14 @@ async function testRunner({
                : await requestOutcome.text();
 
             // Collect assertion results/errors
-            const assertContext = {
+            const assertContext: AssertContext = {
                requestOutcome,
                result,
                method,
                path,
             };
-            let assertionErrors = [];
-            let assertionWarnings = [];
+            let assertionErrors: Array<{ key: string; message: string }> = [];
+            let assertionWarnings: Array<{ key: string; message: string }> = [];
 
             // Run all prepared asserts
             for (const { key, fn, level } of assertsToRun) {
@@ -223,7 +233,7 @@ async function testRunner({
             }
 
             // Add runtime values if request has 'store' defined
-            if (store && requestOutcome.headers.get('content-type').includes('application/json')) {
+            if (store && requestOutcome.headers.get('content-type')?.includes('application/json')) {
                const newRuntimeValues = Object.fromEntries(
                   store.map(({ key, path }) => [key, getByPath(result, path.replace(/^\./, ''))])
                );
@@ -251,6 +261,7 @@ async function testRunner({
                method,
                success: false,
                errors: error.stack || error.message,
+               warnings: null,
                duration: testDuration,
             });
          }

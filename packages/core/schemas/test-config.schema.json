@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://calycode.com/schemas/testing/config.json",
+  "title": "TestConfig",
+  "description": "Configuration schema for Caly Xano CLI API testing. Tests run sequentially, allowing chained workflows with runtime value extraction.",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/TestConfigEntry"
+  },
+  "$defs": {
+    "TestConfigEntry": {
+      "type": "object",
+      "description": "A single test configuration entry for API endpoint testing.",
+      "required": ["path", "method", "headers", "queryParams", "requestBody"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "API endpoint path (e.g., '/users', '/auth/login'). Can include {{ENVIRONMENT.KEY}} placeholders for path parameters.",
+          "examples": ["/users", "/auth/login", "/posts/{{ENVIRONMENT.POST_ID}}"]
+        },
+        "method": {
+          "type": "string",
+          "description": "HTTP method for the request.",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+          "examples": ["GET", "POST"]
+        },
+        "headers": {
+          "type": "object",
+          "description": "Request headers. Values can include {{ENVIRONMENT.KEY}} placeholders.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "examples": [
+            {},
+            { "Authorization": "Bearer {{ENVIRONMENT.AUTH_TOKEN}}" },
+            { "Content-Type": "application/json", "X-Custom-Header": "value" }
+          ]
+        },
+        "queryParams": {
+          "oneOf": [
+            {
+              "type": "array",
+              "description": "Array of query/path parameters.",
+              "items": {
+                "$ref": "#/$defs/TestParameter"
+              }
+            },
+            {
+              "type": "null",
+              "description": "No parameters for this request."
+            }
+          ],
+          "examples": [
+            null,
+            [{ "name": "limit", "in": "query", "value": "10" }],
+            [{ "name": "userId", "in": "path", "value": "{{ENVIRONMENT.USER_ID}}" }]
+          ]
+        },
+        "requestBody": {
+          "description": "Request body for POST/PUT/PATCH requests. Can be any JSON value or null. Values can include {{ENVIRONMENT.KEY}} placeholders.",
+          "examples": [
+            null,
+            { "email": "{{ENVIRONMENT.TEST_EMAIL}}", "password": "{{ENVIRONMENT.TEST_PASSWORD}}" },
+            { "title": "Test Post", "content": "Hello World" }
+          ]
+        },
+        "store": {
+          "type": "array",
+          "description": "Extract values from response to use in subsequent tests. Values are stored as ENVIRONMENT variables.",
+          "items": {
+            "$ref": "#/$defs/TestStoreEntry"
+          },
+          "examples": [
+            [{ "key": "AUTH_TOKEN", "path": "$.authToken" }],
+            [{ "key": "USER_ID", "path": "$.user.id" }, { "key": "USER_NAME", "path": "$.user.name" }]
+          ]
+        },
+        "customAsserts": {
+          "type": "object",
+          "description": "Custom assertion functions (only available in JS config files). Keys are assertion names, values define the assertion function and level.",
+          "additionalProperties": {
+            "$ref": "#/$defs/AssertDefinition"
+          }
+        }
+      }
+    },
+    "TestParameter": {
+      "type": "object",
+      "description": "Parameter definition for query/path/header/cookie parameters.",
+      "required": ["name", "in", "value"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Parameter name.",
+          "examples": ["limit", "offset", "userId"]
+        },
+        "in": {
+          "type": "string",
+          "description": "Where the parameter appears in the request.",
+          "enum": ["path", "query", "header", "cookie"]
+        },
+        "value": {
+          "description": "Parameter value. Can include {{ENVIRONMENT.KEY}} placeholders.",
+          "examples": ["10", "{{ENVIRONMENT.USER_ID}}", "true"]
+        }
+      }
+    },
+    "TestStoreEntry": {
+      "type": "object",
+      "description": "Definition for extracting values from responses into runtime variables.",
+      "required": ["key", "path"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Key name to store the extracted value under. Will be available as {{ENVIRONMENT.KEY}} in subsequent tests.",
+          "examples": ["AUTH_TOKEN", "USER_ID", "POST_ID"]
+        },
+        "path": {
+          "type": "string",
+          "description": "JSONPath expression to extract value from response. Supports $.field, .field, $.nested.field, $.array[0] syntax.",
+          "examples": ["$.authToken", "$.user.id", "$.items[0].id", ".data.name"]
+        }
+      }
+    },
+    "AssertDefinition": {
+      "type": "object",
+      "description": "Custom assertion definition (JS configs only).",
+      "required": ["level"],
+      "properties": {
+        "fn": {
+          "description": "Assertion function that receives context object with { requestOutcome, result, method, path }. Throw an error to fail the assertion."
+        },
+        "level": {
+          "type": "string",
+          "description": "Assertion severity level.",
+          "enum": ["error", "warn", "off"],
+          "default": "error"
+        }
+      }
+    }
+  },
+  "examples": [
+    [
+      {
+        "path": "/auth/login",
+        "method": "POST",
+        "headers": {},
+        "queryParams": null,
+        "requestBody": {
+          "email": "{{ENVIRONMENT.TEST_EMAIL}}",
+          "password": "{{ENVIRONMENT.TEST_PASSWORD}}"
+        },
+        "store": [
+          { "key": "AUTH_TOKEN", "path": "$.authToken" }
+        ],
+        "customAsserts": {}
+      },
+      {
+        "path": "/users/me",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer {{ENVIRONMENT.AUTH_TOKEN}}"
+        },
+        "queryParams": null,
+        "requestBody": null,
+        "customAsserts": {}
+      }
+    ]
+  ]
+}

@@ -278,15 +278,187 @@ export type SanitizeOptions = {
 
 // -------- ASSERTS ---------- //
 
-type Level = 'off' | 'error' | 'warn';
+export type AssertLevel = 'off' | 'error' | 'warn';
+
+// Keep Level alias for backwards compatibility
+type Level = AssertLevel;
 
 export interface AssertOptions {
    key: string;
-   fn?: (context: any) => void;
-   level: Level;
+   fn?: (context: AssertContext) => void;
+   level: AssertLevel;
 }
 
-export type AssertDefinition = Record<string, { fn?: (context: any) => void; level: Level }>;
+export type AssertDefinition = Record<
+   string,
+   { fn?: (context: AssertContext) => void; level: AssertLevel }
+>;
+
+/**
+ * Context passed to custom assert functions.
+ * Contains the raw response, parsed result, and request metadata.
+ */
+export interface AssertContext {
+   /** The raw fetch Response object */
+   requestOutcome: Response;
+   /** The parsed response body (JSON object or string) */
+   result: any;
+   /** HTTP method used for the request */
+   method: string;
+   /** API endpoint path */
+   path: string;
+}
+
+// -------- TESTING ---------- //
+
+/**
+ * Parameter definition for query/path parameters in test requests.
+ *
+ * @example
+ * ```typescript
+ * const param: TestParameter = {
+ *   name: 'userId',
+ *   in: 'path',
+ *   value: '{{ENVIRONMENT.USER_ID}}'
+ * };
+ * ```
+ */
+export interface TestParameter {
+   /** Parameter name */
+   name: string;
+   /** Where the parameter appears: path, query, header, or cookie */
+   in: 'path' | 'query' | 'header' | 'cookie';
+   /** Parameter value - can include {{ENVIRONMENT.KEY}} placeholders */
+   value: any;
+}
+
+/**
+ * Store definition for extracting values from responses into runtime variables.
+ *
+ * @example
+ * ```typescript
+ * const store: TestStoreEntry = {
+ *   key: 'AUTH_TOKEN',
+ *   path: '$.authToken'  // JSONPath expression
+ * };
+ * ```
+ */
+export interface TestStoreEntry {
+   /** Key name to store the extracted value under */
+   key: string;
+   /** JSONPath expression to extract value from response (e.g., "$.data.id" or ".authToken") */
+   path: string;
+}
+
+/**
+ * Single test configuration entry for API endpoint testing.
+ *
+ * @example
+ * ```typescript
+ * // Basic test
+ * const test: TestConfigEntry = {
+ *   path: '/users',
+ *   method: 'GET',
+ *   headers: { 'X-Data-Source': 'live' },
+ *   queryParams: [{ name: 'limit', in: 'query', value: '10' }],
+ *   requestBody: null,
+ *   customAsserts: {}
+ * };
+ *
+ * // Test with runtime value extraction and custom assert
+ * const authTest: TestConfigEntry = {
+ *   path: '/auth/login',
+ *   method: 'POST',
+ *   headers: {},
+ *   queryParams: null,
+ *   requestBody: { email: '{{ENVIRONMENT.TEST_EMAIL}}', password: '{{ENVIRONMENT.TEST_PWD}}' },
+ *   store: [{ key: 'AUTH_TOKEN', path: '$.authToken' }],
+ *   customAsserts: {
+ *     hasToken: {
+ *       fn: (ctx) => { if (!ctx.result?.authToken) throw new Error('No token returned'); },
+ *       level: 'error'
+ *     }
+ *   }
+ * };
+ * ```
+ */
+export interface TestConfigEntry {
+   /** API endpoint path (e.g., "/users", "/auth/login") */
+   path: string;
+   /** HTTP method */
+   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | string;
+   /** Request headers - can include {{ENVIRONMENT.KEY}} placeholders */
+   headers: Record<string, string>;
+   /** Query/path parameters - null if none */
+   queryParams: TestParameter[] | null;
+   /** Request body for POST/PUT/PATCH - can include {{ENVIRONMENT.KEY}} placeholders */
+   requestBody: any;
+   /** Extract values from response to use in subsequent tests */
+   store?: TestStoreEntry[];
+   /** Custom assertion functions to run against the response */
+   customAsserts?: AssertDefinition;
+}
+
+/**
+ * Complete test configuration - an array of test entries executed in order.
+ * Tests run sequentially so extracted runtime values can be used in subsequent tests.
+ *
+ * @example
+ * ```typescript
+ * import type { TestConfig } from '@repo/types';
+ *
+ * const config: TestConfig = [
+ *   {
+ *     path: '/auth/login',
+ *     method: 'POST',
+ *     headers: {},
+ *     queryParams: null,
+ *     requestBody: { email: '{{ENVIRONMENT.TEST_EMAIL}}', password: '{{ENVIRONMENT.TEST_PWD}}' },
+ *     store: [{ key: 'AUTH_TOKEN', path: '$.authToken' }],
+ *     customAsserts: {}
+ *   },
+ *   {
+ *     path: '/users/me',
+ *     method: 'GET',
+ *     headers: { 'Authorization': 'Bearer {{ENVIRONMENT.AUTH_TOKEN}}' },
+ *     queryParams: null,
+ *     requestBody: null,
+ *     customAsserts: {}
+ *   }
+ * ];
+ *
+ * export default config;
+ * ```
+ */
+export type TestConfig = TestConfigEntry[];
+
+/**
+ * Result of a single test execution.
+ */
+export interface TestResult {
+   /** API endpoint path */
+   path: string;
+   /** HTTP method used */
+   method: string;
+   /** Whether all assertions passed */
+   success: boolean;
+   /** Array of assertion errors, or null if none */
+   errors: Array<{ key: string; message: string }> | string | null;
+   /** Array of assertion warnings, or null if none */
+   warnings: Array<{ key: string; message: string }> | null;
+   /** Test execution duration in milliseconds */
+   duration: number;
+}
+
+/**
+ * Aggregated test results for an API group.
+ */
+export interface TestGroupResult {
+   /** The API group configuration */
+   group: ApiGroupConfig;
+   /** Array of test results for this group */
+   results: TestResult[];
+}
 
 // --------- Registry item types ----------- //
 export type RegistryItemType =
