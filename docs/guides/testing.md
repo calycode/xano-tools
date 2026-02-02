@@ -49,10 +49,8 @@ xano test run -c ./test-config.json --all --ci
 
 | Option | Alias | Description |
 |--------|-------|-------------|
-| `--config <path>` | `-c` | Path to test configuration file |
-| `--test-config-path <path>` | | Full option name (deprecated, use `-c`) |
+| `--config <path>` | `-c` | Path to test configuration file (.json or .js) |
 | `--env <KEY=VALUE>` | `-e` | Inject environment variable (repeatable) |
-| `--test-env <KEY=VALUE>` | | Full option name (deprecated, use `-e`) |
 | `--ci` | | Enable CI mode: exit with code 1 on failures |
 | `--fail-on-warnings` | | Also fail in CI mode if there are warnings |
 | `--all` | | Run tests for all API groups |
@@ -60,6 +58,7 @@ xano test run -c ./test-config.json --all --ci
 | `--instance <name>` | | Target instance |
 | `--workspace <name>` | | Target workspace |
 | `--branch <name>` | | Target branch |
+| `--print-output-dir` | | Expose usable output path for further reuse |
 
 ## Test Configuration
 
