@@ -1,19 +1,19 @@
 # @calycode/cli
 ```sh
+caly-xano-cli v0.15.0 — Automate backups, docs, testing & version control for Xano
+
 Usage: xano <command> [options]
 
+Core:
+  └─ init                  Initialize CLI with Xano instance config
 
-+==================================================================================================+
-|                                                                                                  |
-|    ██████╗ █████╗ ██╗  ██╗   ██╗    ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
-|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
-|   ██║     ███████║██║   ╚████╔╝█████╗╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
-|   ██║     ██╔══██║██║    ╚██╔╝ ╚════╝██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
-|   ╚██████╗██║  ██║███████╗██║       ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
-|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝       ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
-|                                                                                                  |
-+==================================================================================================+
+Agentic Development:
+  ├─ oc init               Initialize OpenCode host integration
+  ├─ oc serve              Serve OpenCode AI server locally
+  └─ oc templates install  Install OpenCode agent templates
 
+Testing:
+  └─ test run              Run API test suite via OpenAPI spec
 
 Supercharge your Xano workflow: automate backups, docs, testing, and version control — no AI guesswork, just reliable, transparent dev tools.
 
@@ -44,40 +44,17 @@ Generation Commands:
 
 
 Registry:
-   registry add         -h, --help
-      Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.
-
-   registry scaffold    -h, --help
-      Scaffold a Xano registry folder with a sample component. Xano registry can be used to share and reuse prebuilt components. In the registry you have to follow the [registry](https://calycode.com/schemas/registry/registry.json) and [registry item](https://calycode.com/schemas/registry/registry-item.json) schemas.
-
+  ├─ registry add          Add prebuilt component to Xano
+  └─ registry scaffold     Scaffold registry folder
 
 Serve:
-   serve spec           -h, --help
-      Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.
-
-   serve registry       -h, --help
-      Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.
-
+  ├─ serve spec            Serve OpenAPI spec locally
+  └─ serve registry        Serve registry locally
 
 Backups:
-   backup export        -h, --help
-      Backup Xano Workspace via Metadata API
+  ├─ backup export         Export workspace backup
+  └─ backup restore        Restore backup to workspace
 
-   backup restore       -h, --help
-      Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.
-
-
-Testing & Linting:
-   test run             -h, --help
-      Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json 
-
-
-Other:
-   generate xanoscript  -h, --help
-      Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
-
-   context show         -h, --help
-      Show the current known context.
-
-Need help? Visit https://github.com/calycode/xano-tools or reach out to us on https://links.calycode.com/discord
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

@@ -22,18 +22,11 @@ Serve the registry locally. This allows you to actually use your registry withou
 Usage: xano serve registry [options]
 
 Options:
-  --root <path>
-    Where did you put your registry? (Local path to the registry directory)
+  ├─ --root <path>    Where did you put your registry? (Local path to the registry directory)
+  ├─ --listen <port>  The port where you want your registry to be served locally. By default it is 5000.
+  ├─ --cors           Do you want to enable CORS? By default false.
+  └─ -h, --help       display help for command
 
-  --listen <port>
-    The port where you want your registry to be served locally. By default it is 5000.
-
-  --cors
-    Do you want to enable CORS? By default false.
-
-  -h, --help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

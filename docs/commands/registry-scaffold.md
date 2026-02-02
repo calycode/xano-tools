@@ -20,15 +20,10 @@ Scaffold a Xano registry folder with a sample component. Xano registry can be us
 Usage: xano registry scaffold [options]
 
 Options:
-  --output <path>
-    Local output path for the registry
+  ├─ --output <path>        Local output path for the registry
+  ├─ --instance <instance>  The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  └─ -h, --help             display help for command
 
-  --instance <instance>
-    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
-
-  -h, --help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

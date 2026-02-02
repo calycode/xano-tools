@@ -34,6 +34,28 @@
 - **context**
 
   - [context show](commands/context-show.md)
+- **oc**
+
+  - [oc init](commands/oc-init.md)
+-   **templates**
+
+    - [oc templates install](commands/oc-templates-install.md)
+
+    - [oc templates update](commands/oc-templates-update.md)
+
+    - [oc templates status](commands/oc-templates-status.md)
+
+    - [oc templates clear-cache](commands/oc-templates-clear-cache.md)
+
+  - [oc serve](commands/oc-serve.md)
+
+  - [oc native-host](commands/oc-native-host.md)
+
+  - [oc run](commands/oc-run.md)
+
+- **Guides**
+
+  - [API Testing Guide](guides/testing.md)
 
 -  Changelog
 

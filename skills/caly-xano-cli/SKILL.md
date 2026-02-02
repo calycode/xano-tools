@@ -48,7 +48,8 @@ xano init --name my-instance --url https://x123.xano.io --token <METADATA_API_TO
 | Generate docs         | `xano generate docs`                                  |
 | Export backup         | `xano backup export`                                  |
 | Restore backup        | `xano backup restore --source-backup backup.json`     |
-| Run API tests         | `xano test run --test-config-path ./test-config.json` |
+| Run API tests         | `xano test run -c ./test-config.json`                 |
+| Run tests (CI mode)   | `xano test run -c ./test-config.json --ci`            |
 | Serve OpenAPI locally | `xano serve spec`                                     |
 
 ---
@@ -244,31 +245,104 @@ xano backup restore --source-backup ./backup.json
 ### Run Test Suite
 
 ```bash
+# Short form (recommended)
+xano test run -c ./test-config.json
+
+# Long form
 xano test run --test-config-path ./test-config.json
 ```
 
-Executes API tests based on OpenAPI spec.
+Executes API tests based on test configuration file.
 
 ### With Environment Variables
 
 ```bash
+# Short form
+xano test run -c ./test-config.json -e API_KEY=secret -e TEST_EMAIL=test@example.com
+
+# Long form
 xano test run \
   --test-config-path ./test-config.json \
   --test-env API_KEY=secret \
   --test-env BASE_URL=https://api.example.com
 ```
 
+### CI/CD Mode (Exit on Failure)
+
+```bash
+# Exit with code 1 if any tests fail
+xano test run -c ./test-config.json --ci
+
+# Also fail on warnings
+xano test run -c ./test-config.json --ci --fail-on-warnings
+```
+
 ### Options
 
-| Option                      | Description                  |
-| --------------------------- | ---------------------------- |
-| `--test-config-path <path>` | Path to test config          |
-| `--test-env <KEY=VALUE>`    | Inject env vars (repeatable) |
-| `--all`                     | Test all API groups          |
+| Option                      | Alias | Description                        |
+| --------------------------- | ----- | ---------------------------------- |
+| `--config <path>`           | `-c`  | Path to test config                |
+| `--test-config-path <path>` |       | Path to test config (deprecated)   |
+| `--env <KEY=VALUE>`         | `-e`  | Inject env vars (repeatable)       |
+| `--test-env <KEY=VALUE>`    |       | Inject env vars (deprecated)       |
+| `--ci`                      |       | Exit with code 1 on test failures  |
+| `--fail-on-warnings`        |       | Also fail on warnings (CI mode)    |
+| `--all`                     |       | Test all API groups                |
+| `--group <name>`            |       | Test specific API group            |
 
 ### Test Config Schema
 
 See: https://calycode.com/schemas/testing/config.json
+
+### Test Config Example (JSON)
+
+```json
+[
+  {
+    "path": "/auth/login",
+    "method": "POST",
+    "headers": {},
+    "queryParams": null,
+    "requestBody": {
+      "email": "{{ENVIRONMENT.TEST_EMAIL}}",
+      "password": "{{ENVIRONMENT.TEST_PASSWORD}}"
+    },
+    "store": [{ "key": "AUTH_TOKEN", "path": "$.authToken" }],
+    "customAsserts": {}
+  },
+  {
+    "path": "/users/me",
+    "method": "GET",
+    "headers": { "Authorization": "Bearer {{ENVIRONMENT.AUTH_TOKEN}}" },
+    "queryParams": null,
+    "requestBody": null,
+    "customAsserts": {}
+  }
+]
+```
+
+### Test Config Example (JavaScript with Custom Asserts)
+
+```javascript
+// test-config.js
+module.exports = [
+  {
+    path: '/health',
+    method: 'GET',
+    headers: {},
+    queryParams: null,
+    requestBody: null,
+    customAsserts: {
+      hasStatus: {
+        fn: (ctx) => {
+          if (!ctx.result?.status) throw new Error('Missing status');
+        },
+        level: 'error'
+      }
+    }
+  }
+];
+```
 
 ---
 

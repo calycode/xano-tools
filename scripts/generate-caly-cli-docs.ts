@@ -96,6 +96,10 @@ function generateCliDocs() {
       const finalSidebar = [
          ...sidebarLines,
          `
+- **Guides**
+
+  - [API Testing Guide](guides/testing.md)
+
 -  Changelog
 
    -  [CLI](https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md)

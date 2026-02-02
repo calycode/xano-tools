@@ -14,9 +14,8 @@ Show the current known context.
 Usage: xano context show [options]
 
 Options:
-  -h, --help
-    display help for command
+  └─ -h, --help  display help for command
 
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```
