@@ -23,10 +23,11 @@ XanoScript (`.xs` files) is Xano's domain-specific language for defining backend
 
 For complete XanoScript syntax, features, and usage:
 
-> **Official Xano Documentation**  
+> **Official Xano Documentation**
 > https://docs.xano.com/xanoscript/vs-code#usage
 
 The official documentation covers:
+
 - XanoScript syntax and grammar
 - Function stack definitions
 - Variable declarations
@@ -71,14 +72,14 @@ Include XanoScript in reusable registry components:
 
 ```json
 {
-  "name": "utils/jwt-helper",
-  "type": "registry:function",
-  "files": [
-    {
-      "path": "./jwt-helper.xs",
-      "type": "registry:function"
-    }
-  ]
+   "name": "utils/jwt-helper",
+   "type": "registry:function",
+   "files": [
+      {
+         "path": "./jwt-helper.xs",
+         "type": "registry:function"
+      }
+   ]
 }
 ```
 
@@ -95,24 +96,24 @@ xano registry add utils/jwt-helper \
 
 Xano Tools can process the following XanoScript entity types:
 
-| Entity Type | Description | CLI Support |
-|-------------|-------------|-------------|
-| `addon` | Reusable utility functions | ✅ Extract, Registry |
-| `function` | Custom function stacks | ✅ Extract, Registry |
-| `apigroup` | API endpoint groups | ✅ Extract, Registry |
-| `table` | Database table definitions | ✅ Extract, Registry |
-| `task` | Scheduled tasks | ✅ Extract, Registry |
-| `middleware` | Request/response middleware | ✅ Extract, Registry |
-| `trigger` | Workspace-level triggers | ✅ Extract, Registry |
-| `table/trigger` | Table-level triggers | ✅ Extract, Registry |
-| `agent` | AI agents | ✅ Extract, Registry |
-| `agent/trigger` | Agent triggers | ✅ Extract, Registry |
-| `tool` | AI tools for agents | ✅ Extract, Registry |
-| `mcp_server` | MCP server definitions | ✅ Extract, Registry |
-| `mcp_server/trigger` | MCP server triggers | ✅ Extract, Registry |
-| `realtime/channel` | Realtime WebSocket channels | ✅ Extract, Registry |
-| `realtime/channel/trigger` | Channel triggers | ✅ Extract, Registry |
-| `workflow_test` | Workflow test definitions | ✅ Extract |
+| Entity Type                | Description                 | CLI Support          |
+| -------------------------- | --------------------------- | -------------------- |
+| `addon`                    | Reusable utility functions  | ✅ Extract, Registry |
+| `function`                 | Custom function stacks      | ✅ Extract, Registry |
+| `apigroup`                 | API endpoint groups         | ✅ Extract, Registry |
+| `table`                    | Database table definitions  | ✅ Extract, Registry |
+| `task`                     | Scheduled tasks             | ✅ Extract, Registry |
+| `middleware`               | Request/response middleware | ✅ Extract, Registry |
+| `trigger`                  | Workspace-level triggers    | ✅ Extract, Registry |
+| `table/trigger`            | Table-level triggers        | ✅ Extract, Registry |
+| `agent`                    | AI agents                   | ✅ Extract, Registry |
+| `agent/trigger`            | Agent triggers              | ✅ Extract, Registry |
+| `tool`                     | AI tools for agents         | ✅ Extract, Registry |
+| `mcp_server`               | MCP server definitions      | ✅ Extract, Registry |
+| `mcp_server/trigger`       | MCP server triggers         | ✅ Extract, Registry |
+| `realtime/channel`         | Realtime WebSocket channels | ✅ Extract, Registry |
+| `realtime/channel/trigger` | Channel triggers            | ✅ Extract, Registry |
+| `workflow_test`            | Workflow test definitions   | ✅ Extract           |
 
 ## Extracting XanoScript
 
@@ -175,14 +176,14 @@ Reference XanoScript files in your registry item definitions:
 
 ```json
 {
-  "name": "auth/jwt-verify",
-  "type": "registry:function",
-  "files": [
-    {
-      "path": "./jwt-verify.xs",
-      "type": "registry:function"
-    }
-  ]
+   "name": "auth/jwt-verify",
+   "type": "registry:function",
+   "files": [
+      {
+         "path": "./jwt-verify.xs",
+         "type": "registry:function"
+      }
+   ]
 }
 ```
 
@@ -192,14 +193,14 @@ Or include XanoScript content directly:
 
 ```json
 {
-  "name": "utils/simple-helper",
-  "type": "registry:function",
-  "files": [
-    {
-      "content": "// XanoScript content here\n...",
-      "type": "registry:function"
-    }
-  ]
+   "name": "utils/simple-helper",
+   "type": "registry:function",
+   "files": [
+      {
+         "content": "// XanoScript content here\n...",
+         "type": "registry:function"
+      }
+   ]
 }
 ```
 
@@ -209,22 +210,22 @@ Components can include multiple XanoScript files:
 
 ```json
 {
-  "name": "auth/complete-auth",
-  "type": "registry:function",
-  "files": [
-    {
-      "path": "./login.xs",
-      "type": "registry:function"
-    },
-    {
-      "path": "./register.xs",
-      "type": "registry:function"
-    },
-    {
-      "path": "./verify.xs",
-      "type": "registry:function"
-    }
-  ]
+   "name": "auth/complete-auth",
+   "type": "registry:function",
+   "files": [
+      {
+         "path": "./login.xs",
+         "type": "registry:function"
+      },
+      {
+         "path": "./register.xs",
+         "type": "registry:function"
+      },
+      {
+         "path": "./verify.xs",
+         "type": "registry:function"
+      }
+   ]
 }
 ```
 
@@ -241,6 +242,7 @@ Components can include multiple XanoScript files:
 ### VS Code Extension
 
 The official Xano VS Code extension provides:
+
 - Syntax highlighting for `.xs` files
 - IntelliSense and autocompletion
 - Direct sync with your Xano instance
@@ -264,16 +266,19 @@ git commit -m "Extract latest XanoScript from production"
 ## Resources
 
 ### Official Xano Documentation
+
 - **XanoScript Reference:** https://docs.xano.com/xanoscript/vs-code#usage
 - **Xano Documentation:** https://docs.xano.com
 
 ### Xano Tools Documentation
+
 - [Generate XanoScript Command](/docs/commands/generate-xanoscript.md)
 - [Generate Repo Command](/docs/commands/generate-repo.md)
 - [Registry Authoring Guide](/docs/guides/registry-authoring.md)
 - [Registry Add Command](/docs/commands/registry-add.md)
 
 ### Community
+
 - [Xano Community](https://community.xano.com)
 - [Calycode Discord](https://links.calycode.com/discord)
 - [GitHub Repository](https://github.com/calycode/xano-tools)

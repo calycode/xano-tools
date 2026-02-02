@@ -28,11 +28,11 @@ This guide provides recommendations and points to comprehensive resources.
 
 ### Recommended Setup
 
-| Tool | Purpose | Link |
-|------|---------|------|
-| **Xano VS Code Extension** | XanoScript development | [Xano Docs](https://docs.xano.com/xanoscript/vs-code) |
-| **Xano Tools CLI** | Automation & version control | [CLI Docs](/docs/xano.md) |
-| **Calycode Extension** | Team branching & collaboration | [extension.calycode.com](https://extension.calycode.com) |
+| Tool                       | Purpose                        | Link                                                     |
+| -------------------------- | ------------------------------ | -------------------------------------------------------- |
+| **Xano VS Code Extension** | XanoScript development         | [Xano Docs](https://docs.xano.com/xanoscript/vs-code)    |
+| **Xano Tools CLI**         | Automation & version control   | [CLI Docs](/docs/xano.md)                                |
+| **Calycode Extension**     | Team branching & collaboration | [extension.calycode.com](https://extension.calycode.com) |
 
 ### Initial Setup
 
@@ -145,6 +145,7 @@ main (production)
 ### Code Review Process
 
 1. **Export XanoScript** before merging:
+
    ```bash
    xano generate xanoscript --branch feature/new-feature
    ```
@@ -186,13 +187,10 @@ Create focused, reusable services:
 ```json
 // Registry component: services/payment
 {
-  "name": "services/payment",
-  "type": "registry:function",
-  "description": "Payment processing service",
-  "registryDependencies": [
-    "utils/stripe-client",
-    "utils/logging"
-  ]
+   "name": "services/payment",
+   "type": "registry:function",
+   "description": "Payment processing service",
+   "registryDependencies": ["utils/stripe-client", "utils/logging"]
 }
 ```
 
@@ -222,14 +220,14 @@ Create a shared error handler function and use it consistently.
 
 ### When to Use Registry Components
 
-| Use Case | Why Registry? |
-|----------|---------------|
-| **Multi-file components** | Snippets are single files |
-| **Dependencies** | Registry handles dependency resolution |
-| **Team sharing** | Host and version registries |
-| **Version control** | Track changes in Git |
-| **Complex business logic** | Better organization |
-| **CI/CD integration** | Programmatic deployment |
+| Use Case                   | Why Registry?                          |
+| -------------------------- | -------------------------------------- |
+| **Multi-file components**  | Snippets are single files              |
+| **Dependencies**           | Registry handles dependency resolution |
+| **Team sharing**           | Host and version registries            |
+| **Version control**        | Track changes in Git                   |
+| **Complex business logic** | Better organization                    |
+| **CI/CD integration**      | Programmatic deployment                |
 
 ### Migrating from Snippets to Registry
 
@@ -245,20 +243,21 @@ Create a shared error handler function and use it consistently.
 
 For in-depth Xano education and advanced patterns:
 
-> **StateChange.ai**  
+> **StateChange.ai**
 > https://statechange.ai
-> 
-> Comprehensive Xano training courses covering:
-> - Advanced function patterns
-> - Authentication strategies
-> - Performance optimization
-> - Real-world project tutorials
+>
+> Amazing community of builders and Xano Experts curated by Ray Deck, topics covered:
+>
+> - Advanced Xano challenges, auth, complex workflows
+> - Marketing Masterminds
+> - Building with AI and for AI
+> - And much much more.
 
 ### Community Development Tools
 
-> **XDM - Xano Development Manager**  
+> **XDM - Xano Development Methodology**
 > https://github.com/gmaison/xdm
-> 
+>
 > Community-built tooling for Xano development workflows.
 
 ### Official Xano Documentation
@@ -269,13 +268,12 @@ For in-depth Xano education and advanced patterns:
 
 ## Community Tools
 
-### Xano Tools Ecosystem
+### @calycode | Xano Tools Ecosystem
 
-| Tool | Purpose | Link |
-|------|---------|------|
-| **@calycode/cli** | CLI for automation | [GitHub](https://github.com/calycode/xano-tools) |
+| Tool                   | Purpose                         | Link                                                     |
+| ---------------------- | ------------------------------- | -------------------------------------------------------- |
+| **@calycode/cli**      | CLI for automation              | [GitHub](https://github.com/calycode/xano-tools)         |
 | **Calycode Extension** | Browser extension for branching | [extension.calycode.com](https://extension.calycode.com) |
-| **XDM** | Development manager | [GitHub](https://github.com/gmaison/xdm) |
 
 ### Contributing
 
@@ -337,8 +335,8 @@ XANO_TEST_PASSWORD=your-test-password
 ## Resources
 
 - **Xano Docs:** https://docs.xano.com
+- **Calycode Extension:** https://extension.calycode.com
+- **Discord Community:** https://links.calycode.com/discord
 - **StateChange.ai:** https://statechange.ai
 - **XDM:** https://github.com/gmaison/xdm
 - **Axiom Logging:** https://axiom.co
-- **Calycode Extension:** https://extension.calycode.com
-- **Discord Community:** https://links.calycode.com/discord
