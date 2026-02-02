@@ -1,7 +1,9 @@
 import { log } from '@clack/prompts';
 
 function registerContextCommands(program, core) {
-   const contextNamespace = program.command('context').description('Context related operations.');
+   const contextNamespace = program
+      .command('context', { hidden: true })
+      .description('Context related operations.');
 
    contextNamespace
       .command('show')

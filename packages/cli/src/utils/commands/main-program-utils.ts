@@ -5,6 +5,14 @@ function isDeprecated(cmd) {
    return desc.trim().startsWith('[DEPRECATED]');
 }
 
+/**
+ * Checks if a command is hidden via Commander.js's .hideHelp() method.
+ * When .hideHelp() is called on a command, Commander sets cmd._hidden = true.
+ */
+function isHidden(cmd) {
+   return cmd._hidden === true;
+}
+
 function getFullCommandPath(cmd) {
    const path = [];
    let current = cmd;
@@ -23,8 +31,8 @@ function collectVisibleLeafCommands(cmd, parentPath = []) {
    const path = [...parentPath, cmd.name()].filter((segment) => segment !== 'xano');
    let results = [];
 
-   // Only include if not deprecated and not the root (which has empty name)
-   if (cmd.name() && !isDeprecated(cmd)) {
+   // Only include if not deprecated, not hidden, and not the root (which has empty name)
+   if (cmd.name() && !isDeprecated(cmd) && !isHidden(cmd)) {
       // If no subcommands, it's a leaf
       if (!cmd.commands || cmd.commands.length === 0) {
          results.push({
@@ -34,7 +42,13 @@ function collectVisibleLeafCommands(cmd, parentPath = []) {
          });
       }
    }
-   // Always recurse into subcommands (even if parent is a leaf, just in case)
+
+   // Skip recursing into hidden commands - their subcommands should also be hidden
+   if (isHidden(cmd)) {
+      return results;
+   }
+
+   // Recurse into subcommands (even if parent is a leaf, just in case)
    if (cmd.commands && cmd.commands.length > 0) {
       for (const sub of cmd.commands) {
          results = results.concat(collectVisibleLeafCommands(sub, path));
@@ -59,7 +73,7 @@ function customFormatHelp(cmd, helper) {
       output.push(font.weight.bold('Arguments:'));
       for (const arg of argList) {
          output.push(
-            `  ${font.color.yellowBright(arg.name())}` + `\n    ${arg.description || ''}\n`
+            `  ${font.color.yellowBright(arg.name())}` + `\n    ${arg.description || ''}\n`,
          );
       }
    }
@@ -87,6 +101,24 @@ function customFormatHelp(cmd, helper) {
    return output.join('\n');
 }
 
+// Short descriptions for compact help display
+const shortDescriptions: Record<string, string> = {
+   init: 'Initialize CLI with Xano instance config',
+   'oc init': 'Initialize OpenCode host integration',
+   'oc serve': 'Serve OpenCode AI server locally',
+   'test run': 'Run API test suite via OpenAPI spec',
+   'generate codegen': 'Create library from OpenAPI spec',
+   'generate docs': 'Generate documentation suite',
+   'generate repo': 'Process workspace into repo structure',
+   'generate spec': 'Generate OpenAPI spec(s)',
+   'registry add': 'Add prebuilt component to Xano',
+   'registry scaffold': 'Scaffold registry folder',
+   'serve spec': 'Serve OpenAPI spec locally',
+   'serve registry': 'Serve registry locally',
+   'backup export': 'Export workspace backup',
+   'backup restore': 'Restore backup to workspace',
+};
+
 function customFormatHelpForRoot(cmd) {
    // 1. Collect all visible leaf commands with their full paths
    const allLeafCmds = collectVisibleLeafCommands(cmd);
@@ -99,28 +131,32 @@ function customFormatHelpForRoot(cmd) {
    // 3. Define your desired groups (with full string paths)
    const groups = [
       {
-         title: font.combo.boldCyan('Core Commands:'),
+         title: 'Core',
          commands: ['init'],
       },
       {
-         title: font.combo.boldCyan('Generation Commands:'),
+         title: 'AI Integration',
+         commands: ['oc init', 'oc serve'],
+      },
+      {
+         title: 'Testing',
+         commands: ['test run'],
+      },
+      {
+         title: 'Generate',
          commands: ['generate codegen', 'generate docs', 'generate repo', 'generate spec'],
       },
       {
-         title: font.combo.boldCyan('Registry:'),
+         title: 'Registry',
          commands: ['registry add', 'registry scaffold'],
       },
       {
-         title: font.combo.boldCyan('Serve:'),
+         title: 'Serve',
          commands: ['serve spec', 'serve registry'],
       },
       {
-         title: font.combo.boldCyan('Backups:'),
+         title: 'Backups',
          commands: ['backup export', 'backup restore'],
-      },
-      {
-         title: font.combo.boldCyan('Testing & Linting:'),
-         commands: ['test run'],
       },
    ];
 
@@ -133,47 +169,41 @@ function customFormatHelpForRoot(cmd) {
 
    if (ungrouped.length) {
       groups.push({
-         title: font.combo.boldCyan('Other:'),
+         title: 'Other',
          commands: ungrouped,
       });
    }
 
-   // 6. Usage line
-   let output = [font.weight.bold(`\nUsage: xano <command> [options]\n`)];
+   // 6. Build output
+   let output = [];
 
-   // Banner and description
+   // Header with description
    if (cmd.description()) {
-      output.push(cmd.description() + '\n');
+      output.push(cmd.description());
    }
+   output.push('');
+   output.push(font.color.gray('Usage: xano <command> [options]'));
+   output.push('');
 
-   // Options
-   output.push(font.weight.bold('Options:'));
-   output.push(
-      `  -v, --version   ${font.color.gray('output the version number')}\n` +
-         `  -h, --help      ${font.color.gray('display help for command')}\n`
-   );
-
-   // 7. Command Groups
+   // 7. Command Groups - compact format
    for (const group of groups) {
-      output.push('\n' + group.title);
+      output.push(font.combo.boldCyan(`${group.title}:`));
       for (const cname of group.commands) {
          const c = cmdMap[cname];
          if (c) {
-            const opts = '  ' + font.color.gray('-h, --help');
+            const shortDesc = shortDescriptions[cname] || c.description;
             output.push(
-               `   ${font.weight.bold(
-                  font.color.yellowBright(pad(cname, longestName))
-               )}${opts}\n      ${c.description}\n`
+               `  ${font.color.yellowBright(pad(cname, longestName))}  ${font.color.gray(shortDesc)}`,
             );
          }
       }
+      output.push('');
    }
 
-   // Footer/help link
+   // Footer
+   output.push(font.color.gray("Run 'xano <command> --help' for detailed usage."));
    output.push(
-      font.color.gray(
-         'Need help? Visit https://github.com/calycode/xano-tools or reach out to us on https://links.calycode.com/discord\n'
-      )
+      font.color.gray('https://github.com/calycode/xano-tools | https://links.calycode.com/discord'),
    );
 
    return output.join('\n');

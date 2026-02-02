@@ -1,6 +1,5 @@
 import { addApiGroupOptions, addFullContextOptions } from '../../utils';
 import { serveOas, serveRegistry } from './implementation';
-import { serveOpencode } from '../opencode/implementation';
 
 function registerServeCommands(program, core) {
    const serveNamespace = program
@@ -55,17 +54,6 @@ function registerServeCommands(program, core) {
             core,
          });
       });
-
-    // Add OpenCode serving
-    serveNamespace
-        .command('opencode')
-        .description('Serve the OpenCode AI server locally.')
-        .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
-        .action((options) => {
-            serveOpencode({
-                port: options.port ? parseInt(options.port, 10) : undefined,
-            });
-        });
 }
 
 export { registerServeCommands };
