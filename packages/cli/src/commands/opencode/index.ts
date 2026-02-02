@@ -15,7 +15,12 @@ async function registerOpencodeCommands(program) {
    const opencodeNamespace = program
       .command('oc')
       .alias('opencode')
-      .description('Manage OpenCode AI integration and tools.')
+      .description(
+         'Manage OpenCode AI integration and tools.\n' +
+            '  Powered by OpenCode - The open source AI coding agent.\n' +
+            '  GitHub: https://github.com/anomalyco/opencode\n' +
+            '  License: MIT (see LICENSES/opencode-ai.txt)',
+      )
       .allowUnknownOption(); // Allow passing through unknown flags to the underlying CLI
 
    opencodeNamespace

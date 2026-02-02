@@ -48,7 +48,10 @@ function getCorsArgs(extraOrigins: string[] = []) {
  * Sets OPENCODE_CONFIG_DIR to use CalyCode-specific configuration.
  */
 async function proxyOpencode(args: string[]) {
-   log.info('🤖 Powered by OpenCode - The open source AI coding agent (https://opencode.ai)');
+   log.info(
+      '🤖 Powered by OpenCode - The open source AI coding agent\n' +
+         '   https://github.com/anomalyco/opencode (MIT License)',
+   );
    log.message('Passing command to opencode-ai...');
 
    // Set the CalyCode OpenCode config directory
