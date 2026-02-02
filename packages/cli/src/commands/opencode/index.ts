@@ -1,4 +1,15 @@
-import { setupOpencode, serveOpencode, startNativeHost, proxyOpencode } from './implementation';
+import {
+   setupOpencode,
+   serveOpencode,
+   startNativeHost,
+   proxyOpencode,
+   setupOpencodeConfig,
+   updateOpencodeTemplates,
+   getTemplateInstallStatus,
+   clearTemplateCache,
+} from './implementation';
+import { log } from '@clack/prompts';
+import { hideFromRootHelp } from '../../utils/commands/main-program-utils';
 
 async function registerOpencodeCommands(program) {
    const opencodeNamespace = program
@@ -10,12 +21,76 @@ async function registerOpencodeCommands(program) {
    opencodeNamespace
       .command('init')
       .description(
-         'Initialize OpenCode native host integration for use in the @calycode | extension.',
+         'Initialize OpenCode native host integration and configuration for use with the CalyCode extension.',
       )
-      .action(async () => {
-         // Uses all extension IDs from HOST_APP_INFO.allowedExtensionIds by default
-         await setupOpencode();
+      .option('-f, --force', 'Force overwrite existing configuration files')
+      .option('--skip-config', 'Skip installing OpenCode configuration templates')
+      .action(async (options) => {
+         await setupOpencode({
+            force: options.force,
+            skipConfig: options.skipConfig,
+         });
       });
+
+   // Template management subcommands
+   const templatesNamespace = opencodeNamespace
+      .command('templates')
+      .description('Manage OpenCode configuration templates (agents, commands, instructions).');
+
+   templatesNamespace
+      .command('install')
+      .description('Install or reinstall OpenCode configuration templates.')
+      .option('-f, --force', 'Force overwrite existing configuration files')
+      .action(async (options) => {
+         await setupOpencodeConfig({ force: options.force });
+      });
+
+   // These commands are hidden from root help but visible in `oc templates --help`
+   hideFromRootHelp(
+      templatesNamespace
+         .command('update')
+         .description('Update templates by fetching the latest versions from GitHub.')
+         .action(async () => {
+            await updateOpencodeTemplates();
+         }),
+   );
+
+   hideFromRootHelp(
+      templatesNamespace
+         .command('status')
+         .description('Show the status of installed OpenCode templates.')
+         .action(async () => {
+            const status = getTemplateInstallStatus();
+
+            if (!status.installed) {
+               log.info(
+                  'No templates installed. Run "xano opencode templates install" to install.',
+               );
+               return;
+            }
+
+            const lines = ['OpenCode Templates Status:', '  ├─ Installed: Yes'];
+            if (status.configDir) {
+               lines.push(`  ├─ Location:  ${status.configDir}`);
+            }
+            if (status.fileCount !== undefined) {
+               lines.push(`  ├─ Files:     ${status.fileCount}`);
+            }
+            if (status.lastModified) {
+               lines.push(`  └─ Modified:  ${status.lastModified.toLocaleString()}`);
+            }
+            log.success(lines.join('\n'));
+         }),
+   );
+
+   hideFromRootHelp(
+      templatesNamespace
+         .command('clear-cache')
+         .description('Clear the template cache (templates will be re-downloaded on next install).')
+         .action(async () => {
+            await clearTemplateCache();
+         }),
+   );
 
    opencodeNamespace
       .command('serve')

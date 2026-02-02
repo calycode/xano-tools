@@ -5,10 +5,31 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
 import { HOST_APP_INFO } from '../../utils/host-constants';
+import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 
 const OPENCODE_PKG = 'opencode-ai@latest';
 
+/**
+ * Configuration for fetching OpenCode templates from GitHub
+ */
+const TEMPLATES_CONFIG = {
+   owner: 'calycode',
+   repo: 'xano-tools',
+   subpath: 'packages/opencode-templates',
+   ref: 'main',
+};
+
+/**
+ * Get the CalyCode-specific OpenCode configuration directory.
+ * This is separate from the default OpenCode config (~/.config/opencode/)
+ * to avoid polluting user's own OpenCode configuration.
+ */
+function getCalycodeOpencodeConfigDir(): string {
+   return path.join(os.homedir(), '.calycode', 'opencode');
+}
+
 // Build CORS origins from allowed extension IDs
+// TODO: handle dynamic origins, as those can change per each user's browser and Xano instance.
 const ALLOWED_CORS_ORIGINS = [
    'https://app.xano.com',
    'https://services.calycode.com',
@@ -24,16 +45,25 @@ function getCorsArgs(extraOrigins: string[] = []) {
 /**
  * Proxy command to the underlying OpenCode AI CLI.
  * This allows exposing the full capability of the OpenCode agent.
+ * Sets OPENCODE_CONFIG_DIR to use CalyCode-specific configuration.
  */
 async function proxyOpencode(args: string[]) {
    log.info('🤖 Powered by OpenCode - The open source AI coding agent (https://opencode.ai)');
    log.message('Passing command to opencode-ai...');
 
+   // Set the CalyCode OpenCode config directory
+   const configDir = getCalycodeOpencodeConfigDir();
+
    return new Promise<void>((resolve, reject) => {
       // Use 'npx' to execute the opencode-ai CLI with the provided arguments
+      // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
       const proc = spawn('npx -y', [OPENCODE_PKG, ...args], {
          stdio: 'inherit',
          shell: true,
+         env: {
+            ...process.env,
+            OPENCODE_CONFIG_DIR: configDir,
+         },
       });
 
       proc.on('close', (code) => {
@@ -237,9 +267,17 @@ async function startNativeHost() {
          const args = [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
          logger.log(`Spawning npx -y ${args.join(' ')}`);
 
+         // Set OPENCODE_CONFIG_DIR to use CalyCode-specific config
+         const configDir = getCalycodeOpencodeConfigDir();
+         logger.log(`Using OpenCode config directory: ${configDir}`);
+
          serverProc = spawn('npx -y', args, {
             stdio: 'ignore', // Must ignore stdio to prevent polluting stdout
             shell: true,
+            env: {
+               ...process.env,
+               OPENCODE_CONFIG_DIR: configDir,
+            },
          });
 
          serverProc.on('error', (err) => {
@@ -407,7 +445,283 @@ async function startNativeHost() {
    });
 }
 
+// --- OpenCode Configuration Setup ---
+
+/**
+ * Options for setting up OpenCode configuration
+ */
+interface SetupOpencodeConfigOptions {
+   /** Force re-download templates even if they exist */
+   force?: boolean;
+   /** Skip the native host setup */
+   skipNativeHost?: boolean;
+}
+
+/**
+ * Result of template installation status check
+ */
+interface TemplateInstallStatus {
+   installed: boolean;
+   configDir?: string;
+   fileCount?: number;
+   lastModified?: Date;
+   files?: string[];
+}
+
+/**
+ * Try to find local templates in the monorepo (development fallback).
+ * Returns the path to local templates if found, otherwise null.
+ */
+function findLocalTemplatesPath(): string | null {
+   // Check common locations relative to this script
+   const possiblePaths = [
+      // Relative to cli package in monorepo
+      path.resolve(__dirname, '../../opencode-templates'),
+      path.resolve(__dirname, '../../../opencode-templates'),
+      path.resolve(__dirname, '../../../../packages/opencode-templates'),
+      // Relative to dist folder
+      path.resolve(__dirname, '../../../packages/opencode-templates'),
+   ];
+
+   for (const p of possiblePaths) {
+      if (fs.existsSync(path.join(p, 'opencode.json'))) {
+         return p;
+      }
+   }
+   return null;
+}
+
+/**
+ * Read all template files from a local directory.
+ * Returns a Map of relative paths to file contents.
+ */
+function readLocalTemplates(templatesDir: string): Map<string, string> {
+   const files = new Map<string, string>();
+
+   function readDir(dir: string, relativePath: string = '') {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+         const fullPath = path.join(dir, entry.name);
+         const relPath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+
+         if (entry.isDirectory()) {
+            readDir(fullPath, relPath);
+         } else if (entry.isFile()) {
+            // Normalize path separators for consistency
+            const normalizedPath = relPath.replace(/\\/g, '/');
+            files.set(normalizedPath, fs.readFileSync(fullPath, 'utf-8'));
+         }
+      }
+   }
+
+   readDir(templatesDir);
+   return files;
+}
+
+/**
+ * Fetches and installs OpenCode configuration templates (agents, commands, instructions).
+ * Templates are fetched from GitHub and cached locally for offline use.
+ * Falls back to local templates (from monorepo) during development if GitHub fetch fails.
+ *
+ * Installed to: ~/.calycode/opencode/
+ *   - opencode.json (default config)
+ *   - AGENTS.md (global instructions)
+ *   - agents/*.md (custom agents)
+ *   - commands/*.md (custom slash commands)
+ */
+async function setupOpencodeConfig(options: SetupOpencodeConfigOptions = {}): Promise<void> {
+   const { force = false } = options;
+   const fetcher = new GitHubContentFetcher();
+   // Use CalyCode-specific directory to avoid polluting user's global OpenCode config
+   const configDir = getCalycodeOpencodeConfigDir();
+
+   log.info('Fetching OpenCode configuration templates...');
+   log.info(`Installing to: ${configDir}`);
+
+   let files: Map<string, string>;
+   let sourceDescription: string;
+
+   try {
+      // First, try to fetch from GitHub (with cache support)
+      const result = await fetcher.fetchDirectory({
+         ...TEMPLATES_CONFIG,
+         preferOffline: true,
+         force,
+      });
+      files = result.files;
+
+      if (result.fromCache && result.cacheAge !== undefined) {
+         const ageMinutes = Math.round(result.cacheAge / 1000 / 60);
+         sourceDescription = `cached templates (${ageMinutes} minutes old)`;
+         log.info(`Using ${sourceDescription}`);
+      } else {
+         sourceDescription = 'latest templates from GitHub';
+         log.success(`Downloaded ${sourceDescription}`);
+      }
+   } catch (error: any) {
+      // GitHub fetch failed - try local fallback for development
+      log.warn(`GitHub fetch failed: ${error.message}`);
+
+      const localPath = findLocalTemplatesPath();
+      if (localPath) {
+         log.info(`Falling back to local templates: ${localPath}`);
+         files = readLocalTemplates(localPath);
+         sourceDescription = 'local templates (development mode)';
+         log.success(`Using ${sourceDescription}`);
+      } else {
+         log.error('No local templates found. Cannot install configuration.');
+         throw new Error(
+            'Failed to fetch templates from GitHub and no local fallback available.',
+         );
+      }
+   }
+
+   // Ensure base config directory exists
+   if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+   }
+
+   // Ensure subdirectories exist
+   const subdirs = ['agents', 'commands'];
+   for (const dir of subdirs) {
+      const fullPath = path.join(configDir, dir);
+      if (!fs.existsSync(fullPath)) {
+         fs.mkdirSync(fullPath, { recursive: true });
+      }
+   }
+
+   // Track what was installed
+   const installed: string[] = [];
+   const skipped: string[] = [];
+
+   // Write files to OpenCode config directory
+   for (const [filePath, content] of files) {
+      // Skip package.json - it's just for the template package metadata
+      if (filePath === 'package.json') {
+         continue;
+      }
+
+      const destPath = path.join(configDir, filePath);
+      const destDir = path.dirname(destPath);
+
+      // Ensure destination directory exists
+      if (!fs.existsSync(destDir)) {
+         fs.mkdirSync(destDir, { recursive: true });
+      }
+
+      // Don't overwrite existing user customizations unless --force
+      if (!force && fs.existsSync(destPath)) {
+         skipped.push(filePath);
+         continue;
+      }
+
+      fs.writeFileSync(destPath, content, 'utf-8');
+      installed.push(filePath);
+   }
+
+   // Report results
+   if (installed.length > 0) {
+      log.success(`Installed ${installed.length} template file(s):`);
+      for (const file of installed) {
+         log.message(`  + ${file}`);
+      }
+   }
+
+   if (skipped.length > 0) {
+      log.info(`Skipped ${skipped.length} existing file(s) (use --force to overwrite):`);
+      for (const file of skipped) {
+         log.message(`  - ${file}`);
+      }
+   }
+
+   log.success(`OpenCode configuration installed to: ${configDir}`);
+}
+
+/**
+ * Update OpenCode templates by forcing a fresh download from GitHub.
+ */
+async function updateOpencodeTemplates(): Promise<void> {
+   log.info('Updating OpenCode templates...');
+   await setupOpencodeConfig({ force: true });
+   log.success('Templates updated successfully!');
+}
+
+/**
+ * Get the status of installed OpenCode templates.
+ * Checks the installed config directory, not the GitHub cache.
+ */
+function getTemplateInstallStatus(): TemplateInstallStatus {
+   const configDir = getCalycodeOpencodeConfigDir();
+   const configFile = path.join(configDir, 'opencode.json');
+
+   // Check if the main config file exists
+   if (!fs.existsSync(configFile)) {
+      return { installed: false };
+   }
+
+   // Only count template files we care about (not node_modules, etc.)
+   const templateDirs = ['agents', 'commands'];
+   const templateFiles = ['opencode.json', 'AGENTS.md'];
+
+   const files: string[] = [];
+   let latestMtime: Date | undefined;
+
+   // Check root template files
+   for (const file of templateFiles) {
+      const fullPath = path.join(configDir, file);
+      if (fs.existsSync(fullPath)) {
+         files.push(file);
+         const stat = fs.statSync(fullPath);
+         if (!latestMtime || stat.mtime > latestMtime) {
+            latestMtime = stat.mtime;
+         }
+      }
+   }
+
+   // Scan template directories
+   for (const dir of templateDirs) {
+      const dirPath = path.join(configDir, dir);
+      if (!fs.existsSync(dirPath)) continue;
+
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+         if (entry.isFile() && entry.name.endsWith('.md')) {
+            const fullPath = path.join(dirPath, entry.name);
+            files.push(`${dir}/${entry.name}`);
+            const stat = fs.statSync(fullPath);
+            if (!latestMtime || stat.mtime > latestMtime) {
+               latestMtime = stat.mtime;
+            }
+         }
+      }
+   }
+
+   return {
+      installed: true,
+      configDir,
+      fileCount: files.length,
+      lastModified: latestMtime,
+      files,
+   };
+}
+
+/**
+ * Clear the template cache.
+ */
+async function clearTemplateCache(): Promise<void> {
+   const fetcher = new GitHubContentFetcher();
+   await fetcher.clearCache(TEMPLATES_CONFIG);
+   log.success('Template cache cleared.');
+}
+
 async function serveOpencode({ port = 4096, detach = false }: { port?: number; detach?: boolean }) {
+   // Set the CalyCode OpenCode config directory
+   const configDir = getCalycodeOpencodeConfigDir();
+   const spawnEnv = {
+      ...process.env,
+      OPENCODE_CONFIG_DIR: configDir,
+   };
+
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
       const proc = spawn(
@@ -417,6 +731,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
             detached: true,
             stdio: 'ignore',
             shell: true,
+            env: spawnEnv,
          },
       );
       proc.unref();
@@ -433,6 +748,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
          {
             stdio: 'inherit',
             shell: true,
+            env: spawnEnv,
          },
       );
 
@@ -450,7 +766,15 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
    });
 }
 
-async function setupOpencode({ extensionIds }: { extensionIds?: string[] } = {}) {
+async function setupOpencode({
+   extensionIds,
+   force = false,
+   skipConfig = false,
+}: {
+   extensionIds?: string[];
+   force?: boolean;
+   skipConfig?: boolean;
+} = {}) {
    const platform = os.platform();
    const homeDir = os.homedir();
    let manifestPath = '';
@@ -515,7 +839,7 @@ async function setupOpencode({ extensionIds }: { extensionIds?: string[] } = {})
          // We need to find the entry point.
          // process.argv[1] is reliable for the current session.
          // To support the global install scenario, we use that path.
-         
+
          wrapperContent = `@echo off\r\n`;
          wrapperContent += `"${process.execPath}" "${process.argv[1]}" opencode native-host %*\r\n`;
       }
@@ -628,7 +952,25 @@ async function setupOpencode({ extensionIds }: { extensionIds?: string[] } = {})
    log.success(`Native messaging host manifest created at: ${manifestPath}`);
    log.success(`Executable path in manifest: ${manifestExePath}`);
 
-   log.info('Ready! The native host is configured.');
+   log.info('Native host setup complete.');
+
+   // Setup OpenCode configuration (agents, commands, instructions)
+   if (!skipConfig) {
+      log.info('');
+      await setupOpencodeConfig({ force });
+   }
+
+   log.info('');
+   log.success('Setup complete! OpenCode is ready to use.');
 }
 
-export { serveOpencode, setupOpencode, startNativeHost, proxyOpencode };
+export {
+   serveOpencode,
+   setupOpencode,
+   startNativeHost,
+   proxyOpencode,
+   setupOpencodeConfig,
+   updateOpencodeTemplates,
+   getTemplateInstallStatus,
+   clearTemplateCache,
+};
