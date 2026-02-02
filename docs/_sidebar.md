@@ -55,7 +55,19 @@
 
 - **Guides**
 
-  - [API Testing Guide](guides/testing.md)
+  - [Getting Started](guides/git-workflow.md)
+  - [Registry Authoring](guides/registry-authoring.md)
+  - [Scaffolding Components](guides/scaffolding.md)
+  - [XanoScript](guides/xanoscript.md)
+  - [Patterns & Best Practices](guides/patterns.md)
+  - [API Testing](guides/testing.md)
+
+- **External Resources**
+
+  - [XanoScript Reference](https://docs.xano.com/xanoscript/vs-code#usage)
+  - [StateChange.ai Training](https://statechange.ai)
+  - [Axiom Logging](https://axiom.co)
+  - [Calycode Extension](https://extension.calycode.com)
 
 -  Changelog
 
