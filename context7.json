@@ -17,5 +17,7 @@
         "Use when extracting xanoscript from Xano workspace",
         "Use when generating improved OpenAPI specification from Xano workspace",
         "Use when needed to generate client side code for a Xano backend"
-    ]
+    ],
+    "url": "https://context7.com/calycode/xano-tools",
+    "public_key": "pk_SvNGBo5CSXP1iGi7ycgkL"
 }
