@@ -1,6 +1,6 @@
 ---
 description: Expert in Xano backend development, API design, and database modeling. Use this agent for deep Xano-specific guidance.
-mode: subagent
+mode: primary
 model: anthropic/claude-sonnet-4-20250514
 temperature: 0.2
 tools:
