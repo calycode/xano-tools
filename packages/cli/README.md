@@ -50,29 +50,33 @@ Every command inherit context from:
 ### Setup instance, generate openapi spec and `ts` client code and serve the open api spec locally.
 
 ```bash
-# Setup instance
-xano setup --name production --url https://x123.xano.io --api-key your-key
+# Setup instance (interactive)
+xano init
+
+# Or non-interactive setup
+xano init --name production --url https://x123.xano.io --token your-metadata-api-token
 
 # Generate OpenAPI specs
-xano generate-oas --all
+xano generate spec --all
 
 # Generate TypeScript client
-xano generate-code --generator typescript-fetch
+xano generate codegen --generator typescript-fetch
+
 # Serve documentation
-xano serve-oas
+xano serve spec
 ```
 
 ### Multi-Environment Setup
 
 ```bash
 # Setup multiple instances
-xano setup --name production --url https://prod.my-instance.xano.io --api-key prod-key
-xano setup --name staging --url https://staging.my-instance.xano.io --api-key staging-key
+xano init --name production --url https://prod.my-instance.xano.io --token prod-token
+xano init --name staging --url https://staging.my-instance.xano.io --token staging-token
 
-xano generate-oas --group api
+xano generate spec --group api
 # You will be prompted to select all missing context information via prompts.
 
-xano export-backup
+xano backup export
 ```
 
 ## Integration
@@ -83,8 +87,8 @@ xano export-backup
 # GitHub Actions example
 - name: Generate API Documentation
   run: |
-     npx -y @calycode/cli generate-oas --all
-     npx -y @calycode/cli generate-code --generator typescript-fetch
+     npx -y @calycode/cli generate spec --all
+     npx -y @calycode/cli generate codegen --generator typescript-fetch
   env:
      XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
 ```
@@ -132,11 +136,13 @@ In order to actually use the CLI with proper git support it is advised to also d
 This allows users to override the output and as a result keep a proper git history.
 The flow is as follows:
 
-1. run the xano setup command
-2. make sure you have git installed on your machine
-3. run git init
-4. run a command e.g. `generate-repo --output lib` and then commit these changes to your desired branch
-5. create new branch (possibly name similarly as on your Xano) and run the `generate-repo --output lib` again. After a new commit and push you know have a fully git-enabled comparison of your two Xano branches.
+1. Run the `xano init` command to configure your instance
+2. Make sure you have git installed on your machine
+3. Run `git init`
+4. Run a command e.g. `xano generate repo --output lib` and then commit these changes to your desired branch
+5. Create new branch (possibly name similarly as on your Xano) and run the `xano generate repo --output lib` again. After a new commit and push you now have a fully git-enabled comparison of your two Xano branches.
+
+For a complete guide, see the [Git Workflow documentation](https://calycode.com/cli/docs/#/guides/git-workflow).
 
 ## License
 

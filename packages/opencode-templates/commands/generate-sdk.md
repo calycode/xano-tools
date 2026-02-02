@@ -16,7 +16,7 @@ $ARGUMENTS
 You need:
 
 1. CalyCode CLI installed (`npm install -g @calycode/cli`)
-2. Xano instance configured (`xano setup`)
+2. Xano instance configured (`xano init`)
 3. Workspace with published API endpoints
 
 ### Step 2: Generate SDK
@@ -71,6 +71,6 @@ const user = await client.user.get({ id: 123 });
 
 ## Troubleshooting
 
-- **"No workspace found"**: Run `xano setup` first
+- **"No workspace found"**: Run `xano init` first
 - **"Schema not found"**: Use `--fetch` to get latest from Xano
 - **Type errors**: Regenerate after API changes

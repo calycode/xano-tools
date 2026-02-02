@@ -65,17 +65,17 @@ I have been astonished by the shadcn/ui CLI and the core principles of code dist
 
 1. Scaffold the registry or build it manually by obeying the schemas (https://calycode.com/schemas/registry/registry.json).
    ```
-   xano registry scaffold
+   xano registry-scaffold
    ```
 2. Serve your registry locally or host it on an object storage (or [advanced] recreate a Xano api that would deliver the required JSON objects on demand --> this could allow you to add auth as well)
 
    ```
-   xano serve registry
+   xano serve-registry
    ```
 
 3. Use the registry and it's content in `xano`
    ```
-   xano registry add <components...> --registry <registry url>
+   xano registry-add --components <coma separated component names> --registry <registry url>
    ```
 
 > [!NOTE] > **Notes:**
