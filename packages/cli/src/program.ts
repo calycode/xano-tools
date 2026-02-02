@@ -64,31 +64,9 @@ program
    .version(version, '-v, --version', 'output the version number')
    .usage('<command> [options]')
    .description(
-      font.color.cyan(`
-+==================================================================================================+
-|                                                                                                  |
-|    ██████╗ █████╗ ██╗  ██╗   ██╗    ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗      ██████╗██╗     ██╗   |
-|   ██╔════╝██╔══██╗██║  ╚██╗ ██╔╝    ╚██╗██╔╝██╔══██╗████╗  ██║██╔═══██╗    ██╔════╝██║     ██║   |
-|   ██║     ███████║██║   ╚████╔╝█████╗╚███╔╝ ███████║██╔██╗ ██║██║   ██║    ██║     ██║     ██║   |
-|   ██║     ██╔══██║██║    ╚██╔╝ ╚════╝██╔██╗ ██╔══██║██║╚██╗██║██║   ██║    ██║     ██║     ██║   |
-|   ╚██████╗██║  ██║███████╗██║       ██╔╝ ██╗██║  ██║██║ ╚████║╚██████╔╝    ╚██████╗███████╗██║   |
-|    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝       ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚══════╝╚═╝   |
-|                                                                                                  |
-+==================================================================================================+
-`) +
-         '\n\n' +
-         font.color.yellowBright('Supercharge your Xano workflow: ') +
-         font.color.white('automate ') +
-         font.combo.boldCyan('backups') +
-         font.color.white(', ') +
-         font.combo.boldCyan('docs') +
-         font.color.white(', ') +
-         font.combo.boldCyan('testing') +
-         font.color.white(', and ') +
-         font.combo.boldCyan('version control') +
-         font.color.white(' — no AI guesswork, just reliable, transparent dev tools.') +
-         '\n\n' +
-         `Current version: ${version}`
+      font.combo.boldCyan('caly-xano-cli') +
+         font.color.gray(` v${version}`) +
+         font.color.white(' — Automate backups, docs, testing & version control for Xano'),
    );
 
 registerInitCommand(program, core);

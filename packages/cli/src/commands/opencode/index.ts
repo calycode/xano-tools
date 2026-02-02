@@ -2,8 +2,8 @@ import { setupOpencode, serveOpencode, startNativeHost, proxyOpencode } from './
 
 async function registerOpencodeCommands(program) {
    const opencodeNamespace = program
-      .command('opencode')
-      .alias('oc')
+      .command('oc')
+      .alias('opencode')
       .description('Manage OpenCode AI integration and tools.')
       .allowUnknownOption(); // Allow passing through unknown flags to the underlying CLI
 
@@ -19,7 +19,7 @@ async function registerOpencodeCommands(program) {
 
    opencodeNamespace
       .command('serve')
-      .description('Serve the OpenCode AI server locally (alias for "xano serve opencode").')
+      .description('Serve the OpenCode AI server locally.')
       .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
       .option('-d, --detach', 'Run the server in the background (detached mode)')
       .action(async (options) => {
@@ -30,7 +30,7 @@ async function registerOpencodeCommands(program) {
       });
 
    opencodeNamespace
-      .command('native-host')
+      .command('native-host', { hidden: true })
       .description(
          'Internal command used by Chrome Native Messaging to communicate with the extension.',
       )
@@ -44,7 +44,7 @@ async function registerOpencodeCommands(program) {
 
    // Proxy all other commands to the underlying OpenCode CLI
    opencodeNamespace
-      .command('run', { isDefault: true })
+      .command('run', { isDefault: true, hidden: true })
       .argument('[args...]', 'Arguments to pass to OpenCode CLI')
       .allowUnknownOption()
       .description('Run any OpenCode CLI command (default)')
@@ -60,9 +60,12 @@ async function registerOpencodeCommands(program) {
          // Actually, for a pure proxy where we want "xano opencode foo --bar",
          // "foo" becomes an arg, "--bar" might be parsed as an option if not careful.
 
-         // Let's filter process.argv to find everything after "opencode".
+         // Let's filter process.argv to find everything after "opencode" or "oc".
          const rawArgs = process.argv;
-         const opencodeIndex = rawArgs.indexOf('opencode');
+         let opencodeIndex = rawArgs.indexOf('oc');
+         if (opencodeIndex === -1) {
+            opencodeIndex = rawArgs.indexOf('opencode');
+         }
          if (opencodeIndex === -1) {
             // Should not happen if we are here
             return;
