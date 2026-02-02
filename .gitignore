@@ -41,3 +41,6 @@ coverage/
 
 # Native binary assets
 **/*/.sea-cache/
+
+# Xano's ai supporting assets:
+util-resources/xano-agentic-setups/**/*

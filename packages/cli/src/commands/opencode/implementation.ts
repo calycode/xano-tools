@@ -621,17 +621,13 @@ async function setupOpencodeConfig(options: SetupOpencodeConfigOptions = {}): Pr
 
    // Report results
    if (installed.length > 0) {
-      log.success(`Installed ${installed.length} template file(s):`);
-      for (const file of installed) {
-         log.message(`  + ${file}`);
-      }
+      const fileList = installed.map((f) => `  + ${f}`).join('\n');
+      log.success(`Installed ${installed.length} template file(s):\n${fileList}`);
    }
 
    if (skipped.length > 0) {
-      log.info(`Skipped ${skipped.length} existing file(s) (use --force to overwrite):`);
-      for (const file of skipped) {
-         log.message(`  - ${file}`);
-      }
+      const fileList = skipped.map((f) => `  - ${f}`).join('\n');
+      log.info(`Skipped ${skipped.length} existing file(s) (use --force to overwrite):\n${fileList}`);
    }
 
    log.success(`OpenCode configuration installed to: ${configDir}`);

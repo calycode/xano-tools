@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-20250514",
+  "small_model": "anthropic/claude-haiku-4-20250514",
+  "autoupdate": true,
+  "instructions": [
+    "~/.config/opencode/AGENTS.md"
+  ],
+  "permission": {
+    "edit": "ask",
+    "bash": {
+      "*": "ask",
+      "git status": "allow",
+      "git diff": "allow",
+      "git log": "allow",
+      "npm test": "allow",
+      "pnpm test": "allow",
+      "npm run lint": "allow",
+      "pnpm lint": "allow"
+    }
+  }
+}
