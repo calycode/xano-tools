@@ -23,6 +23,7 @@ Xano Tools provides a component-based approach to creating new Xano functions, A
 4. **Deploy via CLI** - Install components to your Xano instance
 
 This approach enables:
+
 - **Reusability** - Create once, deploy many times
 - **Team sharing** - Share components across projects
 - **Version control** - Track changes in Git
@@ -60,9 +61,9 @@ xano registry scaffold --output <path> [--instance <name>]
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--output <path>` | Where to create the registry folder |
+| Option              | Description                              |
+| ------------------- | ---------------------------------------- |
+| `--output <path>`   | Where to create the registry folder      |
 | `--instance <name>` | Optional: associate with a Xano instance |
 
 ### Generated Structure
@@ -83,12 +84,10 @@ The `registry.json` file defines your registry:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry.json",
-  "name": "my-components",
-  "description": "My reusable Xano components",
-  "items": [
-    "items/sample-function/definition.json"
-  ]
+   "$schema": "https://calycode.com/schemas/registry/registry.json",
+   "name": "my-components",
+   "description": "My reusable Xano components",
+   "items": ["items/sample-function/definition.json"]
 }
 ```
 
@@ -100,20 +99,20 @@ Create `items/my-function/definition.json`:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry-item.json",
-  "name": "my-function",
-  "type": "registry:function",
-  "title": "My Custom Function",
-  "description": "A custom function that does something useful",
-  "author": "Your Name <https://github.com/yourname>",
-  "categories": ["utility"],
-  "files": [
-    {
-      "path": "./function.xs",
-      "type": "registry:function"
-    }
-  ],
-  "postInstallHint": "Call this function from your API endpoints!"
+   "$schema": "https://calycode.com/schemas/registry/registry-item.json",
+   "name": "my-function",
+   "type": "registry:function",
+   "title": "My Custom Function",
+   "description": "A custom function that does something useful",
+   "author": "Your Name <https://github.com/yourname>",
+   "categories": ["utility"],
+   "files": [
+      {
+         "path": "./function.xs",
+         "type": "registry:function"
+      }
+   ],
+   "postInstallHint": "Call this function from your API endpoints!"
 }
 ```
 
@@ -123,20 +122,18 @@ Create `items/user-api/definition.json`:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry-item.json",
-  "name": "api/user-management",
-  "type": "registry:apigroup",
-  "title": "User Management API",
-  "description": "Complete CRUD API for user management",
-  "files": [
-    {
-      "path": "./user-api.xs",
-      "type": "registry:apigroup"
-    }
-  ],
-  "registryDependencies": [
-    "tables/user"
-  ]
+   "$schema": "https://calycode.com/schemas/registry/registry-item.json",
+   "name": "api/user-management",
+   "type": "registry:apigroup",
+   "title": "User Management API",
+   "description": "Complete CRUD API for user management",
+   "files": [
+      {
+         "path": "./user-api.xs",
+         "type": "registry:apigroup"
+      }
+   ],
+   "registryDependencies": ["tables/user"]
 }
 ```
 
@@ -146,17 +143,17 @@ Create `items/tables/user/definition.json`:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry-item.json",
-  "name": "tables/user",
-  "type": "registry:table",
-  "title": "User Table",
-  "description": "Standard user table schema",
-  "files": [
-    {
-      "path": "./user.xs",
-      "type": "registry:table"
-    }
-  ]
+   "$schema": "https://calycode.com/schemas/registry/registry-item.json",
+   "name": "tables/user",
+   "type": "registry:table",
+   "title": "User Table",
+   "description": "Standard user table schema",
+   "files": [
+      {
+         "path": "./user.xs",
+         "type": "registry:table"
+      }
+   ]
 }
 ```
 
@@ -166,17 +163,17 @@ Create `items/addons/string-utils/definition.json`:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry-item.json",
-  "name": "addons/string-utils",
-  "type": "registry:addon",
-  "title": "String Utilities Addon",
-  "description": "Common string manipulation utilities",
-  "files": [
-    {
-      "path": "./string-utils.xs",
-      "type": "registry:addon"
-    }
-  ]
+   "$schema": "https://calycode.com/schemas/registry/registry-item.json",
+   "name": "addons/string-utils",
+   "type": "registry:addon",
+   "title": "String Utilities Addon",
+   "description": "Common string manipulation utilities",
+   "files": [
+      {
+         "path": "./string-utils.xs",
+         "type": "registry:addon"
+      }
+   ]
 }
 ```
 
@@ -186,18 +183,18 @@ Create `items/middleware/auth/definition.json`:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry-item.json",
-  "name": "middleware/jwt-auth",
-  "type": "registry:middleware",
-  "title": "JWT Authentication Middleware",
-  "description": "Validates JWT tokens on incoming requests",
-  "files": [
-    {
-      "path": "./jwt-auth.xs",
-      "type": "registry:middleware"
-    }
-  ],
-  "postInstallHint": "Set XANO_JWT_SECRET environment variable"
+   "$schema": "https://calycode.com/schemas/registry/registry-item.json",
+   "name": "middleware/jwt-auth",
+   "type": "registry:middleware",
+   "title": "JWT Authentication Middleware",
+   "description": "Validates JWT tokens on incoming requests",
+   "files": [
+      {
+         "path": "./jwt-auth.xs",
+         "type": "registry:middleware"
+      }
+   ],
+   "postInstallHint": "Set XANO_JWT_SECRET environment variable"
 }
 ```
 
@@ -207,17 +204,17 @@ Create `items/tasks/cleanup/definition.json`:
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry-item.json",
-  "name": "tasks/daily-cleanup",
-  "type": "registry:task",
-  "title": "Daily Cleanup Task",
-  "description": "Scheduled task for cleaning up old data",
-  "files": [
-    {
-      "path": "./cleanup.xs",
-      "type": "registry:task"
-    }
-  ]
+   "$schema": "https://calycode.com/schemas/registry/registry-item.json",
+   "name": "tasks/daily-cleanup",
+   "type": "registry:task",
+   "title": "Daily Cleanup Task",
+   "description": "Scheduled task for cleaning up old data",
+   "files": [
+      {
+         "path": "./cleanup.xs",
+         "type": "registry:task"
+      }
+   ]
 }
 ```
 
@@ -227,7 +224,7 @@ Create `items/tasks/cleanup/definition.json`:
 
 For XanoScript syntax and examples, refer to:
 
-> **Official Xano Documentation**  
+> **Official Xano Documentation**
 > https://docs.xano.com/xanoscript/vs-code#usage
 
 ### Recommended Development Setup
@@ -294,18 +291,18 @@ my-registry/
 
 ```json
 {
-  "$schema": "https://calycode.com/schemas/registry/registry.json",
-  "name": "my-complete-registry",
-  "description": "Complete set of reusable components",
-  "items": [
-    "items/auth/login/definition.json",
-    "items/auth/register/definition.json",
-    "items/auth/middleware/definition.json",
-    "items/utils/string-helpers/definition.json",
-    "items/utils/date-utils/definition.json",
-    "items/tables/user/definition.json",
-    "items/tables/session/definition.json"
-  ]
+   "$schema": "https://calycode.com/schemas/registry/registry.json",
+   "name": "my-complete-registry",
+   "description": "Complete set of reusable components",
+   "items": [
+      "items/auth/login/definition.json",
+      "items/auth/register/definition.json",
+      "items/auth/middleware/definition.json",
+      "items/utils/string-helpers/definition.json",
+      "items/utils/date-utils/definition.json",
+      "items/tables/user/definition.json",
+      "items/tables/session/definition.json"
+   ]
 }
 ```
 
@@ -369,11 +366,11 @@ Bad:
 
 ```json
 {
-  "name": "auth/jwt-verify",
-  "title": "JWT Token Verification",
-  "description": "Verifies and decodes JWT tokens with RS256 or HS256 algorithms",
-  "docs": "## Usage\n\nCall `jwt_verify(token)` with your token...",
-  "postInstallHint": "Set XANO_JWT_SECRET or configure your RS256 public key"
+   "name": "auth/jwt-verify",
+   "title": "JWT Token Verification",
+   "description": "Verifies and decodes JWT tokens with RS256 or HS256 algorithms",
+   "docs": "## Usage\n\nCall `jwt_verify(token)` with your token...",
+   "postInstallHint": "Set XANO_JWT_SECRET or configure your RS256 public key"
 }
 ```
 
@@ -381,12 +378,8 @@ Bad:
 
 ```json
 {
-  "name": "api/checkout",
-  "registryDependencies": [
-    "tables/order",
-    "tables/product",
-    "utils/stripe-client"
-  ]
+   "name": "api/checkout",
+   "registryDependencies": ["tables/order", "tables/product", "utils/stripe-client"]
 }
 ```
 
@@ -394,12 +387,12 @@ Bad:
 
 ```json
 {
-  "meta": {
-    "version": "1.2.0",
-    "updated_at": "2024-01-15T10:30:00Z",
-    "xano_version": "2.0+",
-    "changelog": "Added support for refresh tokens"
-  }
+   "meta": {
+      "version": "1.2.0",
+      "updated_at": "2024-01-15T10:30:00Z",
+      "xano_version": "2.0+",
+      "changelog": "Added support for refresh tokens"
+   }
 }
 ```
 

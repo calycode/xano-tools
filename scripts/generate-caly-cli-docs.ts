@@ -107,10 +107,9 @@ function generateCliDocs() {
 
 - **External Resources**
 
-  - [XanoScript Reference](https://docs.xano.com/xanoscript/vs-code#usage)
-  - [StateChange.ai Training](https://statechange.ai)
-  - [Axiom Logging](https://axiom.co)
   - [Calycode Extension](https://extension.calycode.com)
+  - [StateChange.ai](https://statechange.ai)
+  - [Axiom Logging](https://axiom.co)
 
 -  Changelog
 

@@ -73,14 +73,14 @@ xano generate repo [options]
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--instance <name>` | Xano instance name |
-| `--workspace <name>` | Workspace name |
-| `--branch <name>` | Xano branch |
-| `--output <dir>` | Output directory |
-| `--fetch` | Force fresh fetch from Xano |
-| `--print-output-dir` | Print output path |
+| Option               | Description                 |
+| -------------------- | --------------------------- |
+| `--instance <name>`  | Xano instance name          |
+| `--workspace <name>` | Workspace name              |
+| `--branch <name>`    | Xano branch                 |
+| `--output <dir>`     | Output directory            |
+| `--fetch`            | Force fresh fetch from Xano |
+| `--print-output-dir` | Print output path           |
 
 ### Generated Structure
 
@@ -134,12 +134,12 @@ main (production)
 
 Map Git branches to Xano branches:
 
-| Git Branch | Xano Branch | Purpose |
-|------------|-------------|---------|
-| `main` | `live` | Production |
-| `staging` | `staging` | Pre-production testing |
-| `develop` | `develop` | Integration |
-| `feature/*` | `dev` or feature branches | Development |
+| Git Branch  | Xano Branch               | Purpose                |
+| ----------- | ------------------------- | ---------------------- |
+| `main`      | `live`                    | Production             |
+| `staging`   | `staging`                 | Pre-production testing |
+| `develop`   | `develop`                 | Integration            |
+| `feature/*` | `dev` or feature branches | Development            |
 
 ### Creating Feature Branches
 
@@ -222,49 +222,49 @@ git commit -m "docs: update API documentation"
 name: Xano Sync
 
 on:
-  schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
-  workflow_dispatch:       # Manual trigger
+   schedule:
+      - cron: '0 */6 * * *' # Every 6 hours
+   workflow_dispatch: # Manual trigger
 
 jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install Xano CLI
-        run: npm install -g @calycode/cli
-      
-      - name: Generate Repository
-        env:
-          XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
-        run: |
-          xano generate repo \
-            --instance production \
-            --workspace main \
-            --branch live \
-            --fetch
-      
-      - name: Check for Changes
-        id: changes
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Commit Changes
-        if: steps.changes.outputs.has_changes == 'true'
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "sync: update from Xano production"
-          git push
+   sync:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v4
+
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: '20'
+
+         - name: Install Xano CLI
+           run: npm install -g @calycode/cli
+
+         - name: Generate Repository
+           env:
+              XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
+           run: |
+              xano generate repo \
+                --instance production \
+                --workspace main \
+                --branch live \
+                --fetch
+
+         - name: Check for Changes
+           id: changes
+           run: |
+              if [[ -n $(git status --porcelain) ]]; then
+                echo "has_changes=true" >> $GITHUB_OUTPUT
+              fi
+
+         - name: Commit Changes
+           if: steps.changes.outputs.has_changes == 'true'
+           run: |
+              git config user.name "GitHub Actions"
+              git config user.email "actions@github.com"
+              git add .
+              git commit -m "sync: update from Xano production"
+              git push
 ```
 
 ### Test on Pull Request
@@ -274,35 +274,35 @@ jobs:
 name: API Tests
 
 on:
-  pull_request:
-    branches: [main, develop]
+   pull_request:
+      branches: [main, develop]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install Xano CLI
-        run: npm install -g @calycode/cli
-      
-      - name: Run Tests
-        env:
-          XANO_TOKEN_STAGING: ${{ secrets.XANO_TOKEN_STAGING }}
-          XANO_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
-          XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-        run: |
-          xano test run \
-            -c ./tests/config.json \
-            --instance staging \
-            --workspace main \
-            --branch staging \
-            --all \
-            --ci
+   test:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v4
+
+         - uses: actions/setup-node@v4
+           with:
+              node-version: '20'
+
+         - name: Install Xano CLI
+           run: npm install -g @calycode/cli
+
+         - name: Run Tests
+           env:
+              XANO_TOKEN_STAGING: ${{ secrets.XANO_TOKEN_STAGING }}
+              XANO_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+              XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+           run: |
+              xano test run \
+                -c ./tests/config.json \
+                --instance staging \
+                --workspace main \
+                --branch staging \
+                --all \
+                --ci
 ```
 
 ### Documentation Deployment
@@ -312,32 +312,32 @@ jobs:
 name: Deploy Docs
 
 on:
-  push:
-    branches: [main]
+   push:
+      branches: [main]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install Xano CLI
-        run: npm install -g @calycode/cli
-      
-      - name: Generate Documentation
-        env:
-          XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
-        run: xano generate docs
-      
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+   deploy:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v4
+
+         - uses: actions/setup-node@v4
+           with:
+              node-version: '20'
+
+         - name: Install Xano CLI
+           run: npm install -g @calycode/cli
+
+         - name: Generate Documentation
+           env:
+              XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
+           run: xano generate docs
+
+         - name: Deploy to GitHub Pages
+           uses: peaceiris/actions-gh-pages@v3
+           with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: ./docs
 ```
 
 ## Best Practices
@@ -367,6 +367,7 @@ Examples:
 ### What to Commit
 
 **Do commit:**
+
 - XanoScript files (`.xs`)
 - Schema exports (JSON)
 - OpenAPI specifications
@@ -375,6 +376,7 @@ Examples:
 - CI/CD workflows
 
 **Don't commit:**
+
 - Secrets or API tokens
 - Environment-specific configurations
 - Temporary files
@@ -433,12 +435,12 @@ Before merging:
 
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| "Instance not found" | Run `xano init` to configure |
-| "Authentication failed" | Check `XANO_TOKEN_*` env vars |
-| Merge conflicts in JSON | Regenerate from Xano, resolve manually |
-| Missing XanoScript | Ensure Xano 2.0+ for XanoScript support |
+| Issue                   | Solution                                |
+| ----------------------- | --------------------------------------- |
+| "Instance not found"    | Run `xano init` to configure            |
+| "Authentication failed" | Check `XANO_TOKEN_*` env vars           |
+| Merge conflicts in JSON | Regenerate from Xano, resolve manually  |
+| Missing XanoScript      | Ensure Xano 2.0+ for XanoScript support |
 
 ### Regenerating After Conflicts
 
