@@ -7,6 +7,10 @@ import {
    updateOpencodeTemplates,
    getTemplateInstallStatus,
    clearTemplateCache,
+   setupOpencodeSkills,
+   updateOpencodeSkills,
+   getSkillsInstallStatus,
+   clearSkillsCache,
 } from './implementation';
 import { log } from '@clack/prompts';
 import { hideFromRootHelp } from '../../utils/commands/main-program-utils';
@@ -94,6 +98,66 @@ async function registerOpencodeCommands(program) {
          .description('Clear the template cache (templates will be re-downloaded on next install).')
          .action(async () => {
             await clearTemplateCache();
+         }),
+   );
+
+   // Skills management subcommands
+   const skillsNamespace = opencodeNamespace
+      .command('skills')
+      .description('Manage Xano skills for AI agents (database optimization, security, best practices).');
+
+   skillsNamespace
+      .command('install')
+      .description('Install or reinstall Xano skills for AI agents.')
+      .option('-f, --force', 'Force overwrite existing skills')
+      .action(async (options) => {
+         await setupOpencodeSkills({ force: options.force });
+      });
+
+   hideFromRootHelp(
+      skillsNamespace
+         .command('update')
+         .description('Update skills by fetching the latest versions from GitHub.')
+         .action(async () => {
+            await updateOpencodeSkills();
+         }),
+   );
+
+   hideFromRootHelp(
+      skillsNamespace
+         .command('status')
+         .description('Show the status of installed skills.')
+         .action(async () => {
+            const status = getSkillsInstallStatus();
+
+            if (!status.installed) {
+               log.info('No skills installed. Run "xano opencode skills install" to install.');
+               return;
+            }
+
+            const lines = ['Xano Skills Status:', '  ├─ Installed: Yes'];
+            if (status.skillsDir) {
+               lines.push(`  ├─ Location:  ${status.skillsDir}`);
+            }
+            if (status.skillCount !== undefined) {
+               lines.push(`  ├─ Skills:    ${status.skillCount}`);
+            }
+            if (status.skills && status.skills.length > 0) {
+               lines.push(`  ├─ Names:     ${status.skills.join(', ')}`);
+            }
+            if (status.lastModified) {
+               lines.push(`  └─ Modified:  ${status.lastModified.toLocaleString()}`);
+            }
+            log.success(lines.join('\n'));
+         }),
+   );
+
+   hideFromRootHelp(
+      skillsNamespace
+         .command('clear-cache')
+         .description('Clear the skills cache (skills will be re-downloaded on next install).')
+         .action(async () => {
+            await clearSkillsCache();
          }),
    );
 

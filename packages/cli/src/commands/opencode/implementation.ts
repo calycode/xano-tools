@@ -20,6 +20,16 @@ const TEMPLATES_CONFIG = {
 };
 
 /**
+ * Configuration for fetching Xano skills from GitHub
+ */
+const SKILLS_CONFIG = {
+   owner: 'calycode',
+   repo: 'xano-tools',
+   subpath: 'packages/xano-skills',
+   ref: 'main',
+};
+
+/**
  * Get the CalyCode-specific OpenCode configuration directory.
  * This is separate from the default OpenCode config (~/.config/opencode/)
  * to avoid polluting user's own OpenCode configuration.
@@ -713,6 +723,245 @@ async function clearTemplateCache(): Promise<void> {
    log.success('Template cache cleared.');
 }
 
+// --- Skills Installation ---
+
+/**
+ * Result of skills installation status check
+ */
+interface SkillsInstallStatus {
+   installed: boolean;
+   skillsDir?: string;
+   skillCount?: number;
+   lastModified?: Date;
+   skills?: string[];
+}
+
+/**
+ * Try to find local skills in the monorepo (development fallback).
+ * Returns the path to local skills if found, otherwise null.
+ */
+function findLocalSkillsPath(): string | null {
+   // Check common locations relative to this script
+   const possiblePaths = [
+      // Relative to cli package in monorepo
+      path.resolve(__dirname, '../../xano-skills'),
+      path.resolve(__dirname, '../../../xano-skills'),
+      path.resolve(__dirname, '../../../../packages/xano-skills'),
+      // Relative to dist folder
+      path.resolve(__dirname, '../../../packages/xano-skills'),
+   ];
+
+   for (const p of possiblePaths) {
+      // Check for skills directory with at least one skill
+      const skillsDir = path.join(p, 'skills');
+      if (fs.existsSync(skillsDir) && fs.readdirSync(skillsDir).length > 0) {
+         return p;
+      }
+   }
+   return null;
+}
+
+/**
+ * Read all skill files from a local directory.
+ * Returns a Map of relative paths to file contents.
+ */
+function readLocalSkills(skillsPackageDir: string): Map<string, string> {
+   const files = new Map<string, string>();
+   const skillsDir = path.join(skillsPackageDir, 'skills');
+
+   if (!fs.existsSync(skillsDir)) {
+      return files;
+   }
+
+   function readDir(dir: string, relativePath: string = '') {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+         const fullPath = path.join(dir, entry.name);
+         const relPath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+
+         if (entry.isDirectory()) {
+            readDir(fullPath, relPath);
+         } else if (entry.isFile()) {
+            // Normalize path separators for consistency
+            const normalizedPath = relPath.replace(/\\/g, '/');
+            files.set(normalizedPath, fs.readFileSync(fullPath, 'utf-8'));
+         }
+      }
+   }
+
+   readDir(skillsDir);
+   return files;
+}
+
+/**
+ * Fetches and installs Xano skills for AI agents.
+ * Skills are fetched from GitHub and cached locally for offline use.
+ * Falls back to local skills (from monorepo) during development if GitHub fetch fails.
+ *
+ * Installed to: ~/.calycode/opencode/skills/
+ *   - <skill-name>/SKILL.md
+ */
+async function setupOpencodeSkills(options: { force?: boolean } = {}): Promise<void> {
+   const { force = false } = options;
+   const fetcher = new GitHubContentFetcher();
+   const configDir = getCalycodeOpencodeConfigDir();
+   const skillsDir = path.join(configDir, 'skills');
+
+   log.info('Fetching Xano skills...');
+   log.info(`Installing to: ${skillsDir}`);
+
+   let files: Map<string, string>;
+   let sourceDescription: string;
+
+   try {
+      // First, try to fetch from GitHub (with cache support)
+      const result = await fetcher.fetchDirectory({
+         ...SKILLS_CONFIG,
+         preferOffline: true,
+         force,
+      });
+
+      // Extract only the skills/ subdirectory from the package
+      files = new Map<string, string>();
+      for (const [filePath, content] of result.files) {
+         if (filePath.startsWith('skills/')) {
+            // Remove the 'skills/' prefix since we'll install to skillsDir
+            const relativePath = filePath.substring('skills/'.length);
+            files.set(relativePath, content);
+         }
+      }
+
+      if (result.fromCache && result.cacheAge !== undefined) {
+         const ageMinutes = Math.round(result.cacheAge / 1000 / 60);
+         sourceDescription = `cached skills (${ageMinutes} minutes old)`;
+         log.info(`Using ${sourceDescription}`);
+      } else {
+         sourceDescription = 'latest skills from GitHub';
+         log.success(`Downloaded ${sourceDescription}`);
+      }
+   } catch (error: any) {
+      // GitHub fetch failed - try local fallback for development
+      log.warn(`GitHub fetch failed: ${error.message}`);
+
+      const localPath = findLocalSkillsPath();
+      if (localPath) {
+         log.info(`Falling back to local skills: ${localPath}`);
+         files = readLocalSkills(localPath);
+         sourceDescription = 'local skills (development mode)';
+         log.success(`Using ${sourceDescription}`);
+      } else {
+         log.error('No local skills found. Cannot install skills.');
+         throw new Error('Failed to fetch skills from GitHub and no local fallback available.');
+      }
+   }
+
+   // Ensure skills directory exists
+   if (!fs.existsSync(skillsDir)) {
+      fs.mkdirSync(skillsDir, { recursive: true });
+   }
+
+   // Track what was installed
+   const installed: string[] = [];
+   const skipped: string[] = [];
+
+   // Write skill files to skills directory
+   for (const [filePath, content] of files) {
+      const destPath = path.join(skillsDir, filePath);
+      const destDir = path.dirname(destPath);
+
+      // Ensure destination directory exists
+      if (!fs.existsSync(destDir)) {
+         fs.mkdirSync(destDir, { recursive: true });
+      }
+
+      // Don't overwrite existing user customizations unless --force
+      if (!force && fs.existsSync(destPath)) {
+         skipped.push(filePath);
+         continue;
+      }
+
+      fs.writeFileSync(destPath, content, 'utf-8');
+      installed.push(filePath);
+   }
+
+   // Report results
+   if (installed.length > 0) {
+      const skillNames = [
+         ...new Set(installed.map((f) => f.split('/')[0]).filter((name) => name)),
+      ];
+      log.success(`Installed ${skillNames.length} skill(s): ${skillNames.join(', ')}`);
+   }
+
+   if (skipped.length > 0) {
+      const skillNames = [
+         ...new Set(skipped.map((f) => f.split('/')[0]).filter((name) => name)),
+      ];
+      log.info(`Skipped ${skillNames.length} existing skill(s) (use --force to overwrite)`);
+   }
+
+   log.success(`Skills installed to: ${skillsDir}`);
+}
+
+/**
+ * Update skills by forcing a fresh download from GitHub.
+ */
+async function updateOpencodeSkills(): Promise<void> {
+   log.info('Updating Xano skills...');
+   await setupOpencodeSkills({ force: true });
+   log.success('Skills updated successfully!');
+}
+
+/**
+ * Get the status of installed skills.
+ */
+function getSkillsInstallStatus(): SkillsInstallStatus {
+   const configDir = getCalycodeOpencodeConfigDir();
+   const skillsDir = path.join(configDir, 'skills');
+
+   if (!fs.existsSync(skillsDir)) {
+      return { installed: false };
+   }
+
+   const skills: string[] = [];
+   let latestMtime: Date | undefined;
+
+   // Scan skills directories
+   const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
+   for (const entry of entries) {
+      if (entry.isDirectory()) {
+         const skillMdPath = path.join(skillsDir, entry.name, 'SKILL.md');
+         if (fs.existsSync(skillMdPath)) {
+            skills.push(entry.name);
+            const stat = fs.statSync(skillMdPath);
+            if (!latestMtime || stat.mtime > latestMtime) {
+               latestMtime = stat.mtime;
+            }
+         }
+      }
+   }
+
+   if (skills.length === 0) {
+      return { installed: false };
+   }
+
+   return {
+      installed: true,
+      skillsDir,
+      skillCount: skills.length,
+      lastModified: latestMtime,
+      skills,
+   };
+}
+
+/**
+ * Clear the skills cache.
+ */
+async function clearSkillsCache(): Promise<void> {
+   const fetcher = new GitHubContentFetcher();
+   await fetcher.clearCache(SKILLS_CONFIG);
+   log.success('Skills cache cleared.');
+}
+
 async function serveOpencode({ port = 4096, detach = false }: { port?: number; detach?: boolean }) {
    // Set the CalyCode OpenCode config directory
    const configDir = getCalycodeOpencodeConfigDir();
@@ -957,6 +1206,8 @@ async function setupOpencode({
    if (!skipConfig) {
       log.info('');
       await setupOpencodeConfig({ force });
+      log.info('');
+      await setupOpencodeSkills({ force });
    }
 
    log.info('');
@@ -972,4 +1223,8 @@ export {
    updateOpencodeTemplates,
    getTemplateInstallStatus,
    clearTemplateCache,
+   setupOpencodeSkills,
+   updateOpencodeSkills,
+   getSkillsInstallStatus,
+   clearSkillsCache,
 };
