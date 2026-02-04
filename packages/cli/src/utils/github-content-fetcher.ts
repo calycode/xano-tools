@@ -3,6 +3,30 @@ import path from 'node:path';
 import os from 'node:os';
 
 /**
+ * Validates that a resolved path stays within the expected base directory.
+ * Prevents path traversal attacks from malicious file paths.
+ * @param basePath - The base directory that paths must stay within
+ * @param filePath - The relative file path to validate
+ * @returns The validated full path
+ * @throws {Error} if the path would escape the base directory
+ */
+function validatePathWithinBase(basePath: string, filePath: string): string {
+   // Normalize both paths to handle different separators and . or .. components
+   const resolvedBase = path.resolve(basePath);
+   const fullPath = path.resolve(basePath, filePath);
+
+   // Ensure the resolved path starts with the base path
+   // Add path.sep to prevent matching partial directory names (e.g., /tmp/cache vs /tmp/cache-evil)
+   if (!fullPath.startsWith(resolvedBase + path.sep) && fullPath !== resolvedBase) {
+      throw new Error(
+         `Path traversal detected: "${filePath}" resolves outside the allowed directory`,
+      );
+   }
+
+   return fullPath;
+}
+
+/**
  * Options for fetching content from GitHub
  */
 export interface FetchOptions {
@@ -232,10 +256,16 @@ export class GitHubContentFetcher {
          const files = new Map<string, string>();
 
          for (const filePath of meta.files) {
-            const fullPath = path.join(cacheDir, filePath);
-            if (fs.existsSync(fullPath)) {
-               const content = fs.readFileSync(fullPath, 'utf-8');
-               files.set(filePath, content);
+            // Validate path to prevent path traversal from corrupted/malicious cache metadata
+            try {
+               const fullPath = validatePathWithinBase(cacheDir, filePath);
+               if (fs.existsSync(fullPath)) {
+                  const content = fs.readFileSync(fullPath, 'utf-8');
+                  files.set(filePath, content);
+               }
+            } catch {
+               // Skip files with invalid paths (possible tampering)
+               console.warn(`Skipping file with invalid path: ${filePath}`);
             }
          }
 
@@ -269,7 +299,8 @@ export class GitHubContentFetcher {
 
          // Write each file to cache
          for (const [filePath, content] of files) {
-            const fullPath = path.join(cacheDir, filePath);
+            // Validate path to prevent path traversal attacks from malicious GitHub responses
+            const fullPath = validatePathWithinBase(cacheDir, filePath);
             const fileDir = path.dirname(fullPath);
 
             if (!fs.existsSync(fileDir)) {

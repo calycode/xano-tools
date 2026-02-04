@@ -4,6 +4,28 @@ import { program } from './program';
 import { setupOpencode, startNativeHost } from './commands/opencode/implementation';
 import { HOST_APP_INFO } from './utils/host-constants';
 
+/**
+ * Escape a string for safe use in PowerShell.
+ * Handles single quotes and prevents expression evaluation.
+ * @param str - String to escape
+ * @returns Escaped string safe for PowerShell
+ */
+function escapePowerShell(str: string): string {
+   // Replace single quotes with two single quotes (PowerShell escape)
+   // Also escape $ to prevent variable interpolation, and backticks
+   return str.replace(/'/g, "''").replace(/`/g, '``').replace(/\$/g, '`$');
+}
+
+/**
+ * Escape a string for safe use in AppleScript.
+ * @param str - String to escape
+ * @returns Escaped string safe for AppleScript
+ */
+function escapeAppleScript(str: string): string {
+   // Escape backslashes first, then double quotes
+   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 // This entry point is specific for the bundled binary to handle "double-click" behavior.
 // If run with no arguments (double click), it triggers the init flow.
 // If run with arguments (CLI usage), it passes through to the standard program.
@@ -82,15 +104,17 @@ function showSuccessDialog() {
       '@calycode Native Host Installer\n\nSetup complete successfully!\n\nYou can now use it in your terminal.\n\nClick OK to exit.';
 
    if (process.platform === 'win32') {
+      // Use robust PowerShell escaping to prevent injection
       const psCommand = `
          Add-Type -AssemblyName System.Windows.Forms;
-         [System.Windows.Forms.MessageBox]::Show('${message.replace(/'/g, "''")}', '@calycode Installer', 'OK', 'Information')
+         [System.Windows.Forms.MessageBox]::Show('${escapePowerShell(message)}', '@calycode Installer', 'OK', 'Information')
       `;
       spawnSync('powershell.exe', ['-NoProfile', '-Command', psCommand]);
    } else if (process.platform === 'darwin') {
+      // Use robust AppleScript escaping to prevent injection
       spawnSync('osascript', [
          '-e',
-         `tell app "System Events" to display dialog "${message.replace(/"/g, '\\"')}" with title "@calycode Installer" buttons {"OK"} default button "OK"`,
+         `tell app "System Events" to display dialog "${escapeAppleScript(message)}" with title "@calycode Installer" buttons {"OK"} default button "OK"`,
       ]);
    } else {
       const zenity = spawnSync('zenity', [
