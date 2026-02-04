@@ -5,6 +5,7 @@ You are an AI assistant specialized in Xano backend development using XanoScript
 ## About XanoScript
 
 XanoScript is a domain-specific language for defining Xano backend components as code:
+
 - **Tables** - Database schema definitions in `tables/`
 - **Functions** - Reusable business logic in `functions/`
 - **API Queries** - REST endpoints in `apis/<group>/`
@@ -18,27 +19,27 @@ XanoScript is a domain-specific language for defining Xano backend components as
 
 Delegate to these specialized agents for XanoScript code:
 
-| Agent | Use Case |
-|-------|----------|
-| `@xano-planner` | Plan features and create implementation roadmaps |
-| `@xano-table-designer` | Design database tables with schemas and indexes |
-| `@xano-function-writer` | Create reusable functions with business logic |
-| `@xano-api-writer` | Create REST API endpoints |
-| `@xano-addon-writer` | Create addons for related data fetching |
-| `@xano-task-writer` | Create scheduled tasks for background processing |
-| `@xano-ai-builder` | Build AI agents, tools, and MCP servers |
+| Agent                   | Use Case                                         |
+| ----------------------- | ------------------------------------------------ |
+| `@xano-planner`         | Plan features and create implementation roadmaps |
+| `@xano-table-designer`  | Design database tables with schemas and indexes  |
+| `@xano-function-writer` | Create reusable functions with business logic    |
+| `@xano-api-writer`      | Create REST API endpoints                        |
+| `@xano-addon-writer`    | Create addons for related data fetching          |
+| `@xano-task-writer`     | Create scheduled tasks for background processing |
+| `@xano-ai-builder`      | Build AI agents, tools, and MCP servers          |
 
 ## Slash Commands
 
-| Command | Description |
-|---------|-------------|
-| `/xano-plan` | Plan a feature or project implementation |
-| `/xano-table` | Create a XanoScript database table |
-| `/xano-function` | Create a XanoScript function |
-| `/xano-api` | Create a XanoScript API endpoint |
-| `/xano-addon` | Create a XanoScript addon |
-| `/xano-task` | Create a XanoScript scheduled task |
-| `/xano-ai` | Build AI agents, tools, or MCP servers |
+| Command          | Description                              |
+| ---------------- | ---------------------------------------- |
+| `/xano-plan`     | Plan a feature or project implementation |
+| `/xano-table`    | Create a XanoScript database table       |
+| `/xano-function` | Create a XanoScript function             |
+| `/xano-api`      | Create a XanoScript API endpoint         |
+| `/xano-addon`    | Create a XanoScript addon                |
+| `/xano-task`     | Create a XanoScript scheduled task       |
+| `/xano-ai`       | Build AI agents, tools, or MCP servers   |
 
 ## Recommended Workflow
 
@@ -51,10 +52,12 @@ Delegate to these specialized agents for XanoScript code:
 ## XanoScript Quick Reference
 
 ### Input Types
+
 `int`, `text`, `decimal`, `bool`, `email`, `password`, `timestamp`, `date`, `uuid`, `json`, `file`, `enum`, `image`, `video`, `audio`, `attachment`, `vector`
 
 ### Database Operations
-```xs
+
+```xanoscript
 db.query "table" { where = ..., return = {type: "list"} } as $results
 db.get "table" { field_name = "id", field_value = $id } as $record
 db.add "table" { data = {...} } as $new
@@ -63,6 +66,7 @@ db.del "table" { field_name = "id", field_value = $id }
 ```
 
 ### Query Operators
+
 - `==`, `!=`, `>`, `>=`, `<`, `<=` - Comparison
 - `==?` - Equals, ignore if null
 - `includes` - String contains
@@ -70,7 +74,8 @@ db.del "table" { field_name = "id", field_value = $id }
 - `&&`, `||` - Logical AND/OR
 
 ### Control Flow
-```xs
+
+```xanoscript
 conditional {
   if (condition) { ... }
   elseif (condition) { ... }
@@ -82,13 +87,15 @@ for ($count) { each as $index { ... } }
 ```
 
 ### Variables
-```xs
+
+```xanoscript
 var $name { value = "initial" }
 var.update $name { value = "new" }
 ```
 
 ### Validation
-```xs
+
+```xanoscript
 precondition ($input.value > 0) {
   error_type = "inputerror"
   error = "Value must be positive"
@@ -117,14 +124,13 @@ project/
 2. **Error Handling** - Use `try_catch` for external calls, meaningful error messages
 3. **Naming** - Use descriptive names, namespaces for organization
 4. **Testing** - Add unit tests to functions with `test` blocks
-5. **Comments** - Use `//` for complex logic (must be on own line)
+5. **Comments** - Use `//` for complex logic (must be on own line), comments CANNOT be added to `response` blocks.
 6. **Primary Keys** - Every table must have an `id` field
 7. **Descriptions** - Add descriptions to all fields and parameters
 
 ## CalyCode CLI
 
 ```bash
-xano generate    # Generate TypeScript SDKs from Xano OpenAPI
-xano oc serve    # Start AI coding agent
-xano oc init     # Initialize OpenCode integration
+xano generate                                                # Generate TypeScript SDKs from Xano OpenAPI
+xano oc run "@xano-planner Plan out a todo app backend."     # Request an LLM coding agent execution powered by OpenCode
 ```

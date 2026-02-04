@@ -20,7 +20,7 @@ You write reusable XanoScript functions. Functions encapsulate business logic, u
 
 ## Function Structure
 
-```xs
+```xanoscript
 function "<namespace/name>" {
   description = "<what this function does>"
 
@@ -38,7 +38,7 @@ function "<namespace/name>" {
 
 ## Input Parameters
 
-```xs
+```xanoscript
 input {
   // Required parameter
   int quantity filters=min:0 {
@@ -71,7 +71,7 @@ input {
 
 ## Variables
 
-```xs
+```xanoscript
 // Declare
 var $total {
   value = 0
@@ -86,7 +86,7 @@ var.update $total {
 
 ## Arithmetic Operations
 
-```xs
+```xanoscript
 math.add $total {
   value = $input.amount
 }
@@ -108,7 +108,7 @@ math.div $average {
 
 ### Conditionals
 
-```xs
+```xanoscript
 conditional {
   if ($input.amount > 1000) {
     var $discount {
@@ -130,7 +130,7 @@ conditional {
 
 ### Switch
 
-```xs
+```xanoscript
 switch ($input.category) {
   case ("electronics") {
     var $tax_rate { value = 0.10 }
@@ -148,7 +148,7 @@ switch ($input.category) {
 
 ### Loops
 
-```xs
+```xanoscript
 // For loop (count)
 for ($input.count) {
   each as $index {
@@ -178,7 +178,7 @@ while ($has_more) {
 
 ## Array Operations
 
-```xs
+```xanoscript
 // Push to array
 array.push $results {
   value = $new_item
@@ -195,45 +195,48 @@ array.find $users if ($this.id == $target_id) as $found_user
 
 ## Expression Filters
 
-```xs
+ALWAYS wrap the expressions in parentheses and write them as multiline expressions to make sure they are picked up correctly.
+When writing objects as variables defined as expressions, try to follow JSON object definition.
+
+```xanoscript
 // String operations
-$input.name|trim|lower
-$input.text|strlen
-$input.url|split:"/"|first
+($input.name|trim|lower)
+($input.text|strlen)
+($input.url|split:"/"|first)
 
 // Array operations
-$items|count
-$items|first
-$items|last
-$items|filter:($this.active == true)
-$items|map:$this.name
-$items|sum
-$numbers|min
-$numbers|max
+($items|count)
+($items|first)
+($items|last)
+($items|filter:($this.active == true))
+($items|map:$this.name)
+($items|sum)
+($numbers|min)
+($numbers|max)
 
 // Type conversions
-$input.id|to_text
-$input.amount|to_int
-$input.data|json_encode
+($input.id|to_text)
+($input.amount|to_int)
+($input.data|json_encode)
 ```
 
 ## Validation
 
-```xs
+```xanoscript
 precondition ($input.amount > 0) {
-  error_type = "inputerror"
+  error_type = "<standard|accessDenied|badRequest|notFound|tooManyRequests|unauthorized|inputError>"
   error = "Amount must be positive"
 }
 
 precondition (($input.values|count) == ($input.weights|count)) {
-  error_type = "inputerror"
+  error_type = "<standard|accessDenied|badRequest|notFound|tooManyRequests|unauthorized|inputError>"
   error = "Arrays must have same length"
 }
 ```
 
 ## Error Handling
 
-```xs
+```xanoscript
 try_catch {
   try {
     // risky operation
@@ -256,7 +259,7 @@ try_catch {
 
 ## Calling Other Functions
 
-```xs
+```xanoscript
 function.run "utilities/calculate_tax" {
   input = {
     amount: $subtotal
@@ -267,7 +270,7 @@ function.run "utilities/calculate_tax" {
 
 ## Database Operations
 
-```xs
+```xanoscript
 // Query
 db.query "product" {
   where = $db.product.category_id == $input.category_id
@@ -299,7 +302,7 @@ db.patch "order" {
 
 ## Example: Complete Function
 
-```xs
+````xanoscript
 function "maths/calculate_order_total" {
   description = "Calculate order total with tax and optional discount"
 
@@ -323,26 +326,36 @@ function "maths/calculate_order_total" {
     conditional {
       if ($input.discount_code == "SAVE10") {
         var.update $discount {
-          value = $input.subtotal * 0.10
+          value = ```(
+            $input.subtotal * 0.10
+          )```
         }
       }
       elseif ($input.discount_code == "SAVE20") {
         var.update $discount {
-          value = $input.subtotal * 0.20
+          value = ```(
+            $input.subtotal * 0.20
+          )```
         }
       }
     }
 
     var $taxable_amount {
-      value = $input.subtotal - $discount
+      value = ```(
+          $input.subtotal - $discount
+        )```
     }
 
     var $tax {
-      value = $taxable_amount * $input.tax_rate
+      value = ```(
+          $taxable_amount * $input.tax_rate
+        )```
     }
 
     var $total {
-      value = $taxable_amount + $tax
+      value = ```(
+          $taxable_amount + $tax
+        )```
     }
   }
 
@@ -353,11 +366,11 @@ function "maths/calculate_order_total" {
     total: $total
   }
 }
-```
+````
 
 ## Unit Tests
 
-```xs
+```xanoscript
 function "example" {
   // ... function definition ...
 

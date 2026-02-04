@@ -20,7 +20,7 @@ You write XanoScript scheduled tasks. Tasks are automated jobs that run at speci
 
 ## Task Structure
 
-```xs
+```xanoscript
 task "<name>" {
   description = "What this task does"
 
@@ -36,7 +36,7 @@ task "<name>" {
 
 ## Schedule Configuration
 
-```xs
+```xanoscript
 schedule = [{
   starts_on: 2026-01-01 09:00:00+0000,
   freq: 86400,
@@ -64,7 +64,7 @@ schedule = [{
 
 ## History Options
 
-```xs
+```xanoscript
 history = "inherit"  // Use workspace default
 history = "all"      // Keep all execution history
 history = 1000       // Keep last 1000 executions
@@ -74,7 +74,7 @@ history = 1000       // Keep last 1000 executions
 
 Tasks use the same operations as functions:
 
-```xs
+```xanoscript
 stack {
   // Variables
   var $count { value = 0 }
@@ -109,7 +109,7 @@ stack {
 
 ## Example: Daily Cleanup Task
 
-```xs
+```xanoscript
 task "cleanup_expired_sessions" {
   description = "Delete expired sessions every 6 hours"
 
@@ -154,7 +154,7 @@ task "cleanup_expired_sessions" {
 
 ## Example: Daily Report Task
 
-```xs
+```xanoscript
 task "daily_sales_report" {
   description = "Generate daily sales report at 11 PM UTC"
 
@@ -198,7 +198,7 @@ task "daily_sales_report" {
 
 ## Example: End-of-Month Task
 
-```xs
+```xanoscript
 task "end_of_month_billing" {
   description = "Process billing on the last day of each month"
 
@@ -237,7 +237,7 @@ task "end_of_month_billing" {
 
 ## Example: Notification Task with External API
 
-```xs
+```xanoscript
 task "low_stock_alert" {
   description = "Send alerts for low stock products daily"
 
@@ -284,7 +284,7 @@ task "low_stock_alert" {
 
 ## Error Handling in Tasks
 
-```xs
+```xanoscript
 stack {
   try_catch {
     try {
@@ -304,7 +304,7 @@ stack {
 
 ## Timestamp Operations
 
-```xs
+```xanoscript
 // Current time
 now
 

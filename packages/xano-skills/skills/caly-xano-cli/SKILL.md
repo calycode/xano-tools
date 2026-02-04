@@ -16,7 +16,8 @@ xano --version  # Requires v0.15.0+
 If not installed:
 
 ```bash
-npm install -g @calycode/cli
+pnpm install -g @calycode/cli
+# or through your preferred package manager
 ```
 
 ## Key Guidelines
@@ -39,18 +40,18 @@ xano init --name my-instance --url https://x123.xano.io --token <METADATA_API_TO
 
 ## Quick Reference: Core Commands
 
-| Task                  | Command                                               |
-| --------------------- | ----------------------------------------------------- |
-| Initialize CLI        | `xano init`                                           |
-| Generate OpenAPI spec | `xano generate spec`                                  |
-| Generate all specs    | `xano generate spec --all`                            |
-| Create SDK/client     | `xano generate codegen --generator typescript-axios`  |
-| Generate docs         | `xano generate docs`                                  |
-| Export backup         | `xano backup export`                                  |
-| Restore backup        | `xano backup restore --source-backup backup.json`     |
-| Run API tests         | `xano test run -c ./test-config.json`                 |
-| Run tests (CI mode)   | `xano test run -c ./test-config.json --ci`            |
-| Serve OpenAPI locally | `xano serve spec`                                     |
+| Task                  | Command                                              |
+| --------------------- | ---------------------------------------------------- |
+| Initialize CLI        | `xano init`                                          |
+| Generate OpenAPI spec | `xano generate spec`                                 |
+| Generate all specs    | `xano generate spec --all`                           |
+| Create SDK/client     | `xano generate codegen --generator typescript-axios` |
+| Generate docs         | `xano generate docs`                                 |
+| Export backup         | `xano backup export`                                 |
+| Restore backup        | `xano backup restore --source-backup backup.json`    |
+| Run API tests         | `xano test run -c ./test-config.json`                |
+| Run tests (CI mode)   | `xano test run -c ./test-config.json --ci`           |
+| Serve OpenAPI locally | `xano serve spec`                                    |
 
 ---
 
@@ -228,7 +229,7 @@ Creates a full backup of workspace via Metadata API.
 xano backup restore --source-backup ./backup.json
 ```
 
-**WARNING**: This is destructive! Overwrites all business logic and restores v1 branch. Data is also restored.
+**WARNING**: This is destructive! Overwrites all business logic and restores v1 branch. Data is also restored. Error-prone, this action might result with errors, that cannot be resolved without Support from Xano Team.
 
 ### Options
 
@@ -279,16 +280,16 @@ xano test run -c ./test-config.json --ci --fail-on-warnings
 
 ### Options
 
-| Option                      | Alias | Description                        |
-| --------------------------- | ----- | ---------------------------------- |
-| `--config <path>`           | `-c`  | Path to test config                |
-| `--test-config-path <path>` |       | Path to test config (deprecated)   |
-| `--env <KEY=VALUE>`         | `-e`  | Inject env vars (repeatable)       |
-| `--test-env <KEY=VALUE>`    |       | Inject env vars (deprecated)       |
-| `--ci`                      |       | Exit with code 1 on test failures  |
-| `--fail-on-warnings`        |       | Also fail on warnings (CI mode)    |
-| `--all`                     |       | Test all API groups                |
-| `--group <name>`            |       | Test specific API group            |
+| Option                      | Alias | Description                       |
+| --------------------------- | ----- | --------------------------------- |
+| `--config <path>`           | `-c`  | Path to test config               |
+| `--test-config-path <path>` |       | Path to test config (deprecated)  |
+| `--env <KEY=VALUE>`         | `-e`  | Inject env vars (repeatable)      |
+| `--test-env <KEY=VALUE>`    |       | Inject env vars (deprecated)      |
+| `--ci`                      |       | Exit with code 1 on test failures |
+| `--fail-on-warnings`        |       | Also fail on warnings (CI mode)   |
+| `--all`                     |       | Test all API groups               |
+| `--group <name>`            |       | Test specific API group           |
 
 ### Test Config Schema
 
@@ -298,26 +299,26 @@ See: https://calycode.com/schemas/testing/config.json
 
 ```json
 [
-  {
-    "path": "/auth/login",
-    "method": "POST",
-    "headers": {},
-    "queryParams": null,
-    "requestBody": {
-      "email": "{{ENVIRONMENT.TEST_EMAIL}}",
-      "password": "{{ENVIRONMENT.TEST_PASSWORD}}"
-    },
-    "store": [{ "key": "AUTH_TOKEN", "path": "$.authToken" }],
-    "customAsserts": {}
-  },
-  {
-    "path": "/users/me",
-    "method": "GET",
-    "headers": { "Authorization": "Bearer {{ENVIRONMENT.AUTH_TOKEN}}" },
-    "queryParams": null,
-    "requestBody": null,
-    "customAsserts": {}
-  }
+   {
+      "path": "/auth/login",
+      "method": "POST",
+      "headers": {},
+      "queryParams": null,
+      "requestBody": {
+         "email": "{{ENVIRONMENT.TEST_EMAIL}}",
+         "password": "{{ENVIRONMENT.TEST_PASSWORD}}"
+      },
+      "store": [{ "key": "AUTH_TOKEN", "path": "$.authToken" }],
+      "customAsserts": {}
+   },
+   {
+      "path": "/users/me",
+      "method": "GET",
+      "headers": { "Authorization": "Bearer {{ENVIRONMENT.AUTH_TOKEN}}" },
+      "queryParams": null,
+      "requestBody": null,
+      "customAsserts": {}
+   }
 ]
 ```
 
@@ -326,21 +327,21 @@ See: https://calycode.com/schemas/testing/config.json
 ```javascript
 // test-config.js
 module.exports = [
-  {
-    path: '/health',
-    method: 'GET',
-    headers: {},
-    queryParams: null,
-    requestBody: null,
-    customAsserts: {
-      hasStatus: {
-        fn: (ctx) => {
-          if (!ctx.result?.status) throw new Error('Missing status');
-        },
-        level: 'error'
-      }
-    }
-  }
+   {
+      path: '/health',
+      method: 'GET',
+      headers: {},
+      queryParams: null,
+      requestBody: null,
+      customAsserts: {
+         hasStatus: {
+            fn: (ctx) => {
+               if (!ctx.result?.status) throw new Error('Missing status');
+            },
+            level: 'error',
+         },
+      },
+   },
 ];
 ```
 
@@ -429,6 +430,7 @@ xano oc serve --port 8000 --detach
 ```
 
 ### Execute OpenCode CLI commands:
+
 ```bash
 # Run any task with OpenCode
 xano oc run "/review"
@@ -471,7 +473,8 @@ xano generate codegen --generator typescript-axios --all
 ```bash
 # Generate specs and client
 xano generate spec --all
-xano generate codegen --generator typescript-axios --all
+xano generate codegen --generator typescript-fetch --all
+# Optionally here do logic that would move your genreted library as an (internal) npm-package for reuse in FE projects
 
 # Run tests
 xano test run --test-config-path ./test-config.json --all
