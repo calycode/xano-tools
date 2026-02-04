@@ -96,6 +96,21 @@ function generateCliDocs() {
       const finalSidebar = [
          ...sidebarLines,
          `
+- **Guides**
+
+  - [Getting Started](guides/git-workflow.md)
+  - [Registry Authoring](guides/registry-authoring.md)
+  - [Scaffolding Components](guides/scaffolding.md)
+  - [XanoScript](guides/xanoscript.md)
+  - [Patterns & Best Practices](guides/patterns.md)
+  - [API Testing](guides/testing.md)
+
+- **External Resources**
+
+  - [Calycode Extension](https://extension.calycode.com)
+  - [StateChange.ai](https://statechange.ai)
+  - [Axiom Logging](https://axiom.co)
+
 -  Changelog
 
    -  [CLI](https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md)

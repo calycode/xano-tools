@@ -14,16 +14,12 @@ Context related operations.
 Usage: xano context [options] [command]
 
 Options:
-  -h, --help
-    display help for command
+  └─ -h, --help  display help for command
 
 Commands:
-  show
-    Show the current known context.
+  ├─ show  Show the current known context.
+  └─ help  display help for command
 
-  help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

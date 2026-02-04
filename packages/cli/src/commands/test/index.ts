@@ -17,7 +17,7 @@ function registerTestCommands(program, core) {
    const runTestsCommand = testNamespace
       .command('run')
       .description(
-         'Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json '
+         'Run an API test suite. Requires a test config file (.json or .js). Schema: https://calycode.com/schemas/testing/config.json | Full guide: https://calycode.github.io/xano-tools/#/guides/testing'
       );
 
    addFullContextOptions(runTestsCommand);
@@ -25,29 +25,44 @@ function registerTestCommands(program, core) {
    addPrintOutputFlag(runTestsCommand);
 
    runTestsCommand
-      .option('--test-config-path <path>', 'Local path to the test configuration file.')
+      .option('-c, --config <path>', 'Path to the test configuration file (.json or .js).')
       .option(
-         '--test-env <keyValue...>',
-         'Inject environment variables (KEY=VALUE) for tests. Can be repeated to set multiple.'
+         '-e, --env <keyValue...>',
+         'Inject environment variables (KEY=VALUE) for tests. Repeatable.'
+      )
+      .option(
+         '--ci',
+         'CI mode: exit with code 1 if any tests fail. Use to block releases.'
+      )
+      .option(
+         '--fail-on-warnings',
+         'In CI mode, also fail if there are warnings (not just errors).'
       )
       .action(
          withErrorHandler(async (options) => {
             const cliTestEnvVars = {};
-            if (options.testEnv) {
-               for (const arg of options.testEnv) {
-                  const [key, ...rest] = arg.split('=');
-                  if (key && rest.length > 0) {
-                     cliTestEnvVars[key] = rest.join('=');
-                  }
+            const envArgs = options.env || [];
+            for (const arg of envArgs) {
+               const [key, ...rest] = arg.split('=');
+               if (key && rest.length > 0) {
+                  cliTestEnvVars[key] = rest.join('=');
                }
             }
-            await runTest({
+            const configPath = options.config;
+
+            const result = await runTest({
                ...options,
+               testConfigPath: configPath,
                isAll: options.all,
                printOutput: options.printOutputDir,
                core,
                cliTestEnvVars,
+               ciMode: options.ci || false,
+               failOnWarnings: options.failOnWarnings || false,
             });
+
+            // Return the exit code result for CI mode
+            return result;
          })
       );
 }

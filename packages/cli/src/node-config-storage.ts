@@ -21,6 +21,30 @@ const DEFAULT_LOCAL_CONFIG_FILE = 'instance.config.json';
 const MERGE_KEYS = ['test'];
 
 /**
+ * Validates an instance name to prevent path traversal attacks.
+ * Only allows alphanumeric characters, hyphens, and underscores.
+ * @param instance - Instance name to validate
+ * @throws {Error} if instance name contains invalid characters
+ */
+function validateInstanceName(instance: string): void {
+   if (!instance || typeof instance !== 'string') {
+      throw new Error('Instance name must be a non-empty string');
+   }
+   // Allow only alphanumeric, hyphen, underscore - prevents path traversal
+   if (!/^[a-zA-Z0-9_-]+$/.test(instance)) {
+      throw new Error(
+         `Invalid instance name: "${instance}". Instance names can only contain letters, numbers, hyphens, and underscores.`
+      );
+   }
+}
+
+/**
+ * Keys that should be filtered out to prevent prototype pollution attacks.
+ * These keys can modify object prototypes if spread into objects.
+ */
+const DANGEROUS_KEYS = ['__proto__', 'constructor', 'prototype'];
+
+/**
  * Walks up the directory tree to find the first directory containing
  * .xano-tools/cli.config.json, starting from startDir or process.cwd().
  * @param startDir Optional directory to start search from. Defaults to process.cwd().
@@ -47,20 +71,41 @@ async function walkDirs(startDir?: string): Promise<string> {
    }
 }
 
+/**
+ * Filters out dangerous keys from an object to prevent prototype pollution.
+ * @param obj - Object to sanitize
+ * @returns New object without dangerous keys
+ */
+function sanitizeObject(obj: any): any {
+   if (obj === null || typeof obj !== 'object') {
+      return obj;
+   }
+   const result: any = Array.isArray(obj) ? [] : {};
+   for (const key of Object.keys(obj)) {
+      if (DANGEROUS_KEYS.includes(key)) {
+         continue; // Skip dangerous keys
+      }
+      result[key] = sanitizeObject(obj[key]);
+   }
+   return result;
+}
+
 function selectiveDeepMerge(source: any, target: any): any {
    // Only merge the keys we care about; otherwise, leave target as is.
+   // Sanitize source to prevent prototype pollution
+   const safeSource = sanitizeObject(source);
    const result = { ...target };
    for (const key of MERGE_KEYS) {
-      if (source[key]) {
+      if (safeSource[key]) {
          if (
-            typeof source[key] === 'object' &&
+            typeof safeSource[key] === 'object' &&
             typeof target[key] === 'object' &&
-            source[key] !== null &&
+            safeSource[key] !== null &&
             target[key] !== null
          ) {
-            result[key] = { ...target[key], ...source[key] };
+            result[key] = { ...target[key], ...safeSource[key] };
          } else {
-            result[key] = source[key];
+            result[key] = safeSource[key];
          }
       }
    }
@@ -190,9 +235,12 @@ export const nodeConfigStorage: ConfigStorage = {
     * First checks for environment variable (XANO_TOKEN_INSTANCENAME), then falls back to token file.
     * @param instance - Instance name to load token for
     * @returns The API token string
-    * @throws {Error} When token is not found in either location
+    * @throws {Error} When token is not found in either location or instance name is invalid
     */
    async loadToken(instance) {
+      // Validate instance name to prevent path traversal
+      validateInstanceName(instance);
+
       const envVarName = `XANO_TOKEN_${instance.toUpperCase().replace(/-/g, '_')}`;
       const envToken = process.env[envVarName];
       if (envToken) {
@@ -212,8 +260,12 @@ export const nodeConfigStorage: ConfigStorage = {
     * Token file is created with 600 permissions (readable only by owner).
     * @param instance - Instance name to save token for
     * @param token - The API token to save
+    * @throws {Error} When instance name is invalid
     */
    async saveToken(instance, token) {
+      // Validate instance name to prevent path traversal
+      validateInstanceName(instance);
+
       const p = path.join(TOKENS_DIR, `${instance}.token`);
       fs.writeFileSync(p, token, { mode: 0o600 });
    },

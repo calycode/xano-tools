@@ -38,3 +38,9 @@ calyInstance.test.setup.json
 
 # Jest
 coverage/
+
+# Native binary assets
+**/*/.sea-cache/
+
+# Xano's ai supporting assets:
+util-resources/xano-agentic-setups/

@@ -34,6 +34,39 @@
 - **context**
 
   - [context show](commands/context-show.md)
+- **oc**
+
+  - [oc init](commands/oc-init.md)
+-   **templates**
+
+    - [oc templates install](commands/oc-templates-install.md)
+
+    - [oc templates update](commands/oc-templates-update.md)
+
+    - [oc templates status](commands/oc-templates-status.md)
+
+    - [oc templates clear-cache](commands/oc-templates-clear-cache.md)
+
+  - [oc serve](commands/oc-serve.md)
+
+  - [oc native-host](commands/oc-native-host.md)
+
+  - [oc run](commands/oc-run.md)
+
+- **Guides**
+
+  - [Getting Started](guides/git-workflow.md)
+  - [Registry Authoring](guides/registry-authoring.md)
+  - [Scaffolding Components](guides/scaffolding.md)
+  - [XanoScript](guides/xanoscript.md)
+  - [Patterns & Best Practices](guides/patterns.md)
+  - [API Testing](guides/testing.md)
+
+- **External Resources**
+
+  - [Calycode Extension](https://extension.calycode.com)
+  - [StateChange.ai](https://statechange.ai)
+  - [Axiom Logging](https://axiom.co)
 
 -  Changelog
 

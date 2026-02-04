@@ -1,0 +1,20 @@
+{
+  "name": "@calycode/opencode-templates",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenCode configuration templates for Xano development - agents, commands, and global instructions",
+  "license": "MIT",
+  "author": "CalyCode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calycode/xano-tools.git",
+    "directory": "packages/opencode-templates"
+  },
+  "keywords": [
+    "opencode",
+    "xano",
+    "ai-agents",
+    "templates",
+    "configuration"
+  ]
+}
