@@ -10,6 +10,36 @@ import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 const OPENCODE_PKG = 'opencode-ai@latest';
 
 /**
+ * Get spawn options appropriate for the current platform.
+ * On Windows, shell: true is required for npx to work (it's a batch file).
+ * On Unix, we can run without shell for better security.
+ */
+function getSpawnOptions(
+   stdio: 'inherit' | 'pipe' | 'ignore' = 'inherit',
+   extraEnv?: Record<string, string>,
+) {
+   // On Windows, npx is a batch file and requires shell: true
+   // On Unix, we can run without shell for better security
+   const isWindows = process.platform === 'win32';
+   return {
+      stdio,
+      shell: isWindows,
+      env: extraEnv ? { ...process.env, ...extraEnv } : process.env,
+   };
+}
+
+/**
+ * Validates a port number to ensure it's a safe integer in valid range.
+ * @param port - Port number to validate
+ * @throws {Error} if port is invalid
+ */
+function validatePort(port: number): void {
+   if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error(`Invalid port number: ${port}. Must be an integer between 1 and 65535.`);
+   }
+}
+
+/**
  * Configuration for fetching OpenCode templates from GitHub
  */
 const TEMPLATES_CONFIG = {
@@ -38,17 +68,35 @@ function getCalycodeOpencodeConfigDir(): string {
    return path.join(os.homedir(), '.calycode', 'opencode');
 }
 
-// Build CORS origins from allowed extension IDs
-// TODO: handle dynamic origins, as those can change per each user's browser and Xano instance.
-const ALLOWED_CORS_ORIGINS = [
-   'https://app.xano.com',
-   'https://services.calycode.com',
-   // Add all extension origins for CORS
-   ...HOST_APP_INFO.allowedExtensionIds.map((id) => `chrome-extension://${id}`),
-];
+/**
+ * Get the base allowed CORS origins for the OpenCode server.
+ * 
+ * These are the static origins that are always allowed. Dynamic origins
+ * (like user-specific Xano instance URLs) are passed by the browser extension
+ * when it starts the server via the native messaging protocol.
+ * 
+ * Environment variable: CALY_EXTRA_CORS_ORIGINS (comma-separated list of additional origins)
+ */
+function getAllowedCorsOrigins(): string[] {
+   const defaultOrigins = [
+      // The main Xano application
+      'https://app.xano.com',
+      // Chrome extension origins for extension-to-server communication
+      ...HOST_APP_INFO.allowedExtensionIds.map((id) => `chrome-extension://${id}`),
+   ];
+
+   // Allow additional CORS origins via environment variable (for development/testing)
+   const extraOriginsEnv = process.env.CALY_EXTRA_CORS_ORIGINS;
+   if (extraOriginsEnv) {
+      const extraOrigins = extraOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
+      return [...defaultOrigins, ...extraOrigins];
+   }
+
+   return defaultOrigins;
+}
 
 function getCorsArgs(extraOrigins: string[] = []) {
-   const origins = new Set([...ALLOWED_CORS_ORIGINS, ...extraOrigins]);
+   const origins = new Set([...getAllowedCorsOrigins(), ...extraOrigins]);
    return Array.from(origins).flatMap((origin) => ['--cors', origin]);
 }
 
@@ -70,13 +118,8 @@ async function proxyOpencode(args: string[]) {
    return new Promise<void>((resolve, reject) => {
       // Use 'npx' to execute the opencode-ai CLI with the provided arguments
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
-      const proc = spawn('npx -y', [OPENCODE_PKG, ...args], {
-         stdio: 'inherit',
-         shell: true,
-         env: {
-            ...process.env,
-            OPENCODE_CONFIG_DIR: configDir,
-         },
+      const proc = spawn('npx', ['-y', OPENCODE_PKG, ...args], {
+         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }),
       });
 
       proc.on('close', (code) => {
@@ -254,6 +297,15 @@ async function startNativeHost() {
    };
 
    const startServer = async (port: number = 4096, extraOrigins: string[] = []) => {
+      // Validate port to prevent injection via invalid values
+      try {
+         validatePort(port);
+      } catch (e) {
+         logger.error('Invalid port', e);
+         sendMessage({ status: 'error', message: `Invalid port: ${port}` });
+         return;
+      }
+
       const serverUrl = `http://localhost:${port}`;
       logger.log(`Attempting to start server on port ${port}`, { extraOrigins });
 
@@ -277,20 +329,15 @@ async function startNativeHost() {
       }
 
       try {
-         const args = [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-         logger.log(`Spawning npx -y ${args.join(' ')}`);
+         const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+         logger.log(`Spawning npx ${args.join(' ')}`);
 
          // Set OPENCODE_CONFIG_DIR to use CalyCode-specific config
          const configDir = getCalycodeOpencodeConfigDir();
          logger.log(`Using OpenCode config directory: ${configDir}`);
 
-         serverProc = spawn('npx -y', args, {
-            stdio: 'ignore', // Must ignore stdio to prevent polluting stdout
-            shell: true,
-            env: {
-               ...process.env,
-               OPENCODE_CONFIG_DIR: configDir,
-            },
+         serverProc = spawn('npx', args, {
+            ...getSpawnOptions('ignore', { OPENCODE_CONFIG_DIR: configDir }),
          });
 
          serverProc.on('error', (err) => {
@@ -963,23 +1010,28 @@ async function clearSkillsCache(): Promise<void> {
 }
 
 async function serveOpencode({ port = 4096, detach = false }: { port?: number; detach?: boolean }) {
+   // Validate port
+   validatePort(port);
+
    // Set the CalyCode OpenCode config directory
    const configDir = getCalycodeOpencodeConfigDir();
-   const spawnEnv = {
-      ...process.env,
-      OPENCODE_CONFIG_DIR: configDir,
-   };
+
+   // On Windows, npx is a batch file and requires shell: true
+   const isWindows = process.platform === 'win32';
 
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
       const proc = spawn(
-         'npx -y',
-         [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
+         'npx',
+         ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
          {
             detached: true,
             stdio: 'ignore',
-            shell: true,
-            env: spawnEnv,
+            shell: isWindows,
+            env: {
+               ...process.env,
+               OPENCODE_CONFIG_DIR: configDir,
+            },
          },
       );
       proc.unref();
@@ -991,12 +1043,10 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
       log.info(`Starting OpenCode server on port ${port}...`);
 
       const proc = spawn(
-         'npx -y',
-         [OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
+         'npx',
+         ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
          {
-            stdio: 'inherit',
-            shell: true,
-            env: spawnEnv,
+            ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }),
          },
       );
 

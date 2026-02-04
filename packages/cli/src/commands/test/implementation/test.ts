@@ -134,6 +134,11 @@ function printTestSummary(results): { total: number; passed: number; failed: num
  *
  * For `.json` files the content is read and parsed as JSON. For `.js` and `.ts` files the module is required and the `default` export is returned if present, otherwise the module itself is returned.
  *
+ * **SECURITY NOTE**: JavaScript config files (.js) are executed via require().
+ * This is intentional to allow dynamic test configurations with custom logic.
+ * Users should only load config files they trust, as malicious files could
+ * execute arbitrary code. This CLI is designed for local use only.
+ *
  * @param testConfigPath - Filesystem path to the test configuration file
  * @returns The loaded test configuration object
  * @throws Error if the file extension is not `.json`, `.js`, or `.ts`
@@ -144,6 +149,8 @@ async function loadTestConfig(testConfigPath) {
       const content = await readFile(testConfigPath, 'utf8');
       return JSON.parse(content);
    } else if (ext === '.js') {
+      // SECURITY: require() executes the JS file. This is intentional for dynamic configs.
+      // Users must only load trusted config files.
       const config = require(path.resolve(testConfigPath));
       return config.default || config;
    } else {
