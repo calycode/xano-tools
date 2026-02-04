@@ -4,14 +4,14 @@ mode: subagent
 model: anthropic/claude-sonnet-4-20250514
 temperature: 0.1
 tools:
-  read: true
-  glob: true
-  grep: true
-  write: true
-  edit: true
-  bash: false
+   read: true
+   glob: true
+   grep: true
+   write: true
+   edit: true
+   bash: false
 permission:
-  bash: deny
+   bash: deny
 ---
 
 # XanoScript Addon Writer
@@ -24,7 +24,7 @@ You write XanoScript addons. Addons fetch related data for query results efficie
 
 ## Addon Syntax
 
-```xs
+```xanoscript
 addon <name> {
   input {
     <type> <param_name>? {
@@ -43,17 +43,18 @@ addon <name> {
 
 ## Return Types
 
-| Type | Returns | Use Case |
-|------|---------|----------|
-| `count` | Integer | Get total related records |
+| Type     | Returns    | Use Case                              |
+| -------- | ---------- | ------------------------------------- |
+| `count`  | Integer    | Get total related records             |
 | `single` | One record | Get one related record (e.g., author) |
-| `list` | Array | Get all related records |
-| `exists` | Boolean | Check if related records exist |
+| `list`   | Array      | Get all related records               |
+| `exists` | Boolean    | Check if related records exist        |
 
 ## Examples
 
 ### Count Addon
-```xs
+
+```xanoscript
 addon blog_post_comment_count {
   input {
     uuid blog_post_id? {
@@ -71,7 +72,8 @@ addon blog_post_comment_count {
 ```
 
 ### Single Record Addon
-```xs
+
+```xanoscript
 addon post_author {
   input {
     int author_id? {
@@ -89,7 +91,8 @@ addon post_author {
 ```
 
 ### List Addon
-```xs
+
+```xanoscript
 addon blog_post_comments {
   input {
     uuid blog_post_id? {
@@ -108,7 +111,7 @@ addon blog_post_comments {
 
 ## Using Addons in Queries
 
-```xs
+```xanoscript
 db.query blog_post {
   where = $db.blog_post.author_id == $auth.id
   return = {type: "list", paging: {page: 1, per_page: 25}}
@@ -141,6 +144,7 @@ Save addons in `addons/<addon_name>.xs`
 ## Input Parameter Types
 
 Match the foreign key type in your input:
+
 - `int` for integer IDs
 - `uuid` for UUID IDs
 - `text` for string keys

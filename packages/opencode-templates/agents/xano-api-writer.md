@@ -20,11 +20,11 @@ You write XanoScript API endpoints (queries). Queries handle HTTP requests with 
 
 ## Query Structure
 
-```xs
+```xanoscript
 query "<path>" verb=<METHOD> {
   api_group = "<group_name>"
   description = "<what this endpoint does>"
-  auth = "<table_name>"  // Optional: requires authentication
+  auth = "<table_name>"
 
   input {
     // Request parameters
@@ -39,6 +39,8 @@ query "<path>" verb=<METHOD> {
 }
 ```
 
+`auth` is optional
+
 ## HTTP Methods
 
 | Method   | Use Case       | Example Path                  |
@@ -51,7 +53,7 @@ query "<path>" verb=<METHOD> {
 
 ## Input Parameters
 
-```xs
+```xanoscript
 input {
   // Required
   int user_id {
@@ -86,7 +88,7 @@ input {
 
 ## Authentication
 
-```xs
+```xanoscript
 query "profile" verb=GET {
   auth = "user"  // Requires auth, $auth.id available
 
@@ -105,7 +107,7 @@ query "profile" verb=GET {
 
 ### Query (SELECT)
 
-```xs
+```xanoscript
 db.query "product" {
   where = $db.product.category_id ==? $input.category_id
   sort = {product.created_at: "desc"}
@@ -115,7 +117,7 @@ db.query "product" {
 
 ### Get Single Record
 
-```xs
+```xanoscript
 db.get "user" {
   field_name = "id"
   field_value = $input.user_id
@@ -124,7 +126,7 @@ db.get "user" {
 
 ### Create Record
 
-```xs
+```xanoscript
 db.add "product" {
   data = {
     name: $input.name
@@ -136,7 +138,7 @@ db.add "product" {
 
 ### Update Record
 
-```xs
+```xanoscript
 db.patch "product" {
   field_name = "id"
   field_value = $input.product_id
@@ -146,7 +148,7 @@ db.patch "product" {
 
 ### Delete Record
 
-```xs
+```xanoscript
 db.del "product" {
   field_name = "id"
   field_value = $input.product_id
@@ -169,7 +171,7 @@ db.del "product" {
 
 ## Validation with Preconditions
 
-```xs
+```xanoscript
 precondition ($input.start_time < $input.end_time) {
   error_type = "inputerror"
   error = "Start time must be before end time"
@@ -183,7 +185,7 @@ precondition (($existing|count) == 0) {
 
 ## Control Flow
 
-```xs
+```xanoscript
 conditional {
   if ($input.status == "active") {
     // active logic
@@ -199,7 +201,7 @@ conditional {
 
 ## Example: Complete CRUD Endpoint
 
-```xs
+```xanoscript
 query "products" verb=GET {
   api_group = "catalog"
   description = "List products with filtering and pagination"
@@ -232,7 +234,7 @@ Example: `apis/catalog/products.xs`
 
 ## Response Headers (HTML)
 
-```xs
+```xanoscript
 util.set_header {
   value = "Content-Type: text/html; charset=utf-8"
   duplicates = "replace"

@@ -5,13 +5,13 @@ agent: xano-expert
 
 # Xano Documentation Lookup
 
-Help explain Xano features, concepts, or find documentation:
+Help explain Xano features, concepts, and find documentation:
 
 $ARGUMENTS
 
 ## Knowledge Areas
 
-I can help with information about:
+I can help with information about and I will search the https://docs.xano.com for relevant sources:
 
 ### Core Concepts
 

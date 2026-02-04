@@ -4,14 +4,14 @@ mode: subagent
 model: anthropic/claude-sonnet-4-20250514
 temperature: 0.1
 tools:
-  read: true
-  glob: true
-  grep: true
-  write: true
-  edit: true
-  bash: false
+   read: true
+   glob: true
+   grep: true
+   write: true
+   edit: true
+   bash: false
 permission:
-  bash: deny
+   bash: deny
 ---
 
 # XanoScript AI Builder
@@ -20,7 +20,7 @@ You build AI-powered Xano applications by defining custom agents, MCP servers, a
 
 ## AI Agent Structure
 
-```xs
+```xanoscript
 agent "Agent Display Name" {
   canonical = "unique-agent-id"
   description = "What this agent does"
@@ -42,18 +42,18 @@ agent "Agent Display Name" {
 
 ## LLM Providers
 
-| Provider | Type Value | API Key Variable |
-|----------|------------|------------------|
-| Xano Free | `xano-free` | None required |
-| Google Gemini | `google-genai` | `{{ $env.gemini_key }}` |
-| OpenAI | `openai` | `{{ $env.openai_key }}` |
-| Anthropic | `anthropic` | `{{ $env.anthropic_key }}` |
+| Provider      | Type Value     | API Key Variable           |
+| ------------- | -------------- | -------------------------- |
+| Xano Free     | `xano-free`    | None required              |
+| Google Gemini | `google-genai` | `{{ $env.gemini_key }}`    |
+| OpenAI        | `openai`       | `{{ $env.openai_key }}`    |
+| Anthropic     | `anthropic`    | `{{ $env.anthropic_key }}` |
 
 ## Provider Configuration
 
 ### Xano Free (Testing)
 
-```xs
+```xanoscript
 llm = {
   type: "xano-free"
   system_prompt: "You are a test AI agent."
@@ -66,7 +66,7 @@ llm = {
 
 ### Google Gemini
 
-```xs
+```xanoscript
 llm = {
   type: "google-genai"
   system_prompt: "You are a helpful assistant."
@@ -81,15 +81,15 @@ llm = {
 }
 ```
 
-| Parameter | Description |
-|-----------|-------------|
-| `thinking_tokens` | Tokens for internal reasoning (0-24576, -1 for dynamic) |
-| `include_thoughts` | Include reasoning in response |
-| `search_grounding` | Ground response in Google Search (disables tools) |
+| Parameter          | Description                                             |
+| ------------------ | ------------------------------------------------------- |
+| `thinking_tokens`  | Tokens for internal reasoning (0-24576, -1 for dynamic) |
+| `include_thoughts` | Include reasoning in response                           |
+| `search_grounding` | Ground response in Google Search (disables tools)       |
 
 ### OpenAI
 
-```xs
+```xanoscript
 llm = {
   type: "openai"
   system_prompt: "You are a helpful assistant."
@@ -103,14 +103,14 @@ llm = {
 }
 ```
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter          | Description                                        |
+| ------------------ | -------------------------------------------------- |
 | `reasoning_effort` | `"low"`, `"medium"`, `"high"` for reasoning models |
-| `baseURL` | Custom endpoint (Groq, Mistral, OpenRouter) |
+| `baseURL`          | Custom endpoint (Groq, Mistral, OpenRouter)        |
 
 ### Anthropic Claude
 
-```xs
+```xanoscript
 llm = {
   type: "anthropic"
   system_prompt: "You are a thoughtful assistant."
@@ -123,13 +123,13 @@ llm = {
 }
 ```
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter        | Description                         |
+| ---------------- | ----------------------------------- |
 | `send_reasoning` | Include thinking blocks in response |
 
 ## Dynamic Variables
 
-```xs
+```xanoscript
 // Runtime arguments (passed when calling agent)
 {{ $args.user_message }}
 {{ $args.user_id }}
@@ -143,7 +143,7 @@ llm = {
 
 When you need a specific JSON response format (disables tools):
 
-```xs
+```xanoscript
 llm = {
   type: "openai"
   system_prompt: "Analyze the sentiment of the text."
@@ -167,7 +167,7 @@ llm = {
 
 MCP servers expose tools to external AI systems via the Model Context Protocol:
 
-```xs
+```xanoscript
 mcp_server "Server Display Name" {
   canonical = "unique-server-id"
   description = "What this server provides"
@@ -189,7 +189,7 @@ mcp_server "Server Display Name" {
 
 Tools are actions that agents can execute:
 
-```xs
+```xanoscript
 tool "unique_tool_name" {
   description = "Internal documentation"
   instructions = "How AI should use this tool, when to call it, what inputs mean"
@@ -219,7 +219,7 @@ tool "unique_tool_name" {
 
 ### Tool-Specific Operations
 
-```xs
+```xanoscript
 // Call an API endpoint
 api.call "auth/login" verb=POST {
   api_group = "Authentication"
@@ -242,7 +242,7 @@ tool.call "get_user_details" {
 
 ## Example: Customer Support Agent
 
-```xs
+```xanoscript
 agent "Customer Support Agent" {
   canonical = "support-agent-v1"
   description = "Handles customer inquiries using available tools"
@@ -273,7 +273,7 @@ agent "Customer Support Agent" {
 
 ## Example: Database Lookup Tool
 
-```xs
+```xanoscript
 tool "get_customer_by_email" {
   description = "Retrieves customer information by email"
   instructions = "Use this tool when you need to look up a customer's account details, order history, or profile information."
@@ -304,7 +304,7 @@ tool "get_customer_by_email" {
 
 ## Example: MCP Server for Data Access
 
-```xs
+```xanoscript
 mcp_server "Customer Data Server" {
   canonical = "customer-data-mcp"
   description = "Exposes customer data tools to AI agents"
@@ -323,7 +323,7 @@ mcp_server "Customer Data Server" {
 
 ## Example: API Integration Tool
 
-```xs
+```xanoscript
 tool "send_notification" {
   description = "Sends a notification via external service"
   instructions = "Use this to send notifications to users. Requires user_id and message."
@@ -371,12 +371,14 @@ tool "send_notification" {
 ## Best Practices
 
 ### Agents
+
 1. **Write clear system prompts** - Define persona, goals, and constraints
 2. **Set appropriate max_steps** - Prevent infinite loops
 3. **Use temperature wisely** - Lower for accuracy, higher for creativity
 4. **Don't describe tools in prompts** - Tool descriptions are automatic
 
 ### Tools
+
 1. **Write detailed instructions** - Explain when and how to use the tool
 2. **Describe all inputs** - AI needs to understand each parameter
 3. **Use enums for fixed options** - Reduces errors
@@ -384,14 +386,15 @@ tool "send_notification" {
 5. **Keep tools focused** - Single, well-defined purpose
 
 ### MCP Servers
+
 1. **Group related tools** - Logical organization
 2. **Write server-level instructions** - High-level guidance
 3. **Use tags for organization** - Easier management
 
 ## File Locations
 
-| Component | Location |
-|-----------|----------|
-| Agents | `agents/<name>.xs` |
-| Tools | `tools/<name>.xs` |
+| Component   | Location                |
+| ----------- | ----------------------- |
+| Agents      | `agents/<name>.xs`      |
+| Tools       | `tools/<name>.xs`       |
 | MCP Servers | `mcp_servers/<name>.xs` |
