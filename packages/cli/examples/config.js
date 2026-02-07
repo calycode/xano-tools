@@ -8,12 +8,13 @@ module.exports = [
          'Authorization': `Bearer ${process.env.API_TOKEN || 'default-token'}`,
          'X-Custom-Header': process.env.CUSTOM_HEADER || 'default-value',
       },
-      queryParams: [
-         {
-            name: 'limit',
-            value: process.env.QUERY_LIMIT || '10',
-         },
-      ],
+       queryParams: [
+          {
+             name: 'limit',
+             in: 'query',
+             value: process.env.QUERY_LIMIT || '10',
+          },
+       ],
       requestBody: null,
       store: [
          {

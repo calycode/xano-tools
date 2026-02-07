@@ -12,7 +12,7 @@ This document collects and prioritizes all issues identified in the code review 
 
 ## 🔴 Critical Priority (Must Fix)
 
-### 1. Path Traversal Vulnerability in Registry Fetcher
+### 1. ✅ RESOLVED — Path Traversal Vulnerability in Registry Fetcher
 
 **Files**: 
 - `packages/core/src/features/registry/api.ts:6-8`
@@ -22,16 +22,11 @@ This document collects and prioritizes all issues identified in the code review 
 
 **Impact**: Security vulnerability - potential unauthorized access to arbitrary paths
 
-**Action Required**: Apply the same `validateRegistryPath()` guard that the CLI version uses:
-- Remove leading slashes
-- Reject traversal segments (`..`)
-- Reject encoded traversal variants
-
-**Priority Justification**: Security vulnerabilities must be addressed before merge.
+**Resolution**: Added `validateRegistryPath()` function to `packages/core/src/features/registry/api.ts` (matching the CLI version). Applied it in `fetchRegistry()`, `getRegistryItem()`, and `fetchRegistryFileContent()`.
 
 ---
 
-### 2. TypeScript Compilation Failure - Missing BranchConfig Import
+### 2. ✅ RESOLVED (FALSE POSITIVE) — TypeScript Compilation Failure - Missing BranchConfig Import
 
 **File**: `packages/core/src/index.ts:544-548`
 
@@ -39,13 +34,11 @@ This document collects and prioritizes all issues identified in the code review 
 
 **Impact**: TypeScript compilation will fail, blocking builds
 
-**Action Required**: Import `BranchConfig` alongside `InstanceConfig`/`WorkspaceConfig` from `@repo/types`
-
-**Priority Justification**: Compilation errors block all development and deployment.
+**Resolution**: FALSE POSITIVE — `BranchConfig` was already imported on line 3 of `packages/core/src/index.ts`. No change needed.
 
 ---
 
-### 3. Null Dereference in InstallParams.instanceConfig
+### 3. ✅ RESOLVED — Null Dereference in InstallParams.instanceConfig
 
 **Files**:
 - `packages/core/src/features/registry/install-to-xano.ts:5-11`
@@ -55,17 +48,13 @@ This document collects and prioritizes all issues identified in the code review 
 
 **Impact**: Runtime error when instanceConfig is null
 
-**Action Required**: Either:
-- Make `instanceConfig` non-nullable throughout the module (preferred if it must exist to install)
-- OR handle the null case before calling `loadToken`
-
-**Priority Justification**: Runtime crashes are critical bugs.
+**Resolution**: Changed `InstallParams.instanceConfig` from `InstanceConfig | null` to `InstanceConfig` (non-nullable). Added runtime guard `if (!instanceConfig) throw`. Also added `RegistryItemFile` to imports and added explicit typing to the `results` object.
 
 ---
 
 ## 🟠 High Priority (Should Fix)
 
-### 4. Unstable Sorting in sortByTypePriority
+### 4. ✅ RESOLVED — Unstable Sorting in sortByTypePriority
 
 **File**: `packages/core/src/features/registry/general.ts:28-29`
 
@@ -73,17 +62,11 @@ This document collects and prioritizes all issues identified in the code review 
 
 **Impact**: Non-deterministic sorting behavior, test failures
 
-**Action Required**: Use numeric fallback for both priorities:
-```typescript
-const aPriority = typePriority[a.type] ?? 99;
-const bPriority = typePriority[b.type] ?? 99;
-```
-
-**Priority Justification**: Breaks expected behavior and existing tests.
+**Resolution**: Added `?? 99` fallback to both `aPriority` and `bPriority` in `sortFilesByType()`.
 
 ---
 
-### 5. Install Flow Using Summary Instead of Full Registry Item
+### 5. ✅ RESOLVED — Install Flow Using Summary Instead of Full Registry Item
 
 **Files**:
 - `packages/cli/src/commands/registry/implementation/registry.ts:36`
@@ -94,13 +77,11 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Registry installs may fail silently or not work at all
 
-**Action Required**: Call `core.getRegistryItem(componentName, registryUrl)` to ensure you're installing the full registry item definition (not just the summary from index.json).
-
-**Priority Justification**: Core feature functionality broken.
+**Resolution**: Changed the install flow to first check the index for existence, then fetch the full item via `core.getRegistryItem(componentName, registryUrl)` before passing to install.
 
 ---
 
-### 6. results.skipped Never Populated (Regression)
+### 6. ✅ RESOLVED — results.skipped Never Populated (Regression)
 
 **Files**:
 - `packages/core/src/features/registry/install-to-xano.ts:64`
@@ -110,13 +91,11 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Poor UX - legitimate skipped cases reported as failures
 
-**Action Required**: Parse the error JSON body from Xano (when available) and map known "already exists/duplicate" errors into `skipped` (keep `failed` for real errors).
-
-**Priority Justification**: User-facing regression in error reporting.
+**Resolution**: Replaced the simple `failed.push` in the error branch with logic that parses the JSON error body from Xano, detects "already exists"/"duplicate"/409 patterns, and routes to `skipped` array instead of `failed`.
 
 ---
 
-### 7. Browser Storage readdir() Double-Slash Bug
+### 7. ✅ RESOLVED — Browser Storage readdir() Double-Slash Bug
 
 **File**: `packages/browser-consumer/src/browser-config-storage.ts:134-138`
 
@@ -124,13 +103,11 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Directory listing will fail in browser storage
 
-**Action Required**: Normalize by trimming trailing slashes before appending one.
-
-**Priority Justification**: Breaks browser-consumer functionality.
+**Resolution**: Normalized path by stripping trailing slashes before appending `/` prefix.
 
 ---
 
-### 8. Browser Storage readFile() Binary Data Handling
+### 8. ✅ RESOLVED — Browser Storage readFile() Binary Data Handling
 
 **File**: `packages/browser-consumer/src/browser-config-storage.ts:145-156`
 
@@ -138,15 +115,13 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Binary file handling broken in browser storage
 
-**Action Required**: If `ConfigStorage.readFile` is meant to behave like the Node implementation (Buffer/Uint8Array), return `Uint8Array` consistently (or store metadata to distinguish binary vs text).
-
-**Priority Justification**: Data corruption for binary files.
+**Resolution**: Removed the broken `TextDecoder` try/catch fallback. Now always returns `Uint8Array` from storage (matching Node.js Buffer behavior).
 
 ---
 
 ## 🟡 Medium Priority (Nice to Have)
 
-### 9. Duplicate Type Definitions
+### 9. ✅ RESOLVED — Duplicate Type Definitions
 
 **File**: `packages/core/src/features/testing/index.ts:7-43`
 
@@ -154,13 +129,11 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Type drift risk, maintenance burden
 
-**Action Required**: Switch core to import the canonical types from `@repo/types` and remove the inline interfaces.
-
-**Priority Justification**: Technical debt that increases maintenance cost.
+**Resolution**: Removed inline `TestConfigEntry`, `TestResult`, `TestGroupResult`, `AssertContext` interfaces from both files. Replaced with imports from `@repo/types`.
 
 ---
 
-### 10. runTest() Process Control Issues
+### 10. ✅ RESOLVED — runTest() Process Control Issues
 
 **File**: `packages/cli/src/commands/test/implementation/test.ts:283-301`
 
@@ -168,13 +141,11 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Reduced testability and reusability
 
-**Action Required**: Prefer returning the exit code and letting the commander action decide (e.g., set `process.exitCode = 1` or call `process.exit(code)` only at the CLI boundary).
-
-**Priority Justification**: Code quality improvement.
+**Resolution**: Removed `process.exit(1)` call from `runTest()` — now returns exit code instead. In `packages/cli/src/commands/test/index.ts`, added `process.exitCode = result` so the commander action sets exit code from the return value.
 
 ---
 
-### 11. Missing DBSchema Extension for CalyDBSchema
+### 11. ✅ RESOLVED — Missing DBSchema Extension for CalyDBSchema
 
 **Files**:
 - `packages/browser-consumer/src/indexeddb-utils.ts:1`
@@ -184,13 +155,11 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Potential type safety loss
 
-**Action Required**: Import `DBSchema` from `idb` and declare `interface CalyDBSchema extends DBSchema { ... }`.
-
-**Priority Justification**: Type safety improvement.
+**Resolution**: Added `DBSchema` to the `idb` import and made `CalyDBSchema extends DBSchema`.
 
 ---
 
-### 12. Missing Test Config Example Field
+### 12. ✅ RESOLVED — Missing Test Config Example Field
 
 **File**: `packages/cli/examples/config.js:13`
 
@@ -198,15 +167,13 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Example config will fail validation
 
-**Action Required**: Update example entries to include `in: 'query'` (and similarly ensure path params include `in: 'path'`).
-
-**Priority Justification**: Documentation accuracy.
+**Resolution**: Added `in: 'query'` to the queryParams entry in the example config.
 
 ---
 
 ## 🟢 Low Priority (Future Work)
 
-### 13. Missing Unit Tests for installRegistryItemToXano
+### 13. ✅ RESOLVED — Missing Unit Tests for installRegistryItemToXano
 
 **File**: `packages/core/src/features/registry/install-to-xano.ts:57-62`
 
@@ -214,30 +181,29 @@ const bPriority = typePriority[b.type] ?? 99;
 
 **Impact**: Reduced confidence in behavior, harder to catch regressions
 
-**Action Required**: Add tests for:
-1. Inline `content` install
-2. Path-based fetch install
-3. Query install error when apiGroupId missing
-4. Error body parsing/skipped behavior
-
-**Priority Justification**: Test coverage improvement for future maintenance.
+**Resolution**: Created `packages/core/src/features/registry/__tests__/install-to-xano.spec.ts` with 5 test cases covering: inline content install, path-based fetch install, missing apiGroupId error for queries, "already exists" → skipped mapping, and null instanceConfig guard.
 
 ---
 
 ## Recommended Fix Order
 
-1. **Immediate (Block merge)**: Issues #1, #2, #3 - Security and compilation blockers
-2. **Before merge**: Issues #4, #5, #6, #7, #8 - Core functionality and correctness
-3. **Post-merge/Next sprint**: Issues #9, #10, #11, #12 - Code quality and documentation
-4. **Backlog**: Issue #13 - Test coverage improvement
+~~1. **Immediate (Block merge)**: Issues #1, #2, #3 - Security and compilation blockers~~
+~~2. **Before merge**: Issues #4, #5, #6, #7, #8 - Core functionality and correctness~~
+~~3. **Post-merge/Next sprint**: Issues #9, #10, #11, #12 - Code quality and documentation~~
+~~4. **Backlog**: Issue #13 - Test coverage improvement~~
+
+**All issues have been resolved.**
 
 ---
 
 ## Notes
 
 - Total issues identified: 13
-- Critical/High priority: 8 issues
-- Medium priority: 4 issues
-- Low priority: 1 issue
+- **All 13 issues resolved** (1 was a false positive — #2)
+- Critical/High priority: 8 issues (all resolved)
+- Medium priority: 4 issues (all resolved)
+- Low priority: 1 issue (resolved)
+- Build: All 5 packages pass
+- Tests: All pass except browser-consumer (pre-existing `indexedDB is not defined` environment issue, not caused by these changes)
 
-All issues should be tracked and addressed according to their priority level. Critical and high-priority issues must be resolved before merging this PR.
+All issues have been addressed. The PR is ready for merge.

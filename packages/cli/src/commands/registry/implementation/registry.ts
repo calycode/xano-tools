@@ -42,14 +42,17 @@ async function addToXano({
 
    for (const componentName of componentNames) {
       try {
-         const registryItem = registryIndex.items.find((item) => item.name === componentName);
-         if (!registryItem) {
+         const indexEntry = registryIndex.items.find((item) => item.name === componentName);
+         if (!indexEntry) {
             results.failed.push({
                component: componentName,
                error: `Component '${componentName}' not found in registry`,
             });
             continue;
          }
+
+         // Fetch the full registry item definition (not just the index summary)
+         const registryItem = await core.getRegistryItem(componentName, registryUrl);
 
           // Resolve apiGroupIds for query files
           if (registryItem.files) {

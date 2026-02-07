@@ -1,9 +1,9 @@
-import { BranchConfig, InstanceConfig, WorkspaceConfig } from '@repo/types';
+import { BranchConfig, InstanceConfig, RegistryItemFile, WorkspaceConfig } from '@repo/types';
 import type { Caly } from '../..';
 import { sortFilesByType } from './general';
 
 interface InstallParams {
-    instanceConfig: InstanceConfig | null;
+    instanceConfig: InstanceConfig;
     workspaceConfig: WorkspaceConfig;
     branchConfig: BranchConfig;
     apiGroupId?: string | number;
@@ -56,12 +56,21 @@ function resolveInstallUrl(type: string, params: InstallParams) {
 
 async function installRegistryItemToXano(
    item: any,
-   resolvedContext: { instanceConfig: any; workspaceConfig: any; branchConfig: any },
+   resolvedContext: { instanceConfig: InstanceConfig; workspaceConfig: WorkspaceConfig; branchConfig: BranchConfig },
    registryUrl: string,
    core: Caly,
 ) {
     const { instanceConfig, workspaceConfig, branchConfig } = resolvedContext;
-    const results = { installed: [], failed: [], skipped: [] };
+
+    if (!instanceConfig) {
+       throw new Error('instanceConfig is required for registry installation');
+    }
+
+    const results: {
+       installed: Array<{ file: string; response: any }>;
+       failed: Array<{ file: string; error: string }>;
+       skipped: Array<{ file: string; reason: string }>;
+    } = { installed: [], failed: [], skipped: [] };
 
      // Sort files
      let filesToInstall = sortFilesByType(item.files || []);
@@ -125,7 +134,36 @@ async function installRegistryItemToXano(
              const body = await response.json();
              results.installed.push({ file: file.path || '<inline>', response: body });
           } else {
-             results.failed.push({ file: file.path || '<inline>', error: `HTTP ${response.status}` });
+             // Try to parse the error response to detect "already exists" / duplicate cases
+             let errorMessage = `HTTP ${response.status}`;
+             let isSkipped = false;
+             try {
+                const errorBody = await response.json();
+                if (errorBody?.message) {
+                   errorMessage = errorBody.message;
+                }
+                // Detect known "already exists" / duplicate patterns from Xano
+                const msg = (errorBody?.message || '').toLowerCase();
+                if (
+                   msg.includes('already exists') ||
+                   msg.includes('duplicate') ||
+                   msg.includes('conflict') ||
+                   response.status === 409
+                ) {
+                   isSkipped = true;
+                }
+             } catch {
+                // Response was not JSON, use status code only
+                if (response.status === 409) {
+                   isSkipped = true;
+                }
+             }
+
+             if (isSkipped) {
+                results.skipped.push({ file: file.path || '<inline>', reason: errorMessage });
+             } else {
+                results.failed.push({ file: file.path || '<inline>', error: errorMessage });
+             }
           }
        } catch (error) {
           results.failed.push({ file: file.path || '<inline>', error: error.message });

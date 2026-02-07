@@ -132,9 +132,11 @@ export class BrowserConfigStorage implements ConfigStorage {
     }
 
     async readdir(path: string): Promise<string[]> {
-        // List files under virtual path prefix
-        const files = await listFiles(path + '/');
-        return files.map(f => f.replace(path + '/', ''));
+        // Normalize: trim trailing slashes before appending one to avoid double-slash
+        const normalizedPath = path.replace(/\/+$/, '');
+        const prefix = normalizedPath + '/';
+        const files = await listFiles(prefix);
+        return files.map(f => f.replace(prefix, ''));
     }
 
     async writeFile(path: string, data: string | Uint8Array): Promise<void> {
@@ -147,12 +149,10 @@ export class BrowserConfigStorage implements ConfigStorage {
         if (!content) {
             throw new Error(`File not found: ${path}`);
         }
-        // Try to decode as string, fallback to Uint8Array
-        try {
-            return new TextDecoder().decode(content);
-        } catch {
-            return content;
-        }
+        // Always return Uint8Array from raw storage.
+        // Callers that need a string should decode explicitly.
+        // This matches Node.js readFile behavior which returns Buffer by default.
+        return content;
     }
 
     async exists(path: string): Promise<boolean> {

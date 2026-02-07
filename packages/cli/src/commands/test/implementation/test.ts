@@ -280,25 +280,27 @@ async function runTest({
       printOutputDir(printOutput, apiGroupTestPath);
    }
 
-   // CI mode: determine exit code
-   if (ciMode) {
-      const hasFailures = totalFailed > 0;
-      const hasWarnings = failOnWarnings && totalWarnings > 0;
-      
-      if (hasFailures || hasWarnings) {
-         const reasons = [];
-         if (hasFailures) reasons.push(`${totalFailed} test(s) failed`);
-         if (hasWarnings) reasons.push(`${totalWarnings} warning(s)`);
-         
-         outro(`❌ Tests failed: ${reasons.join(', ')}`);
-         log.error(`\nCI mode: Exiting with code 1 due to ${reasons.join(' and ')}`);
-         process.exit(1);
-      } else {
-         outro(`✅ All ${totalPassed} tests passed!`);
-      }
-   }
+    // CI mode: determine exit code
+    if (ciMode) {
+       const hasFailures = totalFailed > 0;
+       const hasWarnings = failOnWarnings && totalWarnings > 0;
+       
+       if (hasFailures || hasWarnings) {
+          const reasons = [];
+          if (hasFailures) reasons.push(`${totalFailed} test(s) failed`);
+          if (hasWarnings) reasons.push(`${totalWarnings} warning(s)`);
+          
+          outro(`Tests failed: ${reasons.join(', ')}`);
+          log.error(`\nCI mode: Exiting with code 1 due to ${reasons.join(' and ')}`);
+          // Return exit code instead of calling process.exit() directly
+          // Let the CLI commander action handle the actual process exit
+          return 1;
+       } else {
+          outro(`All ${totalPassed} tests passed!`);
+       }
+    }
 
-   return totalFailed > 0 ? 1 : 0;
+    return totalFailed > 0 ? 1 : 0;
 }
 
 export { runTest };

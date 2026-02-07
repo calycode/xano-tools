@@ -1,4 +1,4 @@
-import { openDB, IDBPDatabase } from 'idb';
+import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import type { CoreContext, InstanceConfig } from '@repo/types';
 
 export interface GlobalConfig {
@@ -10,7 +10,7 @@ export type Token = string;
 
 export type FileContent = Uint8Array;
 
-interface CalyDBSchema {
+interface CalyDBSchema extends DBSchema {
     'global-config': {
         key: string;
         value: GlobalConfig;

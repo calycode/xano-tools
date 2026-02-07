@@ -25,8 +25,8 @@ const typePriority: Record<RegistryItemType, number> = {
 
 function sortFilesByType(files: RegistryItemFile[]): RegistryItemFile[] {
     return files.slice().sort((a: RegistryItemFile, b: RegistryItemFile) => {
-       const aPriority = typePriority[a.type];
-       const bPriority = typePriority[b.type];
+       const aPriority = typePriority[a.type] ?? 99;
+       const bPriority = typePriority[b.type] ?? 99;
        return aPriority - bPriority;
     });
 }

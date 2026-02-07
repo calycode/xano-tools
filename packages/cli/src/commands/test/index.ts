@@ -50,19 +50,23 @@ function registerTestCommands(program, core) {
             }
             const configPath = options.config;
 
-            const result = await runTest({
-               ...options,
-               testConfigPath: configPath,
-               isAll: options.all,
-               printOutput: options.printOutputDir,
-               core,
-               cliTestEnvVars,
-               ciMode: options.ci || false,
-               failOnWarnings: options.failOnWarnings || false,
-            });
+             const result = await runTest({
+                ...options,
+                testConfigPath: configPath,
+                isAll: options.all,
+                printOutput: options.printOutputDir,
+                core,
+                cliTestEnvVars,
+                ciMode: options.ci || false,
+                failOnWarnings: options.failOnWarnings || false,
+             });
 
-            // Return the exit code result for CI mode
-            return result;
+             // Set process exit code based on test results (for CI mode)
+             if (result && result > 0) {
+                process.exitCode = result;
+             }
+
+             return result;
          })
       );
 }
