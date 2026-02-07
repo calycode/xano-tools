@@ -3,7 +3,7 @@ import { log } from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { HOST_APP_INFO } from '../../utils/host-constants';
 import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 
@@ -36,6 +36,125 @@ function getSpawnOptions(
 function validatePort(port: number): void {
    if (!Number.isInteger(port) || port < 1 || port > 65535) {
       throw new Error(`Invalid port number: ${port}. Must be an integer between 1 and 65535.`);
+   }
+}
+
+/**
+ * Kill any process listening on the specified port.
+ * This ensures we can cleanly restart the server even if we lost the process reference.
+ * @param port - Port number to free up
+ * @param logger - Optional logger for debugging (used in native host context)
+ * @returns true if a process was killed, false if no process was found
+ */
+function killProcessOnPort(port: number, logger?: { log: (msg: string, data?: any) => void; error: (msg: string, err?: any) => void }): boolean {
+   const logInfo = logger?.log ?? ((msg: string) => { /* silent */ });
+   const logError = logger?.error ?? ((msg: string) => { /* silent */ });
+   
+   try {
+      validatePort(port);
+      
+      if (os.platform() === 'win32') {
+         // Windows: Use netstat to find the PID and taskkill to terminate
+         try {
+            const netstatOutput = execSync(`netstat -ano | findstr :${port}`, { 
+               encoding: 'utf8',
+               timeout: 5000,
+               windowsHide: true,
+            });
+            
+            // Parse output to find LISTENING processes
+            const lines = netstatOutput.split('\n');
+            const pidsToKill = new Set<string>();
+            
+            for (const line of lines) {
+               // Look for lines with LISTENING state on our port
+               // Format: TCP    0.0.0.0:4096    0.0.0.0:0    LISTENING    12345
+               if (line.includes('LISTENING') && line.includes(`:${port}`)) {
+                  const parts = line.trim().split(/\s+/);
+                  const pid = parts[parts.length - 1];
+                  if (pid && /^\d+$/.test(pid) && pid !== '0') {
+                     pidsToKill.add(pid);
+                  }
+               }
+            }
+            
+            if (pidsToKill.size === 0) {
+               logInfo(`No listening process found on port ${port}`);
+               return false;
+            }
+            
+            // Kill each process found
+            for (const pid of pidsToKill) {
+               try {
+                  logInfo(`Killing process ${pid} on port ${port}`);
+                  execSync(`taskkill /F /PID ${pid}`, { 
+                     timeout: 5000,
+                     windowsHide: true,
+                  });
+                  logInfo(`Successfully killed process ${pid}`);
+               } catch (killErr) {
+                  // Process might have already exited
+                  logError(`Failed to kill process ${pid}`, killErr);
+               }
+            }
+            
+            return true;
+         } catch (e: any) {
+            // netstat might return non-zero if no process found
+            if (e.status === 1 || e.message?.includes('not found')) {
+               logInfo(`No process found on port ${port}`);
+               return false;
+            }
+            throw e;
+         }
+      } else {
+         // Unix-like systems: Use fuser or lsof
+         try {
+            // Try fuser first (more reliable for killing)
+            execSync(`fuser -k ${port}/tcp 2>/dev/null || true`, {
+               timeout: 5000,
+            });
+            logInfo(`Killed process on port ${port} using fuser`);
+            return true;
+         } catch (fuserErr) {
+            // fuser not available, try lsof + kill
+            try {
+               const lsofOutput = execSync(`lsof -ti tcp:${port}`, {
+                  encoding: 'utf8',
+                  timeout: 5000,
+               });
+               
+               const pids = lsofOutput.trim().split('\n').filter(Boolean);
+               if (pids.length === 0) {
+                  logInfo(`No process found on port ${port}`);
+                  return false;
+               }
+               
+               for (const pid of pids) {
+                  if (pid && /^\d+$/.test(pid)) {
+                     try {
+                        execSync(`kill -9 ${pid}`, { timeout: 5000 });
+                        logInfo(`Killed process ${pid} on port ${port}`);
+                     } catch (killErr) {
+                        logError(`Failed to kill process ${pid}`, killErr);
+                     }
+                  }
+               }
+               
+               return true;
+            } catch (lsofErr: any) {
+               // lsof returns non-zero if no process found
+               if (lsofErr.status === 1) {
+                  logInfo(`No process found on port ${port}`);
+                  return false;
+               }
+               throw lsofErr;
+            }
+         }
+      }
+   } catch (error) {
+      logError(`Error killing process on port ${port}`, error);
+      return false;
    }
 }
 
@@ -377,6 +496,47 @@ async function startNativeHost() {
       }
    };
 
+   const restartServer = async (port: number = 4096, extraOrigins: string[] = []) => {
+      logger.log('Restart requested', { port, extraOrigins });
+
+      // Kill existing server process if we have a reference
+      if (serverProc) {
+         logger.log('Killing existing server process for restart...');
+         serverProc.kill();
+         serverProc = null;
+         // Give it a moment to release the port
+         await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // Kill any orphan process on the port (handles lost references)
+      logger.log('Checking for orphan processes on port...');
+      const killed = killProcessOnPort(port, logger);
+      if (killed) {
+         logger.log('Killed orphan process(es) on port, waiting for port release...');
+         // Give more time for port to be released after force kill
+         await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // Verify port is actually free now
+      const serverUrl = `http://localhost:${port}`;
+      try {
+         await fetch(serverUrl);
+         // If we get here, something is still running on the port
+         logger.error('Port still in use after kill attempts');
+         sendMessage({ 
+            status: 'error', 
+            message: `Port ${port} still in use after cleanup attempts. Please try again or use a different port.` 
+         });
+         return;
+      } catch (e) {
+         // Good, nothing running - port is free
+         logger.log('Port is now free, starting server...');
+      }
+
+      // Start fresh with new config
+      await startServer(port, extraOrigins);
+   };
+
    const handleMessage = (msg: any) => {
       logger.log('Received message', msg);
 
@@ -387,12 +547,29 @@ async function startNativeHost() {
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             const origins = Array.isArray(msg.origins) ? msg.origins : [];
             startServer(port, origins);
+         } else if (msg.type === 'restart') {
+            // Restart the server with new origins - used when CORS configuration needs updating
+            const port = msg.port ? parseInt(msg.port, 10) : 4096;
+            const origins = Array.isArray(msg.origins) ? msg.origins : [];
+            restartServer(port, origins);
          } else if (msg.type === 'stop') {
+            const port = msg.port ? parseInt(msg.port, 10) : 4096;
+            logger.log('Stop requested', { port, hasServerProc: !!serverProc });
+            
+            // Kill by process reference if we have it
             if (serverProc) {
+               logger.log('Killing server process by reference...');
                serverProc.kill();
                serverProc = null;
-               sendMessage({ status: 'stopped', message: 'Server stopped by request' });
             }
+            
+            // Also kill any orphan process on the port (handles lost references)
+            const killed = killProcessOnPort(port, logger);
+            if (killed) {
+               logger.log('Killed orphan process(es) on port');
+            }
+            
+            sendMessage({ status: 'stopped', message: 'Server stopped by request' });
          } else {
             sendMessage({ status: 'received', received: msg });
          }
@@ -403,13 +580,20 @@ async function startNativeHost() {
    };
 
    // Cleanup function to kill server and exit cleanly
-   const cleanup = (reason: string) => {
+   const cleanup = (reason: string, port: number = 4096) => {
       logger.log(`Cleanup triggered: ${reason}`);
+      
+      // Kill by process reference if we have it
       if (serverProc) {
          logger.log('Killing server process during cleanup');
          serverProc.kill();
          serverProc = null;
       }
+      
+      // Also kill any orphan process on the port (handles lost references)
+      // This ensures clean shutdown even if we lost the process reference
+      killProcessOnPort(port, logger);
+      
       process.exit(0);
    };
 
