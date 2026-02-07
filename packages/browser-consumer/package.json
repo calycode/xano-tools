@@ -1,0 +1,63 @@
+{
+    "name": "@calycode/browser-consumer",
+    "version": "0.1.0",
+    "description": "Browser-compatible ConfigStorage implementation using IndexedDB for Caly Xano tooling",
+    "license": "MIT",
+    "author": "Mihály Tóth | @calycode",
+    "keywords": [
+        "xano",
+        "cli",
+        "browser",
+        "indexeddb",
+        "config-storage",
+        "chrome-extension"
+    ],
+    "main": "dist/index.cjs",
+    "module": "dist/index.js",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        }
+    },
+    "types": "dist/index.bundled.d.ts",
+    "type": "module",
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/calycode/xano-tools.git",
+        "directory": "packages/browser-consumer"
+    },
+    "bugs": {
+        "url": "https://github.com/calycode/xano-tools/issues"
+    },
+    "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/browser-consumer#readme",
+    "dependencies": {
+        "@calycode/core": "workspace:*",
+        "@repo/types": "workspace:*",
+        "idb": "^8.0.0",
+        "js-untar": "^2.0.0"
+    },
+    "devDependencies": {
+        "@repo/utils": "workspace:*",
+        "jest": "^29.7.0",
+        "jest-environment-jsdom": "^29.7.0"
+    },
+    "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "clean": "trash dist tsconfig.tsbuildinfo",
+        "build:js": "tsx esbuild.config.ts",
+        "build:types": "tsc",
+        "bundle:types": "rollup -c rollup.config.js",
+        "postbuild": "tsx ../../scripts/clean-types.ts . index.bundled.d.ts",
+        "build": "pnpm clean && pnpm build:js && pnpm build:types && pnpm bundle:types && pnpm postbuild"
+    }
+}

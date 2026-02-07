@@ -1,13 +1,14 @@
 import {
-   ApiGroupConfig,
-   BranchConfig,
-   ConfigStorage,
-   Context,
-   CoreContext,
-   CurrentContextConfig,
-   EventMap,
-   InstanceConfig,
-   WorkspaceConfig,
+    ApiGroupConfig,
+    BranchConfig,
+    ConfigStorage,
+    Context,
+    CoreContext,
+    CurrentContextConfig,
+    EventMap,
+    InstanceConfig,
+    RegistryItem,
+    WorkspaceConfig,
 } from '@repo/types';
 import { TypedEmitter } from './utils/event-handling/event-emitter';
 import { buildXanoscriptRepoImplementation } from './implementations/build-xanoscript-repo';
@@ -19,8 +20,11 @@ import { loadAndValidateContextImplementation } from './implementations/load-and
 import { runTestsImplementation } from './implementations/run-tests';
 import { setupInstanceImplementation } from './implementations/setup';
 import { switchContextImplementation } from './implementations/switch-context';
+import { getRegistryItem } from './features/registry/api';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import { generateInternalDocsImplementation } from './implementations/generate-internal-docs';
+import { getRegistryIndex } from './features/registry/api';
+import { installRegistryItemToXano } from './features/registry/install-to-xano';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
@@ -147,7 +151,7 @@ export class Caly extends TypedEmitter<EventMap> {
       branch: string,
       groups: any,
       startDir: string,
-      includeTables?: boolean
+      includeTables?: boolean,
    ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
       return updateOpenapiSpecImplementation(
          this.storage,
@@ -159,7 +163,7 @@ export class Caly extends TypedEmitter<EventMap> {
             groups,
             includeTables,
          },
-         startDir
+         startDir,
       );
    }
 
@@ -521,4 +525,28 @@ export class Caly extends TypedEmitter<EventMap> {
    async loadToken(instance: string): Promise<string> {
       return this.storage.loadToken(instance);
    }
+
+   // ----- REGISTRY METHODS ----- //
+    /**
+     * Get the main registry index.
+     */
+    async getRegistryIndex(registryUrl: string) {
+       return getRegistryIndex(registryUrl);
+    }
+
+    /**
+     * Get a specific registry item by name.
+     */
+    async getRegistryItem(componentName: string, registryUrl: string) {
+        return getRegistryItem(componentName, registryUrl);
+    }
+
+    async installRegistryItemToXano(
+        item: RegistryItem,
+        resolvedContext: { instanceConfig: InstanceConfig; workspaceConfig: WorkspaceConfig; branchConfig: BranchConfig },
+        registryUrl: string,
+    ) {
+       const results = await installRegistryItemToXano(item, resolvedContext, registryUrl, this);
+       return results;
+    }
 }

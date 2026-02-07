@@ -15,10 +15,10 @@ function registerRegistryCommands(program, core) {
       );
 
    addFullContextOptions(registryAddCommand);
-   registryAddCommand.argument(
-      '<components...>',
-      'Space delimited list of components to add to your Xano instance.'
-   );
+    registryAddCommand.argument(
+       '[components...]',
+       'Space delimited list of components to add to your Xano instance.'
+    );
    registryAddCommand
       .option(
          '--registry <url>',

@@ -1,7 +1,11 @@
 import { log } from '@clack/prompts';
+import { hideFromRootHelp } from '../utils/commands/main-program-utils';
 
 function registerContextCommands(program, core) {
-   const contextNamespace = program.command('context').description('Context related operations.');
+   // Hidden from root help, but visible when drilling down
+   const contextNamespace = hideFromRootHelp(
+      program.command('context').description('Context related operations.'),
+   );
 
    contextNamespace
       .command('show')

@@ -34,8 +34,17 @@ const registryUrlMapping: Record<RegistryItemType, UrlMappingFn> = {
       `/workspace/${workspaceConfig.id}/agent/trigger?branch=${branchConfig.label}`,
    'registry:realtime/trigger': ({ workspaceConfig, branchConfig }) =>
       `/workspace/${workspaceConfig.id}/realtime/channel/trigger?branch=${branchConfig.label}`,
-   'registry:test': ({ workspaceConfig, branchConfig }) =>
-      `/workspace/${workspaceConfig.id}/workflow_test?branch=${branchConfig.label}`,
+    'registry:test': ({ workspaceConfig, branchConfig }) =>
+       `/workspace/${workspaceConfig.id}/workflow_test?branch=${branchConfig.label}`,
+    'registry:snippet': () => {
+       throw new Error('registry:snippet items are not directly installable');
+    },
+    'registry:file': () => {
+       throw new Error('registry:file items are not directly installable');
+    },
+    'registry:item': () => {
+       throw new Error('registry:item items are not directly installable');
+    },
 };
 
 // Helper to get the endpoint for a file type

@@ -1,0 +1,36 @@
+{
+  "name": "@calycode/xano-skills",
+  "version": "0.1.0",
+  "description": "Agent skills for Xano backend development - database optimization, security patterns, query performance, and best practices. Use with skills.sh or OpenCode.",
+  "license": "MIT",
+  "author": "CalyCode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calycode/xano-tools.git",
+    "directory": "packages/xano-skills"
+  },
+  "homepage": "https://skills.sh/calycode/xano-tools",
+  "bugs": {
+    "url": "https://github.com/calycode/xano-tools/issues"
+  },
+  "keywords": [
+    "skills",
+    "agent-skills",
+    "xano",
+    "postgresql",
+    "database",
+    "backend",
+    "ai-agents",
+    "opencode",
+    "claude",
+    "cursor"
+  ],
+  "files": [
+    "skills/**/*",
+    "AGENTS.md",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

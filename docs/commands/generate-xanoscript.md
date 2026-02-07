@@ -24,21 +24,12 @@ Process Xano workspace into repo structure. Supports table, function and apis as
 Usage: xano generate xanoscript [options]
 
 Options:
-  --instance <instance>
-    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  ├─ --workspace <workspace>  The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
+  ├─ --branch <branch>        The branch name. This is used to select the branch configuration. Same as on Xano Interface.
+  ├─ --print-output-dir       Expose usable output path for further reuse.
+  └─ -h, --help               display help for command
 
-  --workspace <workspace>
-    The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
-
-  --branch <branch>
-    The branch name. This is used to select the branch configuration. Same as on Xano Interface.
-
-  --print-output-dir
-    Expose usable output path for further reuse.
-
-  -h, --help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

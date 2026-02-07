@@ -3,8 +3,8 @@ export * from './commands/option-sets';
 export * from './commands/option-sets';
 export * from './commands/project-root-finder';
 export * from './event-listener';
-export * from './feature-focused/registry/api';
-export * from './feature-focused/registry/general';
+// export * from './feature-focused/registry/api'; // moved to core
+export * from './feature-focused/registry/general'; // keep for getApiGroupByName and promptForComponents
 export * from './feature-focused/registry/registry-url-map';
 export * from './feature-focused/registry/scaffold';
 export * from './methods/choose-api-group';

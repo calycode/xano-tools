@@ -26,24 +26,13 @@ Initialize the CLI with Xano instance configurations (interactively or via flags
 Usage: xano init [options]
 
 Options:
-  --name <name>
-    Instance name (for non-interactive setup)
+  ├─ --name <name>            Instance name (for non-interactive setup)
+  ├─ --url <url>              Instance base URL (for non-interactive setup)
+  ├─ --token <token>          Metadata API token (for non-interactive setup)
+  ├─ --directory <directory>  Directory where to init the repo (for non-interactive setup)
+  ├─ --no-set-current         Flag to not set this instance as the current context, by default it is set.
+  └─ -h, --help               display help for command
 
-  --url <url>
-    Instance base URL (for non-interactive setup)
-
-  --token <token>
-    Metadata API token (for non-interactive setup)
-
-  --directory <directory>
-    Directory where to init the repo (for non-interactive setup)
-
-  --no-set-current
-    Flag to not set this instance as the current context, by default it is set.
-
-  -h, --help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

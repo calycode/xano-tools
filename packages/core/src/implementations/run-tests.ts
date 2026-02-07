@@ -1,6 +1,6 @@
 import { testRunner } from '../features/testing';
 import type { Caly } from '..';
-import { ApiGroupConfig, CoreContext, PrepareRequestArgs, AssertDefinition } from '@repo/types';
+import { ApiGroupConfig, CoreContext, AssertDefinition, TestConfigEntry, TestResult, TestGroupResult } from '@repo/types';
 
 async function runTestsImplementation({
    context,
@@ -12,31 +12,11 @@ async function runTestsImplementation({
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
-   testConfig: {
-      path: string;
-      method: string;
-      headers: { [key: string]: string };
-      queryParams: PrepareRequestArgs['parameters'];
-      requestBody: any;
-      store?: { key: string; path: string }[];
-      customAsserts: AssertDefinition;
-   }[];
+   testConfig: TestConfigEntry[];
    core: Caly;
    storage: Caly['storage'];
    initialRuntimeValues: Record<string, any>;
-}): Promise<
-   {
-      group: ApiGroupConfig;
-      results: {
-         path: string;
-         method: string;
-         success: boolean;
-         errors: any;
-         warnings: any;
-         duration: number;
-      }[];
-   }[]
-> {
+}): Promise<TestGroupResult[]> {
    return await testRunner({ context, groups, testConfig, core, storage, initialRuntimeValues });
 }
 

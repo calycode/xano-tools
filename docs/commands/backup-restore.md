@@ -22,18 +22,11 @@ Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will 
 Usage: xano backup restore [options]
 
 Options:
-  --instance <instance>
-    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  ├─ --instance <instance>       The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  ├─ --workspace <workspace>     The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
+  ├─ -S, --source-backup <file>  Local path to the backup file to restore.
+  └─ -h, --help                  display help for command
 
-  --workspace <workspace>
-    The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
-
-  -S, --source-backup <file>
-    Local path to the backup file to restore.
-
-  -h, --help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

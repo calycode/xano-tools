@@ -14,16 +14,12 @@ Set of test related operations for the Xano CLI, these help you build a reliable
 Usage: xano test [options] [command]
 
 Options:
-  -h, --help
-    display help for command
+  └─ -h, --help  display help for command
 
 Commands:
-  run
-    Run an API test suite via the OpenAPI spec. To execute this command a specification is required. Find the schema here: https://calycode.com/schemas/testing/config.json 
+  ├─ run   Run an API test suite. Requires a test config file (.json...
+  └─ help  display help for command
 
-  help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```
