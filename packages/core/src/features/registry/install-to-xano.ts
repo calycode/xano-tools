@@ -21,44 +21,44 @@ type UrlResolver = (params: InstallParams) => string;
 
 const REGISTRY_MAP: Record<string, string | UrlResolver> = {
    // Simple static-like paths
-   'registry:function': (p) => `function`,
+   'registry:function': (p) => `function?branch=${p.branchConfig.label}`,
    'registry:table': (p) => `table`,
-   'registry:addon': (p) => `addon`,
-   'registry:apigroup': (p) => `apigroup`,
-   'registry:middleware': (p) => `middleware`,
-   'registry:task': (p) => `task`,
-   'registry:tool': (p) => `tool`,
-   'registry:mcp': (p) => `mcp`,
-   'registry:agent': (p) => `agent`,
-   'registry:realtime': (p) => `realtime`,
-   'registry:test': (p) => `test`,
-   'registry:workspace/trigger': (p) => `trigger`,
+   'registry:addon': (p) => `addon?branch=${p.branchConfig.label}`,
+   'registry:apigroup': (p) => `apigroup?branch=${p.branchConfig.label}`,
+   'registry:middleware': (p) => `middleware?branch=${p.branchConfig.label}`,
+   'registry:task': (p) => `task?branch=${p.branchConfig.label}`,
+   'registry:tool': (p) => `tool?branch=${p.branchConfig.label}`,
+   'registry:mcp': (p) => `mcp_server?branch=${p.branchConfig.label}`,
+   'registry:agent': (p) => `agent?branch=${p.branchConfig.label}`,
+   'registry:realtime': (p) => `realtime/channel?branch=${p.branchConfig.label}`,
+   'registry:test': (p) => `workflow_test?branch=${p.branchConfig.label}`,
+   'registry:workspace/trigger': (p) => `trigger?branch=${p.branchConfig.label}`,
 
    // Complex/Nested paths
-   'registry:query': (p) => `apigroup/${p.apiGroupId}/query`,
+   'registry:query': (p) => `apigroup/${p.apiGroupId}/api?branch=${p.branchConfig.label}`,
    'registry:table/trigger': (p) => {
       if (!p.file?.tableId) {
          throw new Error('tableId required for table trigger installation');
       }
-      return `table/${p.file.tableId}/trigger`;
+      return `table/${p.file.tableId}/trigger?branch=${p.branchConfig.label}`;
    },
    'registry:mcp/trigger': (p) => {
       if (!p.file?.mcpId) {
          throw new Error('mcpId required for MCP trigger installation');
       }
-      return `mcp/${p.file.mcpId}/trigger`;
+      return `mcp_server/${p.file.mcpId}/trigger?branch=${p.branchConfig.label}`;
    },
    'registry:agent/trigger': (p) => {
       if (!p.file?.agentId) {
          throw new Error('agentId required for agent trigger installation');
       }
-      return `agent/${p.file.agentId}/trigger`;
+      return `agent/${p.file.agentId}/trigger?branch=${p.branchConfig.label}`;
    },
    'registry:realtime/trigger': (p) => {
       if (!p.file?.realtimeId) {
          throw new Error('realtimeId required for realtime trigger installation');
       }
-      return `realtime/${p.file.realtimeId}/trigger`;
+      return `realtime/channel/${p.file.realtimeId}/trigger?branch=${p.branchConfig.label}`;
    },
 };
 
