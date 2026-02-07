@@ -1,6 +1,13 @@
-import { BranchConfig, InstanceConfig, RegistryItemFile, WorkspaceConfig } from '@repo/types';
+import {
+   BranchConfig,
+   InstanceConfig,
+   InstallResults,
+   RegistryItemFile,
+   WorkspaceConfig,
+} from '@repo/types';
 import type { Caly } from '../..';
 import { sortFilesByType } from './general';
+import { fetchRegistryFileContent } from './api';
 
 interface InstallParams {
     instanceConfig: InstanceConfig;
@@ -29,10 +36,30 @@ const REGISTRY_MAP: Record<string, string | UrlResolver> = {
 
    // Complex/Nested paths
    'registry:query': (p) => `apigroup/${p.apiGroupId}/query`,
-   'registry:table/trigger': (p) => `table/${p.file?.tableId}/trigger`,
-   'registry:mcp/trigger': (p) => `mcp/${p.file?.mcpId}/trigger`,
-   'registry:agent/trigger': (p) => `agent/${p.file?.agentId}/trigger`,
-   'registry:realtime/trigger': (p) => `realtime/${p.file?.realtimeId}/trigger`,
+   'registry:table/trigger': (p) => {
+      if (!p.file?.tableId) {
+         throw new Error('tableId required for table trigger installation');
+      }
+      return `table/${p.file.tableId}/trigger`;
+   },
+   'registry:mcp/trigger': (p) => {
+      if (!p.file?.mcpId) {
+         throw new Error('mcpId required for MCP trigger installation');
+      }
+      return `mcp/${p.file.mcpId}/trigger`;
+   },
+   'registry:agent/trigger': (p) => {
+      if (!p.file?.agentId) {
+         throw new Error('agentId required for agent trigger installation');
+      }
+      return `agent/${p.file.agentId}/trigger`;
+   },
+   'registry:realtime/trigger': (p) => {
+      if (!p.file?.realtimeId) {
+         throw new Error('realtimeId required for realtime trigger installation');
+      }
+      return `realtime/${p.file.realtimeId}/trigger`;
+   },
 };
 
 function resolveInstallUrl(type: string, params: InstallParams) {
@@ -66,11 +93,11 @@ async function installRegistryItemToXano(
        throw new Error('instanceConfig is required for registry installation');
     }
 
-    const results: {
-       installed: Array<{ file: string; response: any }>;
-       failed: Array<{ file: string; error: string }>;
-       skipped: Array<{ file: string; reason: string }>;
-    } = { installed: [], failed: [], skipped: [] };
+    const results: InstallResults = {
+       installed: [],
+       failed: [],
+       skipped: [],
+    };
 
      // Sort files
      let filesToInstall = sortFilesByType(item.files || []);
@@ -87,15 +114,13 @@ async function installRegistryItemToXano(
        try {
           // Get content: use inline content if present, else fetch from file path
           let content;
-          if (file.content) {
+          if (file.content != null) {
              content = file.content;
+          } else if (!file.path) {
+             throw new Error(`File entry has neither content nor path: ${JSON.stringify(file)}`);
           } else {
-             const normalized = file.path.replace(/^\/+/, '');
-             const url = `${registryUrl}/${normalized}`;
-             const res = await fetch(url);
-             if (!res.ok)
-                throw new Error(`Failed to fetch file content: ${file.path} (${res.status})`);
-             content = await res.text();
+             // Use the safe fetchRegistryFileContent function from api.ts
+             content = await fetchRegistryFileContent(file, file.path, registryUrl);
           }
 
          // Determine install URL
@@ -132,7 +157,11 @@ async function installRegistryItemToXano(
 
           if (response.ok) {
              const body = await response.json();
-             results.installed.push({ file: file.path || '<inline>', response: body });
+             results.installed.push({
+                component: item.name,
+                file: file.path || '<inline>',
+                response: body,
+             });
           } else {
              // Try to parse the error response to detect "already exists" / duplicate cases
              let errorMessage = `HTTP ${response.status}`;
@@ -160,13 +189,26 @@ async function installRegistryItemToXano(
              }
 
              if (isSkipped) {
-                results.skipped.push({ file: file.path || '<inline>', reason: errorMessage });
+                results.skipped.push({
+                   component: item.name,
+                   file: file.path || '<inline>',
+                   error: errorMessage,
+                });
              } else {
-                results.failed.push({ file: file.path || '<inline>', error: errorMessage });
+                results.failed.push({
+                   component: item.name,
+                   file: file.path || '<inline>',
+                   error: errorMessage,
+                });
              }
           }
        } catch (error) {
-          results.failed.push({ file: file.path || '<inline>', error: error.message });
+          const message = error instanceof Error ? error.message : String(error);
+          results.failed.push({
+             component: item.name,
+             file: file.path || '<inline>',
+             error: message,
+          });
        }
    }
 

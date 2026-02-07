@@ -72,7 +72,7 @@ async function getRegistryItem(name, registryUrl) {
  * Get registry item content, prioritizing inline content over file paths.
  */
 async function fetchRegistryFileContent(item, filePath, registryUrl) {
-   if (item.content) {
+   if (item.content != null) {
       return item.content;
    }
    const normalized = validateRegistryPath(filePath);

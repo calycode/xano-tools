@@ -491,7 +491,7 @@ export interface RegistryItemFile {
     content?: string;
     type: RegistryItemType;
     apiGroupName?: string;
-    apiGroupId?: string;
+    apiGroupId?: string | number;
     meta?: Record<string, any>;
 }
 

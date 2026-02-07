@@ -33,9 +33,15 @@ async function promptForComponents(core, registryUrl) {
      try {
         const registry = await core.getRegistryIndex(registryUrl);
 
-         const options = registry.items.map((item) => ({
+        const items = registry?.items ?? [];
+        if (!items.length) {
+           console.error('No components available in registry index.');
+           return [];
+        }
+
+         const options = items.map((item) => ({
             value: item.name,
-            label: `${item.name} - ${item.description}`,
+            label: item.description ? `${item.name} - ${item.description}` : item.name,
          }));
 
          const selected = await multiselect({
@@ -89,6 +95,7 @@ async function getApiGroupByName(
          },
       });
    }
+   return selectedGroup;
 }
 
 export { sortFilesByType, promptForComponents, getApiGroupByName };
