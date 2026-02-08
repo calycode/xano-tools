@@ -98,10 +98,10 @@ async function generateCodeFromOas({
          });
          s.stop(`Code generated for group "${group.name}" → ${outputPath}/${generator}`);
          printOutputDir(printOutput, outputPath);
-      } catch (err) {
-         s.stop();
-         log.error(err.message);
-      }
+       } catch (err: any) {
+          s.stop();
+          log.error(err?.message ?? String(err));
+       }
    }
 
    const endTime: Date = new Date();

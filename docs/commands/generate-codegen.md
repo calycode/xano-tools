@@ -32,37 +32,19 @@ Create a library based on the OpenAPI specification. If the openapi specificatio
 Usage: xano generate codegen [options] [passthroughArgs...]
 
 Arguments:
-  passthroughArgs
-    Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example
+  └─ passthroughArgs  Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example
 
 Options:
-  --instance <instance>
-    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
+  ├─ --workspace <workspace>  The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
+  ├─ --branch <branch>        The branch name. This is used to select the branch configuration. Same as on Xano Interface.
+  ├─ --group <name>           API group name. Same as on Xano Interface.
+  ├─ --all                    Regenerate for all API groups in the workspace / branch of the current context.
+  ├─ --print-output-dir       Expose usable output path for further reuse.
+  ├─ --generator <generator>  Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.
+  ├─ --debug                  Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false
+  └─ -h, --help               display help for command
 
-  --workspace <workspace>
-    The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
-
-  --branch <branch>
-    The branch name. This is used to select the branch configuration. Same as on Xano Interface.
-
-  --group <name>
-    API group name. Same as on Xano Interface.
-
-  --all
-    Regenerate for all API groups in the workspace / branch of the current context.
-
-  --print-output-dir
-    Expose usable output path for further reuse.
-
-  --generator <generator>
-    Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.
-
-  --debug
-    Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false
-
-  -h, --help
-    display help for command
-
-
-Need help? Visit https://github.com/calycode/xano-tools
+Run 'xano <command> --help' for detailed usage.
+https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

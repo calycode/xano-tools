@@ -1,5 +1,5 @@
 import { addApiGroupOptions, addFullContextOptions } from '../../utils';
-import { serveOas, serveRegistry } from './implementation/serve';
+import { serveOas, serveRegistry } from './implementation';
 
 function registerServeCommands(program, core) {
    const serveNamespace = program
@@ -30,14 +30,14 @@ function registerServeCommands(program, core) {
       });
 
    // Add the specification serving
-   serveNamespace
+   const specCommand = serveNamespace
       .command('spec')
       .description(
          'Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.'
       );
-   addFullContextOptions(serveNamespace);
-   addApiGroupOptions(serveNamespace);
-   serveNamespace
+   addFullContextOptions(specCommand);
+   addApiGroupOptions(specCommand);
+   specCommand
       .option(
          '--listen <port>',
          'The port where you want your registry to be served locally. By default it is 5000.'
@@ -57,3 +57,4 @@ function registerServeCommands(program, core) {
 }
 
 export { registerServeCommands };
+

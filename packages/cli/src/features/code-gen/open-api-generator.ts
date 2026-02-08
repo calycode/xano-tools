@@ -56,42 +56,52 @@ async function runOpenApiGenerator({
    const args = buildGeneratorArgs({ generator, inputPath, outputPath, additionalArgs });
    const { logStream, logPath } = await setupLogStream(logger);
 
-   return new Promise((resolvePromise, reject) => {
-      const proc = spawn(cliBin, args, { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    return new Promise((resolvePromise, reject) => {
+       const proc = spawn(cliBin, args, { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
 
-      // Pipe or suppress output
-      if (logStream) {
-         proc.stdout.pipe(logStream);
-         proc.stderr.pipe(logStream);
-      } else {
-         proc.stdout.resume();
-         proc.stderr.resume();
-      }
+       // Always capture stderr for error reporting
+       const stderrChunks: Buffer[] = [];
+       const stdoutChunks: Buffer[] = [];
 
-      proc.on('close', (code) => {
-         if (logStream) logStream.end();
-         if (code === 0) {
-            resolvePromise({ logPath });
-         } else {
-            reject(
-               new Error(
-                  `Generator failed with exit code ${code}.` +
-                     (logPath ? ` See log: ${logPath}` : '')
-               )
-            );
-         }
-      });
+       if (logStream) {
+          proc.stdout.pipe(logStream);
+          proc.stderr.pipe(logStream);
+       } else {
+          proc.stdout.on('data', (chunk) => stdoutChunks.push(chunk));
+       }
 
-      proc.on('error', (err) => {
-         if (logStream) logStream.end();
-         reject(
-            new Error(
-               `Failed to start generator: ${err.message}.` +
-                  (logPath ? ` See log: ${logPath}` : '')
-            )
-         );
-      });
-   });
+       // Always collect stderr regardless of logger setting
+       proc.stderr.on('data', (chunk) => stderrChunks.push(chunk));
+
+       proc.on('close', (code) => {
+          if (logStream) logStream.end();
+          const stderrOutput = Buffer.concat(stderrChunks).toString().trim();
+          const stdoutOutput = Buffer.concat(stdoutChunks).toString().trim();
+
+          if (code === 0) {
+             resolvePromise({ logPath });
+          } else {
+             const details = stderrOutput || stdoutOutput;
+             reject(
+                new Error(
+                   `Generator failed with exit code ${code}.` +
+                      (logPath ? ` See log: ${logPath}` : '') +
+                      (details ? `\n\n--- Generator output ---\n${details}` : '')
+                )
+             );
+          }
+       });
+
+       proc.on('error', (err) => {
+          if (logStream) logStream.end();
+          reject(
+             new Error(
+                `Failed to start generator: ${err.message}.` +
+                   (logPath ? ` See log: ${logPath}` : '')
+             )
+          );
+       });
+    });
 }
 
 export { runOpenApiGenerator };

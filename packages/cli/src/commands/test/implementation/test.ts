@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { intro, log, spinner } from '@clack/prompts';
+import { intro, log, spinner, outro } from '@clack/prompts';
 import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
@@ -39,8 +39,9 @@ function collectInitialRuntimeValues(cliEnvVars = {}) {
  *   - `path`: endpoint path exercised by the test
  *   - `duration` (optional): duration of the test in milliseconds
  *   - `warnings` (optional): array of warning objects; each warning should include `key` and `message`
+ * @returns Summary stats: { total, passed, failed, warnings }
  */
-function printTestSummary(results) {
+function printTestSummary(results): { total: number; passed: number; failed: number; warnings: number } {
    // Collect all rows for sizing
    const rows = results.map((r) => {
       const status = r.success ? '✅' : '❌';
@@ -48,7 +49,7 @@ function printTestSummary(results) {
       const path = r.path || '';
       const warningsCount = r.warnings && Array.isArray(r.warnings) ? r.warnings.length : 0;
       const duration = (r.duration || 0).toString();
-      return { status, method, path, warnings: warningsCount.toString(), duration };
+      return { status, method, path, warnings: warningsCount.toString(), duration, warningsCount };
    });
 
    // Calculate max width for each column (including header)
@@ -104,11 +105,12 @@ function printTestSummary(results) {
    const total = results.length;
    const succeeded = results.filter((r) => r.success).length;
    const failed = total - succeeded;
+   const totalWarnings = rows.reduce((sum, r) => sum + r.warningsCount, 0);
    const totalDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0);
 
    log.message(
       `${sepLine}
- Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Total Duration: ${totalDuration} ms
+ Total: ${total} | Passed: ${succeeded} | Failed: ${failed} | Warnings: ${totalWarnings} | Duration: ${totalDuration} ms
  ${sepLine}`
    );
 
@@ -123,12 +125,19 @@ function printTestSummary(results) {
          }
       }
    }
+
+   return { total, passed: succeeded, failed, warnings: totalWarnings };
 }
 
 /**
  * Load a test configuration from a file path supporting `.json`, `.js`, and `.ts` files.
  *
  * For `.json` files the content is read and parsed as JSON. For `.js` and `.ts` files the module is required and the `default` export is returned if present, otherwise the module itself is returned.
+ *
+ * **SECURITY NOTE**: JavaScript config files (.js) are executed via require().
+ * This is intentional to allow dynamic test configurations with custom logic.
+ * Users should only load config files they trust, as malicious files could
+ * execute arbitrary code. This CLI is designed for local use only.
  *
  * @param testConfigPath - Filesystem path to the test configuration file
  * @returns The loaded test configuration object
@@ -140,6 +149,8 @@ async function loadTestConfig(testConfigPath) {
       const content = await readFile(testConfigPath, 'utf8');
       return JSON.parse(content);
    } else if (ext === '.js') {
+      // SECURITY: require() executes the JS file. This is intentional for dynamic configs.
+      // Users must only load trusted config files.
       const config = require(path.resolve(testConfigPath));
       return config.default || config;
    } else {
@@ -162,6 +173,9 @@ async function loadTestConfig(testConfigPath) {
  * @param isAll - If true, run tests for all API groups without prompting
  * @param printOutput - If true, display the output directory path after writing results
  * @param core - Runtime provider exposing `loadToken` and `runTests` used to execute tests and load credentials
+ * @param ciMode - If true, exit with non-zero code on test failures
+ * @param failOnWarnings - If true (and ciMode), also fail on warnings
+ * @returns Exit code: 0 for success, 1 for failures
  */
 async function runTest({
    instance,
@@ -173,6 +187,8 @@ async function runTest({
    printOutput = false,
    core,
    cliTestEnvVars,
+   ciMode = false,
+   failOnWarnings = false,
 }: {
    instance: string;
    workspace: string;
@@ -183,7 +199,9 @@ async function runTest({
    printOutput: boolean;
    core: any;
    cliTestEnvVars: any;
-}) {
+   ciMode?: boolean;
+   failOnWarnings?: boolean;
+}): Promise<number> {
    intro('☣️   Starting up the testing...');
 
    // 1. Get the current context.
@@ -230,6 +248,12 @@ async function runTest({
    const ts = now.toISOString().replace(/[:.]/g, '-');
    const testFileName = `test-results-${ts}.json`;
 
+   // Aggregate stats across all groups
+   let totalTests = 0;
+   let totalPassed = 0;
+   let totalFailed = 0;
+   let totalWarnings = 0;
+
    for (const outcome of testResults) {
       const apiGroupTestPath = replacePlaceholders(instanceConfig.test.output, {
          '@': await findProjectRoot(),
@@ -248,9 +272,35 @@ async function runTest({
       log.step(
          `Tests for ${outcome.group.name} completed. Results -> ${apiGroupTestPath}/${testFileName}`
       );
-      printTestSummary(outcome.results);
+      const stats = printTestSummary(outcome.results);
+      totalTests += stats.total;
+      totalPassed += stats.passed;
+      totalFailed += stats.failed;
+      totalWarnings += stats.warnings;
       printOutputDir(printOutput, apiGroupTestPath);
    }
+
+    // CI mode: determine exit code
+    if (ciMode) {
+       const hasFailures = totalFailed > 0;
+       const hasWarnings = failOnWarnings && totalWarnings > 0;
+       
+       if (hasFailures || hasWarnings) {
+          const reasons = [];
+          if (hasFailures) reasons.push(`${totalFailed} test(s) failed`);
+          if (hasWarnings) reasons.push(`${totalWarnings} warning(s)`);
+          
+          outro(`Tests failed: ${reasons.join(', ')}`);
+          log.error(`\nCI mode: Exiting with code 1 due to ${reasons.join(' and ')}`);
+          // Return exit code instead of calling process.exit() directly
+          // Let the CLI commander action handle the actual process exit
+          return 1;
+       } else {
+          outro(`All ${totalPassed} tests passed!`);
+       }
+    }
+
+    return totalFailed > 0 ? 1 : 0;
 }
 
 export { runTest };

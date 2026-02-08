@@ -4,6 +4,7 @@ import {
    addPrintOutputFlag,
    withErrorHandler,
 } from '../../utils';
+import { hideFromRootHelp } from '../../utils/commands/main-program-utils';
 import { generateCodeFromOas } from './implementation/codegen';
 import { generateInternalDocs } from './implementation/internal-docs';
 import { updateOasWizard } from './implementation/oas-spec';
@@ -43,7 +44,7 @@ function registerGenerateCommands(program, core) {
          'Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example'
       )
       .action(
-         withErrorHandler(async (opts, passthroughArgs) => {
+         withErrorHandler(async (passthroughArgs, opts) => {
             const stack: { generator: string; args: string[] } = {
                generator: opts.generator || 'typescript-fetch',
                args: passthroughArgs || [],
@@ -166,12 +167,14 @@ function registerGenerateCommands(program, core) {
          })
       );
 
-   // Generate xanoscript command
-   const xanoscriptGenCommand = generateNamespace
-      .command('xanoscript')
-      .description(
-         'Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.'
-      );
+   // Generate xanoscript command - hidden from root help but visible in `generate --help`
+   const xanoscriptGenCommand = hideFromRootHelp(
+      generateNamespace
+         .command('xanoscript')
+         .description(
+            'Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.',
+         ),
+   );
 
    addFullContextOptions(xanoscriptGenCommand);
    addPrintOutputFlag(xanoscriptGenCommand);
@@ -185,7 +188,7 @@ function registerGenerateCommands(program, core) {
             core: core,
             printOutput: opts.printOutputDir,
          });
-      })
+      }),
    );
 }
 
