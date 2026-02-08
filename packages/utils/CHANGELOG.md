@@ -1,5 +1,13 @@
 # @calycode/utils
 
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [545b85b]
+- Updated dependencies [3383c84]
+  - @repo/types@0.5.1
+
 ## 0.4.2
 
 ### Patch Changes

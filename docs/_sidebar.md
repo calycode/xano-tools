@@ -46,6 +46,15 @@
     - [oc templates status](commands/oc-templates-status.md)
 
     - [oc templates clear-cache](commands/oc-templates-clear-cache.md)
+-   **skills**
+
+    - [oc skills install](commands/oc-skills-install.md)
+
+    - [oc skills update](commands/oc-skills-update.md)
+
+    - [oc skills status](commands/oc-skills-status.md)
+
+    - [oc skills clear-cache](commands/oc-skills-clear-cache.md)
 
   - [oc serve](commands/oc-serve.md)
 
