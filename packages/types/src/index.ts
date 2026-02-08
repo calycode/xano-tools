@@ -491,7 +491,7 @@ export interface RegistryItemFile {
     content?: string;
     type: RegistryItemType;
     apiGroupName?: string;
-    apiGroupId?: string;
+    apiGroupId?: string | number;
     meta?: Record<string, any>;
 }
 
@@ -520,7 +520,7 @@ export type InstallUrlParams = {
    workspaceConfig: any;
    branchConfig: any;
    file: any;
-   apiGroupId?: string;
+   apiGroupId?: string | number;
 };
 
 export type UrlMappingFn = (params: InstallUrlParams) => string;

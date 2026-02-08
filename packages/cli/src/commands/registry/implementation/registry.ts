@@ -59,7 +59,9 @@ async function addToXano({
              for (const file of registryItem.files) {
                 if (file.type === 'registry:query') {
                    if (!file.apiGroupName) {
-                      throw new Error(`Missing apiGroupName for file ${file.path || 'unnamed'} in registry item ${registryItem.name || registryItem.id}`);
+                      throw new Error(
+                         `Missing apiGroupName for file ${file.path || 'unnamed'} in registry item ${componentName}`,
+                      );
                    }
                    const apiGroup = await getApiGroupByName(
                       file.apiGroupName,

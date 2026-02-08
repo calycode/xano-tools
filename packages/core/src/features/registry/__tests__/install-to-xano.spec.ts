@@ -124,7 +124,7 @@ describe('installRegistryItemToXano', () => {
       );
 
       expect(results.skipped).toHaveLength(1);
-      expect(results.skipped[0].reason).toContain('already exists');
+      expect(results.skipped[0].error).toContain('already exists');
       expect(results.failed).toHaveLength(0);
    });
 

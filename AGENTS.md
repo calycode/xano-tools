@@ -134,7 +134,7 @@ This project provides a suite of tools to improve developer experience with Xano
 
 ### Testing
 - **Test framework**: Jest with ts-jest transformer
-- **Test files**: `.test.ts` extension (currently no test files exist)
+- **Test files**: `.test.ts` or `.spec.ts` extension
 - **Test configuration**: JSON-based config files for API testing
 - **Test environment**: Node.js environment
 - **Coverage**: Use `jest-html-reporter` for HTML coverage reports
