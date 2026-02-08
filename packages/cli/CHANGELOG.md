@@ -1,5 +1,21 @@
 # @calycode/xano-cli
 
+## 0.17.0
+
+### Minor Changes
+
+- 190bf88: feat: include OpenCode AI agentic tooling into the CLI
+- 697ba8c: feat: initial skills setup for the @calycode/cli
+- 63d93ac: feat: load specialized Xano-related agents / templates from remote source to the oc config and use that, without polluting the global oc setup
+
+### Patch Changes
+
+- 545b85b: chore: move the registry item installation into the core
+- 63d93ac: chore: styling revamp of the help commands
+- 3383c84: chore: updates to testing, to have robust env support, and better documentation
+- 545b85b: fix: have graceful exit when no component is selected from registry
+- 190bf88: feat: add first draft of Skills for the CLI
+
 ## 0.16.0
 
 ### Minor Changes
