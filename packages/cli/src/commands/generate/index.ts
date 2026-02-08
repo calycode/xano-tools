@@ -44,7 +44,7 @@ function registerGenerateCommands(program, core) {
          'Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example'
       )
       .action(
-         withErrorHandler(async (opts, passthroughArgs) => {
+         withErrorHandler(async (passthroughArgs, opts) => {
             const stack: { generator: string; args: string[] } = {
                generator: opts.generator || 'typescript-fetch',
                args: passthroughArgs || [],

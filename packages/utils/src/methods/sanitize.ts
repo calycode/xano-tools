@@ -6,7 +6,7 @@ const defaultOptions: Required<Omit<SanitizeOptions, 'allowedCharsRegex'>> & {
 } = {
    normalizeUnicode: true,
    removeDiacritics: true,
-   allowedCharsRegex: /[a-zA-Z0-9-]/, // for dashes, no underscore by default
+   allowedCharsRegex: /[a-zA-Z0-9-]/u, // for dashes, no underscore by default
    replacementChar: '-',
    collapseRepeats: true,
    trimReplacement: true,
@@ -39,8 +39,12 @@ function sanitizeString(input: string, options: SanitizeOptions = {}): string {
       s = s.normalize('NFKD');
    }
    if (opts.removeDiacritics) {
-      s = s.replace(/[\u0300-\u036F]/g, '');
+      s = s.replace(/[\u0300-\u036F]/gu, '');
    }
+
+   // Strip emoji and other symbol characters before main sanitization
+   // Covers emoticons, dingbats, symbols, pictographs, flags, variation selectors, ZWJ, etc.
+   s = s.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200D\uFE0F\uFE0E]/gu, '');
 
    if (opts.replacementChar === '-') {
       s = s.replace(/[\s_]+/g, '-');
@@ -48,7 +52,14 @@ function sanitizeString(input: string, options: SanitizeOptions = {}): string {
       s = s.replace(/[\s-]+/g, '_');
    }
 
-   s = s.replace(new RegExp(`[^${opts.allowedCharsRegex.source}]`, 'g'), opts.replacementChar);
+   // Build the replacement regex from the allowedCharsRegex source.
+   // The source includes brackets (e.g. "[a-zA-Z0-9-]"), so extract the inner content.
+   let charClassContent = opts.allowedCharsRegex.source;
+   const bracketMatch = charClassContent.match(/^\[(.+)\]$/s);
+   if (bracketMatch) {
+      charClassContent = bracketMatch[1];
+   }
+   s = s.replace(new RegExp(`[^${charClassContent}]`, 'gu'), opts.replacementChar);
 
    if (opts.collapseRepeats) {
       s = s.replace(new RegExp(`\\${opts.replacementChar}+`, 'g'), opts.replacementChar);
@@ -120,7 +131,7 @@ function sanitizeInstanceName(name: string): string {
  */
 function sanitizeFileName(fileName: string): string {
    return sanitizeString(fileName, {
-      allowedCharsRegex: /[a-zA-Z0-9._-]/,
+      allowedCharsRegex: /[a-zA-Z0-9._-]/u,
       replacementChar: '_',
       toLowerCase: false,
    });

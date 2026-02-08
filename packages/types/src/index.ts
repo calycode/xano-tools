@@ -520,7 +520,7 @@ export type InstallUrlParams = {
    workspaceConfig: any;
    branchConfig: any;
    file: any;
-   apiGroupId?: string;
+   apiGroupId?: string | number;
 };
 
 export type UrlMappingFn = (params: InstallUrlParams) => string;
