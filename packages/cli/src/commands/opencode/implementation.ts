@@ -17,6 +17,7 @@ const OPENCODE_PKG = 'opencode-ai@latest';
 function getSpawnOptions(
    stdio: 'inherit' | 'pipe' | 'ignore' = 'inherit',
    extraEnv?: Record<string, string>,
+   cwd?: string,
 ) {
    // On Windows, npx is a batch file and requires shell: true
    // On Unix, we can run without shell for better security
@@ -24,6 +25,7 @@ function getSpawnOptions(
    return {
       stdio,
       shell: isWindows,
+      cwd,
       env: extraEnv ? { ...process.env, ...extraEnv } : process.env,
    };
 }
@@ -188,6 +190,45 @@ function getCalycodeOpencodeConfigDir(): string {
 }
 
 /**
+ * Get the scoped workspace directory used by OpenCode server/native host processes.
+ * This limits default execution scope for background/browser-triggered runs.
+ */
+function getCalycodeOpencodeWorkspaceDir(): string {
+   return path.join(getCalycodeOpencodeConfigDir(), 'workspace');
+}
+
+function ensureDirectoryExists(dirPath: string): void {
+   if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+   }
+}
+
+/**
+ * Resolve the working directory for OpenCode child processes.
+ *
+ * Priority:
+ * 1. CALY_OPENCODE_WORKDIR env var (absolute or relative path)
+ * 2. mode='proxy': current shell cwd (user project context)
+ * 3. mode='server': ~/.calycode/opencode/workspace (scoped sandbox)
+ */
+function getOpencodeWorkingDir(mode: 'proxy' | 'server'): string {
+   const envWorkdir = process.env.CALY_OPENCODE_WORKDIR?.trim();
+   if (envWorkdir) {
+      const resolvedPath = path.resolve(envWorkdir);
+      ensureDirectoryExists(resolvedPath);
+      return resolvedPath;
+   }
+
+   if (mode === 'proxy') {
+      return process.cwd();
+   }
+
+   const workspaceDir = getCalycodeOpencodeWorkspaceDir();
+   ensureDirectoryExists(workspaceDir);
+   return workspaceDir;
+}
+
+/**
  * Get the base allowed CORS origins for the OpenCode server.
  * 
  * These are the static origins that are always allowed. Dynamic origins
@@ -233,12 +274,14 @@ async function proxyOpencode(args: string[]) {
 
    // Set the CalyCode OpenCode config directory
    const configDir = getCalycodeOpencodeConfigDir();
+   const workingDir = getOpencodeWorkingDir('proxy');
+   log.info(`OpenCode working directory: ${workingDir}`);
 
    return new Promise<void>((resolve, reject) => {
       // Use 'npx' to execute the opencode-ai CLI with the provided arguments
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
       const proc = spawn('npx', ['-y', OPENCODE_PKG, ...args], {
-         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }),
+         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
       });
 
       proc.on('close', (code) => {
@@ -453,10 +496,12 @@ async function startNativeHost() {
 
          // Set OPENCODE_CONFIG_DIR to use CalyCode-specific config
          const configDir = getCalycodeOpencodeConfigDir();
+         const workingDir = getOpencodeWorkingDir('server');
          logger.log(`Using OpenCode config directory: ${configDir}`);
+         logger.log(`Using OpenCode working directory: ${workingDir}`);
 
          serverProc = spawn('npx', args, {
-            ...getSpawnOptions('ignore', { OPENCODE_CONFIG_DIR: configDir }),
+            ...getSpawnOptions('ignore', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
          });
 
          serverProc.on('error', (err) => {
@@ -1199,6 +1244,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
 
    // Set the CalyCode OpenCode config directory
    const configDir = getCalycodeOpencodeConfigDir();
+   const workingDir = getOpencodeWorkingDir('server');
 
    // On Windows, npx is a batch file and requires shell: true
    const isWindows = process.platform === 'win32';
@@ -1216,6 +1262,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
                ...process.env,
                OPENCODE_CONFIG_DIR: configDir,
             },
+            cwd: workingDir,
          },
       );
       proc.unref();
@@ -1230,7 +1277,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
          'npx',
          ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
          {
-            ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }),
+            ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
          },
       );
 
