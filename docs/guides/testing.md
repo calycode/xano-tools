@@ -426,19 +426,19 @@ jobs:
          - name: Install Caly CLI
            run: npm install -g @calycode/cli
 
-          - name: Run API Tests
-            env:
-               XANO_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
-               XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-               XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
-            run: |
-               caly-xano test run \
-                 -c ./test-config.json \
-                 --instance production \
-                 --workspace main \
-                 --branch prod \
-                 --all \
-                 --ci
+         - name: Run API Tests
+           env:
+              XANO_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+              XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+              XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
+           run: |
+              caly-xano test run \
+                -c ./test-config.json \
+                --instance production \
+                --workspace main \
+                --branch prod \
+                --all \
+                --ci
 
          - name: Upload Test Results
            if: always()
@@ -454,10 +454,10 @@ jobs:
 api-tests:
    stage: test
    image: node:20
-    before_script:
-       - npm install -g @calycode/cli
-    script:
-       - caly-xano test run -c ./test-config.json --all --ci
+   before_script:
+      - npm install -g @calycode/cli
+   script:
+      - caly-xano test run -c ./test-config.json --all --ci
    variables:
       XANO_TEST_EMAIL: ${TEST_EMAIL}
       XANO_TEST_PASSWORD: ${TEST_PASSWORD}

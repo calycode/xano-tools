@@ -237,18 +237,18 @@ jobs:
            with:
               node-version: '20'
 
-          - name: Install Xano CLI
-            run: npm install -g @calycode/cli
+         - name: Install Xano CLI
+           run: npm install -g @calycode/cli
 
-          - name: Generate Repository
-            env:
-               XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
-            run: |
-               caly-xano generate repo \
-                 --instance production \
-                 --workspace main \
-                 --branch live \
-                 --fetch
+         - name: Generate Repository
+           env:
+              XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
+           run: |
+              caly-xano generate repo \
+                --instance production \
+                --workspace main \
+                --branch live \
+                --fetch
 
          - name: Check for Changes
            id: changes
@@ -287,22 +287,22 @@ jobs:
            with:
               node-version: '20'
 
-          - name: Install Xano CLI
-            run: npm install -g @calycode/cli
+         - name: Install Xano CLI
+           run: npm install -g @calycode/cli
 
-          - name: Run Tests
-            env:
-               XANO_TOKEN_STAGING: ${{ secrets.XANO_TOKEN_STAGING }}
-               XANO_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
-               XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-            run: |
-               caly-xano test run \
-                 -c ./tests/config.json \
-                 --instance staging \
-                 --workspace main \
-                 --branch staging \
-                 --all \
-                 --ci
+         - name: Run Tests
+           env:
+              XANO_TOKEN_STAGING: ${{ secrets.XANO_TOKEN_STAGING }}
+              XANO_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+              XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+           run: |
+              caly-xano test run \
+                -c ./tests/config.json \
+                --instance staging \
+                --workspace main \
+                --branch staging \
+                --all \
+                --ci
 ```
 
 ### Documentation Deployment
@@ -325,13 +325,13 @@ jobs:
            with:
               node-version: '20'
 
-          - name: Install Xano CLI
-            run: npm install -g @calycode/cli
+         - name: Install Xano CLI
+           run: npm install -g @calycode/cli
 
-          - name: Generate Documentation
-            env:
-               XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
-            run: caly-xano generate docs
+         - name: Generate Documentation
+           env:
+              XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
+           run: caly-xano generate docs
 
          - name: Deploy to GitHub Pages
            uses: peaceiris/actions-gh-pages@v3
@@ -437,7 +437,7 @@ Before merging:
 
 | Issue                   | Solution                                |
 | ----------------------- | --------------------------------------- |
-| "Instance not found"    | Run `caly-xano init` to configure       |
+| "Instance not found"    | Run `caly-xano init` to configure            |
 | "Authentication failed" | Check `XANO_TOKEN_*` env vars           |
 | Merge conflicts in JSON | Regenerate from Xano, resolve manually  |
 | Missing XanoScript      | Ensure Xano 2.0+ for XanoScript support |
