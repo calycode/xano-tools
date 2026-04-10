@@ -16,13 +16,19 @@ const distDir = resolve(__dirname, 'dist');
 
       // Bundle the application with esbuild
       const result = await build({
-         entryPoints: [resolve(rootDir, 'src/index.ts')],
+         entryPoints: {
+            index: resolve(rootDir, 'src/index.ts'),
+            'legacy-xano': resolve(rootDir, 'src/legacy-xano-command.ts'),
+         },
          bundle: true,
          platform: 'node',
          plugins: [],
          target: 'node20',
          format: 'cjs',
-         outfile: resolve(distDir, 'index.cjs'),
+         outdir: distDir,
+         outExtension: {
+            '.js': '.cjs',
+         },
          treeShaking: true,
          minify: true,
          keepNames: false,

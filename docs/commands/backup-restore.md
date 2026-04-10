@@ -3,7 +3,7 @@
 > #### Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.
 
 ```term
-$ xano backup restore [options]
+$ caly-xano backup restore [options]
 ```
 ### Options
 
@@ -16,10 +16,10 @@ $ xano backup restore [options]
 
 ### backup restore --help
 ```term
-$ xano backup restore --help
+$ caly-xano backup restore --help
 Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.
 
-Usage: xano backup restore [options]
+Usage: caly-xano backup restore [options]
 
 Options:
   ├─ --instance <instance>       The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
@@ -27,6 +27,6 @@ Options:
   ├─ -S, --source-backup <file>  Local path to the backup file to restore.
   └─ -h, --help                  display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

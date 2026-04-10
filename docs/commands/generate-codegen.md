@@ -3,7 +3,7 @@
 > #### Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
 
 ```term
-$ xano generate codegen [options]
+$ caly-xano generate codegen [options]
 ```
 ### Options
 
@@ -26,10 +26,10 @@ $ xano generate codegen [options]
 
 ### generate codegen --help
 ```term
-$ xano generate codegen --help
+$ caly-xano generate codegen --help
 Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.
 
-Usage: xano generate codegen [options] [passthroughArgs...]
+Usage: caly-xano generate codegen [options] [passthroughArgs...]
 
 Arguments:
   └─ passthroughArgs  Additional arguments to pass to the generator. For options for each generator see https://openapi-generator.tech/docs/usage#generate this also accepts Orval additional arguments e.g. --mock etc. See Orval docs as well: https://orval.dev/reference/configuration/full-example
@@ -45,6 +45,6 @@ Options:
   ├─ --debug                  Specify this flag in order to allow logging. Logs will appear in output/_logs. Default: false
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

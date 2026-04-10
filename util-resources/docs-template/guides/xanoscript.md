@@ -46,7 +46,7 @@ Extract XanoScript from your Xano workspace for version control:
 
 ```bash
 # Extract XanoScript from all supported entities
-xano generate xanoscript \
+caly-xano generate xanoscript \
   --instance production \
   --workspace main \
   --branch live
@@ -60,7 +60,7 @@ Include XanoScript in your repository structure:
 
 ```bash
 # Generate complete repo with XanoScript
-xano generate repo \
+caly-xano generate repo \
   --instance production \
   --workspace main \
   --branch live
@@ -88,7 +88,7 @@ Include XanoScript in reusable registry components:
 Deploy XanoScript-based components to your Xano instance:
 
 ```bash
-xano registry add utils/jwt-helper \
+caly-xano registry add utils/jwt-helper \
   --registry https://registry.example.com/definitions
 ```
 
@@ -121,10 +121,10 @@ Xano Tools can process the following XanoScript entity types:
 
 ```bash
 # Extract from current context
-xano generate xanoscript
+caly-xano generate xanoscript
 
 # Extract from specific instance/workspace/branch
-xano generate xanoscript \
+caly-xano generate xanoscript \
   --instance my-instance \
   --workspace my-workspace \
   --branch main
@@ -165,7 +165,7 @@ Extracted files are organized by entity type:
 XanoScript is automatically included when generating a repository:
 
 ```bash
-xano generate repo --instance production --workspace main --branch live
+caly-xano generate repo --instance production --workspace main --branch live
 ```
 
 ## Using XanoScript in Registries
@@ -234,10 +234,10 @@ Components can include multiple XanoScript files:
 ### Recommended Setup
 
 1. **Use the Xano VS Code Extension** - Best experience for XanoScript development
-2. **Extract existing code** - Use `xano generate xanoscript` to get your current code
+2. **Extract existing code** - Use `caly-xano generate xanoscript` to get your current code
 3. **Develop in VS Code** - Edit XanoScript with syntax highlighting
 4. **Package in registries** - Create reusable components
-5. **Deploy via CLI** - Use `xano registry add` to install
+5. **Deploy via CLI** - Use `caly-xano registry add` to install
 
 ### VS Code Extension
 
@@ -256,7 +256,7 @@ XanoScript files are text-based and work well with Git:
 
 ```bash
 # Generate XanoScript for version control
-xano generate xanoscript --instance prod --workspace main --branch live
+caly-xano generate xanoscript --instance prod --workspace main --branch live
 
 # Commit changes
 git add .

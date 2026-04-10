@@ -5,7 +5,7 @@ REM ============================================================================
 REM CalyCode Native Host Installer (Development)
 REM ============================================================================
 REM This script is for developers working on the CLI itself.
-REM It assumes the CLI is already available via 'xano' command (linked or built).
+REM It assumes the CLI is already available via 'caly-xano' command (linked or built).
 REM
 REM For end-users, use the production installer instead:
 REM   Run install.bat from the installer/ directory, or:
@@ -69,10 +69,10 @@ if exist "C:\Program Files\nodejs\node.exe" (
 :SetupNativeHost
 echo.
 
-REM Check if xano command exists (assumes dev environment is set up)
-where xano >nul 2>nul
+REM Check if caly-xano command exists (assumes dev environment is set up)
+where caly-xano >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] The 'xano' command is not available.
+    echo [ERROR] The 'caly-xano' command is not available.
     echo         Please ensure you have linked or built the CLI.
     echo.
     echo         Try running: npm link
@@ -82,7 +82,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo [INFO] Initializing Native Host...
-call xano opencode init
+call caly-xano opencode init
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Failed to initialize native host.
     pause

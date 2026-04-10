@@ -57,11 +57,11 @@ function writeDocForCommand(cmd: any, docPath: string, nameParts: string[]) {
       description && `>[!NOTE|label:Description]\n> #### ${description}\n`,
       '',
       '```term',
-      `$ xano ${name} [options]`,
+      `$ caly-xano ${name} [options]`,
       '```',
       optionsContent,
       `\n### ${name} --help`,
-      `\`\`\`term\n$ xano ${name} --help`,
+      `\`\`\`term\n$ caly-xano ${name} --help`,
       help.trim(),
       '```',
    ]
@@ -91,7 +91,7 @@ function generateCliDocs() {
       console.log('Generated main help. \n');
 
       // 3. Recursively generate docs and sidebar
-      const sidebarLines = ['- [xano - the core command](xano.md)', '- **Commands**'];
+      const sidebarLines = ['- [caly-xano - the core command](xano.md)', '- **Commands**'];
       program.commands.forEach((cmd) => walkCommands(cmd, [], sidebarLines));
       const finalSidebar = [
          ...sidebarLines,

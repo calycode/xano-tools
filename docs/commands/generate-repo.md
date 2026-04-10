@@ -3,7 +3,7 @@
 > #### Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
 
 ```term
-$ xano generate repo [options]
+$ caly-xano generate repo [options]
 ```
 ### Options
 
@@ -24,10 +24,10 @@ $ xano generate repo [options]
 
 ### generate repo --help
 ```term
-$ xano generate repo --help
+$ caly-xano generate repo --help
 Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.
 
-Usage: xano generate repo [options]
+Usage: caly-xano generate repo [options]
 
 Options:
   ├─ -I, --input <file>       Workspace schema file (.yaml [legacy] or .json) from a local source, if present.
@@ -39,6 +39,6 @@ Options:
   ├─ -F, --fetch              Forces fetching the workspace schema from the Xano instance via metadata API.
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

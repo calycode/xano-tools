@@ -11,11 +11,15 @@
       "build:docs:styles": "npx tailwindcss -i util-resources/tailwind-input.css -o util-resources/docs-template/styles.css --minify",
       "clean": "turbo run clean",
       "build:docs": "pnpm run build && tsx scripts/generate-caly-cli-docs.ts",
-      "xano": "pnpm --filter @calycode/cli run xano",
+      "caly-xano": "pnpm --filter @calycode/cli run caly-xano",
+      "xano": "node scripts/legacy-xano-command.mjs",
       "prepublishOnly": "pnpm run build",
       "serve-registry": "npx serve registry --listen 3030"
    },
    "private": true,
+   "engines": {
+      "node": ">=18.0.0"
+   },
    "publishConfig": {
       "access": "public"
    },

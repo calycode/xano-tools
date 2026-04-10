@@ -1,4 +1,4 @@
-- [xano - the core command](xano.md)
+- [caly-xano - the core command](xano.md)
 - **Commands**
 
 - [init](commands/init.md)

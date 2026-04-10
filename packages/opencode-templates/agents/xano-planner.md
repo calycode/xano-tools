@@ -1,7 +1,7 @@
 ---
 description: Plan and orchestrate XanoScript development across APIs, functions, tables, tasks, and AI features. Creates implementation roadmaps.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.2
 tools:
    read: true

@@ -3,15 +3,15 @@
 > #### Serve locally available assets for quick preview or local reuse.
 
 ```term
-$ xano serve [options]
+$ caly-xano serve [options]
 ```
 
 ### serve --help
 ```term
-$ xano serve --help
+$ caly-xano serve --help
 Serve locally available assets for quick preview or local reuse.
 
-Usage: xano serve [options] [command]
+Usage: caly-xano serve [options] [command]
 
 Options:
   └─ -h, --help  display help for command
@@ -21,6 +21,6 @@ Commands:
   ├─ spec      Serve the Open API specification locally for quick visual...
   └─ help      display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

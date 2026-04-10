@@ -1,7 +1,7 @@
 ---
 description: Build XanoScript AI agents, MCP servers, and tools for AI-powered automation and intelligent features.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.1
 tools:
    read: true
@@ -47,7 +47,6 @@ agent "Agent Display Name" {
 | Xano Free     | `xano-free`    | None required              |
 | Google Gemini | `google-genai` | `{{ $env.gemini_key }}`    |
 | OpenAI        | `openai`       | `{{ $env.openai_key }}`    |
-| Anthropic     | `anthropic`    | `{{ $env.anthropic_key }}` |
 
 ## Provider Configuration
 
@@ -107,21 +106,6 @@ llm = {
 | ------------------ | -------------------------------------------------- |
 | `reasoning_effort` | `"low"`, `"medium"`, `"high"` for reasoning models |
 | `baseURL`          | Custom endpoint (Groq, Mistral, OpenRouter)        |
-
-### Anthropic Claude
-
-```xanoscript
-llm = {
-  type: "anthropic"
-  system_prompt: "You are a thoughtful assistant."
-  prompt: "{{ $args.task_description }}"
-  max_steps: 8
-  api_key: "{{ $env.anthropic_key }}"
-  model: "claude-sonnet-4-5-20250929"
-  temperature: 0.3
-  send_reasoning: true
-}
-```
 
 | Parameter        | Description                         |
 | ---------------- | ----------------------------------- |

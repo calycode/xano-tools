@@ -115,7 +115,7 @@ These URLs should be configured as a GitHub Pages site or CDN pointing to the `s
 
 ## Troubleshooting
 
-### "xano command not found" after installation
+### "caly-xano command not found" after installation
 
 The PATH may not have been updated in your current terminal session.
 
@@ -138,4 +138,4 @@ The PATH may not have been updated in your current terminal session.
 
 3. Check logs at `~/.calycode/logs/native-host.log`
 
-4. Re-run: `xano opencode init`
+4. Re-run: `caly-xano opencode init`

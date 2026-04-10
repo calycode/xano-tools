@@ -3,7 +3,7 @@
 > #### Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
 
 ```term
-$ xano generate docs [options]
+$ caly-xano generate docs [options]
 ```
 ### Options
 
@@ -24,10 +24,10 @@ $ xano generate docs [options]
 
 ### generate docs --help
 ```term
-$ xano generate docs --help
+$ caly-xano generate docs --help
 Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.
 
-Usage: xano generate docs [options]
+Usage: caly-xano generate docs [options]
 
 Options:
   ├─ -I, --input <file>       Workspace schema file (.yaml [legacy] or .json) from a local source, if present.
@@ -39,6 +39,6 @@ Options:
   ├─ -F, --fetch              Forces fetching the workspace schema from the Xano instance via metadata API.
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

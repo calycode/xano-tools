@@ -3,7 +3,7 @@
 > #### Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.
 
 ```term
-$ xano registry add [options]
+$ caly-xano registry add [options]
 ```
 ### Options
 
@@ -18,10 +18,10 @@ $ xano registry add [options]
 
 ### registry add --help
 ```term
-$ xano registry add --help
+$ caly-xano registry add --help
 Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance.
 
-Usage: xano registry add [options] [components...]
+Usage: caly-xano registry add [options] [components...]
 
 Arguments:
   └─ components  Space delimited list of components to add to your Xano instance.
@@ -33,6 +33,6 @@ Options:
   ├─ --registry <url>         URL to the component registry. Default: http://localhost:5500/registry/definitions
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

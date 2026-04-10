@@ -9,7 +9,7 @@
     "url": "https://github.com/calycode/xano-tools.git",
     "directory": "packages/xano-skills"
   },
-  "homepage": "https://skills.sh/calycode/xano-tools",
+  "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/xano-skills",
   "bugs": {
     "url": "https://github.com/calycode/xano-tools/issues"
   },
@@ -31,7 +31,7 @@
     "README.md"
   ],
   "scripts": {
-    "postinstall": "npx skills add calycode/xano-tools/packages/xano-skills --yes 2>/dev/null || true"
+    "install-xano-skills": "npx skills add calycode/xano-tools/packages/xano-skills --yes"
   },
   "publishConfig": {
     "access": "public"

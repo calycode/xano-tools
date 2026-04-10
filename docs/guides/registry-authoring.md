@@ -42,7 +42,7 @@ The Xano Tools registry system enables you to:
 
 ```bash
 # Create a new registry folder with sample components
-xano registry scaffold --output ./my-registry
+caly-xano registry scaffold --output ./my-registry
 ```
 
 This creates:
@@ -81,7 +81,7 @@ Edit `items/sample-function/definition.json`:
 ### 3. Serve Your Registry Locally
 
 ```bash
-xano serve registry --path ./my-registry
+caly-xano serve registry --path ./my-registry
 ```
 
 Registry available at: `http://localhost:5500/registry/definitions`
@@ -90,7 +90,7 @@ Registry available at: `http://localhost:5500/registry/definitions`
 
 ```bash
 # In another terminal, install to your Xano instance
-xano registry add my-utils/string-helpers \
+caly-xano registry add my-utils/string-helpers \
   --registry http://localhost:5500/registry/definitions \
   --instance my-instance \
   --workspace main \
@@ -331,7 +331,7 @@ For comprehensive XanoScript documentation, see:
 
 ### How Dependencies Work
 
-When you install a component with `xano registry add`:
+When you install a component with `caly-xano registry add`:
 
 1. The CLI reads the component's `registryDependencies` array
 2. All dependencies are resolved recursively
@@ -406,10 +406,10 @@ Components track versions via metadata:
 
 ```bash
 # Terminal 1: Serve your registry
-xano serve registry --path ./my-registry
+caly-xano serve registry --path ./my-registry
 
 # Terminal 2: Test installation
-xano registry add my-component \
+caly-xano registry add my-component \
   --registry http://localhost:5500/registry/definitions \
   --instance test-instance \
   --workspace dev \
@@ -470,7 +470,7 @@ Package your registry for npm distribution:
    "name": "@your-org/xano-registry",
    "files": ["registry/**"],
    "scripts": {
-      "serve": "xano serve registry --path ./registry"
+      "serve": "caly-xano serve registry --path ./registry"
    }
 }
 ```
@@ -479,7 +479,7 @@ Package your registry for npm distribution:
 
 ```bash
 # Team members install from your registry
-xano registry add auth/jwt-verify \
+caly-xano registry add auth/jwt-verify \
   --registry https://registry.your-company.com/definitions
 ```
 
@@ -496,7 +496,7 @@ For organizations using private npm registries, you can leverage npm's scoped pa
    "private": true,
    "files": ["registry/**"],
    "scripts": {
-      "serve": "xano serve registry --path ./registry",
+      "serve": "caly-xano serve registry --path ./registry",
       "validate": "npx ajv validate -s https://calycode.com/schemas/registry/registry.json -d ./registry/registry.json"
    },
    "publishConfig": {
@@ -518,10 +518,10 @@ npm login --registry=https://npm.pkg.github.com --scope=@acme-corp
 npm install @acme-corp/xano-components
 
 # 4. Serve the registry locally from node_modules
-xano serve registry --path ./node_modules/@acme-corp/xano-components/registry
+caly-xano serve registry --path ./node_modules/@acme-corp/xano-components/registry
 
 # 5. Install components from the local registry
-xano registry add auth/sso-integration \
+caly-xano registry add auth/sso-integration \
   --registry http://localhost:5500/registry/definitions \
   --instance production \
   --workspace main

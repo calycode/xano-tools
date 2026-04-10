@@ -20,7 +20,8 @@
         "developer-tools"
     ],
     "bin": {
-        "xano": "dist/index.cjs"
+        "xano": "dist/legacy-xano.cjs",
+        "caly-xano": "dist/index.cjs"
     },
     "main": "dist/index.cjs",
     "type": "module",
@@ -60,12 +61,12 @@
         "test:coverage": "jest --coverage",
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:js": "tsx esbuild.config.ts",
-        "build:chmod": "shx chmod +x dist/index.cjs",
+        "build:chmod": "shx chmod +x dist/index.cjs dist/legacy-xano.cjs",
         "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "bundle:ncc": "pnpm ncc build dist/index.cjs -o dist/cli.cjs && shx cp README.md LICENSE dist/cli.cjs/",
         "bundle:sea": "tsx build-sea.ts",
         "bundle": "pnpm bundle:ncc && pnpm bundle:sea",
-        "xano": "node dist/index.cjs"
+        "caly-xano": "node dist/index.cjs"
     },
     "pkg": {
         "name": "@calycode-cli-installer",

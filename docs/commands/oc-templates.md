@@ -3,15 +3,15 @@
 > #### Manage OpenCode configuration templates (agents, commands, instructions).
 
 ```term
-$ xano oc templates [options]
+$ caly-xano oc templates [options]
 ```
 
 ### oc templates --help
 ```term
-$ xano oc templates --help
+$ caly-xano oc templates --help
 Manage OpenCode configuration templates (agents, commands, instructions).
 
-Usage: xano oc templates [options] [command]
+Usage: caly-xano oc templates [options] [command]
 
 Options:
   └─ -h, --help  display help for command
@@ -23,6 +23,6 @@ Commands:
   ├─ clear-cache  Clear the template cache (templates will be re-downloaded...
   └─ help         display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

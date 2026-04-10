@@ -3,7 +3,7 @@
 > #### Serve the OpenCode AI server locally.
 
 ```term
-$ xano oc serve [options]
+$ caly-xano oc serve [options]
 ```
 ### Options
 
@@ -14,16 +14,16 @@ $ xano oc serve [options]
 
 ### oc serve --help
 ```term
-$ xano oc serve --help
+$ caly-xano oc serve --help
 Serve the OpenCode AI server locally.
 
-Usage: xano oc serve [options]
+Usage: caly-xano oc serve [options]
 
 Options:
   ├─ --port <port>  Port to run the OpenCode server on (default: 4096)
   ├─ -d, --detach   Run the server in the background (detached mode)
   └─ -h, --help     display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

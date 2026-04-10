@@ -3,7 +3,7 @@
 > #### Install or reinstall OpenCode configuration templates.
 
 ```term
-$ xano oc templates install [options]
+$ caly-xano oc templates install [options]
 ```
 ### Options
 
@@ -12,15 +12,15 @@ $ xano oc templates install [options]
 
 ### oc templates install --help
 ```term
-$ xano oc templates install --help
+$ caly-xano oc templates install --help
 Install or reinstall OpenCode configuration templates.
 
-Usage: xano oc templates install [options]
+Usage: caly-xano oc templates install [options]
 
 Options:
   ├─ -f, --force  Force overwrite existing configuration files
   └─ -h, --help   display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

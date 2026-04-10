@@ -35,16 +35,16 @@ This approach enables:
 
 ```bash
 # 1. Scaffold a new registry
-xano registry scaffold --output ./my-components
+caly-xano registry scaffold --output ./my-components
 
 # 2. Navigate to the scaffolded registry
 cd my-components
 
 # 3. Serve the registry locally
-xano serve registry --path .
+caly-xano serve registry --path .
 
 # 4. In another terminal, install to your Xano instance
-xano registry add sample-function \
+caly-xano registry add sample-function \
   --registry http://localhost:5500/registry/definitions \
   --instance my-instance \
   --workspace main \
@@ -56,7 +56,7 @@ xano registry add sample-function \
 ### The Scaffold Command
 
 ```bash
-xano registry scaffold --output <path> [--instance <name>]
+caly-xano registry scaffold --output <path> [--instance <name>]
 ```
 
 **Options:**
@@ -232,7 +232,7 @@ For XanoScript syntax and examples, refer to:
 1. **Install Xano VS Code Extension** - Best development experience
 2. **Extract existing code** - Learn from your existing Xano functions:
    ```bash
-   xano generate xanoscript --instance prod --workspace main --branch live
+   caly-xano generate xanoscript --instance prod --workspace main --branch live
    ```
 3. **Study extracted files** - Understand XanoScript patterns
 4. **Create new components** - Apply patterns to new components
@@ -241,7 +241,7 @@ For XanoScript syntax and examples, refer to:
 
 ```bash
 # Extract XanoScript from existing project for reference
-xano generate xanoscript \
+caly-xano generate xanoscript \
   --instance my-instance \
   --workspace main \
   --branch live
@@ -312,10 +312,10 @@ my-registry/
 
 ```bash
 # Terminal 1: Serve registry
-xano serve registry --path ./my-registry
+caly-xano serve registry --path ./my-registry
 
 # Terminal 2: Install components
-xano registry add auth/login \
+caly-xano registry add auth/login \
   --registry http://localhost:5500/registry/definitions \
   --instance dev-instance \
   --workspace sandbox \
@@ -326,7 +326,7 @@ xano registry add auth/login \
 
 ```bash
 # Install from hosted registry
-xano registry add auth/login utils/string-helpers \
+caly-xano registry add auth/login utils/string-helpers \
   --registry https://registry.mycompany.com/definitions \
   --instance production \
   --workspace main \
@@ -337,7 +337,7 @@ xano registry add auth/login utils/string-helpers \
 
 ```bash
 # Space-separated list
-xano registry add tables/user tables/session auth/login auth/register \
+caly-xano registry add tables/user tables/session auth/login auth/register \
   --registry http://localhost:5500/registry/definitions
 ```
 
@@ -400,7 +400,7 @@ Bad:
 
 ```bash
 # Always test in a development branch first
-xano registry add my-component \
+caly-xano registry add my-component \
   --registry http://localhost:5500/registry/definitions \
   --instance test \
   --workspace dev \
