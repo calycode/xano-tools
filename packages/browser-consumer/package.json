@@ -1,6 +1,6 @@
 {
     "name": "@calycode/browser-consumer",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Browser-compatible ConfigStorage implementation using IndexedDB for Caly Xano tooling",
     "license": "MIT",
     "author": "Mihály Tóth | @calycode",

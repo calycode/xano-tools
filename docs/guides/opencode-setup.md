@@ -2,8 +2,6 @@
 
 This guide covers setting up and using the OpenCode AI agent integration with the CalyCode CLI for AI-assisted Xano development.
 
-> **Note:** The CLI binary name changed from `xano` to `caly-xano` in v2.0. All commands below use `caly-xano`. If you're using an older version, replace `caly-xano` with `xano`.
-
 > [!NOTE]
 > CalyCode integrates with [OpenCode](https://opencode.ai), an open-source AI coding agent licensed under MIT. CalyCode is **not affiliated with, maintained by, or endorsed by** the OpenCode project. We simply leverage their excellent open-source tooling to provide AI-assisted Xano development capabilities.
 
@@ -35,21 +33,21 @@ The CalyCode CLI integrates with [OpenCode](https://opencode.ai), an open-source
 npm install -g @calycode/cli
 
 # 2. Set up OpenCode with agents, commands, and skills
-caly-xano oc setup
+xano oc setup
 
 # 3. Run OpenCode interactively
-caly-xano oc run
+xano oc run
 
 # 4. Or run with a specific agent
-caly-xano oc run "@xano-planner Plan a user authentication system"
+xano oc run "@xano-planner Plan a user authentication system"
 ```
 
 ## Setup Command
 
-The `caly-xano oc setup` command installs everything needed for AI-assisted development:
+The `xano oc setup` command installs everything needed for AI-assisted development:
 
 ```bash
-caly-xano oc setup [options]
+xano oc setup [options]
 ```
 
 ### Options
@@ -99,10 +97,10 @@ To get the latest agents, commands, and skills:
 
 ```bash
 # Force re-download all templates
-caly-xano oc setup --force
+xano oc setup --force
 
 # Or update just templates
-caly-xano oc update
+xano oc update
 ```
 
 ## Running OpenCode
@@ -113,10 +111,10 @@ Start an interactive AI coding session:
 
 ```bash
 # Start OpenCode in the current directory
-caly-xano oc run
+xano oc run
 
 # Start in a specific project directory
-caly-xano oc run --workdir /path/to/project
+xano oc run --workdir /path/to/project
 ```
 
 ### With Initial Prompt
@@ -125,13 +123,13 @@ Run with a specific task or agent:
 
 ```bash
 # Use a specialized agent
-caly-xano oc run "@xano-planner Design a blog backend with posts and comments"
+xano oc run "@xano-planner Design a blog backend with posts and comments"
 
 # Use a slash command
-caly-xano oc run "/xano-table Create a users table with email and password"
+xano oc run "/xano-table Create a users table with email and password"
 
 # Simple prompt
-caly-xano oc run "Help me understand this XanoScript function"
+xano oc run "Help me understand this XanoScript function"
 ```
 
 ### Server Mode
@@ -140,13 +138,13 @@ Run OpenCode as an HTTP server for programmatic access:
 
 ```bash
 # Start server on default port (4096)
-caly-xano oc serve
+xano oc serve
 
 # Start on a specific port
-caly-xano oc serve --port 8080
+xano oc serve --port 8080
 
 # Start in background (detached)
-caly-xano oc serve --detach
+xano oc serve --detach
 ```
 
 ## Agents & Slash Commands
@@ -171,16 +169,16 @@ Use `@agent-name` to delegate to specialized agents:
 
 ```bash
 # Plan a feature
-caly-xano oc run "@xano-planner Plan a subscription billing system with Stripe"
+xano oc run "@xano-planner Plan a subscription billing system with Stripe"
 
 # Design a table
-caly-xano oc run "@xano-table-designer Create a products table for an e-commerce store"
+xano oc run "@xano-table-designer Create a products table for an e-commerce store"
 
 # Create an API
-caly-xano oc run "@xano-api-writer Create CRUD endpoints for user management"
+xano oc run "@xano-api-writer Create CRUD endpoints for user management"
 
 # Debug an issue
-caly-xano oc run "@debug-helper My API is returning 500 errors on POST requests"
+xano oc run "@debug-helper My API is returning 500 errors on POST requests"
 ```
 
 ### Slash Commands
@@ -204,13 +202,13 @@ Use `/command` for quick actions:
 
 ```bash
 # Create a table
-caly-xano oc run "/xano-table users with email, password_hash, role enum (admin, user)"
+xano oc run "/xano-table users with email, password_hash, role enum (admin, user)"
 
 # Create a function
-caly-xano oc run "/xano-function calculate_order_total that sums line items with tax"
+xano oc run "/xano-function calculate_order_total that sums line items with tax"
 
 # Create an API
-caly-xano oc run "/xano-api POST /checkout that processes payment and creates order"
+xano oc run "/xano-api POST /checkout that processes payment and creates order"
 ```
 
 ## Skills
@@ -245,9 +243,9 @@ Skills provide domain-specific knowledge that agents can reference. They are loa
 You can reference skills in your prompts:
 
 ```bash
-caly-xano oc run "Use the xano-security skill to review this login endpoint"
+xano oc run "Use the xano-security skill to review this login endpoint"
 
-caly-xano oc run "Apply xano-query-performance patterns to optimize this data fetching"
+xano oc run "Apply xano-query-performance patterns to optimize this data fetching"
 ```
 
 ## Configuration Files
@@ -259,8 +257,8 @@ The main OpenCode configuration at `~/.calycode/opencode/opencode.json`:
 ```json
 {
    "$schema": "https://opencode.ai/config.json",
-   "model": "github-copilot/claude-sonnet-4.5",
-   "small_model": "github-copilot/claude-haiku-4.5",
+   "model": "anthropic/claude-sonnet-4-20250514",
+   "small_model": "anthropic/claude-haiku-4-20250514",
    "autoupdate": true,
    "instructions": ["~/.config/opencode/AGENTS.md"],
    "permission": {
@@ -306,11 +304,11 @@ The CLI can act as a native messaging host for the CalyCode Chrome extension, en
 
 ### Setup
 
-The native host is automatically configured during `caly-xano oc setup`. For manual setup:
+The native host is automatically configured during `xano oc setup`. For manual setup:
 
 ```bash
 # Install native host manifest
-caly-xano oc setup
+xano oc setup
 
 # The manifest is created at:
 # Windows: %USERPROFILE%\.calycode\com.calycode.host.json
@@ -322,7 +320,7 @@ caly-xano oc setup
 
 ```bash
 # Start native host directly (for debugging)
-caly-xano oc native-host
+xano oc native-host
 
 # The native host listens for JSON messages on stdin
 # and responds on stdout using Chrome's native messaging protocol
@@ -332,14 +330,14 @@ caly-xano oc native-host
 
 ### Common Issues
 
-| Issue                   | Solution                                                   |
-| ----------------------- | ---------------------------------------------------------- |
-| "OpenCode not found"    | Run `caly-xano oc setup` to install configuration           |
-| "Agent not recognized"  | Check agent name spelling, run `caly-xano oc setup --force` |
-| "Permission denied"     | Adjust permissions in `opencode.json`                      |
-| Templates out of date   | Run `caly-xano oc setup --force` to update                  |
-| Native host not working | Re-run `caly-xano oc setup`, check registry (Windows)       |
-| Server won't start      | Check if port is in use, try different port                |
+| Issue                   | Solution                                               |
+| ----------------------- | ------------------------------------------------------ |
+| "OpenCode not found"    | Run `xano oc setup` to install configuration           |
+| "Agent not recognized"  | Check agent name spelling, run `xano oc setup --force` |
+| "Permission denied"     | Adjust permissions in `opencode.json`                  |
+| Templates out of date   | Run `xano oc setup --force` to update                  |
+| Native host not working | Re-run `xano oc setup`, check registry (Windows)       |
+| Server won't start      | Check if port is in use, try different port            |
 
 ### Checking Installation Status
 
@@ -376,7 +374,7 @@ Get-Content -Wait $env:USERPROFILE\.calycode\logs\native-host.log
 
 ```bash
 # Clear template cache and re-download
-caly-xano oc setup --force
+xano oc setup --force
 ```
 
 ## Best Practices
@@ -393,7 +391,7 @@ caly-xano oc setup --force
 
 ```bash
 # Be specific about what you want
-caly-xano oc run "@xano-table-designer Create a products table with:
+xano oc run "@xano-table-designer Create a products table with:
 - name (text, required, max 255)
 - price (decimal, required, min 0)
 - description (text, optional)
@@ -401,7 +399,7 @@ caly-xano oc run "@xano-table-designer Create a products table with:
 - created_at (timestamp, auto)"
 
 # Provide context
-caly-xano oc run "@xano-api-writer Create a checkout API that:
+xano oc run "@xano-api-writer Create a checkout API that:
 - Uses the orders table we just created
 - Validates cart items exist
 - Calculates total with tax
@@ -414,10 +412,10 @@ For optimization or security-sensitive work, reference the appropriate skill:
 
 ```bash
 # Security review
-caly-xano oc run "Use xano-security skill to audit this user registration endpoint"
+xano oc run "Use xano-security skill to audit this user registration endpoint"
 
 # Performance optimization
-caly-xano oc run "Apply xano-query-performance to optimize this dashboard query"
+xano oc run "Apply xano-query-performance to optimize this dashboard query"
 ```
 
 ## Resources

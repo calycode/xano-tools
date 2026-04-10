@@ -1,5 +1,12 @@
 # @calycode/types
 
+## 0.5.1
+
+### Patch Changes
+
+- 545b85b: chore: move the registry item installation into the core
+- 3383c84: chore: updates to testing, to have robust env support, and better documentation
+
 ## 0.5.0
 
 ### Minor Changes

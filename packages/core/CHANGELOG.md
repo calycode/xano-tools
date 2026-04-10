@@ -1,5 +1,16 @@
 # @calycode/caly-core
 
+## 0.14.0
+
+### Minor Changes
+
+- 190bf88: feat: include OpenCode AI agentic tooling into the CLI
+
+### Patch Changes
+
+- 545b85b: chore: move the registry item installation into the core
+- 3383c84: chore: updates to testing, to have robust env support, and better documentation
+
 ## 0.13.0
 
 ### Minor Changes
