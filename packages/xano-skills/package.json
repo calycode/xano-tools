@@ -1,6 +1,6 @@
 {
   "name": "@calycode/xano-skills",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Agent skills for Xano backend development - database optimization, security patterns, query performance, and best practices. Use with skills.sh or OpenCode.",
   "license": "MIT",
   "author": "CalyCode",
@@ -30,6 +30,9 @@
     "AGENTS.md",
     "README.md"
   ],
+  "scripts": {
+    "postinstall": "npx skills add calycode/xano-tools/packages/xano-skills --yes 2>/dev/null || true"
+  },
   "publishConfig": {
     "access": "public"
   }
