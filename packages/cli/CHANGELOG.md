@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.18.0
+
+### Minor Changes
+
+- 91d81cf: refactor: **BREAKING CHANGE** rename CLI command from `xano` to `caly-xano`; update scripts, CI, and docs to use `caly-xano`
+
 ## 0.17.0
 
 ### Minor Changes
