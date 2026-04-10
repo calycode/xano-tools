@@ -37,8 +37,6 @@ jobs:
               registry-url: "https://registry.npmjs.org"
               scope: "@calycode"
               always-auth: true
-           env:
-              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
          - name: Install dependencies
            run: pnpm install --frozen-lockfile
@@ -52,7 +50,7 @@ jobs:
            with:
               commit: "changeset-release"
               title: "Release Version [@coderabbitai ignore]"
-              publish: pnpm -r publish
+              publish: pnpm -r publish --provenance
            env:
               GITHUB_TOKEN: ${{ secrets.CHANGESETS_GH_TOKEN }}
-              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+              NPM_CONFIG_PROVENANCE: true
