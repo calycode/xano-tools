@@ -51,6 +51,7 @@
         "@vercel/ncc": "^0.38.4",
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
+        "posthog-node": "^5.9.2",
         "postject": "1.0.0-alpha.6",
         "shx": "^0.4.0",
         "tar": "^7.4.3"
@@ -80,10 +81,5 @@
             "dist/actions/**/*"
         ],
         "outputPath": "dist/bin"
-    },
-    "dependencies": {
-        "dotenv": "^16.4.5",
-        "opencode-ai": "^1.1.35",
-        "posthog-node": "^5.9.2"
     }
 }
