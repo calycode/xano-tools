@@ -97,7 +97,7 @@ uninstall() {
     header "Uninstalling CalyCode CLI..."
     
     # Remove npm package
-    if command -v caly-xano >/dev/null 2>&1; then
+    if command -v caly-xano >/dev/null 2>&1 || npm list -g --depth=0 @calycode/cli >/dev/null 2>&1; then
         log "Removing @calycode/cli package..."
         npm uninstall -g @calycode/cli 2>/dev/null || sudo npm uninstall -g @calycode/cli 2>/dev/null || true
     fi
@@ -331,7 +331,7 @@ configure_native_host() {
     if ! command -v caly-xano >/dev/null 2>&1; then
         warn "Cannot configure native host: 'caly-xano' command not found in PATH"
         warn "Please restart your terminal and run: caly-xano opencode init"
-        return 1
+        return 0
     fi
     
     caly-xano opencode init

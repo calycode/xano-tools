@@ -13,9 +13,9 @@ npx skills add calycode/xano-tools/packages/xano-skills
 ### Via CalyCode CLI
 
 ```bash
-xano oc init  # Includes skills installation
+caly-xano oc init  # Includes skills installation
 # Or separately:
-xano oc skills install
+caly-xano oc skills install
 ```
 
 ## Available Skills
@@ -34,7 +34,7 @@ xano oc skills install
 
 The AI agent will automatically reference these skills when:
 
-- **CLI operations**: Running `xano` commands, generating specs, backups
+- **CLI operations**: Running `caly-xano` commands, generating specs, backups
 - **Database design**: Creating tables, defining schemas, setting up indexes
 - **API development**: Writing XanoScript, creating endpoints, handling auth
 - **Performance issues**: Slow queries, N+1 patterns, missing indexes

@@ -262,6 +262,10 @@ function Initialize-NativeHost {
     
     try {
         caly-xano opencode init
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "Native host configuration command failed with exit code $LASTEXITCODE" "ERROR"
+            return $false
+        }
         return $true
     }
     catch {
@@ -275,9 +279,10 @@ function Invoke-Uninstall {
     Write-Header "Uninstalling CalyCode CLI..."
     
     # Remove npm package
-    if (Get-Command caly-xano -ErrorAction SilentlyContinue) {
-        Write-Log "Removing $PackageName package..." "INFO"
-        npm uninstall -g $PackageName 2>$null
+    Write-Log "Removing $PackageName package..." "INFO"
+    npm uninstall -g $PackageName 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "npm uninstall returned exit code $LASTEXITCODE for $PackageName" "WARN"
     }
     
     # Remove native host configuration
