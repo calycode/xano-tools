@@ -3,15 +3,15 @@
 > #### Manage Xano skills for AI agents (database optimization, security, best practices).
 
 ```term
-$ xano oc skills [options]
+$ caly-xano oc skills [options]
 ```
 
 ### oc skills --help
 ```term
-$ xano oc skills --help
+$ caly-xano oc skills --help
 Manage Xano skills for AI agents (database optimization, security, best practices).
 
-Usage: xano oc skills [options] [command]
+Usage: caly-xano oc skills [options] [command]
 
 Options:
   └─ -h, --help  display help for command
@@ -23,6 +23,6 @@ Commands:
   ├─ clear-cache  Clear the skills cache (skills will be re-downloaded on n...
   └─ help         display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

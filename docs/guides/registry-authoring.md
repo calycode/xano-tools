@@ -529,14 +529,14 @@ caly-xano registry add auth/sso-integration \
 
 **Benefits of NPM Scoped Registries:**
 
-| Feature              | Description                                                    |
-| -------------------- | -------------------------------------------------------------- |
-| Access Control       | Leverage existing npm org permissions and team roles           |
-| Version Management   | Use npm's semver for registry versioning                       |
-| CI/CD Integration    | Easily integrate with existing npm-based pipelines             |
-| Audit Trail          | Track who published what and when via npm audit logs           |
-| Offline Development  | Cache packages locally for air-gapped environments             |
-| Multi-Registry       | Teams can combine public and private registries per scope      |
+| Feature             | Description                                               |
+| ------------------- | --------------------------------------------------------- |
+| Access Control      | Leverage existing npm org permissions and team roles      |
+| Version Management  | Use npm's semver for registry versioning                  |
+| CI/CD Integration   | Easily integrate with existing npm-based pipelines        |
+| Audit Trail         | Track who published what and when via npm audit logs      |
+| Offline Development | Cache packages locally for air-gapped environments        |
+| Multi-Registry      | Teams can combine public and private registries per scope |
 
 **Example: Multi-Team Registry Structure**
 

@@ -3,7 +3,7 @@
 > #### Install or reinstall Xano skills for AI agents.
 
 ```term
-$ xano oc skills install [options]
+$ caly-xano oc skills install [options]
 ```
 ### Options
 
@@ -12,15 +12,15 @@ $ xano oc skills install [options]
 
 ### oc skills install --help
 ```term
-$ xano oc skills install --help
+$ caly-xano oc skills install --help
 Install or reinstall Xano skills for AI agents.
 
-Usage: xano oc skills install [options]
+Usage: caly-xano oc skills install [options]
 
 Options:
   ├─ -f, --force  Force overwrite existing skills
   └─ -h, --help   display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```
