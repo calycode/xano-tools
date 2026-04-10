@@ -7,7 +7,7 @@ Agent skills for Xano backend development. This collection provides procedural k
 ### Via skills.sh CLI
 
 ```bash
-npx skills add calycode/xano-tools
+npx skills add calycode/xano-tools/packages/xano-skills
 ```
 
 ### Via CalyCode CLI
