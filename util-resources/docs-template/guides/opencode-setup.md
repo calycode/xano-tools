@@ -33,21 +33,21 @@ The CalyCode CLI integrates with [OpenCode](https://opencode.ai), an open-source
 npm install -g @calycode/cli
 
 # 2. Set up OpenCode with agents, commands, and skills
-xano oc setup
+caly-xano oc setup
 
 # 3. Run OpenCode interactively
-xano oc run
+caly-xano oc run
 
 # 4. Or run with a specific agent
-xano oc run "@xano-planner Plan a user authentication system"
+caly-xano oc run "@xano-planner Plan a user authentication system"
 ```
 
 ## Setup Command
 
-The `xano oc setup` command installs everything needed for AI-assisted development:
+The `caly-xano oc setup` command installs everything needed for AI-assisted development:
 
 ```bash
-xano oc setup [options]
+caly-xano oc setup [options]
 ```
 
 ### Options
@@ -97,10 +97,10 @@ To get the latest agents, commands, and skills:
 
 ```bash
 # Force re-download all templates
-xano oc setup --force
+caly-xano oc setup --force
 
 # Or update just templates
-xano oc update
+caly-xano oc update
 ```
 
 ## Running OpenCode
@@ -111,10 +111,10 @@ Start an interactive AI coding session:
 
 ```bash
 # Start OpenCode in the current directory
-xano oc run
+caly-xano oc run
 
 # Start in a specific project directory
-xano oc run --workdir /path/to/project
+caly-xano oc run --workdir /path/to/project
 ```
 
 ### With Initial Prompt
@@ -123,13 +123,13 @@ Run with a specific task or agent:
 
 ```bash
 # Use a specialized agent
-xano oc run "@xano-planner Design a blog backend with posts and comments"
+caly-xano oc run "@xano-planner Design a blog backend with posts and comments"
 
 # Use a slash command
-xano oc run "/xano-table Create a users table with email and password"
+caly-xano oc run "/xano-table Create a users table with email and password"
 
 # Simple prompt
-xano oc run "Help me understand this XanoScript function"
+caly-xano oc run "Help me understand this XanoScript function"
 ```
 
 ### Server Mode
@@ -138,13 +138,13 @@ Run OpenCode as an HTTP server for programmatic access:
 
 ```bash
 # Start server on default port (4096)
-xano oc serve
+caly-xano oc serve
 
 # Start on a specific port
-xano oc serve --port 8080
+caly-xano oc serve --port 8080
 
 # Start in background (detached)
-xano oc serve --detach
+caly-xano oc serve --detach
 ```
 
 ## Agents & Slash Commands
@@ -169,16 +169,16 @@ Use `@agent-name` to delegate to specialized agents:
 
 ```bash
 # Plan a feature
-xano oc run "@xano-planner Plan a subscription billing system with Stripe"
+caly-xano oc run "@xano-planner Plan a subscription billing system with Stripe"
 
 # Design a table
-xano oc run "@xano-table-designer Create a products table for an e-commerce store"
+caly-xano oc run "@xano-table-designer Create a products table for an e-commerce store"
 
 # Create an API
-xano oc run "@xano-api-writer Create CRUD endpoints for user management"
+caly-xano oc run "@xano-api-writer Create CRUD endpoints for user management"
 
 # Debug an issue
-xano oc run "@debug-helper My API is returning 500 errors on POST requests"
+caly-xano oc run "@debug-helper My API is returning 500 errors on POST requests"
 ```
 
 ### Slash Commands
@@ -202,13 +202,13 @@ Use `/command` for quick actions:
 
 ```bash
 # Create a table
-xano oc run "/xano-table users with email, password_hash, role enum (admin, user)"
+caly-xano oc run "/xano-table users with email, password_hash, role enum (admin, user)"
 
 # Create a function
-xano oc run "/xano-function calculate_order_total that sums line items with tax"
+caly-xano oc run "/xano-function calculate_order_total that sums line items with tax"
 
 # Create an API
-xano oc run "/xano-api POST /checkout that processes payment and creates order"
+caly-xano oc run "/xano-api POST /checkout that processes payment and creates order"
 ```
 
 ## Skills
@@ -243,9 +243,9 @@ Skills provide domain-specific knowledge that agents can reference. They are loa
 You can reference skills in your prompts:
 
 ```bash
-xano oc run "Use the xano-security skill to review this login endpoint"
+caly-xano oc run "Use the xano-security skill to review this login endpoint"
 
-xano oc run "Apply xano-query-performance patterns to optimize this data fetching"
+caly-xano oc run "Apply xano-query-performance patterns to optimize this data fetching"
 ```
 
 ## Configuration Files
@@ -308,7 +308,7 @@ The native host is automatically configured during `xano oc setup`. For manual s
 
 ```bash
 # Install native host manifest
-xano oc setup
+caly-xano oc setup
 
 # The manifest is created at:
 # Windows: %USERPROFILE%\.calycode\com.calycode.host.json
@@ -320,7 +320,7 @@ xano oc setup
 
 ```bash
 # Start native host directly (for debugging)
-xano oc native-host
+caly-xano oc native-host
 
 # The native host listens for JSON messages on stdin
 # and responds on stdout using Chrome's native messaging protocol
@@ -374,7 +374,7 @@ Get-Content -Wait $env:USERPROFILE\.calycode\logs\native-host.log
 
 ```bash
 # Clear template cache and re-download
-xano oc setup --force
+caly-xano oc setup --force
 ```
 
 ## Best Practices
@@ -391,7 +391,7 @@ xano oc setup --force
 
 ```bash
 # Be specific about what you want
-xano oc run "@xano-table-designer Create a products table with:
+caly-xano oc run "@xano-table-designer Create a products table with:
 - name (text, required, max 255)
 - price (decimal, required, min 0)
 - description (text, optional)
@@ -399,7 +399,7 @@ xano oc run "@xano-table-designer Create a products table with:
 - created_at (timestamp, auto)"
 
 # Provide context
-xano oc run "@xano-api-writer Create a checkout API that:
+caly-xano oc run "@xano-api-writer Create a checkout API that:
 - Uses the orders table we just created
 - Validates cart items exist
 - Calculates total with tax
@@ -412,10 +412,10 @@ For optimization or security-sensitive work, reference the appropriate skill:
 
 ```bash
 # Security review
-xano oc run "Use xano-security skill to audit this user registration endpoint"
+caly-xano oc run "Use xano-security skill to audit this user registration endpoint"
 
 # Performance optimization
-xano oc run "Apply xano-query-performance to optimize this dashboard query"
+caly-xano oc run "Apply xano-query-performance to optimize this dashboard query"
 ```
 
 ## Resources

@@ -41,18 +41,18 @@ This guide provides recommendations and points to comprehensive resources.
 npm install -g @calycode/cli
 
 # Initialize for your Xano instance
-xano init
+caly-xano init
 # Follow the interactive prompts
 
 # Verify setup
-xano context show
+caly-xano context show
 ```
 
 ### Version Control Workflow
 
 ```bash
 # Generate repository with XanoScript
-xano generate repo \
+caly-xano generate repo \
   --instance production \
   --workspace main \
   --branch live
@@ -147,14 +147,14 @@ main (production)
 1. **Export XanoScript** before merging:
 
    ```bash
-   xano generate xanoscript --branch feature/new-feature
+   caly-xano generate xanoscript --branch feature/new-feature
    ```
 
 2. **Review in Git** - Use standard PR workflows
 
 3. **Run tests** before deployment:
    ```bash
-   xano test run -c ./tests/config.json --branch develop --ci
+   caly-xano test run -c ./tests/config.json --branch develop --ci
    ```
 
 ## Architecture Patterns
@@ -289,28 +289,28 @@ Found a useful pattern? Share it with the community:
 
 ```bash
 # Initialize CLI
-xano init
+caly-xano init
 
 # Generate repository
-xano generate repo
+caly-xano generate repo
 
 # Extract XanoScript
-xano generate xanoscript
+caly-xano generate xanoscript
 
 # Create registry
-xano registry scaffold --output ./my-registry
+caly-xano registry scaffold --output ./my-registry
 
 # Serve registry locally
-xano serve registry --path ./my-registry
+caly-xano serve registry --path ./my-registry
 
 # Install components
-xano registry add component-name --registry <url>
+caly-xano registry add component-name --registry <url>
 
 # Run tests
-xano test run -c ./config.json --ci
+caly-xano test run -c ./config.json --ci
 
 # Generate documentation
-xano generate docs
+caly-xano generate docs
 ```
 
 ### Environment Variables

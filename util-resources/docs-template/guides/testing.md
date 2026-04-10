@@ -33,16 +33,16 @@ The Caly Xano CLI provides a powerful API testing framework that:
 # test-config.json (see examples below)
 
 # 2. Run tests
-xano test run -c ./test-config.json
+caly-xano test run -c ./test-config.json
 
 # 3. Run tests with environment variables
-xano test run -c ./test-config.json -e API_KEY=secret -e USER_EMAIL=test@example.com
+caly-xano test run -c ./test-config.json -e API_KEY=secret -e USER_EMAIL=test@example.com
 
 # 4. Run in CI mode (exit code 1 on failure)
-xano test run -c ./test-config.json --ci
+caly-xano test run -c ./test-config.json --ci
 
 # 5. Run for all API groups
-xano test run -c ./test-config.json --all --ci
+caly-xano test run -c ./test-config.json --all --ci
 ```
 
 ## Command Options
@@ -398,7 +398,7 @@ When `customAsserts` is empty or not provided, these built-in assertions run:
 
 ```bash
 # Run tests and fail pipeline on errors
-xano test run -c ./test-config.json --ci
+caly-xano test run -c ./test-config.json --ci
 ```
 
 ### GitHub Actions Example
@@ -432,7 +432,7 @@ jobs:
               XANO_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
               XANO_TOKEN_PRODUCTION: ${{ secrets.XANO_TOKEN }}
            run: |
-              xano test run \
+              caly-xano test run \
                 -c ./test-config.json \
                 --instance production \
                 --workspace main \
@@ -457,7 +457,7 @@ api-tests:
    before_script:
       - npm install -g @calycode/cli
    script:
-      - xano test run -c ./test-config.json --all --ci
+      - caly-xano test run -c ./test-config.json --all --ci
    variables:
       XANO_TEST_EMAIL: ${TEST_EMAIL}
       XANO_TEST_PASSWORD: ${TEST_PASSWORD}
@@ -561,13 +561,13 @@ tests/
 
 ```bash
 # Development
-xano test run -c ./tests/test-config.dev.js --branch dev
+caly-xano test run -c ./tests/test-config.dev.js --branch dev
 
 # Staging
-xano test run -c ./tests/test-config.staging.js --branch staging
+caly-xano test run -c ./tests/test-config.staging.js --branch staging
 
 # Production (read-only tests)
-xano test run -c ./tests/test-config.prod.js --branch prod --ci
+caly-xano test run -c ./tests/test-config.prod.js --branch prod --ci
 ```
 
 ## Test Results
