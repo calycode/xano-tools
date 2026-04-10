@@ -1,8 +1,8 @@
 # @calycode/cli
 ```sh
-caly-xano-cli v0.15.0 — Automate backups, docs, testing & version control for Xano
+caly-xano-cli v0.16.0 — Automate backups, docs, testing & version control for Xano
 
-Usage: xano <command> [options]
+Usage: caly-xano <command> [options]
 
 Core:
   └─ init                  Initialize CLI with Xano instance config
@@ -33,6 +33,9 @@ Backups:
   ├─ backup export         Export workspace backup
   └─ backup restore        Restore backup to workspace
 
-Run 'xano <command> --help' for detailed usage.
+Other:
+  └─ oc skills install     Install or reinstall Xano skills for AI agents.
+
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

@@ -3,7 +3,7 @@
 > #### Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
 
 ```term
-$ xano generate spec [options]
+$ caly-xano generate spec [options]
 ```
 ### Options
 
@@ -24,10 +24,10 @@ $ xano generate spec [options]
 
 ### generate spec --help
 ```term
-$ xano generate spec --help
+$ caly-xano generate spec --help
 Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.
 
-Usage: xano generate spec [options]
+Usage: caly-xano generate spec [options]
 
 Options:
   ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
@@ -39,6 +39,6 @@ Options:
   ├─ --include-tables         Requests table schema fetching and inclusion into the generate spec. By default tables are not included.
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

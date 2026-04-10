@@ -3,7 +3,7 @@
 > #### Initialize the CLI with Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.
 
 ```term
-$ xano init [options]
+$ caly-xano init [options]
 ```
 ### Options
 
@@ -20,10 +20,10 @@ $ xano init [options]
 
 ### init --help
 ```term
-$ xano init --help
+$ caly-xano init --help
 Initialize the CLI with Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.
 
-Usage: xano init [options]
+Usage: caly-xano init [options]
 
 Options:
   ├─ --name <name>            Instance name (for non-interactive setup)
@@ -33,6 +33,6 @@ Options:
   ├─ --no-set-current         Flag to not set this instance as the current context, by default it is set.
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

@@ -60,7 +60,7 @@ program.hook('postAction', (thisCommand, actionCommand) => {
 });
 
 program
-   .name('xano')
+   .name('caly-xano')
    .version(version, '-v, --version', 'output the version number')
    .usage('<command> [options]')
    .description(

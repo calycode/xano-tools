@@ -3,6 +3,7 @@ import { isSea } from 'node:sea';
 import { program } from './program';
 import { setupOpencode, startNativeHost } from './commands/opencode/implementation';
 import { HOST_APP_INFO } from './utils/host-constants';
+import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 
 /**
  * Escape a string for safe use in PowerShell.
@@ -33,6 +34,7 @@ function escapeAppleScript(str: string): string {
 (async () => {
    const isBundled = isSea();
    const args = process.argv;
+   exitIfLegacyXanoInvocation(args);
 
    // Check if we are being called as the Native Host
    // This handles both direct chrome-extension:// invocations (Linux/Mac)

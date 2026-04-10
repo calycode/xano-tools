@@ -3,7 +3,7 @@
 > #### Backup Xano Workspace via Metadata API
 
 ```term
-$ xano backup export [options]
+$ caly-xano backup export [options]
 ```
 ### Options
 
@@ -18,10 +18,10 @@ $ xano backup export [options]
 
 ### backup export --help
 ```term
-$ xano backup export --help
+$ caly-xano backup export --help
 Backup Xano Workspace via Metadata API
 
-Usage: xano backup export [options]
+Usage: caly-xano backup export [options]
 
 Options:
   ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
@@ -30,6 +30,6 @@ Options:
   ├─ --print-output-dir       Expose usable output path for further reuse.
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

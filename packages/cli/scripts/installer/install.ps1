@@ -229,12 +229,12 @@ function Install-CalyCodeCLI {
         # Verify installation
         Update-PathEnvironment
         
-        if (Get-Command xano -ErrorAction SilentlyContinue) {
-            $cliVersion = (xano --version 2>$null) -replace '\n', ''
+        if (Get-Command caly-xano -ErrorAction SilentlyContinue) {
+            $cliVersion = (caly-xano --version 2>$null) -replace '\n', ''
             Write-Log "CLI version: $cliVersion" "INFO"
         }
         else {
-            Write-Log "The 'xano' command is not in PATH. You may need to restart your terminal." "WARN"
+            Write-Log "The 'caly-xano' command is not in PATH. You may need to restart your terminal." "WARN"
         }
         
         return $true
@@ -254,14 +254,14 @@ function Initialize-NativeHost {
     
     Write-Header "Configuring Chrome Native Messaging Host..."
     
-    if (-not (Get-Command xano -ErrorAction SilentlyContinue)) {
-        Write-Log "Cannot configure native host: 'xano' command not found in PATH" "WARN"
-        Write-Log "Please restart your terminal and run: xano opencode init" "WARN"
+    if (-not (Get-Command caly-xano -ErrorAction SilentlyContinue)) {
+        Write-Log "Cannot configure native host: 'caly-xano' command not found in PATH" "WARN"
+        Write-Log "Please restart your terminal and run: caly-xano opencode init" "WARN"
         return $false
     }
     
     try {
-        xano opencode init
+        caly-xano opencode init
         return $true
     }
     catch {
@@ -275,7 +275,7 @@ function Invoke-Uninstall {
     Write-Header "Uninstalling CalyCode CLI..."
     
     # Remove npm package
-    if (Get-Command xano -ErrorAction SilentlyContinue) {
+    if (Get-Command caly-xano -ErrorAction SilentlyContinue) {
         Write-Log "Removing $PackageName package..." "INFO"
         npm uninstall -g $PackageName 2>$null
     }
@@ -325,9 +325,9 @@ function Write-Completion {
     Write-Host "============================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Getting Started:" -ForegroundColor Cyan
-    Write-Host "    xano --help              Show available commands"
-    Write-Host "    xano opencode init       Reconfigure Chrome extension"
-    Write-Host "    xano opencode serve      Start local AI server"
+    Write-Host "    caly-xano --help              Show available commands"
+    Write-Host "    caly-xano opencode init       Reconfigure Chrome extension"
+    Write-Host "    caly-xano opencode serve      Start local AI server"
     Write-Host ""
     Write-Host "  Documentation:" -ForegroundColor Cyan
     Write-Host "    https://calycode.com/docs"

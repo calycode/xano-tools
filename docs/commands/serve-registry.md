@@ -3,7 +3,7 @@
 > #### Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.
 
 ```term
-$ xano serve registry [options]
+$ caly-xano serve registry [options]
 ```
 ### Options
 
@@ -16,10 +16,10 @@ $ xano serve registry [options]
 
 ### serve registry --help
 ```term
-$ xano serve registry --help
+$ caly-xano serve registry --help
 Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.
 
-Usage: xano serve registry [options]
+Usage: caly-xano serve registry [options]
 
 Options:
   ├─ --root <path>    Where did you put your registry? (Local path to the registry directory)
@@ -27,6 +27,6 @@ Options:
   ├─ --cors           Do you want to enable CORS? By default false.
   └─ -h, --help       display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

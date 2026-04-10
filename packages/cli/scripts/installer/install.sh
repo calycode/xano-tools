@@ -97,7 +97,7 @@ uninstall() {
     header "Uninstalling CalyCode CLI..."
     
     # Remove npm package
-    if command -v xano >/dev/null 2>&1; then
+    if command -v caly-xano >/dev/null 2>&1; then
         log "Removing @calycode/cli package..."
         npm uninstall -g @calycode/cli 2>/dev/null || sudo npm uninstall -g @calycode/cli 2>/dev/null || true
     fi
@@ -312,10 +312,10 @@ install_cli() {
     fi
     
     # Verify installation
-    if ! command -v xano >/dev/null 2>&1; then
-        warn "The 'xano' command is not in PATH. You may need to restart your terminal."
+    if ! command -v caly-xano >/dev/null 2>&1; then
+        warn "The 'caly-xano' command is not in PATH. You may need to restart your terminal."
     else
-        log "CLI version: $(xano --version 2>/dev/null || echo 'unknown')"
+        log "CLI version: $(caly-xano --version 2>/dev/null || echo 'unknown')"
     fi
 }
 
@@ -328,13 +328,13 @@ configure_native_host() {
     
     header "Configuring Chrome Native Messaging Host..."
     
-    if ! command -v xano >/dev/null 2>&1; then
-        warn "Cannot configure native host: 'xano' command not found in PATH"
-        warn "Please restart your terminal and run: xano opencode init"
+    if ! command -v caly-xano >/dev/null 2>&1; then
+        warn "Cannot configure native host: 'caly-xano' command not found in PATH"
+        warn "Please restart your terminal and run: caly-xano opencode init"
         return 1
     fi
     
-    xano opencode init
+    caly-xano opencode init
 }
 
 # Print completion message
@@ -345,9 +345,9 @@ print_completion() {
     echo -e "${GREEN}${BOLD}============================================${NC}"
     echo ""
     echo -e "  ${CYAN}Getting Started:${NC}"
-    echo "    xano --help              Show available commands"
-    echo "    xano opencode init       Reconfigure Chrome extension"
-    echo "    xano opencode serve      Start local AI server"
+    echo "    caly-xano --help              Show available commands"
+    echo "    caly-xano opencode init       Reconfigure Chrome extension"
+    echo "    caly-xano opencode serve      Start local AI server"
     echo ""
     echo -e "  ${CYAN}Documentation:${NC}"
     echo "    https://calycode.com/docs"

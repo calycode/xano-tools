@@ -3,7 +3,7 @@
 > #### Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
 
 ```term
-$ xano generate xanoscript [options]
+$ caly-xano generate xanoscript [options]
 ```
 ### Options
 
@@ -18,10 +18,10 @@ $ xano generate xanoscript [options]
 
 ### generate xanoscript --help
 ```term
-$ xano generate xanoscript --help
+$ caly-xano generate xanoscript --help
 Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
 
-Usage: xano generate xanoscript [options]
+Usage: caly-xano generate xanoscript [options]
 
 Options:
   ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
@@ -30,6 +30,6 @@ Options:
   ├─ --print-output-dir       Expose usable output path for further reuse.
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

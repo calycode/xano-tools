@@ -3,15 +3,15 @@
 > #### Transforamtive operations that allow you to view you Xano through a fresh set of eyes.
 
 ```term
-$ xano generate [options]
+$ caly-xano generate [options]
 ```
 
 ### generate --help
 ```term
-$ xano generate --help
+$ caly-xano generate --help
 Transforamtive operations that allow you to view you Xano through a fresh set of eyes.
 
-Usage: xano generate [options] [command]
+Usage: caly-xano generate [options] [command]
 
 Options:
   └─ -h, --help  display help for command
@@ -24,6 +24,6 @@ Commands:
   ├─ xanoscript  Process Xano workspace into repo structure. Supports tabl...
   └─ help        display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

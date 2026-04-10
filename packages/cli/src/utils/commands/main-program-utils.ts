@@ -29,15 +29,17 @@ function getFullCommandPath(cmd) {
       path.push(current.name());
       current = current.parent;
    }
-   // Remove 'xano' or '' from the path if present
+   // Remove root command names from the path if present
    return path
       .reverse()
-      .filter((seg) => seg && seg !== 'xano')
+      .filter((seg) => seg && seg !== 'xano' && seg !== 'caly-xano')
       .join(' ');
 }
 
 function collectVisibleLeafCommands(cmd, parentPath = [], parentHiddenFromRoot = false) {
-   const path = [...parentPath, cmd.name()].filter((segment) => segment !== 'xano');
+   const path = [...parentPath, cmd.name()].filter(
+      (segment) => segment !== 'xano' && segment !== 'caly-xano',
+   );
    let results = [];
 
    // Track if this command or any ancestor is hidden from root help
@@ -141,7 +143,7 @@ function customFormatHelp(cmd, helper) {
    }
 
    // 6. Footer
-   output.push(font.color.gray("Run 'xano <command> --help' for detailed usage."));
+   output.push(font.color.gray("Run 'caly-xano <command> --help' for detailed usage."));
    output.push(
       font.color.gray('https://github.com/calycode/xano-tools | https://links.calycode.com/discord'),
    );
@@ -231,7 +233,7 @@ function customFormatHelpForRoot(cmd) {
       output.push(cmd.description());
    }
    output.push('');
-   output.push(font.color.gray('Usage: xano <command> [options]'));
+   output.push(font.color.gray('Usage: caly-xano <command> [options]'));
    output.push('');
 
    // 7. Command Groups with tree structure
@@ -258,7 +260,7 @@ function customFormatHelpForRoot(cmd) {
    }
 
    // Footer
-   output.push(font.color.gray("Run 'xano <command> --help' for detailed usage."));
+   output.push(font.color.gray("Run 'caly-xano <command> --help' for detailed usage."));
    output.push(
       font.color.gray('https://github.com/calycode/xano-tools | https://links.calycode.com/discord'),
    );

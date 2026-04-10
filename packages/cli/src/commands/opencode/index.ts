@@ -73,7 +73,7 @@ async function registerOpencodeCommands(program) {
 
             if (!status.installed) {
                log.info(
-                  'No templates installed. Run "xano opencode templates install" to install.',
+                  'No templates installed. Run "caly-xano opencode templates install" to install.',
                );
                return;
             }
@@ -131,7 +131,7 @@ async function registerOpencodeCommands(program) {
             const status = getSkillsInstallStatus();
 
             if (!status.installed) {
-               log.info('No skills installed. Run "xano opencode skills install" to install.');
+               log.info('No skills installed. Run "caly-xano opencode skills install" to install.');
                return;
             }
 
@@ -201,7 +201,7 @@ async function registerOpencodeCommands(program) {
          // A safer way for a "passthrough" is often to inspect process.argv directly,
          // but let's try to trust the explicit args first or just grab the raw rest.
 
-         // Actually, for a pure proxy where we want "xano opencode foo --bar",
+          // Actually, for a pure proxy where we want "caly-xano opencode foo --bar",
          // "foo" becomes an arg, "--bar" might be parsed as an option if not careful.
 
          // Let's filter process.argv to find everything after "opencode" or "oc".
@@ -219,7 +219,7 @@ async function registerOpencodeCommands(program) {
 
          // Filter out our own known subcommands if they were accidentally matched?
          // No, if we are here, it's because it wasn't init/serve/native-host (mostly).
-         // BUT 'run' is default, so 'xano opencode' (no args) also lands here.
+          // BUT 'run' is default, so 'caly-xano opencode' (no args) also lands here.
 
          await proxyOpencode(passThroughArgs);
       });

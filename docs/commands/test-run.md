@@ -3,7 +3,7 @@
 > #### Run an API test suite. Requires a test config file (.json or .js). Schema: https://calycode.com/schemas/testing/config.json | Full guide: https://calycode.github.io/xano-tools/#/guides/testing
 
 ```term
-$ xano test run [options]
+$ caly-xano test run [options]
 ```
 ### Options
 
@@ -30,10 +30,10 @@ $ xano test run [options]
 
 ### test run --help
 ```term
-$ xano test run --help
+$ caly-xano test run --help
 Run an API test suite. Requires a test config file (.json or .js). Schema: https://calycode.com/schemas/testing/config.json | Full guide: https://calycode.github.io/xano-tools/#/guides/testing
 
-Usage: xano test run [options]
+Usage: caly-xano test run [options]
 
 Options:
   ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
@@ -48,6 +48,6 @@ Options:
   ├─ --fail-on-warnings       In CI mode, also fail if there are warnings (not just errors).
   └─ -h, --help               display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

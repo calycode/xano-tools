@@ -3,15 +3,15 @@
 > #### Backup and restoration operations.
 
 ```term
-$ xano backup [options]
+$ caly-xano backup [options]
 ```
 
 ### backup --help
 ```term
-$ xano backup --help
+$ caly-xano backup --help
 Backup and restoration operations.
 
-Usage: xano backup [options] [command]
+Usage: caly-xano backup [options] [command]
 
 Options:
   └─ -h, --help  display help for command
@@ -21,6 +21,6 @@ Commands:
   ├─ restore  Restore a backup to a Xano Workspace via Metadata API. DA...
   └─ help     display help for command
 
-Run 'xano <command> --help' for detailed usage.
+Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
 ```

@@ -22,7 +22,7 @@ The CLI package provides:
 ```bash
 npm install -g @calycode/cli
 ## pnpm install @calycode/cli -g
-xano --help
+caly-xano --help
 ```
 
 ### NPX Usage
@@ -51,32 +51,32 @@ Every command inherit context from:
 
 ```bash
 # Setup instance (interactive)
-xano init
+caly-xano init
 
 # Or non-interactive setup
-xano init --name production --url https://x123.xano.io --token your-metadata-api-token
+caly-xano init --name production --url https://x123.xano.io --token your-metadata-api-token
 
 # Generate OpenAPI specs
-xano generate spec --all
+caly-xano generate spec --all
 
 # Generate TypeScript client
-xano generate codegen --generator typescript-fetch
+caly-xano generate codegen --generator typescript-fetch
 
 # Serve documentation
-xano serve spec
+caly-xano serve spec
 ```
 
 ### Multi-Environment Setup
 
 ```bash
 # Setup multiple instances
-xano init --name production --url https://prod.my-instance.xano.io --token prod-token
-xano init --name staging --url https://staging.my-instance.xano.io --token staging-token
+caly-xano init --name production --url https://prod.my-instance.xano.io --token prod-token
+caly-xano init --name staging --url https://staging.my-instance.xano.io --token staging-token
 
-xano generate spec --group api
+caly-xano generate spec --group api
 # You will be prompted to select all missing context information via prompts.
 
-xano backup export
+caly-xano backup export
 ```
 
 ## Integration
@@ -136,11 +136,11 @@ In order to actually use the CLI with proper git support it is advised to also d
 This allows users to override the output and as a result keep a proper git history.
 The flow is as follows:
 
-1. Run the `xano init` command to configure your instance
+1. Run the `caly-xano init` command to configure your instance
 2. Make sure you have git installed on your machine
 3. Run `git init`
-4. Run a command e.g. `xano generate repo --output lib` and then commit these changes to your desired branch
-5. Create new branch (possibly name similarly as on your Xano) and run the `xano generate repo --output lib` again. After a new commit and push you now have a fully git-enabled comparison of your two Xano branches.
+4. Run a command e.g. `caly-xano generate repo --output lib` and then commit these changes to your desired branch
+5. Create new branch (possibly name similarly as on your Xano) and run the `caly-xano generate repo --output lib` again. After a new commit and push you now have a fully git-enabled comparison of your two Xano branches.
 
 For a complete guide, see the [Git Workflow documentation](https://calycode.com/cli/docs/#/guides/git-workflow).
 

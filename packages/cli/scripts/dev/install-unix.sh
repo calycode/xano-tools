@@ -3,7 +3,7 @@
 # CalyCode Native Host Installer (Development)
 # ============================================================================
 # This script is for developers working on the CLI itself.
-# It assumes the CLI is already available via 'xano' command (linked or built).
+# It assumes the CLI is already available via 'caly-xano' command (linked or built).
 #
 # For end-users, use the production installer instead:
 #   curl -fsSL https://get.calycode.com/install.sh | bash
@@ -103,13 +103,13 @@ main() {
         install_node
     fi
     
-    # Check if xano command exists (assumes dev environment is set up)
-    if ! command -v xano >/dev/null 2>&1; then
-        fatal "The 'xano' command is not available. Please ensure you have linked or built the CLI."
+    # Check if caly-xano command exists (assumes dev environment is set up)
+    if ! command -v caly-xano >/dev/null 2>&1; then
+        fatal "The 'caly-xano' command is not available. Please ensure you have linked or built the CLI."
     fi
     
     log "Initializing Native Host..."
-    xano opencode init
+    caly-xano opencode init
     
     echo ""
     log "Setup complete! You can reload the Chrome extension now."
