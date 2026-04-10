@@ -39,12 +39,11 @@
     },
     "homepage": "https://github.com/calycode/xano-tools/tree/main/packages/browser-consumer#readme",
     "dependencies": {
-        "@calycode/core": "workspace:*",
-        "@repo/types": "workspace:*",
         "idb": "^8.0.0",
         "js-untar": "^2.0.0"
     },
     "devDependencies": {
+        "@repo/types": "workspace:*",
         "@repo/utils": "workspace:*",
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0"
