@@ -259,8 +259,8 @@ The main OpenCode configuration at `~/.calycode/opencode/opencode.json`:
 ```json
 {
    "$schema": "https://opencode.ai/config.json",
-   "model": "anthropic/claude-sonnet-4-20250514",
-   "small_model": "anthropic/claude-haiku-4-20250514",
+   "model": "github-copilot/claude-sonnet-4.5",
+   "small_model": "github-copilot/claude-haiku-4.5",
    "autoupdate": true,
    "instructions": ["~/.config/opencode/AGENTS.md"],
    "permission": {

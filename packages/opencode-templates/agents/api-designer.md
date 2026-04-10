@@ -1,7 +1,7 @@
 ---
 description: Specialist in RESTful API design, endpoint architecture, and integration patterns. Helps design clean, scalable APIs.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.3
 tools:
    read: true

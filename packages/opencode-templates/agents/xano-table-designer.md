@@ -1,7 +1,7 @@
 ---
 description: Design XanoScript database tables with schemas, field types, relationships, and indexes. Tables define your data model.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.1
 tools:
    read: true

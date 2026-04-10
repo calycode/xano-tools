@@ -1,7 +1,7 @@
 ---
 description: Helps troubleshoot issues, analyze errors, and debug problems in Xano backends and related code.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.1
 tools:
    read: true

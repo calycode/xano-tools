@@ -1,7 +1,7 @@
 ---
 description: Write XanoScript scheduled tasks for automated jobs like data cleanup, reports, notifications, and background processing.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.1
 tools:
   read: true

@@ -1,7 +1,7 @@
 ---
 description: Write reusable XanoScript functions with inputs, business logic, and responses. Functions encapsulate complex operations for reuse.
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.1
 tools:
    read: true
