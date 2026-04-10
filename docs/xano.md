@@ -1,6 +1,6 @@
 # @calycode/cli
 ```sh
-caly-xano-cli v0.18.0 — Automate backups, docs, testing & version control for Xano
+caly-xano-cli v0.18.1 — Automate backups, docs, testing & version control for Xano
 
 Usage: caly-xano <command> [options]
 

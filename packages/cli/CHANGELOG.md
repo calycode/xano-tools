@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.18.1
+
+### Patch Changes
+
+- dab4103: Scope OpenCode server and native-host child processes to a dedicated CalyCode workspace directory while preserving project-relative cwd for direct CLI proxy usage.
+
 ## 0.18.0
 
 ### Minor Changes
