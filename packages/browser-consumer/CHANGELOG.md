@@ -1,5 +1,11 @@
 # @calycode/browser-consumer
 
+## 0.1.2
+
+### Patch Changes
+
+- ef26cf1: chore: dep cleanup + release workflow adjustments
+
 ## 0.1.1
 
 ### Patch Changes

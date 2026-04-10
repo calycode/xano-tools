@@ -1,5 +1,11 @@
 # @calycode/utils
 
+## 0.4.4
+
+### Patch Changes
+
+- ef26cf1: chore: dep cleanup + release workflow adjustments
+
 ## 0.4.3
 
 ### Patch Changes

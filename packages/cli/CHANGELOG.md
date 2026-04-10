@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.18.2
+
+### Patch Changes
+
+- ef26cf1: chore: dep cleanup + release workflow adjustments
+
 ## 0.18.1
 
 ### Patch Changes
