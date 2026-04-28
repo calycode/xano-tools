@@ -290,6 +290,8 @@ You can modify the configuration to:
 | ------------------------- | --------------------------------------------------------- |
 | `OPENCODE_CONFIG_DIR`     | Override OpenCode config directory                        |
 | `CALY_EXTRA_CORS_ORIGINS` | Additional CORS origins for server mode (comma-separated) |
+| `CALY_OPENCODE_WORKDIR`   | Override OpenCode working directory for server/proxy runs |
+| `CALY_NATIVE_HOST_EXTENSION_IDS` | Additional allowed Chrome extension IDs (comma-separated) |
 
 ## Native Host for Browser Extension
 

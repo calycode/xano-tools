@@ -9,6 +9,31 @@ import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 
 const OPENCODE_PKG = 'opencode-ai@latest';
 
+interface LaunchOpencodeServerOptions {
+   port: number;
+   extraOrigins?: string[];
+   stdio?: 'inherit' | 'pipe' | 'ignore';
+   detach?: boolean;
+}
+
+function launchOpencodeServer({
+   port,
+   extraOrigins = [],
+   stdio = 'inherit',
+   detach = false,
+}: LaunchOpencodeServerOptions) {
+   validatePort(port);
+
+   const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+   const configDir = getCalycodeOpencodeConfigDir();
+   const workingDir = getOpencodeWorkingDir('server');
+
+   return spawn('npx', args, {
+      ...getSpawnOptions(stdio, { OPENCODE_CONFIG_DIR: configDir }, workingDir),
+      detached: detach,
+   });
+}
+
 /**
  * Get spawn options appropriate for the current platform.
  * On Windows, shell: true is required for npx to work (it's a batch file).
@@ -491,18 +516,16 @@ async function startNativeHost() {
       }
 
       try {
-         const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-         logger.log(`Spawning npx ${args.join(' ')}`);
+          const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+          logger.log(`Spawning npx ${args.join(' ')}`);
+          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
+          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
 
-         // Set OPENCODE_CONFIG_DIR to use CalyCode-specific config
-         const configDir = getCalycodeOpencodeConfigDir();
-         const workingDir = getOpencodeWorkingDir('server');
-         logger.log(`Using OpenCode config directory: ${configDir}`);
-         logger.log(`Using OpenCode working directory: ${workingDir}`);
-
-         serverProc = spawn('npx', args, {
-            ...getSpawnOptions('ignore', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
-         });
+          serverProc = launchOpencodeServer({
+             port,
+             extraOrigins,
+             stdio: 'ignore',
+          });
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -1242,29 +1265,13 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
    // Validate port
    validatePort(port);
 
-   // Set the CalyCode OpenCode config directory
-   const configDir = getCalycodeOpencodeConfigDir();
-   const workingDir = getOpencodeWorkingDir('server');
-
-   // On Windows, npx is a batch file and requires shell: true
-   const isWindows = process.platform === 'win32';
-
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
-      const proc = spawn(
-         'npx',
-         ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
-         {
-            detached: true,
-            stdio: 'ignore',
-            shell: isWindows,
-            env: {
-               ...process.env,
-               OPENCODE_CONFIG_DIR: configDir,
-            },
-            cwd: workingDir,
-         },
-      );
+      const proc = launchOpencodeServer({
+         port,
+         stdio: 'ignore',
+         detach: true,
+      });
       proc.unref();
       log.success('OpenCode server started in background.');
       return;
@@ -1273,13 +1280,10 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
    return new Promise<void>((resolve, reject) => {
       log.info(`Starting OpenCode server on port ${port}...`);
 
-      const proc = spawn(
-         'npx',
-         ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
-         {
-            ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
-         },
-      );
+      const proc = launchOpencodeServer({
+         port,
+         stdio: 'inherit',
+      });
 
       proc.on('close', (code) => {
          if (code === 0) {
@@ -1308,10 +1312,15 @@ async function setupOpencode({
    const homeDir = os.homedir();
    let manifestPath = '';
 
-   // Use provided extension IDs or fall back to the ones in HOST_APP_INFO
-   const allowedExtensionIds = extensionIds?.length
-      ? extensionIds
-      : HOST_APP_INFO.allowedExtensionIds;
+   const envExtensionIds = (process.env.CALY_NATIVE_HOST_EXTENSION_IDS || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+
+   // Merge default + env + CLI-provided IDs so sideload/unpacked extension installs can be authorized.
+   const allowedExtensionIds = Array.from(
+      new Set([...HOST_APP_INFO.allowedExtensionIds, ...envExtensionIds, ...(extensionIds || [])]),
+   );
 
    log.info(`Setting up native host for ${allowedExtensionIds.length} extension(s)...`);
 
