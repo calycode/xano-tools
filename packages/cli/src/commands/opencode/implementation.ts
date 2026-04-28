@@ -9,6 +9,57 @@ import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 
 const OPENCODE_PKG = 'opencode-ai@latest';
 
+interface LaunchOpencodeServerOptions {
+   port: number;
+   extraOrigins?: string[];
+   stdio?: 'inherit' | 'pipe' | 'ignore';
+   detach?: boolean;
+}
+
+function getNativeHostManifestPath(platform: NodeJS.Platform, homeDir: string): string {
+   if (platform === 'darwin') {
+      return path.join(
+         homeDir,
+         `Library/Application Support/Google/Chrome/NativeMessagingHosts/${HOST_APP_INFO.reverseAppId}.json`,
+      );
+   }
+
+   if (platform === 'linux') {
+      return path.join(
+         homeDir,
+         `.config/google-chrome/NativeMessagingHosts/${HOST_APP_INFO.reverseAppId}.json`,
+      );
+   }
+
+   if (platform === 'win32') {
+      return path.join(homeDir, '.calycode', `${HOST_APP_INFO.reverseAppId}.json`);
+   }
+
+   throw new Error(`Unsupported platform: ${platform}`);
+}
+
+function getNativeHostRegistryKey(): string {
+   return `HKEY_CURRENT_USER\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_APP_INFO.reverseAppId}`;
+}
+
+function launchOpencodeServer({
+   port,
+   extraOrigins = [],
+   stdio = 'inherit',
+   detach = false,
+}: LaunchOpencodeServerOptions) {
+   validatePort(port);
+
+   const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+   const configDir = getCalycodeOpencodeConfigDir();
+   const workingDir = getOpencodeWorkingDir('server');
+
+   return spawn('npx', args, {
+      ...getSpawnOptions(stdio, { OPENCODE_CONFIG_DIR: configDir }, workingDir),
+      detached: detach,
+   });
+}
+
 /**
  * Get spawn options appropriate for the current platform.
  * On Windows, shell: true is required for npx to work (it's a batch file).
@@ -203,15 +254,30 @@ function ensureDirectoryExists(dirPath: string): void {
    }
 }
 
+interface OpencodeWorkingDirOverrides {
+   forceCwd?: boolean;
+   explicitWorkdir?: string;
+}
+
 /**
  * Resolve the working directory for OpenCode child processes.
  *
  * Priority:
  * 1. CALY_OPENCODE_WORKDIR env var (absolute or relative path)
- * 2. mode='proxy': current shell cwd (user project context)
- * 3. mode='server': ~/.calycode/opencode/workspace (scoped sandbox)
+ * 2. mode='proxy' + CALY_OC_CWD=true: current shell cwd
+ * 3. default: ~/.calycode/opencode/workspace (shared scoped sandbox)
  */
-function getOpencodeWorkingDir(mode: 'proxy' | 'server'): string {
+function getOpencodeWorkingDir(
+   mode: 'proxy' | 'server',
+   overrides?: OpencodeWorkingDirOverrides,
+): string {
+   const explicitWorkdir = overrides?.explicitWorkdir?.trim();
+   if (explicitWorkdir) {
+      const resolvedPath = path.resolve(explicitWorkdir);
+      ensureDirectoryExists(resolvedPath);
+      return resolvedPath;
+   }
+
    const envWorkdir = process.env.CALY_OPENCODE_WORKDIR?.trim();
    if (envWorkdir) {
       const resolvedPath = path.resolve(envWorkdir);
@@ -219,7 +285,13 @@ function getOpencodeWorkingDir(mode: 'proxy' | 'server'): string {
       return resolvedPath;
    }
 
-   if (mode === 'proxy') {
+   const proxyUseCwdValue = process.env.CALY_OC_CWD || process.env.CALY_OPENCODE_PROXY_USE_CWD;
+   const proxyUseCwd =
+      mode === 'proxy' &&
+      (overrides?.forceCwd === true ||
+         ['1', 'true', 'yes', 'on'].includes((proxyUseCwdValue || '').toLowerCase()));
+
+   if (proxyUseCwd) {
       return process.cwd();
    }
 
@@ -265,7 +337,7 @@ function getCorsArgs(extraOrigins: string[] = []) {
  * This allows exposing the full capability of the OpenCode agent.
  * Sets OPENCODE_CONFIG_DIR to use CalyCode-specific configuration.
  */
-async function proxyOpencode(args: string[]) {
+async function proxyOpencode(args: string[], workdirOverrides?: OpencodeWorkingDirOverrides) {
    log.info(
       '🤖 Powered by OpenCode - The open source AI coding agent\n' +
          '   https://github.com/anomalyco/opencode (MIT License)',
@@ -274,7 +346,7 @@ async function proxyOpencode(args: string[]) {
 
    // Set the CalyCode OpenCode config directory
    const configDir = getCalycodeOpencodeConfigDir();
-   const workingDir = getOpencodeWorkingDir('proxy');
+   const workingDir = getOpencodeWorkingDir('proxy', workdirOverrides);
    log.info(`OpenCode working directory: ${workingDir}`);
 
    return new Promise<void>((resolve, reject) => {
@@ -491,18 +563,16 @@ async function startNativeHost() {
       }
 
       try {
-         const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-         logger.log(`Spawning npx ${args.join(' ')}`);
+          const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+          logger.log(`Spawning npx ${args.join(' ')}`);
+          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
+          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
 
-         // Set OPENCODE_CONFIG_DIR to use CalyCode-specific config
-         const configDir = getCalycodeOpencodeConfigDir();
-         const workingDir = getOpencodeWorkingDir('server');
-         logger.log(`Using OpenCode config directory: ${configDir}`);
-         logger.log(`Using OpenCode working directory: ${workingDir}`);
-
-         serverProc = spawn('npx', args, {
-            ...getSpawnOptions('ignore', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
-         });
+          serverProc = launchOpencodeServer({
+             port,
+             extraOrigins,
+             stdio: 'ignore',
+          });
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -1242,29 +1312,13 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
    // Validate port
    validatePort(port);
 
-   // Set the CalyCode OpenCode config directory
-   const configDir = getCalycodeOpencodeConfigDir();
-   const workingDir = getOpencodeWorkingDir('server');
-
-   // On Windows, npx is a batch file and requires shell: true
-   const isWindows = process.platform === 'win32';
-
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
-      const proc = spawn(
-         'npx',
-         ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
-         {
-            detached: true,
-            stdio: 'ignore',
-            shell: isWindows,
-            env: {
-               ...process.env,
-               OPENCODE_CONFIG_DIR: configDir,
-            },
-            cwd: workingDir,
-         },
-      );
+      const proc = launchOpencodeServer({
+         port,
+         stdio: 'ignore',
+         detach: true,
+      });
       proc.unref();
       log.success('OpenCode server started in background.');
       return;
@@ -1273,13 +1327,10 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
    return new Promise<void>((resolve, reject) => {
       log.info(`Starting OpenCode server on port ${port}...`);
 
-      const proc = spawn(
-         'npx',
-         ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs()],
-         {
-            ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
-         },
-      );
+      const proc = launchOpencodeServer({
+         port,
+         stdio: 'inherit',
+      });
 
       proc.on('close', (code) => {
          if (code === 0) {
@@ -1407,24 +1458,14 @@ async function setupOpencode({
       allowed_origins: allowedExtensionIds.map((id) => `chrome-extension://${id}/`),
    };
 
-   // Adjust manifest path based on OS
-   if (platform === 'darwin') {
-      manifestPath = path.join(
-         homeDir,
-         `Library/Application Support/Google/Chrome/NativeMessagingHosts/${HOST_APP_INFO.reverseAppId}.json`,
-      );
-   } else if (platform === 'linux') {
-      manifestPath = path.join(
-         homeDir,
-         `.config/google-chrome/NativeMessagingHosts/${HOST_APP_INFO.reverseAppId}.json`,
-      );
-   } else if (platform === 'win32') {
-      // Windows requires registry key
-      manifestPath = path.join(homeDir, '.calycode', `${HOST_APP_INFO.reverseAppId}.json`);
+    // Adjust manifest path based on OS
+    if (platform === 'win32') {
+       // Windows requires registry key
+       manifestPath = getNativeHostManifestPath(platform, homeDir);
 
-      try {
-         // Use full HKEY_CURRENT_USER instead of HKCU for clarity/safety
-         const regKey = `HKEY_CURRENT_USER\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_APP_INFO.reverseAppId}`;
+       try {
+          // Use full HKEY_CURRENT_USER instead of HKCU for clarity/safety
+          const regKey = getNativeHostRegistryKey();
          // Use reg.exe to add the key.
          // /ve adds the default value. /t REG_SZ specifies type. /d specifies data. /f forces overwrite.
          const regArgs = ['add', regKey, '/ve', '/t', 'REG_SZ', '/d', manifestPath, '/f'];
@@ -1463,12 +1504,12 @@ async function setupOpencode({
                reject(new Error(`Failed to spawn registry command: ${err.message}`));
             });
          });
-      } catch (error: any) {
-         log.error(`Error adding registry key: ${error.message}`);
-      }
-   } else {
-      throw new Error(`Unsupported platform: ${platform}`);
-   }
+       } catch (error: any) {
+          log.error(`Error adding registry key: ${error.message}`);
+       }
+    } else {
+       manifestPath = getNativeHostManifestPath(platform, homeDir);
+    }
 
    // Ensure directory exists
    const manifestDir = path.dirname(manifestPath);
@@ -1495,10 +1536,72 @@ async function setupOpencode({
    log.success('Setup complete! OpenCode is ready to use.');
 }
 
+function showNativeHostStatus(): void {
+   const platform = os.platform();
+   const homeDir = os.homedir();
+   const manifestPath = getNativeHostManifestPath(platform, homeDir);
+   const wrapperPath = path.join(homeDir, '.calycode', 'bin', platform === 'win32' ? 'calycode-host.bat' : 'calycode-host.sh');
+   const expectedOrigins = HOST_APP_INFO.allowedExtensionIds.map((id) => `chrome-extension://${id}/`);
+
+   const lines: string[] = [];
+   lines.push('Native Host Status:');
+   lines.push(`  - Platform: ${platform}`);
+   lines.push(`  - Manifest Path: ${manifestPath}`);
+   lines.push(`  - Manifest Exists: ${fs.existsSync(manifestPath) ? 'Yes' : 'No'}`);
+   lines.push(`  - Wrapper Path: ${wrapperPath}`);
+   lines.push(`  - Wrapper Exists: ${fs.existsSync(wrapperPath) ? 'Yes' : 'No'}`);
+   lines.push(`  - App ID: ${HOST_APP_INFO.reverseAppId}`);
+
+   if (platform === 'win32') {
+      const regKey = getNativeHostRegistryKey();
+      let registryConfigured = false;
+      try {
+         execSync(`reg query "${regKey}" /ve`, { stdio: 'ignore', windowsHide: true });
+         registryConfigured = true;
+      } catch {
+         registryConfigured = false;
+      }
+      lines.push(`  - Registry Key: ${regKey}`);
+      lines.push(`  - Registry Configured: ${registryConfigured ? 'Yes' : 'No'}`);
+   }
+
+   let manifestAllowedOrigins: string[] = [];
+   if (fs.existsSync(manifestPath)) {
+      try {
+         const manifestRaw = fs.readFileSync(manifestPath, 'utf8');
+         const manifest = JSON.parse(manifestRaw) as { allowed_origins?: string[] };
+         manifestAllowedOrigins = Array.isArray(manifest.allowed_origins) ? manifest.allowed_origins : [];
+      } catch {
+         lines.push('  - Manifest Parse: Failed');
+      }
+   }
+
+   lines.push(
+      `  - Expected Extension IDs: ${HOST_APP_INFO.allowedExtensionIds.join(', ')}`,
+   );
+   lines.push(
+      `  - Expected Origins: ${expectedOrigins.join(', ')}`,
+   );
+   lines.push(
+      `  - Manifest Allowed Origins: ${manifestAllowedOrigins.length ? manifestAllowedOrigins.join(', ') : '(none)'}`,
+   );
+
+   const missingOrigins = expectedOrigins.filter((origin) => !manifestAllowedOrigins.includes(origin));
+   if (missingOrigins.length > 0) {
+      lines.push(`  - Missing Expected Origins: ${missingOrigins.join(', ')}`);
+      lines.push('  - Recommendation: run `caly-xano oc init --force` to refresh native host setup.');
+      log.warn(lines.join('\n'));
+      return;
+   }
+
+   log.success(lines.join('\n'));
+}
+
 export {
    serveOpencode,
    setupOpencode,
    startNativeHost,
+   showNativeHostStatus,
    proxyOpencode,
    setupOpencodeConfig,
    updateOpencodeTemplates,

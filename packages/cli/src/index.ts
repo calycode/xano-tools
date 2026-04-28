@@ -7,7 +7,15 @@ import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 // Bypassing Commander here ensures a cleaner stdout for the binary protocol
 const args = process.argv;
 exitIfLegacyXanoInvocation(args);
-if (args.includes('opencode') && args.includes('native-host')) {
+
+const chromeExtensionArg = args.find((arg) => arg.startsWith('chrome-extension://'));
+const commandIndex = Math.max(args.lastIndexOf('opencode'), args.lastIndexOf('oc'));
+const isDirectNativeHostInvocation =
+   commandIndex >= 0 &&
+   args[commandIndex + 1] === 'native-host' &&
+   commandIndex + 2 >= args.length;
+
+if (chromeExtensionArg || isDirectNativeHostInvocation) {
    startNativeHost();
 } else {
    program.parseAsync();

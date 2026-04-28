@@ -110,11 +110,14 @@ caly-xano oc update
 Start an interactive AI coding session:
 
 ```bash
-# Start OpenCode in the current directory
+# Start OpenCode in the shared CalyCode workspace (default)
 caly-xano oc run
 
+# Force current shell directory for this command
+caly-xano oc --cwd run
+
 # Start in a specific project directory
-caly-xano oc run --workdir /path/to/project
+caly-xano oc --workdir /path/to/project run
 ```
 
 ### With Initial Prompt
@@ -290,6 +293,8 @@ You can modify the configuration to:
 | ------------------------- | --------------------------------------------------------- |
 | `OPENCODE_CONFIG_DIR`     | Override OpenCode config directory                        |
 | `CALY_EXTRA_CORS_ORIGINS` | Additional CORS origins for server mode (comma-separated) |
+| `CALY_OPENCODE_WORKDIR`   | Override OpenCode working directory for server/proxy runs |
+| `CALY_OC_CWD` | Set `true`/`1` to make `oc run` use current shell directory |
 
 ## Native Host for Browser Extension
 
