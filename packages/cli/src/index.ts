@@ -8,13 +8,14 @@ import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 const args = process.argv;
 exitIfLegacyXanoInvocation(args);
 
+const chromeExtensionArg = args.find((arg) => arg.startsWith('chrome-extension://'));
 const commandIndex = Math.max(args.lastIndexOf('opencode'), args.lastIndexOf('oc'));
 const isDirectNativeHostInvocation =
    commandIndex >= 0 &&
    args[commandIndex + 1] === 'native-host' &&
    commandIndex + 2 >= args.length;
 
-if (isDirectNativeHostInvocation) {
+if (chromeExtensionArg || isDirectNativeHostInvocation) {
    startNativeHost();
 } else {
    program.parseAsync();
