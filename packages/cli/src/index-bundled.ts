@@ -40,7 +40,9 @@ function escapeAppleScript(str: string): string {
    // This handles both direct chrome-extension:// invocations (Linux/Mac)
    // and manual "opencode native-host" invocations (Windows wrapper)
    const chromeExtensionArg = args.find((arg) => arg.startsWith('chrome-extension://'));
-   const isNativeHostCommand = args.includes('opencode') && args.includes('native-host');
+   const commandIndex = Math.max(args.lastIndexOf('opencode'), args.lastIndexOf('oc'));
+   const isNativeHostCommand =
+      commandIndex >= 0 && args[commandIndex + 1] === 'native-host' && commandIndex + 2 >= args.length;
 
    if (chromeExtensionArg || isNativeHostCommand) {
       // We are running as a Native Host

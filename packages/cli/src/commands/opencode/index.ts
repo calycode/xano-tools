@@ -2,6 +2,7 @@ import {
    setupOpencode,
    serveOpencode,
    startNativeHost,
+   showNativeHostStatus,
    proxyOpencode,
    setupOpencodeConfig,
    updateOpencodeTemplates,
@@ -25,7 +26,9 @@ async function registerOpencodeCommands(program) {
             '  GitHub: https://github.com/anomalyco/opencode\n' +
             '  License: MIT (see LICENSES/opencode-ai.txt)',
       )
-      .allowUnknownOption(); // Allow passing through unknown flags to the underlying CLI
+      .allowUnknownOption() // Allow passing through unknown flags to the underlying CLI
+      .option('--cwd', 'Run OpenCode proxy commands from the current shell directory')
+      .option('--workdir <path>', 'Run OpenCode proxy commands from a specific working directory');
 
    opencodeNamespace
       .command('init')
@@ -173,17 +176,22 @@ async function registerOpencodeCommands(program) {
          });
       });
 
-   opencodeNamespace
-      .command('native-host', { hidden: true })
-      .description(
-         'Internal command used by Chrome Native Messaging to communicate with the extension.',
-      )
+   const nativeHostCommand = opencodeNamespace
+      .command('native-host')
+      .description('Native host operations for browser extension integration.')
       .action(async () => {
          // Redirect all console.log to console.error (stderr)
          // so they don't break the native messaging protocol
          console.log = console.error;
          console.info = console.error;
          await startNativeHost();
+      });
+
+   nativeHostCommand
+      .command('status')
+      .description('Show native host manifest, wrapper, and extension allowlist status.')
+      .action(() => {
+         showNativeHostStatus();
       });
 
    // Proxy all other commands to the underlying OpenCode CLI
@@ -215,14 +223,52 @@ async function registerOpencodeCommands(program) {
             return;
          }
 
-         const passThroughArgs = rawArgs.slice(opencodeIndex + 1);
+          const passThroughArgs = rawArgs.slice(opencodeIndex + 1);
+
+          let forceCwd = !!command.parent?.opts()?.cwd;
+          let explicitWorkdir = command.parent?.opts()?.workdir as string | undefined;
+          const sanitizedPassThroughArgs: string[] = [];
+
+          for (let i = 0; i < passThroughArgs.length; i++) {
+             const arg = passThroughArgs[i];
+
+             if (arg === '--cwd') {
+                forceCwd = true;
+                continue;
+             }
+
+             if (arg.startsWith('--cwd=')) {
+                const value = arg.slice('--cwd='.length).toLowerCase();
+                forceCwd = ['1', 'true', 'yes', 'on'].includes(value);
+                continue;
+             }
+
+             if (arg === '--workdir') {
+                const next = passThroughArgs[i + 1];
+                if (next) {
+                   explicitWorkdir = next;
+                   i++;
+                }
+                continue;
+             }
+
+             if (arg.startsWith('--workdir=')) {
+                explicitWorkdir = arg.slice('--workdir='.length);
+                continue;
+             }
+
+             sanitizedPassThroughArgs.push(arg);
+          }
 
          // Filter out our own known subcommands if they were accidentally matched?
          // No, if we are here, it's because it wasn't init/serve/native-host (mostly).
           // BUT 'run' is default, so 'caly-xano opencode' (no args) also lands here.
 
-         await proxyOpencode(passThroughArgs);
-      });
+          await proxyOpencode(sanitizedPassThroughArgs, {
+             forceCwd,
+             explicitWorkdir,
+          });
+       });
 }
 
 export { registerOpencodeCommands };
