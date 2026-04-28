@@ -20,7 +20,9 @@ Manage OpenCode AI integration and tools.
 Usage: caly-xano oc|opencode [options] [command]
 
 Options:
-  └─ -h, --help  display help for command
+  ├─ --cwd             Run OpenCode proxy commands from current shell directory
+  ├─ --workdir <path>  Run OpenCode proxy commands from a specific directory
+  └─ -h, --help        display help for command
 
 Commands:
   ├─ init       Initialize OpenCode native host integration and configura...
