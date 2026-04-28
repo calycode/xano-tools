@@ -57,8 +57,9 @@
     - [oc skills clear-cache](commands/oc-skills-clear-cache.md)
 
   - [oc serve](commands/oc-serve.md)
+-   **native-host**
 
-  - [oc native-host](commands/oc-native-host.md)
+    - [oc native-host status](commands/oc-native-host-status.md)
 
   - [oc run](commands/oc-run.md)
 

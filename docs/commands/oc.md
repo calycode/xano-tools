@@ -8,6 +8,12 @@
 ```term
 $ caly-xano oc [options]
 ```
+### Options
+
+#### --cwd
+**Description:** Run OpenCode proxy commands from the current shell directory
+#### --workdir <path>
+**Description:** Run OpenCode proxy commands from a specific working directory
 
 ### oc --help
 ```term
@@ -20,16 +26,17 @@ Manage OpenCode AI integration and tools.
 Usage: caly-xano oc|opencode [options] [command]
 
 Options:
-  ├─ --cwd             Run OpenCode proxy commands from current shell directory
-  ├─ --workdir <path>  Run OpenCode proxy commands from a specific directory
+  ├─ --cwd             Run OpenCode proxy commands from the current shell directory
+  ├─ --workdir <path>  Run OpenCode proxy commands from a specific working directory
   └─ -h, --help        display help for command
 
 Commands:
-  ├─ init       Initialize OpenCode native host integration and configura...
-  ├─ templates  Manage OpenCode configuration templates (agents, commands...
-  ├─ skills     Manage Xano skills for AI agents (database optimization, ...
-  ├─ serve      Serve the OpenCode AI server locally.
-  └─ help       display help for command
+  ├─ init         Initialize OpenCode native host integration and configura...
+  ├─ templates    Manage OpenCode configuration templates (agents, commands...
+  ├─ skills       Manage Xano skills for AI agents (database optimization, ...
+  ├─ serve        Serve the OpenCode AI server locally.
+  ├─ native-host  Native host operations for browser extension integration.
+  └─ help         display help for command
 
 Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
