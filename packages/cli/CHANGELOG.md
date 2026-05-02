@@ -1,5 +1,12 @@
 # @calycode/xano-cli
 
+## 0.18.3
+
+### Patch Changes
+
+- 27c2aeb: chore: refactor the oc launcher cli command
+- 27c2aeb: chore: handle directory picking of the oc commands
+
 ## 0.18.2
 
 ### Patch Changes
