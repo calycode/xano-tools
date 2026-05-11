@@ -2,7 +2,6 @@ import { spawnSync } from 'node:child_process';
 import { isSea } from 'node:sea';
 import { program } from './program';
 import { setupOpencode, startNativeHost } from './commands/opencode/implementation';
-import { HOST_APP_INFO } from './utils/host-constants';
 import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 
 /**
@@ -82,7 +81,7 @@ function escapeAppleScript(str: string): string {
 async function runSetup() {
    console.log('@calycode Native Host Installer');
    console.log('------------------------------');
-   console.log(`Setting up native host for ${HOST_APP_INFO.allowedExtensionIds.length} extension(s)...`);
+   console.log('Setting up native host using deterministic extension discovery...');
    console.log(`Executable: ${process.argv[0]}`);
 
    try {

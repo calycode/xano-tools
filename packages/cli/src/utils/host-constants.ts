@@ -5,11 +5,20 @@ export const HOST_APP_INFO = {
    appId: 'cli.calycode.com',
    version: '1.0.0',
    url: 'https://calycode.com/xano',
-   // Production extension ID (Chrome Web Store)
+   // Known extension IDs (fast-path allowlist)
    extensionId: 'hadkkdmpcmllbkfopioopcmeapjchpbm',
-   // All extension IDs that should be allowed to connect (production + development)
    allowedExtensionIds: [
       'hadkkdmpcmllbkfopioopcmeapjchpbm', // Production (Chrome Web Store)
       'lnhipaeaeiegnlokhokfokndgadkohfe', // Development (unpacked)
    ],
+   extensionDiscovery: {
+      extensionName: '@calycode | Extension',
+      trustedAuthorPatterns: ['calycode', '@calycode', 'Mihály @calycode'],
+      trustedHomepagePrefixes: [
+         'https://extension.calycode.com',
+         'https://www.extension.calycode.com',
+      ],
+      requireNativeMessagingPermission: true,
+      mode: 'balanced' as 'strict' | 'balanced' | 'name-only',
+   },
 };
