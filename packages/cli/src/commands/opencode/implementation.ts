@@ -13,6 +13,7 @@ import {
 } from './native-host/setup';
 
 const DEFAULT_OPENCODE_VERSION = '1.14.41';
+const OC_VERSION_REGEX = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 
 interface LaunchOpencodeServerOptions {
    port: number;
@@ -41,11 +42,27 @@ function parseOcVersionFromArgv(argv: string[]): string | undefined {
 }
 
 function resolveOcVersion(explicitVersion?: string): string {
-   return (
-      normalizeOcVersion(explicitVersion) ||
-      normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION) ||
-      DEFAULT_OPENCODE_VERSION
-   );
+   const explicit = normalizeOcVersion(explicitVersion);
+   if (explicit) {
+      if (!OC_VERSION_REGEX.test(explicit)) {
+         throw new Error(
+            `Invalid OpenCode version "${explicit}". Use semantic version format like "1.14.41".`,
+         );
+      }
+      return explicit;
+   }
+
+   const fromEnv = normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION);
+   if (fromEnv) {
+      if (!OC_VERSION_REGEX.test(fromEnv)) {
+         throw new Error(
+            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use semantic version format like "1.14.41".`,
+         );
+      }
+      return fromEnv;
+   }
+
+   return DEFAULT_OPENCODE_VERSION;
 }
 
 function getOpencodePackageSpecifier(version: string): string {
@@ -565,7 +582,11 @@ async function startNativeHost() {
       return false;
    };
 
-   const startServer = async (port: number = 4096, extraOrigins: string[] = []) => {
+   const startServer = async (
+      port: number = 4096,
+      extraOrigins: string[] = [],
+      requestedOcVersion?: string,
+   ) => {
       // Validate port to prevent injection via invalid values
       try {
          validatePort(port);
@@ -597,11 +618,13 @@ async function startNativeHost() {
          // Not running, proceed
       }
 
-      try {
-           const resolvedVersion = resolveOcVersion(parseOcVersionFromArgv(process.argv));
-           const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-           logger.log(`Spawning npx ${args.join(' ')}`);
-           logger.log(`Using OpenCode version: ${resolvedVersion}`);
+       try {
+            const resolvedVersion = resolveOcVersion(
+               requestedOcVersion || parseOcVersionFromArgv(process.argv),
+            );
+            const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+            logger.log(`Spawning npx ${args.join(' ')}`);
+            logger.log(`Using OpenCode version: ${resolvedVersion}`);
            logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
            logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
            if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
@@ -610,12 +633,12 @@ async function startNativeHost() {
               );
            }
 
-           serverProc = launchOpencodeServer({
-              port,
-              extraOrigins,
-              stdio: 'ignore',
-              ocVersion: resolvedVersion,
-           });
+            serverProc = launchOpencodeServer({
+               port,
+               extraOrigins,
+               stdio: 'ignore',
+               ocVersion: resolvedVersion,
+            });
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -648,14 +671,21 @@ async function startNativeHost() {
                message: 'Server spawned but failed to become ready in time',
             });
          }
-      } catch (err) {
-         logger.error('Unexpected error starting server', err);
-         sendMessage({ status: 'error', message: 'Unexpected error starting server' });
-      }
-   };
+       } catch (err: any) {
+          logger.error('Unexpected error starting server', err);
+          sendMessage({
+             status: 'error',
+             message: err?.message || 'Unexpected error starting server',
+          });
+       }
+    };
 
-   const restartServer = async (port: number = 4096, extraOrigins: string[] = []) => {
-      logger.log('Restart requested', { port, extraOrigins });
+   const restartServer = async (
+      port: number = 4096,
+      extraOrigins: string[] = [],
+      requestedOcVersion?: string,
+   ) => {
+      logger.log('Restart requested', { port, extraOrigins, requestedOcVersion });
 
       // Kill existing server process if we have a reference
       if (serverProc) {
@@ -692,7 +722,7 @@ async function startNativeHost() {
       }
 
       // Start fresh with new config
-      await startServer(port, extraOrigins);
+      await startServer(port, extraOrigins, requestedOcVersion);
    };
 
    const handleMessage = (msg: any) => {
@@ -704,12 +734,14 @@ async function startNativeHost() {
          } else if (msg.type === 'start') {
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             const origins = Array.isArray(msg.origins) ? msg.origins : [];
-            startServer(port, origins);
+            const requestedOcVersion = typeof msg.ocVersion === 'string' ? msg.ocVersion : undefined;
+            startServer(port, origins, requestedOcVersion);
          } else if (msg.type === 'restart') {
             // Restart the server with new origins - used when CORS configuration needs updating
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             const origins = Array.isArray(msg.origins) ? msg.origins : [];
-            restartServer(port, origins);
+            const requestedOcVersion = typeof msg.ocVersion === 'string' ? msg.ocVersion : undefined;
+            restartServer(port, origins, requestedOcVersion);
          } else if (msg.type === 'stop') {
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             logger.log('Stop requested', { port, hasServerProc: !!serverProc });
