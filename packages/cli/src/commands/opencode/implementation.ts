@@ -12,13 +12,52 @@ import {
    showNativeHostStatus as showNativeHostStatusImpl,
 } from './native-host/setup';
 
-const OPENCODE_PKG = 'opencode-ai@latest';
+const DEFAULT_OPENCODE_VERSION = '1.14.41';
 
 interface LaunchOpencodeServerOptions {
    port: number;
    extraOrigins?: string[];
    stdio?: 'inherit' | 'pipe' | 'ignore';
    detach?: boolean;
+   ocVersion?: string;
+}
+
+function normalizeOcVersion(rawVersion?: string): string | undefined {
+   const value = rawVersion?.trim();
+   return value ? value : undefined;
+}
+
+function parseOcVersionFromArgv(argv: string[]): string | undefined {
+   for (let i = 0; i < argv.length; i++) {
+      const arg = argv[i];
+      if (arg === '--oc-version') {
+         return normalizeOcVersion(argv[i + 1]);
+      }
+      if (arg.startsWith('--oc-version=')) {
+         return normalizeOcVersion(arg.slice('--oc-version='.length));
+      }
+   }
+   return undefined;
+}
+
+function resolveOcVersion(explicitVersion?: string): string {
+   return (
+      normalizeOcVersion(explicitVersion) ||
+      normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION) ||
+      DEFAULT_OPENCODE_VERSION
+   );
+}
+
+function getOpencodePackageSpecifier(version: string): string {
+   return `opencode-ai@${version}`;
+}
+
+function warnIfUsingNonDefaultOcVersion(version: string): void {
+   if (version !== DEFAULT_OPENCODE_VERSION) {
+      log.warn(
+         `Using OpenCode ${version} (override). Our currently validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+      );
+   }
 }
 
 function launchOpencodeServer({
@@ -26,10 +65,19 @@ function launchOpencodeServer({
    extraOrigins = [],
    stdio = 'inherit',
    detach = false,
+   ocVersion,
 }: LaunchOpencodeServerOptions) {
    validatePort(port);
 
-   const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   const args = [
+      '-y',
+      getOpencodePackageSpecifier(resolvedVersion),
+      'serve',
+      '--port',
+      String(port),
+      ...getCorsArgs(extraOrigins),
+   ];
    const configDir = getCalycodeOpencodeConfigDir();
    const workingDir = getOpencodeWorkingDir('server');
 
@@ -317,7 +365,11 @@ function getCorsArgs(extraOrigins: string[] = []) {
  * This allows exposing the full capability of the OpenCode agent.
  * Sets OPENCODE_CONFIG_DIR to use CalyCode-specific configuration.
  */
-async function proxyOpencode(args: string[], workdirOverrides?: OpencodeWorkingDirOverrides) {
+async function proxyOpencode(
+   args: string[],
+   workdirOverrides?: OpencodeWorkingDirOverrides,
+   ocVersion?: string,
+) {
    log.info(
       '🤖 Powered by OpenCode - The open source AI coding agent\n' +
          '   https://github.com/anomalyco/opencode (MIT License)',
@@ -329,10 +381,13 @@ async function proxyOpencode(args: string[], workdirOverrides?: OpencodeWorkingD
    const workingDir = getOpencodeWorkingDir('proxy', workdirOverrides);
    log.info(`OpenCode working directory: ${workingDir}`);
 
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   warnIfUsingNonDefaultOcVersion(resolvedVersion);
+
    return new Promise<void>((resolve, reject) => {
       // Use 'npx' to execute the opencode-ai CLI with the provided arguments
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
-      const proc = spawn('npx', ['-y', OPENCODE_PKG, ...args], {
+      const proc = spawn('npx', ['-y', getOpencodePackageSpecifier(resolvedVersion), ...args], {
          ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
       });
 
@@ -543,16 +598,24 @@ async function startNativeHost() {
       }
 
       try {
-          const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-          logger.log(`Spawning npx ${args.join(' ')}`);
-          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
-          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
+           const resolvedVersion = resolveOcVersion(parseOcVersionFromArgv(process.argv));
+           const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+           logger.log(`Spawning npx ${args.join(' ')}`);
+           logger.log(`Using OpenCode version: ${resolvedVersion}`);
+           logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
+           logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
+           if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
+              logger.log(
+                 `Using overridden OpenCode ${resolvedVersion}. Current validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+              );
+           }
 
-          serverProc = launchOpencodeServer({
-             port,
-             extraOrigins,
-             stdio: 'ignore',
-          });
+           serverProc = launchOpencodeServer({
+              port,
+              extraOrigins,
+              stdio: 'ignore',
+              ocVersion: resolvedVersion,
+           });
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -1288,9 +1351,20 @@ async function clearSkillsCache(): Promise<void> {
    log.success('Skills cache cleared.');
 }
 
-async function serveOpencode({ port = 4096, detach = false }: { port?: number; detach?: boolean }) {
+async function serveOpencode({
+   port = 4096,
+   detach = false,
+   ocVersion,
+}: {
+   port?: number;
+   detach?: boolean;
+   ocVersion?: string;
+}) {
    // Validate port
    validatePort(port);
+
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   warnIfUsingNonDefaultOcVersion(resolvedVersion);
 
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
@@ -1298,6 +1372,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
          port,
          stdio: 'ignore',
          detach: true,
+         ocVersion: resolvedVersion,
       });
       proc.unref();
       log.success('OpenCode server started in background.');
@@ -1310,6 +1385,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
       const proc = launchOpencodeServer({
          port,
          stdio: 'inherit',
+         ocVersion: resolvedVersion,
       });
 
       proc.on('close', (code) => {
@@ -1330,11 +1406,15 @@ async function setupOpencode({
    extensionIds,
    force = false,
    skipConfig = false,
+   ocVersion,
 }: {
    extensionIds?: string[];
    force?: boolean;
    skipConfig?: boolean;
+   ocVersion?: string;
 } = {}) {
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   warnIfUsingNonDefaultOcVersion(resolvedVersion);
    await setupNativeHostRegistration(extensionIds);
    log.info('Native host setup complete.');
 
