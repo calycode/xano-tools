@@ -14,6 +14,8 @@ $ caly-xano oc [options]
 **Description:** Run OpenCode proxy commands from the current shell directory
 #### --workdir <path>
 **Description:** Run OpenCode proxy commands from a specific working directory
+#### --oc-version <version>
+**Description:** Override OpenCode package version for this command
 
 ### oc --help
 ```term
@@ -26,9 +28,10 @@ Manage OpenCode AI integration and tools.
 Usage: caly-xano oc|opencode [options] [command]
 
 Options:
-  ├─ --cwd             Run OpenCode proxy commands from the current shell directory
-  ├─ --workdir <path>  Run OpenCode proxy commands from a specific working directory
-  └─ -h, --help        display help for command
+  ├─ --cwd                   Run OpenCode proxy commands from the current shell directory
+  ├─ --workdir <path>        Run OpenCode proxy commands from a specific working directory
+  ├─ --oc-version <version>  Override OpenCode package version for this command
+  └─ -h, --help              display help for command
 
 Commands:
   ├─ init         Initialize OpenCode native host integration and configura...
