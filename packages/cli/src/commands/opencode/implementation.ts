@@ -6,40 +6,75 @@ import os from 'node:os';
 import { spawn, execSync } from 'node:child_process';
 import { HOST_APP_INFO } from '../../utils/host-constants';
 import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
+import { resolveAllowedExtensionIds } from './native-host/discovery';
+import {
+   setupNativeHostRegistration,
+   showNativeHostStatus as showNativeHostStatusImpl,
+} from './native-host/setup';
 
-const OPENCODE_PKG = 'opencode-ai@latest';
+const DEFAULT_OPENCODE_VERSION = '1.14.41';
+const OC_VERSION_REGEX = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 
 interface LaunchOpencodeServerOptions {
    port: number;
    extraOrigins?: string[];
    stdio?: 'inherit' | 'pipe' | 'ignore';
    detach?: boolean;
+   ocVersion?: string;
 }
 
-function getNativeHostManifestPath(platform: NodeJS.Platform, homeDir: string): string {
-   if (platform === 'darwin') {
-      return path.join(
-         homeDir,
-         `Library/Application Support/Google/Chrome/NativeMessagingHosts/${HOST_APP_INFO.reverseAppId}.json`,
-      );
-   }
-
-   if (platform === 'linux') {
-      return path.join(
-         homeDir,
-         `.config/google-chrome/NativeMessagingHosts/${HOST_APP_INFO.reverseAppId}.json`,
-      );
-   }
-
-   if (platform === 'win32') {
-      return path.join(homeDir, '.calycode', `${HOST_APP_INFO.reverseAppId}.json`);
-   }
-
-   throw new Error(`Unsupported platform: ${platform}`);
+function normalizeOcVersion(rawVersion?: string): string | undefined {
+   const value = rawVersion?.trim();
+   return value ? value : undefined;
 }
 
-function getNativeHostRegistryKey(): string {
-   return `HKEY_CURRENT_USER\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_APP_INFO.reverseAppId}`;
+function parseOcVersionFromArgv(argv: string[]): string | undefined {
+   for (let i = 0; i < argv.length; i++) {
+      const arg = argv[i];
+      if (arg === '--oc-version') {
+         return normalizeOcVersion(argv[i + 1]);
+      }
+      if (arg.startsWith('--oc-version=')) {
+         return normalizeOcVersion(arg.slice('--oc-version='.length));
+      }
+   }
+   return undefined;
+}
+
+function resolveOcVersion(explicitVersion?: string): string {
+   const explicit = normalizeOcVersion(explicitVersion);
+   if (explicit) {
+      if (!OC_VERSION_REGEX.test(explicit)) {
+         throw new Error(
+            `Invalid OpenCode version "${explicit}". Use semantic version format like "1.14.41".`,
+         );
+      }
+      return explicit;
+   }
+
+   const fromEnv = normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION);
+   if (fromEnv) {
+      if (!OC_VERSION_REGEX.test(fromEnv)) {
+         throw new Error(
+            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use semantic version format like "1.14.41".`,
+         );
+      }
+      return fromEnv;
+   }
+
+   return DEFAULT_OPENCODE_VERSION;
+}
+
+function getOpencodePackageSpecifier(version: string): string {
+   return `opencode-ai@${version}`;
+}
+
+function warnIfUsingNonDefaultOcVersion(version: string): void {
+   if (version !== DEFAULT_OPENCODE_VERSION) {
+      log.warn(
+         `Using OpenCode ${version} (override). Our currently validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+      );
+   }
 }
 
 function launchOpencodeServer({
@@ -47,10 +82,19 @@ function launchOpencodeServer({
    extraOrigins = [],
    stdio = 'inherit',
    detach = false,
+   ocVersion,
 }: LaunchOpencodeServerOptions) {
    validatePort(port);
 
-   const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   const args = [
+      '-y',
+      getOpencodePackageSpecifier(resolvedVersion),
+      'serve',
+      '--port',
+      String(port),
+      ...getCorsArgs(extraOrigins),
+   ];
    const configDir = getCalycodeOpencodeConfigDir();
    const workingDir = getOpencodeWorkingDir('server');
 
@@ -310,11 +354,12 @@ function getOpencodeWorkingDir(
  * Environment variable: CALY_EXTRA_CORS_ORIGINS (comma-separated list of additional origins)
  */
 function getAllowedCorsOrigins(): string[] {
+   const resolvedExtensions = resolveAllowedExtensionIds();
    const defaultOrigins = [
       // The main Xano application
       'https://app.xano.com',
       // Chrome extension origins for extension-to-server communication
-      ...HOST_APP_INFO.allowedExtensionIds.map((id) => `chrome-extension://${id}`),
+      ...resolvedExtensions.ids.map((id) => `chrome-extension://${id}`),
    ];
 
    // Allow additional CORS origins via environment variable (for development/testing)
@@ -337,7 +382,11 @@ function getCorsArgs(extraOrigins: string[] = []) {
  * This allows exposing the full capability of the OpenCode agent.
  * Sets OPENCODE_CONFIG_DIR to use CalyCode-specific configuration.
  */
-async function proxyOpencode(args: string[], workdirOverrides?: OpencodeWorkingDirOverrides) {
+async function proxyOpencode(
+   args: string[],
+   workdirOverrides?: OpencodeWorkingDirOverrides,
+   ocVersion?: string,
+) {
    log.info(
       '🤖 Powered by OpenCode - The open source AI coding agent\n' +
          '   https://github.com/anomalyco/opencode (MIT License)',
@@ -349,10 +398,13 @@ async function proxyOpencode(args: string[], workdirOverrides?: OpencodeWorkingD
    const workingDir = getOpencodeWorkingDir('proxy', workdirOverrides);
    log.info(`OpenCode working directory: ${workingDir}`);
 
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   warnIfUsingNonDefaultOcVersion(resolvedVersion);
+
    return new Promise<void>((resolve, reject) => {
       // Use 'npx' to execute the opencode-ai CLI with the provided arguments
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
-      const proc = spawn('npx', ['-y', OPENCODE_PKG, ...args], {
+      const proc = spawn('npx', ['-y', getOpencodePackageSpecifier(resolvedVersion), ...args], {
          ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
       });
 
@@ -530,7 +582,11 @@ async function startNativeHost() {
       return false;
    };
 
-   const startServer = async (port: number = 4096, extraOrigins: string[] = []) => {
+   const startServer = async (
+      port: number = 4096,
+      extraOrigins: string[] = [],
+      requestedOcVersion?: string,
+   ) => {
       // Validate port to prevent injection via invalid values
       try {
          validatePort(port);
@@ -563,16 +619,26 @@ async function startNativeHost() {
       }
 
       try {
-          const args = ['-y', OPENCODE_PKG, 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-          logger.log(`Spawning npx ${args.join(' ')}`);
-          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
-          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
+         const resolvedVersion = resolveOcVersion(
+            requestedOcVersion || parseOcVersionFromArgv(process.argv),
+         );
+         const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+         logger.log(`Spawning npx ${args.join(' ')}`);
+         logger.log(`Using OpenCode version: ${resolvedVersion}`);
+         logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
+         logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
+         if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
+            logger.log(
+               `Using overridden OpenCode ${resolvedVersion}. Current validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+            );
+         }
 
-          serverProc = launchOpencodeServer({
-             port,
-             extraOrigins,
-             stdio: 'ignore',
-          });
+         serverProc = launchOpencodeServer({
+            port,
+            extraOrigins,
+            stdio: 'ignore',
+            ocVersion: resolvedVersion,
+         });
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -605,14 +671,21 @@ async function startNativeHost() {
                message: 'Server spawned but failed to become ready in time',
             });
          }
-      } catch (err) {
+      } catch (err: any) {
          logger.error('Unexpected error starting server', err);
-         sendMessage({ status: 'error', message: 'Unexpected error starting server' });
+         sendMessage({
+            status: 'error',
+            message: err?.message || 'Unexpected error starting server',
+         });
       }
    };
 
-   const restartServer = async (port: number = 4096, extraOrigins: string[] = []) => {
-      logger.log('Restart requested', { port, extraOrigins });
+   const restartServer = async (
+      port: number = 4096,
+      extraOrigins: string[] = [],
+      requestedOcVersion?: string,
+   ) => {
+      logger.log('Restart requested', { port, extraOrigins, requestedOcVersion });
 
       // Kill existing server process if we have a reference
       if (serverProc) {
@@ -649,7 +722,7 @@ async function startNativeHost() {
       }
 
       // Start fresh with new config
-      await startServer(port, extraOrigins);
+      await startServer(port, extraOrigins, requestedOcVersion);
    };
 
    const handleMessage = (msg: any) => {
@@ -661,12 +734,14 @@ async function startNativeHost() {
          } else if (msg.type === 'start') {
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             const origins = Array.isArray(msg.origins) ? msg.origins : [];
-            startServer(port, origins);
+            const requestedOcVersion = typeof msg.ocVersion === 'string' ? msg.ocVersion : undefined;
+            startServer(port, origins, requestedOcVersion);
          } else if (msg.type === 'restart') {
             // Restart the server with new origins - used when CORS configuration needs updating
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             const origins = Array.isArray(msg.origins) ? msg.origins : [];
-            restartServer(port, origins);
+            const requestedOcVersion = typeof msg.ocVersion === 'string' ? msg.ocVersion : undefined;
+            restartServer(port, origins, requestedOcVersion);
          } else if (msg.type === 'stop') {
             const port = msg.port ? parseInt(msg.port, 10) : 4096;
             logger.log('Stop requested', { port, hasServerProc: !!serverProc });
@@ -1308,9 +1383,20 @@ async function clearSkillsCache(): Promise<void> {
    log.success('Skills cache cleared.');
 }
 
-async function serveOpencode({ port = 4096, detach = false }: { port?: number; detach?: boolean }) {
+async function serveOpencode({
+   port = 4096,
+   detach = false,
+   ocVersion,
+}: {
+   port?: number;
+   detach?: boolean;
+   ocVersion?: string;
+}) {
    // Validate port
    validatePort(port);
+
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   warnIfUsingNonDefaultOcVersion(resolvedVersion);
 
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
@@ -1318,6 +1404,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
          port,
          stdio: 'ignore',
          detach: true,
+         ocVersion: resolvedVersion,
       });
       proc.unref();
       log.success('OpenCode server started in background.');
@@ -1330,6 +1417,7 @@ async function serveOpencode({ port = 4096, detach = false }: { port?: number; d
       const proc = launchOpencodeServer({
          port,
          stdio: 'inherit',
+         ocVersion: resolvedVersion,
       });
 
       proc.on('close', (code) => {
@@ -1350,178 +1438,16 @@ async function setupOpencode({
    extensionIds,
    force = false,
    skipConfig = false,
+   ocVersion,
 }: {
    extensionIds?: string[];
    force?: boolean;
    skipConfig?: boolean;
+   ocVersion?: string;
 } = {}) {
-   const platform = os.platform();
-   const homeDir = os.homedir();
-   let manifestPath = '';
-
-   // Use provided extension IDs or fall back to the ones in HOST_APP_INFO
-   const allowedExtensionIds = extensionIds?.length
-      ? extensionIds
-      : HOST_APP_INFO.allowedExtensionIds;
-
-   log.info(`Setting up native host for ${allowedExtensionIds.length} extension(s)...`);
-
-   // We need to point to the executable.
-   // If we are running from source (dev), it's `node .../cli/dist/index.cjs opencode native-host`.
-   // If bundled, it's `/path/to/calycode-exe opencode native-host`.
-   // Chrome Native Hosts usually want a direct path to an executable or a bat/sh script.
-   // They don't natively support arguments in the "path" field of the manifest (except on Linux sometimes, but it's flaky).
-   // Best practice: Create a wrapper script (bat/sh) that calls our CLI with the `native-host` argument.
-
-   const isWin = platform === 'win32';
-   const executablePath = process.execPath; // Path to node or the bundled binary
-
-   // Determine how to call the CLI
-   // If we are in pkg (bundled), process.execPath is the binary.
-   // If we are in node, process.execPath is node, and we need the script path.
-
-   let manifestExePath: string;
-
-   if (isWin) {
-      // Development mode on Windows:
-      // Batch files have known issues with binary stdin/stdout for Native Messaging.
-      //
-      // The recommended solution for Windows is to use a VBScript (.vbs) or
-      // Windows Script Host (.wsf) wrapper that properly handles stdin/stdout.
-      // However, these also have limitations with binary data.
-      //
-      // The most reliable approach is to use a small compiled launcher or
-      // directly reference node.exe with the script in a way Chrome accepts.
-      //
-      // For development, we'll try a batch file with minimal commands.
-      // If this doesn't work, users can run `xano opencode native-host` directly
-      // from a terminal for testing, or build the bundled exe.
-
-      const wrapperDir = path.join(homeDir, '.calycode', 'bin');
-      if (!fs.existsSync(wrapperDir)) {
-         fs.mkdirSync(wrapperDir, { recursive: true });
-      }
-
-      const wrapperPath = path.join(wrapperDir, 'calycode-host.bat');
-      let wrapperContent = '';
-
-      // Detect if running from the bundled executable or regular node
-      // SEA apps usually have the executable as process.execPath
-      const isBundled = process.execPath.toLowerCase().endsWith('caly.exe') || (process as any).pkg;
-
-      if (isBundled) {
-         // Bundled: simpler, just call the exe
-         // @echo off prevents the command itself from being printed
-         wrapperContent = `@echo off\r\n`;
-         wrapperContent += `"${process.execPath}" opencode native-host %*\r\n`;
-      } else {
-         // Node/NPM/NPX:
-         // We need to find the entry point.
-         // process.argv[1] is reliable for the current session.
-         // To support the global install scenario, we use that path.
-
-         wrapperContent = `@echo off\r\n`;
-         wrapperContent += `"${process.execPath}" "${process.argv[1]}" opencode native-host %*\r\n`;
-      }
-
-      fs.writeFileSync(wrapperPath, wrapperContent);
-      manifestExePath = wrapperPath;
-
-      log.info(`Created wrapper script: ${wrapperPath}`);
-      // log.info(`Script path: ${scriptPath}`); // Removed logging of scriptPath as it is no longer defined separately
-      log.info(`Wrapper content: ${wrapperContent.trim()}`);
-      log.warn('Note: Development mode on Windows uses a batch file wrapper.');
-      log.warn('If Native Messaging fails, try building the bundled exe instead.');
-   } else {
-      // Unix-like systems - shell scripts work fine
-      const wrapperDir = path.join(homeDir, '.calycode', 'bin');
-      if (!fs.existsSync(wrapperDir)) {
-         fs.mkdirSync(wrapperDir, { recursive: true });
-      }
-
-      const wrapperPath = path.join(wrapperDir, 'calycode-host.sh');
-      let wrapperContent: string;
-
-      wrapperContent = `#!/bin/sh\nexec "${executablePath}" "${process.argv[1]}" opencode native-host\n`;
-
-      fs.writeFileSync(wrapperPath, wrapperContent);
-      fs.chmodSync(wrapperPath, '755');
-      manifestExePath = wrapperPath;
-   }
-
-   let manifestContent: any = {
-      name: HOST_APP_INFO.reverseAppId,
-      description: HOST_APP_INFO.description,
-      path: manifestExePath,
-      type: 'stdio',
-      // Allow all configured extension IDs
-      allowed_origins: allowedExtensionIds.map((id) => `chrome-extension://${id}/`),
-   };
-
-    // Adjust manifest path based on OS
-    if (platform === 'win32') {
-       // Windows requires registry key
-       manifestPath = getNativeHostManifestPath(platform, homeDir);
-
-       try {
-          // Use full HKEY_CURRENT_USER instead of HKCU for clarity/safety
-          const regKey = getNativeHostRegistryKey();
-         // Use reg.exe to add the key.
-         // /ve adds the default value. /t REG_SZ specifies type. /d specifies data. /f forces overwrite.
-         const regArgs = ['add', regKey, '/ve', '/t', 'REG_SZ', '/d', manifestPath, '/f'];
-
-         log.info(`Executing registry command: reg ${regArgs.join(' ')}`);
-
-         await new Promise<void>((resolve, reject) => {
-            const proc = spawn('reg', regArgs, { stdio: 'ignore' });
-
-            proc.on('close', (code) => {
-               if (code === 0) {
-                  log.success(`Registry key added: ${regKey}`);
-
-                  // Verify it immediately
-                  try {
-                     const verifyArgs = ['query', regKey, '/ve'];
-                     const verifyProc = spawn('reg', verifyArgs, { stdio: 'pipe' });
-                     verifyProc.stdout.on('data', (d) =>
-                        log.info(`Registry Verification: ${d.toString().trim()}`),
-                     );
-                  } catch (e) {
-                     /* ignore verify error */
-                  }
-                  resolve();
-               } else {
-                  log.error(`Failed to add registry key. Exit code: ${code}`);
-                  log.warn('You may need to add it manually:');
-                  log.info(`Key: ${regKey}`);
-                  log.info(`Value: ${manifestPath}`);
-                  reject(new Error(`Failed to add registry key. Exit code: ${code}`));
-               }
-            });
-
-            proc.on('error', (err) => {
-               log.error(`Failed to spawn registry command: ${err.message}`);
-               reject(new Error(`Failed to spawn registry command: ${err.message}`));
-            });
-         });
-       } catch (error: any) {
-          log.error(`Error adding registry key: ${error.message}`);
-       }
-    } else {
-       manifestPath = getNativeHostManifestPath(platform, homeDir);
-    }
-
-   // Ensure directory exists
-   const manifestDir = path.dirname(manifestPath);
-   if (!fs.existsSync(manifestDir)) {
-      fs.mkdirSync(manifestDir, { recursive: true });
-   }
-
-   // Write manifest
-   fs.writeFileSync(manifestPath, JSON.stringify(manifestContent, null, 2));
-   log.success(`Native messaging host manifest created at: ${manifestPath}`);
-   log.success(`Executable path in manifest: ${manifestExePath}`);
-
+   const resolvedVersion = resolveOcVersion(ocVersion);
+   warnIfUsingNonDefaultOcVersion(resolvedVersion);
+   await setupNativeHostRegistration(extensionIds, resolvedVersion);
    log.info('Native host setup complete.');
 
    // Setup OpenCode configuration (agents, commands, instructions)
@@ -1537,64 +1463,7 @@ async function setupOpencode({
 }
 
 function showNativeHostStatus(): void {
-   const platform = os.platform();
-   const homeDir = os.homedir();
-   const manifestPath = getNativeHostManifestPath(platform, homeDir);
-   const wrapperPath = path.join(homeDir, '.calycode', 'bin', platform === 'win32' ? 'calycode-host.bat' : 'calycode-host.sh');
-   const expectedOrigins = HOST_APP_INFO.allowedExtensionIds.map((id) => `chrome-extension://${id}/`);
-
-   const lines: string[] = [];
-   lines.push('Native Host Status:');
-   lines.push(`  - Platform: ${platform}`);
-   lines.push(`  - Manifest Path: ${manifestPath}`);
-   lines.push(`  - Manifest Exists: ${fs.existsSync(manifestPath) ? 'Yes' : 'No'}`);
-   lines.push(`  - Wrapper Path: ${wrapperPath}`);
-   lines.push(`  - Wrapper Exists: ${fs.existsSync(wrapperPath) ? 'Yes' : 'No'}`);
-   lines.push(`  - App ID: ${HOST_APP_INFO.reverseAppId}`);
-
-   if (platform === 'win32') {
-      const regKey = getNativeHostRegistryKey();
-      let registryConfigured = false;
-      try {
-         execSync(`reg query "${regKey}" /ve`, { stdio: 'ignore', windowsHide: true });
-         registryConfigured = true;
-      } catch {
-         registryConfigured = false;
-      }
-      lines.push(`  - Registry Key: ${regKey}`);
-      lines.push(`  - Registry Configured: ${registryConfigured ? 'Yes' : 'No'}`);
-   }
-
-   let manifestAllowedOrigins: string[] = [];
-   if (fs.existsSync(manifestPath)) {
-      try {
-         const manifestRaw = fs.readFileSync(manifestPath, 'utf8');
-         const manifest = JSON.parse(manifestRaw) as { allowed_origins?: string[] };
-         manifestAllowedOrigins = Array.isArray(manifest.allowed_origins) ? manifest.allowed_origins : [];
-      } catch {
-         lines.push('  - Manifest Parse: Failed');
-      }
-   }
-
-   lines.push(
-      `  - Expected Extension IDs: ${HOST_APP_INFO.allowedExtensionIds.join(', ')}`,
-   );
-   lines.push(
-      `  - Expected Origins: ${expectedOrigins.join(', ')}`,
-   );
-   lines.push(
-      `  - Manifest Allowed Origins: ${manifestAllowedOrigins.length ? manifestAllowedOrigins.join(', ') : '(none)'}`,
-   );
-
-   const missingOrigins = expectedOrigins.filter((origin) => !manifestAllowedOrigins.includes(origin));
-   if (missingOrigins.length > 0) {
-      lines.push(`  - Missing Expected Origins: ${missingOrigins.join(', ')}`);
-      lines.push('  - Recommendation: run `caly-xano oc init --force` to refresh native host setup.');
-      log.warn(lines.join('\n'));
-      return;
-   }
-
-   log.success(lines.join('\n'));
+   showNativeHostStatusImpl();
 }
 
 export {

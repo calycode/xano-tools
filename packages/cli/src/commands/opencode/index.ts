@@ -21,14 +21,15 @@ async function registerOpencodeCommands(program) {
       .command('oc')
       .alias('opencode')
       .description(
-         'Manage OpenCode AI integration and tools.\n' +
-            '  Powered by OpenCode - The open source AI coding agent.\n' +
-            '  GitHub: https://github.com/anomalyco/opencode\n' +
-            '  License: MIT (see LICENSES/opencode-ai.txt)',
+          'Manage OpenCode AI integration and tools.\n' +
+             '  Powered by OpenCode - The open source AI coding agent.\n' +
+             '  GitHub: https://github.com/anomalyco/opencode\n' +
+             '  License: MIT (see LICENSES/opencode-ai.txt)',
       )
       .allowUnknownOption() // Allow passing through unknown flags to the underlying CLI
       .option('--cwd', 'Run OpenCode proxy commands from the current shell directory')
-      .option('--workdir <path>', 'Run OpenCode proxy commands from a specific working directory');
+      .option('--workdir <path>', 'Run OpenCode proxy commands from a specific working directory')
+      .option('--oc-version <version>', 'Override OpenCode package version for this command');
 
    opencodeNamespace
       .command('init')
@@ -37,12 +38,13 @@ async function registerOpencodeCommands(program) {
       )
       .option('-f, --force', 'Force overwrite existing configuration files')
       .option('--skip-config', 'Skip installing OpenCode configuration templates')
-      .action(async (options) => {
-         await setupOpencode({
-            force: options.force,
-            skipConfig: options.skipConfig,
-         });
-      });
+      .action(async (options, command) => {
+          await setupOpencode({
+             force: options.force,
+             skipConfig: options.skipConfig,
+             ocVersion: command.parent?.opts()?.ocVersion,
+          });
+       });
 
    // Template management subcommands
    const templatesNamespace = opencodeNamespace
@@ -169,12 +171,13 @@ async function registerOpencodeCommands(program) {
       .description('Serve the OpenCode AI server locally.')
       .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
       .option('-d, --detach', 'Run the server in the background (detached mode)')
-      .action(async (options) => {
-         await serveOpencode({
-            port: options.port ? parseInt(options.port, 10) : undefined,
-            detach: options.detach,
-         });
-      });
+      .action(async (options, command) => {
+          await serveOpencode({
+             port: options.port ? parseInt(options.port, 10) : undefined,
+             detach: options.detach,
+             ocVersion: command.parent?.opts()?.ocVersion,
+          });
+       });
 
    const nativeHostCommand = opencodeNamespace
       .command('native-host')
@@ -225,9 +228,10 @@ async function registerOpencodeCommands(program) {
 
           const passThroughArgs = rawArgs.slice(opencodeIndex + 1);
 
-          let forceCwd = !!command.parent?.opts()?.cwd;
-          let explicitWorkdir = command.parent?.opts()?.workdir as string | undefined;
-          const sanitizedPassThroughArgs: string[] = [];
+           let forceCwd = !!command.parent?.opts()?.cwd;
+           let explicitWorkdir = command.parent?.opts()?.workdir as string | undefined;
+           let ocVersion = command.parent?.opts()?.ocVersion as string | undefined;
+           const sanitizedPassThroughArgs: string[] = [];
 
           for (let i = 0; i < passThroughArgs.length; i++) {
              const arg = passThroughArgs[i];
@@ -257,6 +261,20 @@ async function registerOpencodeCommands(program) {
                 continue;
              }
 
+             if (arg === '--oc-version') {
+                const next = passThroughArgs[i + 1];
+                if (next) {
+                   ocVersion = next;
+                   i++;
+                }
+                continue;
+             }
+
+             if (arg.startsWith('--oc-version=')) {
+                ocVersion = arg.slice('--oc-version='.length);
+                continue;
+             }
+
              sanitizedPassThroughArgs.push(arg);
           }
 
@@ -264,11 +282,11 @@ async function registerOpencodeCommands(program) {
          // No, if we are here, it's because it wasn't init/serve/native-host (mostly).
           // BUT 'run' is default, so 'caly-xano opencode' (no args) also lands here.
 
-          await proxyOpencode(sanitizedPassThroughArgs, {
-             forceCwd,
-             explicitWorkdir,
-          });
-       });
+           await proxyOpencode(sanitizedPassThroughArgs, {
+              forceCwd,
+              explicitWorkdir,
+           }, ocVersion);
+        });
 }
 
 export { registerOpencodeCommands };
