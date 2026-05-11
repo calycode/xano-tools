@@ -38,13 +38,13 @@ async function registerOpencodeCommands(program) {
       )
       .option('-f, --force', 'Force overwrite existing configuration files')
       .option('--skip-config', 'Skip installing OpenCode configuration templates')
-      .action(async (options) => {
-         await setupOpencode({
-            force: options.force,
-            skipConfig: options.skipConfig,
-            ocVersion: options.ocVersion,
-         });
-      });
+      .action(async (options, command) => {
+          await setupOpencode({
+             force: options.force,
+             skipConfig: options.skipConfig,
+             ocVersion: command.parent?.opts()?.ocVersion,
+          });
+       });
 
    // Template management subcommands
    const templatesNamespace = opencodeNamespace
@@ -171,13 +171,13 @@ async function registerOpencodeCommands(program) {
       .description('Serve the OpenCode AI server locally.')
       .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
       .option('-d, --detach', 'Run the server in the background (detached mode)')
-      .action(async (options) => {
-         await serveOpencode({
-            port: options.port ? parseInt(options.port, 10) : undefined,
-            detach: options.detach,
-            ocVersion: options.ocVersion,
-         });
-      });
+      .action(async (options, command) => {
+          await serveOpencode({
+             port: options.port ? parseInt(options.port, 10) : undefined,
+             detach: options.detach,
+             ocVersion: command.parent?.opts()?.ocVersion,
+          });
+       });
 
    const nativeHostCommand = opencodeNamespace
       .command('native-host')

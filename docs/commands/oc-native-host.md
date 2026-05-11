@@ -53,4 +53,3 @@ Native Host Status:
 
 Run 'caly-xano <command> --help' for detailed usage.
 https://github.com/calycode/xano-tools | https://links.calycode.com/discord
-```

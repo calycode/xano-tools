@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { spawn, execSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { log } from '@clack/prompts';
 import { HOST_APP_INFO } from '../../../utils/host-constants';
 import { getNativeHostTargets, type NativeHostBrowserTarget } from './targets';
@@ -16,9 +16,18 @@ interface SetupNativeHostResult {
    extensionResolution: ResolveExtensionIdsResult;
 }
 
-function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string): string {
+interface NativeHostManifest {
+   name: string;
+   description: string;
+   path: string;
+   type: 'stdio';
+   allowed_origins: string[];
+}
+
+function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string, ocVersion?: string): string {
    const isWin = platform === 'win32';
    const executablePath = process.execPath;
+   const ocVersionArg = ocVersion ? ` --oc-version ${ocVersion}` : '';
 
    if (isWin) {
       const wrapperDir = path.join(homeDir, '.calycode', 'bin');
@@ -32,17 +41,17 @@ function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string): st
 
       if (isBundled) {
          wrapperContent = `@echo off\r\n`;
-         wrapperContent += `"${process.execPath}" opencode native-host %*\r\n`;
+         wrapperContent += `"${process.execPath}" opencode native-host${ocVersionArg} %*\r\n`;
       } else {
          wrapperContent = `@echo off\r\n`;
-         wrapperContent += `"${process.execPath}" "${process.argv[1]}" opencode native-host %*\r\n`;
+         wrapperContent += `"${process.execPath}" "${process.argv[1]}" opencode native-host${ocVersionArg} %*\r\n`;
+         log.warn('Note: Development mode on Windows uses a batch file wrapper.');
+         log.warn('If Native Messaging fails, try building the bundled exe instead.');
       }
 
       fs.writeFileSync(wrapperPath, wrapperContent);
       log.info(`Created wrapper script: ${wrapperPath}`);
       log.info(`Wrapper content: ${wrapperContent.trim()}`);
-      log.warn('Note: Development mode on Windows uses a batch file wrapper.');
-      log.warn('If Native Messaging fails, try building the bundled exe instead.');
       return wrapperPath;
    }
 
@@ -55,9 +64,9 @@ function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string): st
    let wrapperContent: string;
    const isBundled = process.execPath.toLowerCase().endsWith('caly') || (process as any).pkg;
    if (isBundled || !process.argv[1]) {
-      wrapperContent = `#!/bin/sh\nexec "${executablePath}" opencode native-host "$@"\n`;
+      wrapperContent = `#!/bin/sh\nexec "${executablePath}" opencode native-host${ocVersionArg} "$@"\n`;
    } else {
-      wrapperContent = `#!/bin/sh\nexec "${executablePath}" "${process.argv[1]}" opencode native-host "$@"\n`;
+      wrapperContent = `#!/bin/sh\nexec "${executablePath}" "${process.argv[1]}" opencode native-host${ocVersionArg} "$@"\n`;
    }
 
    fs.writeFileSync(wrapperPath, wrapperContent);
@@ -65,7 +74,7 @@ function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string): st
    return wrapperPath;
 }
 
-function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: string[]): Record<string, any> {
+function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: string[]): NativeHostManifest {
    return {
       name: HOST_APP_INFO.reverseAppId,
       description: HOST_APP_INFO.description,
@@ -78,7 +87,7 @@ function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: 
 function writeNativeHostManifests(
    platform: NodeJS.Platform,
    targets: NativeHostBrowserTarget[],
-   manifestContent: Record<string, any>,
+   manifestContent: NativeHostManifest,
 ): NativeHostBrowserTarget[] {
    const writeAllBrowserManifests = resolveWriteAllBrowserManifests();
    const writtenTargets: NativeHostBrowserTarget[] = [];
@@ -139,7 +148,18 @@ async function registerWindowsNativeHosts(targets: NativeHostBrowserTarget[]): P
    }
 }
 
-async function setupNativeHostRegistration(extensionIds?: string[]): Promise<SetupNativeHostResult> {
+/**
+ * Set up native-host wrapper, manifests, and platform registration for browser integration.
+ *
+ * @param extensionIds Optional explicit extension IDs. When omitted, discovery/default
+ * IDs are resolved automatically.
+ * @param ocVersion Optional OpenCode version to persist in wrapper invocation.
+ * @returns Promise resolving to wrapper path and extension resolution details.
+ */
+async function setupNativeHostRegistration(
+   extensionIds?: string[],
+   ocVersion?: string,
+): Promise<SetupNativeHostResult> {
    const platform = os.platform();
    const homeDir = os.homedir();
    const nativeHostTargets = getNativeHostTargets(platform, homeDir);
@@ -156,7 +176,7 @@ async function setupNativeHostRegistration(extensionIds?: string[]): Promise<Set
       `Setting up native host for ${allowedExtensionIds.length} extension(s) [source=${extensionResolution.source}]...`,
    );
 
-   const manifestExePath = createNativeHostWrapper(platform, homeDir);
+   const manifestExePath = createNativeHostWrapper(platform, homeDir, ocVersion);
    const manifestContent = createNativeHostManifest(manifestExePath, allowedExtensionIds);
    const writtenTargets = writeNativeHostManifests(platform, nativeHostTargets, manifestContent);
 
@@ -186,6 +206,11 @@ async function setupNativeHostRegistration(extensionIds?: string[]): Promise<Set
    };
 }
 
+/**
+ * Show current native-host status, including wrapper, manifest, registry, and origin drift checks.
+ *
+ * @returns Void. Writes a formatted status report to CLI output.
+ */
 function showNativeHostStatus(): void {
    const platform = os.platform();
    const homeDir = os.homedir();
@@ -214,28 +239,41 @@ function showNativeHostStatus(): void {
             continue;
          }
 
-         let registryConfigured = false;
-         try {
-            execSync(`reg query "${target.registryKey}" /ve`, { stdio: 'ignore', windowsHide: true });
-            registryConfigured = true;
-         } catch {
-            registryConfigured = false;
-         }
+         const probe = spawnSync('reg', ['query', target.registryKey, '/ve'], {
+            stdio: 'ignore',
+            windowsHide: true,
+         });
+         const registryConfigured = probe.status === 0;
 
          lines.push(`  - ${target.browser} Registry Key: ${target.registryKey}`);
          lines.push(`  - ${target.browser} Registry Configured: ${registryConfigured ? 'Yes' : 'No'}`);
       }
    }
 
-   let manifestAllowedOrigins: string[] = [];
-   const firstManifestPath = nativeHostTargets[0]?.manifestPath;
-   if (firstManifestPath && fs.existsSync(firstManifestPath)) {
+   const manifestDrifts: Array<{ browser: string; manifestPath: string; missingOrigins: string[] }> = [];
+   const manifestOriginsByBrowser: Array<{ browser: string; origins: string[] }> = [];
+
+   for (const target of nativeHostTargets) {
+      if (!fs.existsSync(target.manifestPath)) {
+         continue;
+      }
+
       try {
-         const manifestRaw = fs.readFileSync(firstManifestPath, 'utf8');
+         const manifestRaw = fs.readFileSync(target.manifestPath, 'utf8');
          const manifest = JSON.parse(manifestRaw) as { allowed_origins?: string[] };
-         manifestAllowedOrigins = Array.isArray(manifest.allowed_origins) ? manifest.allowed_origins : [];
+         const allowedOrigins = Array.isArray(manifest.allowed_origins) ? manifest.allowed_origins : [];
+         manifestOriginsByBrowser.push({ browser: target.browser, origins: allowedOrigins });
+
+         const missingOrigins = expectedOrigins.filter((origin) => !allowedOrigins.includes(origin));
+         if (missingOrigins.length > 0) {
+            manifestDrifts.push({
+               browser: target.browser,
+               manifestPath: target.manifestPath,
+               missingOrigins,
+            });
+         }
       } catch {
-         lines.push('  - Manifest Parse: Failed');
+         lines.push(`  - Manifest Parse (${target.browser}): Failed`);
       }
    }
 
@@ -245,16 +283,26 @@ function showNativeHostStatus(): void {
    lines.push(
       `  - Expected Origins: ${expectedOrigins.join(', ')}`,
    );
-   lines.push(
-      `  - Manifest Allowed Origins: ${manifestAllowedOrigins.length ? manifestAllowedOrigins.join(', ') : '(none)'}`,
-   );
+   if (manifestOriginsByBrowser.length === 0) {
+      lines.push('  - Manifest Allowed Origins: (none)');
+   } else {
+      for (const entry of manifestOriginsByBrowser) {
+         lines.push(
+            `  - ${entry.browser} Manifest Allowed Origins: ${entry.origins.length ? entry.origins.join(', ') : '(none)'}`,
+         );
+      }
+   }
 
-   const missingOrigins = expectedOrigins.filter((origin) => !manifestAllowedOrigins.includes(origin));
-   if (missingOrigins.length > 0) {
-      lines.push(`  - Missing Expected Origins: ${missingOrigins.join(', ')}`);
-      lines.push('  - Recommendation: run `caly-xano oc init --force` to refresh native host setup.');
-      log.warn(lines.join('\n'));
-      return;
+   if (manifestDrifts.length > 0) {
+      for (const drift of manifestDrifts) {
+         lines.push(
+            `  - Missing Expected Origins (${drift.browser}): ${drift.missingOrigins.join(', ')}`,
+         );
+         lines.push(`  - Drift Manifest Path (${drift.browser}): ${drift.manifestPath}`);
+      }
+       lines.push('  - Recommendation: run `caly-xano oc init --force` to refresh native host setup.');
+       log.warn(lines.join('\n'));
+       return;
    }
 
    log.success(lines.join('\n'));

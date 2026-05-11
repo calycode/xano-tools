@@ -348,27 +348,57 @@ function resolveManifestName(manifest: ExtensionManifest, extensionVersionPath: 
    return localized || manifest.name;
 }
 
+function parseExtensionVersion(dirName: string): number[] | null {
+   const coreVersion = dirName.split('_')[0]?.trim();
+   if (!coreVersion || !/^\d+(?:\.\d+)*$/.test(coreVersion)) {
+      return null;
+   }
+   return coreVersion.split('.').map((part) => Number.parseInt(part, 10));
+}
+
+function compareVersionParts(aParts: number[], bParts: number[]): number {
+   const maxLen = Math.max(aParts.length, bParts.length);
+   for (let i = 0; i < maxLen; i++) {
+      const a = aParts[i] ?? 0;
+      const b = bParts[i] ?? 0;
+      if (a !== b) {
+         return a - b;
+      }
+   }
+   return 0;
+}
+
 function getLatestExtensionVersionPath(extensionRootPath: string): string | null {
    if (!fs.existsSync(extensionRootPath)) {
       return null;
    }
 
    const versionDirs = fs
-      .readdirSync(extensionRootPath, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => path.join(extensionRootPath, entry.name));
+       .readdirSync(extensionRootPath, { withFileTypes: true })
+       .filter((entry) => entry.isDirectory())
+       .map((entry) => ({
+          name: entry.name,
+          fullPath: path.join(extensionRootPath, entry.name),
+          parsedVersion: parseExtensionVersion(entry.name),
+       }));
 
    if (versionDirs.length === 0) {
       return null;
    }
 
+   const semverCandidates = versionDirs.filter((entry) => entry.parsedVersion !== null);
+   if (semverCandidates.length > 0) {
+      semverCandidates.sort((a, b) => compareVersionParts(b.parsedVersion!, a.parsedVersion!));
+      return semverCandidates[0].fullPath;
+   }
+
    versionDirs.sort((a, b) => {
-      const aTime = fs.statSync(a).mtimeMs;
-      const bTime = fs.statSync(b).mtimeMs;
+      const aTime = fs.statSync(a.fullPath).mtimeMs;
+      const bTime = fs.statSync(b.fullPath).mtimeMs;
       return bTime - aTime;
    });
 
-   return versionDirs[0];
+   return versionDirs[0].fullPath;
 }
 
 function discoverExtensionIds(): ResolveExtensionIdsResult {
@@ -460,8 +490,9 @@ function discoverExtensionIds(): ResolveExtensionIdsResult {
                accepted = trustSignals >= 2;
                confidence = accepted ? 'high' : 'low';
             } else {
-               accepted = trustSignals >= 1 || hasNativeMessagingPermission;
-               confidence = trustSignals >= 2 ? 'high' : trustSignals >= 1 ? 'medium' : 'low';
+               const effectiveSignals = trustSignals + (hasNativeMessagingPermission ? 1 : 0);
+               accepted = effectiveSignals >= 1;
+               confidence = effectiveSignals >= 2 ? 'high' : effectiveSignals >= 1 ? 'medium' : 'low';
             }
 
             if (!accepted) {
@@ -512,6 +543,16 @@ function discoverExtensionIds(): ResolveExtensionIdsResult {
    };
 }
 
+/**
+ * Resolve allowed browser extension IDs used in native-host manifests.
+ *
+ * If `providedIds` is supplied, it validates and returns those IDs.
+ * Otherwise, it runs discovery (when enabled) and merges discovered IDs
+ * with known IDs based on configuration.
+ *
+ * @param providedIds Optional explicit extension IDs to trust and use.
+ * @returns Resolved extension IDs, match metadata, and source label.
+ */
 function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIdsResult {
    if (providedIds?.length) {
       const uniqueIds = Array.from(new Set(providedIds.map((id) => id.trim()).filter(Boolean)));
@@ -569,6 +610,14 @@ function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIds
    };
 }
 
+/**
+ * Resolve whether native-host manifests should be written for all browser targets.
+ *
+ * Used during native-host setup to decide if manifests should be created only for
+ * detected browser roots or force-written for all known targets.
+ *
+ * @returns {boolean} True when all browser manifests should be written.
+ */
 function resolveWriteAllBrowserManifests(): boolean {
    return parseBooleanEnv(
       resolveEnvWithBuildFallback(

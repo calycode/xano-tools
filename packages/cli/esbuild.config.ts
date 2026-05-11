@@ -9,7 +9,7 @@ const distDir = resolve(__dirname, 'dist');
 
 function defineEnvValue(name: string): string {
    const value = process.env[name];
-   return value === undefined ? 'undefined' : JSON.stringify(value);
+   return value === undefined ? JSON.stringify('') : JSON.stringify(value);
 }
 
 const buildEnvDefines: Record<string, string> = {

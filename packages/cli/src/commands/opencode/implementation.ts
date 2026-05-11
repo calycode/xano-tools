@@ -618,27 +618,27 @@ async function startNativeHost() {
          // Not running, proceed
       }
 
-       try {
-            const resolvedVersion = resolveOcVersion(
-               requestedOcVersion || parseOcVersionFromArgv(process.argv),
+      try {
+         const resolvedVersion = resolveOcVersion(
+            requestedOcVersion || parseOcVersionFromArgv(process.argv),
+         );
+         const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+         logger.log(`Spawning npx ${args.join(' ')}`);
+         logger.log(`Using OpenCode version: ${resolvedVersion}`);
+         logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
+         logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
+         if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
+            logger.log(
+               `Using overridden OpenCode ${resolvedVersion}. Current validated default is ${DEFAULT_OPENCODE_VERSION}.`,
             );
-            const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-            logger.log(`Spawning npx ${args.join(' ')}`);
-            logger.log(`Using OpenCode version: ${resolvedVersion}`);
-           logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
-           logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
-           if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
-              logger.log(
-                 `Using overridden OpenCode ${resolvedVersion}. Current validated default is ${DEFAULT_OPENCODE_VERSION}.`,
-              );
-           }
+         }
 
-            serverProc = launchOpencodeServer({
-               port,
-               extraOrigins,
-               stdio: 'ignore',
-               ocVersion: resolvedVersion,
-            });
+         serverProc = launchOpencodeServer({
+            port,
+            extraOrigins,
+            stdio: 'ignore',
+            ocVersion: resolvedVersion,
+         });
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -671,14 +671,14 @@ async function startNativeHost() {
                message: 'Server spawned but failed to become ready in time',
             });
          }
-       } catch (err: any) {
-          logger.error('Unexpected error starting server', err);
-          sendMessage({
-             status: 'error',
-             message: err?.message || 'Unexpected error starting server',
-          });
-       }
-    };
+      } catch (err: any) {
+         logger.error('Unexpected error starting server', err);
+         sendMessage({
+            status: 'error',
+            message: err?.message || 'Unexpected error starting server',
+         });
+      }
+   };
 
    const restartServer = async (
       port: number = 4096,
@@ -1447,7 +1447,7 @@ async function setupOpencode({
 } = {}) {
    const resolvedVersion = resolveOcVersion(ocVersion);
    warnIfUsingNonDefaultOcVersion(resolvedVersion);
-   await setupNativeHostRegistration(extensionIds);
+   await setupNativeHostRegistration(extensionIds, resolvedVersion);
    log.info('Native host setup complete.');
 
    // Setup OpenCode configuration (agents, commands, instructions)
