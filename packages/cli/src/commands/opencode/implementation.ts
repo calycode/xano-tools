@@ -3,7 +3,7 @@ import { log } from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { spawn, execSync } from 'node:child_process';
+import { spawn, execSync, execFileSync } from 'node:child_process';
 import { HOST_APP_INFO } from '../../utils/host-constants';
 import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 import { resolveAllowedExtensionIds } from './native-host/discovery';
@@ -21,6 +21,18 @@ interface LaunchOpencodeServerOptions {
    stdio?: 'inherit' | 'pipe' | 'ignore';
    detach?: boolean;
    ocVersion?: string;
+}
+
+interface OpencodeSpawnPlan {
+   command: string;
+   args: string[];
+   source: 'env' | 'managed' | 'global' | 'npx';
+   displayCommand: string;
+}
+
+interface LaunchedOpencodeServer {
+   proc: ReturnType<typeof spawn>;
+   plan: OpencodeSpawnPlan;
 }
 
 function normalizeOcVersion(rawVersion?: string): string | undefined {
@@ -69,6 +81,152 @@ function getOpencodePackageSpecifier(version: string): string {
    return `opencode-ai@${version}`;
 }
 
+function getManagedOpencodeVersionsDir(): string {
+   return path.join(getCalycodeOpencodeConfigDir(), 'versions');
+}
+
+function getManagedOpencodeInstallDir(version: string): string {
+   return path.join(getManagedOpencodeVersionsDir(), version);
+}
+
+function getManagedOpencodeBinPath(version: string): string {
+   const binName = process.platform === 'win32' ? 'opencode.cmd' : 'opencode';
+   return path.join(getManagedOpencodeInstallDir(version), 'node_modules', '.bin', binName);
+}
+
+function fileExists(candidatePath: string): boolean {
+   try {
+      return fs.existsSync(candidatePath);
+   } catch {
+      return false;
+   }
+}
+
+function isTruthy(value?: string): boolean {
+   return ['1', 'true', 'yes', 'on'].includes((value || '').toLowerCase());
+}
+
+function shouldUseManagedOpencodeInstall(): boolean {
+   return !isTruthy(process.env.CALY_OC_DISABLE_MANAGED_INSTALL);
+}
+
+function findGlobalOpencodeBinary(): string | undefined {
+   try {
+      const command = process.platform === 'win32' ? 'where opencode' : 'which opencode';
+      const output = execSync(command, {
+         encoding: 'utf8',
+         stdio: ['ignore', 'pipe', 'ignore'],
+      })
+         .split(/\r?\n/)
+         .map((line) => line.trim())
+         .find(Boolean);
+
+      if (!output) {
+         return undefined;
+      }
+
+      return fileExists(output) ? output : undefined;
+   } catch {
+      return undefined;
+   }
+}
+
+function ensureManagedOpencodeInstalled(version: string): string {
+   const managedBinPath = getManagedOpencodeBinPath(version);
+   if (fileExists(managedBinPath)) {
+      return managedBinPath;
+   }
+
+   const installDir = getManagedOpencodeInstallDir(version);
+   ensureDirectoryExists(installDir);
+
+   const packageSpecifier = getOpencodePackageSpecifier(version);
+   execFileSync('npm', ['install', '--no-save', '--prefix', installDir, packageSpecifier], {
+      stdio: 'ignore',
+      env: process.env,
+   });
+
+   if (!fileExists(managedBinPath)) {
+      throw new Error(
+         `Managed OpenCode install completed but launcher not found at ${managedBinPath}.`,
+      );
+   }
+
+   if (process.platform === 'darwin') {
+      try {
+         execFileSync('xattr', ['-dr', 'com.apple.quarantine', installDir], {
+            stdio: 'ignore',
+         });
+      } catch {
+         // Best effort only.
+      }
+   }
+
+   return managedBinPath;
+}
+
+function buildOpencodeSpawnPlan(
+   version: string,
+   opencodeArgs: string[],
+   options?: { ensureManagedInstall?: boolean },
+): OpencodeSpawnPlan {
+   const explicitBin = process.env.CALY_OC_OPENCODE_BIN?.trim();
+   if (explicitBin) {
+      if (!fileExists(explicitBin)) {
+         throw new Error(`CALY_OC_OPENCODE_BIN is set but not found: ${explicitBin}`);
+      }
+      return {
+         command: explicitBin,
+         args: opencodeArgs,
+         source: 'env',
+         displayCommand: `${explicitBin} ${opencodeArgs.join(' ')}`.trim(),
+      };
+   }
+
+   const managedEnabled = shouldUseManagedOpencodeInstall();
+   const managedBin = getManagedOpencodeBinPath(version);
+   if (managedEnabled && fileExists(managedBin)) {
+      return {
+         command: managedBin,
+         args: opencodeArgs,
+         source: 'managed',
+         displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
+      };
+   }
+
+   if (managedEnabled && options?.ensureManagedInstall !== false) {
+      try {
+         const installedBin = ensureManagedOpencodeInstalled(version);
+         return {
+            command: installedBin,
+            args: opencodeArgs,
+            source: 'managed',
+            displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
+         };
+      } catch {
+         // Continue to global/npx fallbacks when managed install is unavailable.
+      }
+   }
+
+   const globalOpencode = findGlobalOpencodeBinary();
+   if (globalOpencode) {
+      return {
+         command: globalOpencode,
+         args: opencodeArgs,
+         source: 'global',
+         displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
+      };
+   }
+
+   const npxArgs = ['-y', getOpencodePackageSpecifier(version), ...opencodeArgs];
+   return {
+      command: 'npx',
+      args: npxArgs,
+      source: 'npx',
+      displayCommand: `npx ${npxArgs.join(' ')}`,
+   };
+}
+
 function warnIfUsingNonDefaultOcVersion(version: string): void {
    if (version !== DEFAULT_OPENCODE_VERSION) {
       log.warn(
@@ -87,21 +245,25 @@ function launchOpencodeServer({
    validatePort(port);
 
    const resolvedVersion = resolveOcVersion(ocVersion);
-   const args = [
-      '-y',
-      getOpencodePackageSpecifier(resolvedVersion),
+   const opencodeArgs = [
       'serve',
       '--port',
       String(port),
       ...getCorsArgs(extraOrigins),
    ];
+   const plan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs);
    const configDir = getCalycodeOpencodeConfigDir();
    const workingDir = getOpencodeWorkingDir('server');
 
-   return spawn('npx', args, {
+   const proc = spawn(plan.command, plan.args, {
       ...getSpawnOptions(stdio, { OPENCODE_CONFIG_DIR: configDir }, workingDir),
       detached: detach,
    });
+
+   return {
+      proc,
+      plan,
+   } as LaunchedOpencodeServer;
 }
 
 /**
@@ -402,9 +564,11 @@ async function proxyOpencode(
    warnIfUsingNonDefaultOcVersion(resolvedVersion);
 
    return new Promise<void>((resolve, reject) => {
-      // Use 'npx' to execute the opencode-ai CLI with the provided arguments
+      const launchPlan = buildOpencodeSpawnPlan(resolvedVersion, args);
+      log.info(`OpenCode launcher: ${launchPlan.source}`);
+
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
-      const proc = spawn('npx', ['-y', getOpencodePackageSpecifier(resolvedVersion), ...args], {
+      const proc = spawn(launchPlan.command, launchPlan.args, {
          ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
       });
 
@@ -622,8 +786,10 @@ async function startNativeHost() {
          const resolvedVersion = resolveOcVersion(
             requestedOcVersion || parseOcVersionFromArgv(process.argv),
          );
-         const args = ['-y', getOpencodePackageSpecifier(resolvedVersion), 'serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-         logger.log(`Spawning npx ${args.join(' ')}`);
+         const opencodeArgs = ['serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
+         const launchPlan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs);
+         logger.log(`Spawning ${launchPlan.displayCommand}`);
+         logger.log(`OpenCode launcher source: ${launchPlan.source}`);
          logger.log(`Using OpenCode version: ${resolvedVersion}`);
          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
@@ -633,12 +799,13 @@ async function startNativeHost() {
             );
          }
 
-         serverProc = launchOpencodeServer({
+         const launched = launchOpencodeServer({
             port,
             extraOrigins,
             stdio: 'ignore',
             ocVersion: resolvedVersion,
          });
+         serverProc = launched.proc;
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -1400,12 +1567,14 @@ async function serveOpencode({
 
    if (detach) {
       log.info(`Starting OpenCode server on port ${port} in background...`);
-      const proc = launchOpencodeServer({
+      const launched = launchOpencodeServer({
          port,
          stdio: 'ignore',
          detach: true,
          ocVersion: resolvedVersion,
       });
+      log.info(`OpenCode launcher: ${launched.plan.source}`);
+      const proc = launched.proc;
       proc.unref();
       log.success('OpenCode server started in background.');
       return;
@@ -1414,11 +1583,13 @@ async function serveOpencode({
    return new Promise<void>((resolve, reject) => {
       log.info(`Starting OpenCode server on port ${port}...`);
 
-      const proc = launchOpencodeServer({
+      const launched = launchOpencodeServer({
          port,
          stdio: 'inherit',
          ocVersion: resolvedVersion,
       });
+      log.info(`OpenCode launcher: ${launched.plan.source}`);
+      const proc = launched.proc;
 
       proc.on('close', (code) => {
          if (code === 0) {
@@ -1447,6 +1618,18 @@ async function setupOpencode({
 } = {}) {
    const resolvedVersion = resolveOcVersion(ocVersion);
    warnIfUsingNonDefaultOcVersion(resolvedVersion);
+
+   if (shouldUseManagedOpencodeInstall()) {
+      try {
+         const managedBinPath = ensureManagedOpencodeInstalled(resolvedVersion);
+         log.info(`Managed OpenCode launcher ready: ${managedBinPath}`);
+      } catch (error: any) {
+         log.warn(
+            `Managed OpenCode install failed (${error?.message || 'unknown error'}). Falling back to global/npx launchers.`,
+         );
+      }
+   }
+
    await setupNativeHostRegistration(extensionIds, resolvedVersion);
    log.info('Native host setup complete.');
 
