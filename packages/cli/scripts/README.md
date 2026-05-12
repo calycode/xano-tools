@@ -109,7 +109,7 @@ irm https://links.calycode.com/install-cli-windows-ps1 | iex
 Example:
 
 ```bash
-CALYCODE_VERSION=1.2.3 CALYCODE_SKIP_NATIVE_HOST=1 curl -fsSL https://links.calycode.com/install-cli-unix | bash
+curl -fsSL https://links.calycode.com/install-cli-unix | CALYCODE_VERSION=1.2.3 CALYCODE_SKIP_NATIVE_HOST=1 bash -s --
 ```
 
 ## For Developers

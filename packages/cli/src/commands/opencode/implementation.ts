@@ -3,7 +3,7 @@ import { log } from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { spawn, execSync } from 'node:child_process';
+import { spawn, execSync, execFileSync } from 'node:child_process';
 import { HOST_APP_INFO } from '../../utils/host-constants';
 import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 import { resolveAllowedExtensionIds } from './native-host/discovery';
@@ -140,9 +140,8 @@ function ensureManagedOpencodeInstalled(version: string): string {
    const installDir = getManagedOpencodeInstallDir(version);
    ensureDirectoryExists(installDir);
 
-   const safeInstallDir = installDir.replace(/"/g, '\\"');
    const packageSpecifier = getOpencodePackageSpecifier(version);
-   execSync(`npm install --no-save --prefix "${safeInstallDir}" "${packageSpecifier}"`, {
+   execFileSync('npm', ['install', '--no-save', '--prefix', installDir, packageSpecifier], {
       stdio: 'ignore',
       env: process.env,
    });
@@ -155,9 +154,8 @@ function ensureManagedOpencodeInstalled(version: string): string {
 
    if (process.platform === 'darwin') {
       try {
-         execSync(`xattr -dr com.apple.quarantine "${installDir}"`, {
+         execFileSync('xattr', ['-dr', 'com.apple.quarantine', installDir], {
             stdio: 'ignore',
-            shell: true,
          });
       } catch {
          // Best effort only.
