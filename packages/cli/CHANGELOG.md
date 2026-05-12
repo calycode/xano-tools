@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.18.5
+
+### Patch Changes
+
+- 15e83a0: fix: improve native host setup reliability
+
 ## 0.18.4
 
 ### Patch Changes
