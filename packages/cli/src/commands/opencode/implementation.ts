@@ -197,13 +197,17 @@ function buildOpencodeSpawnPlan(
    }
 
    if (managedEnabled && options?.ensureManagedInstall !== false) {
-      const installedBin = ensureManagedOpencodeInstalled(version);
-      return {
-         command: installedBin,
-         args: opencodeArgs,
-         source: 'managed',
-         displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
-      };
+      try {
+         const installedBin = ensureManagedOpencodeInstalled(version);
+         return {
+            command: installedBin,
+            args: opencodeArgs,
+            source: 'managed',
+            displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
+         };
+      } catch {
+         // Continue to global/npx fallbacks when managed install is unavailable.
+      }
    }
 
    const globalOpencode = findGlobalOpencodeBinary();
