@@ -56,3 +56,4 @@ jobs:
               NPM_CONFIG_PROVENANCE: true
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
               NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              CALY_BUILD_OC_EXT_PUBLIC_KEY_B64: ${{ secrets.CALY_BUILD_OC_EXT_PUBLIC_KEY_B64 }}
