@@ -27,6 +27,13 @@ interface LaunchOpencodeServerOptions {
    stdio?: 'inherit' | 'pipe' | 'ignore';
    detach?: boolean;
    ocVersion?: string;
+   allowGlobalFallback?: boolean;
+   onManagedFail?: (err: Error) => void;
+   onGlobalVersionMismatch?: (details: {
+      expectedVersion: string;
+      actualVersion?: string;
+      globalBinaryPath: string;
+   }) => void;
 }
 
 interface OpencodeSpawnPlan {
@@ -145,6 +152,23 @@ function findGlobalOpencodeBinary(): string | undefined {
    }
 }
 
+function getOpencodeBinaryVersion(binaryPath: string): string | undefined {
+   try {
+      const output = execFileSync(binaryPath, ['--version'], {
+         encoding: 'utf8',
+         stdio: ['ignore', 'pipe', 'ignore'],
+         windowsHide: true,
+      })
+         .toString()
+         .trim();
+
+      const match = output.match(/\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?/);
+      return match?.[0];
+   } catch {
+      return undefined;
+   }
+}
+
 function ensureManagedOpencodeInstalled(version: string): string {
    const managedBinPath = getManagedOpencodeBinPath(version);
    if (fileExists(managedBinPath)) {
@@ -182,7 +206,16 @@ function ensureManagedOpencodeInstalled(version: string): string {
 function buildOpencodeSpawnPlan(
    version: string,
    opencodeArgs: string[],
-   options?: { ensureManagedInstall?: boolean },
+   options?: {
+      ensureManagedInstall?: boolean;
+      allowGlobalFallback?: boolean;
+      onManagedFail?: (err: Error) => void;
+      onGlobalVersionMismatch?: (details: {
+         expectedVersion: string;
+         actualVersion?: string;
+         globalBinaryPath: string;
+      }) => void;
+   },
 ): OpencodeSpawnPlan {
    const explicitBin = process.env.CALY_OC_OPENCODE_BIN?.trim();
    if (explicitBin) {
@@ -220,20 +253,39 @@ function buildOpencodeSpawnPlan(
             displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
             needsShell: false,
          };
-      } catch {
-         // Continue to global/npx fallbacks when managed install is unavailable.
+      } catch (err) {
+         if (options?.onManagedFail) {
+            options.onManagedFail(err instanceof Error ? err : new Error(String(err)));
+         }
       }
    }
 
-   const globalOpencode = findGlobalOpencodeBinary();
-   if (globalOpencode) {
-      return {
-         command: globalOpencode,
-         args: opencodeArgs,
-         source: 'global',
-         displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
-         needsShell: false,
-      };
+   const allowGlobalFallback = options?.allowGlobalFallback !== false;
+   if (allowGlobalFallback) {
+      const globalOpencode = findGlobalOpencodeBinary();
+      if (globalOpencode) {
+         const globalVersion = getOpencodeBinaryVersion(globalOpencode);
+         if (globalVersion === version) {
+            return {
+               command: globalOpencode,
+               args: opencodeArgs,
+               source: 'global',
+               displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
+               needsShell: false,
+            };
+         }
+
+         if (options?.onGlobalVersionMismatch) {
+            options.onGlobalVersionMismatch({
+               expectedVersion: version,
+               actualVersion: globalVersion,
+               globalBinaryPath: globalOpencode,
+            });
+         }
+
+         // Global binary exists but does not match requested version; fall back to npx.
+         // This preserves strict version pinning behavior.
+      }
    }
 
    const npxArgs = ['-y', getOpencodePackageSpecifier(version), ...opencodeArgs];
@@ -260,6 +312,9 @@ function launchOpencodeServer({
    stdio = 'inherit',
    detach = false,
    ocVersion,
+   allowGlobalFallback,
+   onManagedFail,
+   onGlobalVersionMismatch,
 }: LaunchOpencodeServerOptions) {
    validatePort(port);
 
@@ -270,7 +325,11 @@ function launchOpencodeServer({
       String(port),
       ...getCorsArgs(extraOrigins),
    ];
-   const plan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs);
+   const plan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs, {
+      allowGlobalFallback,
+      onManagedFail,
+      onGlobalVersionMismatch,
+   });
    const configDir = getCalycodeOpencodeConfigDir();
    const workingDir = getOpencodeWorkingDir('server');
 
@@ -883,10 +942,6 @@ async function startNativeHost() {
          const resolvedVersion = resolveOcVersion(
             requestedOcVersion || parseOcVersionFromArgv(process.argv),
          );
-         const opencodeArgs = ['serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-         const launchPlan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs);
-         logger.log(`Spawning ${launchPlan.displayCommand}`);
-         logger.log(`OpenCode launcher source: ${launchPlan.source}`);
          logger.log(`Using OpenCode version: ${resolvedVersion}`);
          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
@@ -901,7 +956,20 @@ async function startNativeHost() {
             extraOrigins,
             stdio: 'ignore',
             ocVersion: resolvedVersion,
+            allowGlobalFallback: false,
+            onManagedFail: (err) =>
+               logger.log('Managed OpenCode install failed, falling back', {
+                  error: err.message,
+               }),
+            onGlobalVersionMismatch: ({ expectedVersion, actualVersion, globalBinaryPath }) =>
+               logger.log('Global OpenCode version mismatch; falling back to npx', {
+                  expectedVersion,
+                  actualVersion,
+                  globalBinaryPath,
+               }),
          });
+         logger.log(`Spawning ${launched.plan.displayCommand}`);
+         logger.log(`OpenCode launcher source: ${launched.plan.source}`);
          serverProc = launched.proc;
          registerManagedSession(port, launched.proc);
 

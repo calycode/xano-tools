@@ -1,193 +1,115 @@
-# CalyCode CLI Installation Scripts
+# CalyCode CLI Installation
 
-This directory contains installation scripts for the CalyCode CLI and Chrome Native Messaging Host.
+## Primary: Download & Run (No Terminal Needed)
 
-## Directory Structure
+Download the installer for your platform, double-click it, and follow the prompts.
+No terminal commands required.
 
-```
-scripts/
-├── installer/                 # Production installers (for end-users)
-│   ├── install.sh             # Existing Unix installer (kept for compatibility)
-│   ├── install-unix.sh        # Explicit Unix/macOS entrypoint -> install.sh
-│   ├── install.ps1            # Existing Windows PowerShell installer (kept)
-│   ├── install-windows.ps1    # Explicit Windows PowerShell entrypoint -> install.ps1
-│   ├── install.bat            # Existing Windows CMD wrapper (kept)
-│   └── install-windows.bat    # Explicit Windows CMD entrypoint -> install.bat
-├── dev/                       # Development scripts (for CLI developers)
-│   ├── install-unix.sh        # Unix development setup
-│   └── install-win.bat        # Windows development setup
-└── README.md                  # This file
-```
+| Platform | Download |
+|---|---|
+| **Windows** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-windows-x64.exe` |
+| **macOS Intel** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-x64` |
+| **macOS Apple Silicon** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-arm64` |
 
-## For End-Users
+> **macOS note:** After downloading, right-click the file and select **Open** to bypass Gatekeeper.
+> Apple requires notarization for seamless opening — this will be added in a future release.
 
-### One-line Installation Commands (Recommended for Extension)
+> **Checksums** are available alongside each release in the `SHA256SUMS` file.
 
-Use these per detected user agent/shell.
+### What the installer does
+1. Checks for Node.js 18+ (installs automatically via winget/brew if missing)
+2. Installs `@calycode/cli` globally via npm
+3. Configures the Chrome Native Messaging Host for the CalyCode extension
+4. Shows a completion dialog with next steps
 
-**Unix/macOS (Bash):**
+---
 
-```bash
-curl -fsSL https://links.calycode.com/install-cli-unix | bash
-```
+## Alternative: Terminal Install (Shell Scripts)
 
-**Unix/macOS (legacy URL kept):**
+For users who prefer terminal or need headless/CI installs:
 
-```bash
-curl -fsSL https://links.calycode.com/install-cli | bash
-```
-
-**Windows (PowerShell):**
-
+### Windows (PowerShell)
 ```powershell
 irm https://links.calycode.com/install-cli-windows-ps1 | iex
 ```
 
-**Windows (PowerShell, legacy URL kept):**
-
-```powershell
-irm https://links.calycode.com/install-cli.ps1 | iex
-```
-
-**Windows (CMD):**
-
-```cmd
-curl -fsSL https://links.calycode.com/install-cli-windows-bat -o install-windows.bat && install-windows.bat
-```
-
-**Windows (CMD, legacy URL kept):**
-
-```cmd
-curl -fsSL https://links.calycode.com/install-cli.bat -o install.bat && install.bat
-```
-
-### What the Installer Does
-
-1. Checks for Node.js v18+ (installs if missing)
-2. Installs `@calycode/cli` globally via npm
-3. Configures Chrome Native Messaging Host
-4. Verifies the installation
-
-### Installation Options
-
-**Unix (`install-unix.sh` or `install.sh`):**
-
+### macOS / Linux (Bash)
 ```bash
-# Install specific version
+curl -fsSL https://links.calycode.com/install-cli-unix | bash
+```
+
+### Options
+```bash
+# Specific version
 curl -fsSL https://links.calycode.com/install-cli-unix | bash -s -- --version 1.2.3
 
-# Skip native host configuration
+# Skip native host setup
 curl -fsSL https://links.calycode.com/install-cli-unix | bash -s -- --skip-native-host
 
 # Uninstall
 curl -fsSL https://links.calycode.com/install-cli-unix | bash -s -- --uninstall
 ```
 
-**Windows PowerShell (`install-windows.ps1` or `install.ps1`):**
+---
 
-```powershell
-# Install latest
-irm https://links.calycode.com/install-cli-windows-ps1 | iex
+## Extension Mapping (User Agent → Download)
 
-# Local script usage: install specific version
-.\install-windows.ps1 -Version 1.2.3
+Suggested mapping for detecting the right installer from a browser extension:
 
-# Skip native host configuration
-.\install-windows.ps1 -SkipNativeHost
-
-# Uninstall
-.\install-windows.ps1 -Uninstall
+```
+win32   → calycode-installer-windows-x64.exe
+darwin  → calycode-installer-darwin-arm64 (Apple Silicon) or darwin-x64 (Intel)
+linux   → Fall back to shell script: curl ... | bash
 ```
 
-### Environment Variables (Unix)
+Architecture detection on macOS: check `navigator.userAgentData` or serve a universal page.
 
-`install.sh` / `install-unix.sh` supports:
-
-- `CALYCODE_VERSION=1.2.3` - install a specific version
-- `CALYCODE_SKIP_NATIVE_HOST=1` - skip `caly-xano opencode init`
-
-Example:
-
-```bash
-curl -fsSL https://links.calycode.com/install-cli-unix | CALYCODE_VERSION=1.2.3 CALYCODE_SKIP_NATIVE_HOST=1 bash -s --
-```
+---
 
 ## For Developers
 
-The `dev/` scripts are for developers working on the CLI itself. They assume:
+The bootstrapper source is at `bootstrapper/`. It's a Go application that cross-compiles
+to Windows and macOS from any platform.
 
-- The repository has been cloned
-- Dependencies have been installed (`pnpm install`)
-- The CLI has been built (`pnpm build`) or linked (`npm link`)
+### Build locally
+```bash
+cd bootstrapper
+make all          # Build all targets
+make windows      # Windows only
+make darwin-arm64 # macOS ARM only
+```
 
-### Development Setup
+### CI
+The `.github/workflows/build-bootstrapper.yml` workflow:
+- Builds on push to `main` (when `bootstrapper/` files change)
+- Builds and attaches binaries when a GitHub Release is published
+- Maintains a floating `bootstrapper-latest` tag for development
 
-1. Clone the repository
-2. Install dependencies: `pnpm install`
-3. Build the CLI: `pnpm build`
-4. Link for local use: `cd packages/cli && npm link`
-5. Run the dev installer:
-   - **macOS/Linux:** `./scripts/dev/install-unix.sh`
-   - **Windows:** `scripts\dev\install-win.bat`
+---
 
-### Differences from Production Installer
+## Directory Structure
 
-| Feature                | Production          | Development               |
-| ---------------------- | ------------------- | ------------------------- |
-| Installs CLI via npm   | Yes                 | No (assumes linked/built) |
-| Checks Node.js         | Yes                 | Yes                       |
-| Installs Node.js       | Yes                 | Yes                       |
-| Configures native host | Yes                 | Yes                       |
-| Version selection      | Yes (`--version`)   | No                        |
-| Uninstall support      | Yes (`--uninstall`) | No                        |
+```
+bootstrapper/                # Go bootstrapper source (primary)
+├── main.go                  # Entry point — orchestrate install flow
+├── install/
+│   ├── node.go              # Node.js version detection (cross-platform)
+│   ├── node_windows.go      # Windows: winget install
+│   ├── node_darwin.go       # macOS: brew install
+│   ├── node_unsupported.go  # Stub for other platforms
+│   └── cli.go               # npm install + oc init
+├── ui/
+│   ├── dialog_windows.go    # Windows: MessageBox native dialogs
+│   ├── dialog_darwin.go     # macOS: osascript dialogs
+│   └── dialog_unsupported.go# Stub for other platforms
+└── Makefile                 # Cross-compile targets
 
-## Hosting
+scripts/installer/           # Shell fallbacks (kept for CI / headless)
+├── install.sh               # Unix installer
+├── install.ps1              # Windows PowerShell installer
+└── install.bat              # Windows CMD wrapper
 
-The production installers are hosted at:
-
-- Legacy URLs (kept):
-  - `https://links.calycode.com/install-cli` (Unix)
-  - `https://links.calycode.com/install-cli.ps1` (Windows PowerShell)
-  - `https://links.calycode.com/install-cli.bat` (Windows CMD)
-- Explicit OS URLs (recommended):
-  - `https://links.calycode.com/install-cli-unix` -> `installer/install-unix.sh`
-  - `https://links.calycode.com/install-cli-windows-ps1` -> `installer/install-windows.ps1`
-  - `https://links.calycode.com/install-cli-windows-bat` -> `installer/install-windows.bat`
-
-These URLs should be configured as a GitHub Pages site or CDN pointing to the `scripts/installer/` directory.
-
-## Extension Mapping (User Agent -> Command)
-
-Suggested mapping for extension-side install prompts:
-
-- `win32` + PowerShell available -> `irm https://links.calycode.com/install-cli-windows-ps1 | iex`
-- `win32` fallback -> `curl -fsSL https://links.calycode.com/install-cli-windows-bat -o install-windows.bat && install-windows.bat`
-- `darwin` -> `curl -fsSL https://links.calycode.com/install-cli-unix | bash`
-- `linux` -> `curl -fsSL https://links.calycode.com/install-cli-unix | bash`
-
-## Troubleshooting
-
-### "caly-xano command not found" after installation
-
-The PATH may not have been updated in your current terminal session.
-
-- **Solution:** Close and reopen your terminal, or run `source ~/.bashrc` (Unix) / restart PowerShell (Windows)
-
-### Node.js installation fails
-
-- **Windows:** Ensure Winget or Chocolatey is available
-- **macOS:** Ensure Homebrew is installed or can be installed
-- **Linux:** Supported distributions: Debian/Ubuntu, RHEL/Fedora, Arch
-
-### Native host not connecting
-
-1. Verify the manifest was created:
-   - **macOS:** `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.calycode.cli.json`
-   - **Linux:** `~/.config/google-chrome/NativeMessagingHosts/com.calycode.cli.json`
-   - **Windows:** `%USERPROFILE%\.calycode\com.calycode.cli.json`
-
-2. Reload the Chrome extension
-
-3. Check logs at `~/.calycode/logs/native-host.log`
-
-4. Re-run: `caly-xano opencode init`
+scripts/dev/                 # Development-only (for CLI contributors)
+├── install-unix.sh
+└── install-win.bat
+```

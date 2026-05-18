@@ -1,0 +1,82 @@
+# .github/workflows/build-bootstrapper.yml
+name: Build Bootstrapper
+
+on:
+   push:
+      branches:
+         - main
+      paths:
+         - "bootstrapper/**"
+         - ".github/workflows/build-bootstrapper.yml"
+   workflow_dispatch:
+   release:
+      types: [published]
+
+permissions:
+   contents: write
+
+jobs:
+   build:
+      name: Build all targets
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout
+           uses: actions/checkout@v4
+
+         - name: Setup Go
+           uses: actions/setup-go@v5
+           with:
+              go-version: "1.21"
+
+         - name: Build Windows x64
+           working-directory: bootstrapper
+           run: |
+              mkdir -p dist
+              GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+                 go build -ldflags "-s -w -H=windowsgui" \
+                 -o dist/calycode-installer-windows-x64.exe \
+                 .
+
+         - name: Build macOS x64
+           working-directory: bootstrapper
+           run: |
+              GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
+                 go build -ldflags "-s -w" \
+                 -o dist/calycode-installer-darwin-x64 \
+                 .
+
+         - name: Build macOS arm64
+           working-directory: bootstrapper
+           run: |
+              GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
+                 go build -ldflags "-s -w" \
+                 -o dist/calycode-installer-darwin-arm64 \
+                 .
+
+         - name: Generate checksums
+           working-directory: bootstrapper/dist
+           run: sha256sum * > SHA256SUMS
+
+         # --- Release attachment ---
+         # Triggered by changesets creating a GitHub Release after npm publish.
+         # `gh release upload` attaches to the release that fired this workflow.
+         - name: Attach binaries to GitHub Release
+           if: github.event_name == 'release'
+           env:
+              GH_TOKEN: ${{ github.token }}
+           run: |
+              gh release upload "${{ github.event.release.tag_name }}" \
+                 bootstrapper/dist/calycode-installer-windows-x64.exe \
+                 bootstrapper/dist/calycode-installer-darwin-x64 \
+                 bootstrapper/dist/calycode-installer-darwin-arm64 \
+                 bootstrapper/dist/SHA256SUMS \
+                 --clobber
+
+         # --- Floating tag ---
+         # Keeps `bootstrapper-latest` pointing at HEAD so
+         # dev builds are always downloadable at a stable URL.
+         - name: Update bootstrapper-latest tag
+           if: github.event_name != 'workflow_dispatch'
+           run: |
+              git tag -f bootstrapper-latest
+              git push -f origin bootstrapper-latest
