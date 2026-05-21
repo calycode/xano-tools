@@ -8,10 +8,10 @@ No terminal commands required.
 | Platform | Download |
 |---|---|
 | **Windows** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-windows-x64.exe` |
-| **macOS Intel** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-x64` |
-| **macOS Apple Silicon** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-arm64` |
+| **macOS Intel** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-x64.zip` |
+| **macOS Apple Silicon** | `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-arm64.zip` |
 
-> **macOS note:** After downloading, right-click the file and select **Open** to bypass Gatekeeper.
+> **macOS note:** Unzip the download first, then right-click the extracted installer and select **Open** to bypass Gatekeeper.
 > Apple requires notarization for seamless opening — this will be added in a future release.
 
 > **Checksums** are available alongside each release in the `SHA256SUMS` file.

@@ -19,7 +19,7 @@ func newInstallerSession() *InstallerSession {
 			if step > total {
 				step = total
 			}
-			fmt.Printf("\r[CalyCode Installer] Step %d/%d - %s: %s", step, total, title, detail)
+			fmt.Printf("\r"+msg.SessionProgressFmt, step, total, title, detail)
 		},
 		closeFn: func() {
 			fmt.Print("\n")

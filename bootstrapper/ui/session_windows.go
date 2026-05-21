@@ -36,7 +36,7 @@ func newInstallerSession() *InstallerSession {
 		_ = os.Rename(tmp, statusPath)
 	}
 
-	writeStatusFile(installerStatus{Title: "Preparing...", Detail: "Starting installer", Step: 0, Total: 3, Done: false})
+	writeStatusFile(installerStatus{Title: msg.SessionPreparingTitle, Detail: msg.SessionPreparingDetail, Step: 0, Total: 3, Done: false})
 
 	statusEscaped := strings.ReplaceAll(statusPath, "'", "''")
 	viewerScript := `Add-Type -AssemblyName System.Windows.Forms
@@ -45,7 +45,7 @@ Add-Type -AssemblyName System.Drawing
 $statusPath = '` + statusEscaped + `'
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'CalyCode Installer'
+$form.Text = '` + strings.ReplaceAll(msg.InstallerWindowTitle, "'", "''") + `'
 $form.StartPosition = 'CenterScreen'
 $form.Size = New-Object System.Drawing.Size(560, 220)
 $form.FormBorderStyle = 'FixedDialog'
@@ -57,14 +57,14 @@ $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Location = New-Object System.Drawing.Point(24, 24)
 $titleLabel.Size = New-Object System.Drawing.Size(510, 32)
 $titleLabel.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
-$titleLabel.Text = 'Preparing installer...'
+$titleLabel.Text = '` + strings.ReplaceAll(msg.SessionPreparingTitle, "'", "''") + `'
 $form.Controls.Add($titleLabel)
 
 $detailLabel = New-Object System.Windows.Forms.Label
 $detailLabel.Location = New-Object System.Drawing.Point(24, 64)
 $detailLabel.Size = New-Object System.Drawing.Size(510, 44)
 $detailLabel.Font = New-Object System.Drawing.Font('Segoe UI', 9)
-$detailLabel.Text = 'Please wait while setup starts.'
+$detailLabel.Text = '` + strings.ReplaceAll(msg.SessionPreparingDetail, "'", "''") + `'
 $form.Controls.Add($detailLabel)
 
 $progress = New-Object System.Windows.Forms.ProgressBar
@@ -80,7 +80,7 @@ $stepLabel = New-Object System.Windows.Forms.Label
 $stepLabel.Location = New-Object System.Drawing.Point(24, 152)
 $stepLabel.Size = New-Object System.Drawing.Size(510, 24)
 $stepLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8)
-$stepLabel.Text = 'Step 0 of 3'
+$stepLabel.Text = [string]::Format('` + strings.ReplaceAll(msg.SessionStepLabelFmtPS, "'", "''") + `', 0, 3)
 $form.Controls.Add($stepLabel)
 
 $timer = New-Object System.Windows.Forms.Timer
@@ -109,7 +109,7 @@ $timer.Add_Tick({
       if ($pct -lt 1) { $pct = 1 }
       if ($pct -gt 100) { $pct = 100 }
       $progress.Value = $pct
-      $stepLabel.Text = 'Step ' + $step + ' of ' + $total
+      $stepLabel.Text = [string]::Format('` + strings.ReplaceAll(msg.SessionStepLabelFmtPS, "'", "''") + `', $step, $total)
 
       if ($status.done -eq $true) {
          $timer.Stop()
@@ -157,7 +157,7 @@ $timer.Start()
 				return
 			}
 			closed = true
-			writeStatusFile(installerStatus{Title: "Done", Detail: "Finalizing...", Step: 3, Total: 3, Done: true})
+			writeStatusFile(installerStatus{Title: msg.SessionDoneTitle, Detail: msg.SessionDoneDetail, Step: 3, Total: 3, Done: true})
 			go func() {
 				time.Sleep(2 * time.Second)
 				_ = os.RemoveAll(tmpDir)

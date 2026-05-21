@@ -38,7 +38,7 @@ func InstallCLI(version string) (output string, errOut string) {
 // Returns stderr on failure.
 func InitNativeHost() (errOut string) {
 	if !CommandExists("caly-xano") {
-		return "caly-xano command not found"
+		return msg.CalyXanoNotFound
 	}
 
 	var stderr bytes.Buffer

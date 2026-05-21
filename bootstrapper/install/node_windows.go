@@ -57,7 +57,7 @@ func InstallNode() (errOut string) {
 		}
 	}
 
-	return "Could not install Node.js. Install it manually from https://nodejs.org"
+	return msg.NodeInstallManual
 }
 
 func refreshPathWindows() {

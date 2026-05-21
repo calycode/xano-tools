@@ -9,11 +9,18 @@ import (
 	"strings"
 )
 
+const autoCloseTerminalEnv = "CALYCODE_INSTALLER_AUTO_CLOSE_TERMINAL"
+
 func osascript(script string) {
 	cmd := exec.Command("osascript", "-e", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()
+}
+
+func osascriptDetached(script string) {
+	cmd := exec.Command("osascript", "-e", script)
+	_ = cmd.Start()
 }
 
 func escapeAppleScript(s string) string {
@@ -38,8 +45,8 @@ func displayDialog(title, message string, buttons string, defaultButton string, 
 // ShowWelcome displays the welcome dialog on macOS.
 func ShowWelcome() {
 	displayDialog(
-		"CalyCode Setup",
-		"This will install the CalyCode CLI and configure your browser extension.\n\nThe process takes 1-2 minutes.\n\nClick OK to continue.",
+		msg.SetupTitle,
+		msg.WelcomeMessage,
 		`"OK", "Cancel"`,
 		"OK",
 		"note",
@@ -49,8 +56,8 @@ func ShowWelcome() {
 // ShowInstallingNode displays progress: installing Node.js.
 func ShowInstallingNode() {
 	displayDialog(
-		"CalyCode Setup",
-		"Node.js 18+ is required but not found.\n\nInstalling Node.js now via Homebrew...\nThis may take a few minutes.\n\nClick OK to proceed.",
+		msg.SetupTitle,
+		msg.InstallingNodeDarwinMessage,
 		`"OK"`,
 		"OK",
 		"note",
@@ -60,8 +67,8 @@ func ShowInstallingNode() {
 // ShowInstallingCLI displays progress: installing CLI.
 func ShowInstallingCLI() {
 	displayDialog(
-		"CalyCode Setup",
-		"Installing CalyCode CLI...\nThis may take a moment.",
+		msg.SetupTitle,
+		msg.InstallingCLIMessage,
 		`"OK"`,
 		"OK",
 		"note",
@@ -71,8 +78,8 @@ func ShowInstallingCLI() {
 // ShowConfiguringNativeHost displays progress: configuring browser extension.
 func ShowConfiguringNativeHost() {
 	displayDialog(
-		"CalyCode Setup",
-		"Configuring browser extension connection...",
+		msg.SetupTitle,
+		msg.ConfiguringNativeHostMessage,
 		`"OK"`,
 		"OK",
 		"note",
@@ -103,20 +110,31 @@ func ShowWarning(title, message string) {
 
 // ShowSuccess displays the completion dialog with next steps.
 func ShowSuccess(cliVersion string) {
-	msg := "CalyCode CLI has been installed successfully!\n\n"
+	success := msg.SuccessIntro
 	if cliVersion != "" {
-		msg += "Version: " + cliVersion + "\n\n"
+		success += fmt.Sprintf(msg.SuccessVersionFmt, cliVersion)
 	}
-	msg += "Next steps:\n"
-	msg += "  - Reload your Chrome extension\n"
-	msg += "  - Open Terminal and run: caly-xano --help\n"
-	msg += "\nClick OK to finish."
+	success += msg.SuccessNextSteps
+	success += msg.SuccessReloadExtensionBullet
+	success += fmt.Sprintf(msg.SuccessRunHelpBulletFmt, msg.TerminalLabelDarwin)
+	success += msg.SuccessClickOK
 
 	displayDialog(
-		"CalyCode Setup - Complete",
-		msg,
+		msg.SetupCompleteTitle,
+		success,
 		`"OK"`,
 		"OK",
 		"note",
 	)
+
+	if os.Getenv(autoCloseTerminalEnv) == "1" {
+		osascriptDetached(`delay 0.4
+tell application "Terminal"
+	if (count of windows) > 0 then
+		try
+			close front window
+		end try
+	end if
+end tell`)
+	}
 }

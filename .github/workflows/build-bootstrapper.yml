@@ -44,6 +44,8 @@ jobs:
                  go build -ldflags "-s -w" \
                  -o dist/calycode-installer-darwin-x64 \
                  .
+              cd dist
+              zip -9 calycode-installer-darwin-x64.zip calycode-installer-darwin-x64
 
          - name: Build macOS arm64
            working-directory: bootstrapper
@@ -52,6 +54,8 @@ jobs:
                  go build -ldflags "-s -w" \
                  -o dist/calycode-installer-darwin-arm64 \
                  .
+              cd dist
+              zip -9 calycode-installer-darwin-arm64.zip calycode-installer-darwin-arm64
 
          - name: Generate checksums
            working-directory: bootstrapper/dist
@@ -65,12 +69,12 @@ jobs:
            env:
               GH_TOKEN: ${{ github.token }}
            run: |
-              gh release upload "${{ github.event.release.tag_name }}" \
-                 bootstrapper/dist/calycode-installer-windows-x64.exe \
-                 bootstrapper/dist/calycode-installer-darwin-x64 \
-                 bootstrapper/dist/calycode-installer-darwin-arm64 \
-                 bootstrapper/dist/SHA256SUMS \
-                 --clobber
+               gh release upload "${{ github.event.release.tag_name }}" \
+                  bootstrapper/dist/calycode-installer-windows-x64.exe \
+                  bootstrapper/dist/calycode-installer-darwin-x64.zip \
+                  bootstrapper/dist/calycode-installer-darwin-arm64.zip \
+                  bootstrapper/dist/SHA256SUMS \
+                  --clobber
 
          # --- Floating tag ---
          # Keeps `bootstrapper-latest` pointing at HEAD so

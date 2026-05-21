@@ -19,9 +19,9 @@ Use these release assets:
 - Windows x64:
    - `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-windows-x64.exe`
 - macOS Intel (x64):
-   - `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-x64`
+   - `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-x64.zip`
 - macOS Apple Silicon (arm64):
-   - `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-arm64`
+   - `https://github.com/calycode/xano-tools/releases/latest/download/calycode-installer-darwin-arm64.zip`
 
 Optional checksum:
 
@@ -61,7 +61,7 @@ Notes:
 
 macOS note copy:
 
-"If macOS blocks opening the file, right-click it and choose **Open**."
+"Unzip the download, then if macOS blocks opening the installer, right-click it and choose **Open**."
 
 ## What the Installer Does
 

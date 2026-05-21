@@ -30,7 +30,7 @@ func InstallNode() (errOut string) {
 	}
 
 	if !NodeOK() {
-		return "Node.js was installed but is not available in PATH. Restart Terminal and try again."
+		return msg.NodeInstalledNotInPath
 	}
 	return ""
 }
@@ -46,7 +46,7 @@ func installHomebrew() string {
 		if stderr.Len() > 0 {
 			return stderr.String()
 		}
-		return "Failed to install Homebrew. Install it manually from https://brew.sh"
+		return msg.HomebrewInstallFailed
 	}
 
 	// Add Homebrew to PATH for Apple Silicon
@@ -58,7 +58,7 @@ func installHomebrew() string {
 	}
 
 	if !CommandExists("brew") {
-		return "Homebrew was installed but is not available in PATH. Restart Terminal and try again."
+		return msg.HomebrewInstalledNotInPath
 	}
 	return ""
 }

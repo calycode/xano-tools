@@ -31,6 +31,7 @@ darwin-amd64:
 		-ldflags "-s -w" \
 		-o $(OUT_DIR)/$(BINARY)-darwin-x64 \
 		$(MODULE)
+	cd $(OUT_DIR) && zip -9 $(BINARY)-darwin-x64.zip $(BINARY)-darwin-x64
 
 darwin-arm64:
 	@echo "Building macOS Apple Silicon..."
@@ -38,6 +39,7 @@ darwin-arm64:
 		-ldflags "-s -w" \
 		-o $(OUT_DIR)/$(BINARY)-darwin-arm64 \
 		$(MODULE)
+	cd $(OUT_DIR) && zip -9 $(BINARY)-darwin-arm64.zip $(BINARY)-darwin-arm64
 
 clean:
 	rm -rf $(OUT_DIR)
