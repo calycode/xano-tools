@@ -12,7 +12,7 @@ import {
    showNativeHostStatus as showNativeHostStatusImpl,
 } from './native-host/setup';
 
-const DEFAULT_OPENCODE_VERSION = '1.14.41';
+const DEFAULT_OPENCODE_VERSION = 'latest';
 const OC_VERSION_REGEX = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 const MAX_NATIVE_MESSAGE_SIZE = 1 * 1024 * 1024;
 const NATIVE_HOST_PORT_RANGE_START = 4096;
@@ -77,9 +77,9 @@ function parseOcVersionFromArgv(argv: string[]): string | undefined {
 function resolveOcVersion(explicitVersion?: string): string {
    const explicit = normalizeOcVersion(explicitVersion);
    if (explicit) {
-      if (!OC_VERSION_REGEX.test(explicit)) {
+      if (explicit !== 'latest' && !OC_VERSION_REGEX.test(explicit)) {
          throw new Error(
-            `Invalid OpenCode version "${explicit}". Use semantic version format like "1.14.41".`,
+            `Invalid OpenCode version "${explicit}". Use "latest" or semantic version format like "1.14.41".`,
          );
       }
       return explicit;
@@ -87,9 +87,9 @@ function resolveOcVersion(explicitVersion?: string): string {
 
    const fromEnv = normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION);
    if (fromEnv) {
-      if (!OC_VERSION_REGEX.test(fromEnv)) {
+      if (fromEnv !== 'latest' && !OC_VERSION_REGEX.test(fromEnv)) {
          throw new Error(
-            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use semantic version format like "1.14.41".`,
+            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use "latest" or semantic version format like "1.14.41".`,
          );
       }
       return fromEnv;
@@ -340,7 +340,8 @@ function buildOpencodeSpawnPlan(
       const globalOpencode = findGlobalOpencodeBinary();
       if (globalOpencode) {
          const globalVersion = getOpencodeBinaryVersion(globalOpencode);
-         if (globalVersion === version) {
+         const isPinnedVersion = version !== 'latest';
+         if (!isPinnedVersion || globalVersion === version) {
             return {
                command: globalOpencode,
                args: opencodeArgs,
@@ -376,7 +377,7 @@ function buildOpencodeSpawnPlan(
 function warnIfUsingNonDefaultOcVersion(version: string): void {
    if (version !== DEFAULT_OPENCODE_VERSION) {
       log.warn(
-         `Using OpenCode ${version} (override). Our currently validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+         `Using OpenCode ${version} (override). Default channel is ${DEFAULT_OPENCODE_VERSION}.`,
       );
    }
 }
@@ -1022,7 +1023,7 @@ async function startNativeHost() {
          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
          if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
             logger.log(
-               `Using overridden OpenCode ${resolvedVersion}. Current validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+               `Using overridden OpenCode ${resolvedVersion}. Default channel is ${DEFAULT_OPENCODE_VERSION}.`,
             );
          }
 
