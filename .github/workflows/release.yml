@@ -35,8 +35,6 @@ jobs:
               node-version: 20.x
               cache: "pnpm"
               registry-url: "https://registry.npmjs.org"
-              scope: "@calycode"
-              always-auth: true
 
          - name: Install dependencies
            run: pnpm install --frozen-lockfile
