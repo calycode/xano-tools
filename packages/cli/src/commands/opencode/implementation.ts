@@ -479,58 +479,74 @@ function validateNativeHostPort(port: number): void {
 function killProcessOnPort(port: number, allowedPids: Set<number>, logger?: { log: (msg: string, data?: any) => void; error: (msg: string, err?: any) => void }): boolean {
    const logInfo = logger?.log ?? ((msg: string) => { /* silent */ });
    const logError = logger?.error ?? ((msg: string) => { /* silent */ });
-   
+
+   const toAllowedPidList = (rawPids: Array<string | number>): number[] => {
+      const parsed = rawPids
+         .map((pid) => (typeof pid === 'number' ? pid : Number.parseInt(String(pid).trim(), 10)))
+         .filter((pid) => Number.isInteger(pid) && pid > 0);
+      return Array.from(new Set(parsed.filter((pid) => allowedPids.has(pid))));
+   };
+
+   const parseWindowsNetstatPids = (output: string): string[] => {
+      const lines = output.split('\n');
+      const pids: string[] = [];
+      for (const line of lines) {
+         if (!line.includes('LISTENING') || !line.includes(`:${port}`)) {
+            continue;
+         }
+         const parts = line.trim().split(/\s+/);
+         const pid = parts[parts.length - 1];
+         if (pid && /^\d+$/.test(pid) && pid !== '0') {
+            pids.push(pid);
+         }
+      }
+      return pids;
+   };
+
+   const parsePidLines = (output: string): string[] =>
+      output
+         .split('\n')
+         .map((line) => line.trim())
+         .filter((line) => /^\d+$/.test(line));
+
    try {
       validatePort(port);
-      
+
       if (os.platform() === 'win32') {
-         // Windows: Use netstat to find the PID and taskkill to terminate
          try {
-            const netstatOutput = execSync(`netstat -ano | findstr :${port}`, { 
+            const netstatOutput = execSync(`netstat -ano | findstr :${port}`, {
                encoding: 'utf8',
                timeout: 5000,
                windowsHide: true,
             });
-            
-            // Parse output to find LISTENING processes
-            const lines = netstatOutput.split('\n');
-            const pidsToKill = new Set<string>();
-            
-            for (const line of lines) {
-               // Look for lines with LISTENING state on our port
-               // Format: TCP    0.0.0.0:4096    0.0.0.0:0    LISTENING    12345
-               if (line.includes('LISTENING') && line.includes(`:${port}`)) {
-                  const parts = line.trim().split(/\s+/);
-                  const pid = parts[parts.length - 1];
-                  if (pid && /^\d+$/.test(pid) && pid !== '0') {
-                     pidsToKill.add(pid);
-                  }
-               }
-            }
-            
-            if (pidsToKill.size === 0) {
-               logInfo(`No listening process found on port ${port}`);
+
+            const allowed = toAllowedPidList(parseWindowsNetstatPids(netstatOutput));
+            if (allowed.length === 0) {
+               logInfo(`No managed process found on port ${port}`);
                return false;
             }
-            
-            // Kill each process found
-            for (const pid of pidsToKill) {
+
+            let killedAny = false;
+            for (const pid of allowed) {
                try {
-                  logInfo(`Killing process ${pid} on port ${port}`);
-                  execSync(`taskkill /F /PID ${pid}`, { 
+                  execSync(`taskkill /F /PID ${pid}`, {
                      timeout: 5000,
                      windowsHide: true,
                   });
-                  logInfo(`Successfully killed process ${pid}`);
+                  logInfo(`Killed managed process ${pid} on port ${port}`);
+                  killedAny = true;
                } catch (killErr) {
-                  // Process might have already exited
-                  logError(`Failed to kill process ${pid}`, killErr);
+                  logError(`Failed to kill managed process ${pid}`, killErr);
                }
             }
-            
+
+            if (!killedAny) {
+               logInfo(`No listening process found on port ${port}`);
+               return false;
+            }
+
             return true;
-         } catch (e: any) {
-            // netstat might return non-zero if no process found
+          } catch (e: any) {
             if (e.status === 1 || e.message?.includes('not found')) {
                logInfo(`No process found on port ${port}`);
                return false;
@@ -538,49 +554,57 @@ function killProcessOnPort(port: number, allowedPids: Set<number>, logger?: { lo
             throw e;
          }
       } else {
-         // Unix-like systems: Use fuser or lsof
+         const candidates = new Set<string>();
+
          try {
-            // Try fuser first (more reliable for killing)
-            execSync(`fuser -k ${port}/tcp 2>/dev/null || true`, {
+            const fuserOutput = execSync(`fuser ${port}/tcp 2>/dev/null || true`, {
+               encoding: 'utf8',
                timeout: 5000,
             });
-            logInfo(`Killed process on port ${port} using fuser`);
-            return true;
-         } catch (fuserErr) {
-            // fuser not available, try lsof + kill
-            try {
-               const lsofOutput = execSync(`lsof -ti tcp:${port}`, {
-                  encoding: 'utf8',
-                  timeout: 5000,
-               });
-               
-               const pids = lsofOutput.trim().split('\n').filter(Boolean);
-               if (pids.length === 0) {
-                  logInfo(`No process found on port ${port}`);
-                  return false;
-               }
-               
-               for (const pid of pids) {
-                  if (pid && /^\d+$/.test(pid)) {
-                     try {
-                        execSync(`kill -9 ${pid}`, { timeout: 5000 });
-                        logInfo(`Killed process ${pid} on port ${port}`);
-                     } catch (killErr) {
-                        logError(`Failed to kill process ${pid}`, killErr);
-                     }
-                  }
-               }
-               
-               return true;
-            } catch (lsofErr: any) {
-               // lsof returns non-zero if no process found
-               if (lsofErr.status === 1) {
-                  logInfo(`No process found on port ${port}`);
-                  return false;
-               }
+            for (const pid of parsePidLines(fuserOutput)) {
+               candidates.add(pid);
+            }
+         } catch {
+            // Best effort; lsof fallback below.
+         }
+
+         try {
+            const lsofOutput = execSync(`lsof -ti tcp:${port}`, {
+               encoding: 'utf8',
+               timeout: 5000,
+            });
+            for (const pid of parsePidLines(lsofOutput)) {
+               candidates.add(pid);
+            }
+         } catch (lsofErr: any) {
+            if (lsofErr.status !== 1) {
                throw lsofErr;
             }
          }
+
+         const allowed = toAllowedPidList(Array.from(candidates));
+         if (allowed.length === 0) {
+            logInfo(`No managed process found on port ${port}`);
+            return false;
+         }
+
+         let killedAny = false;
+         for (const pid of allowed) {
+            try {
+               execSync(`kill -9 ${pid}`, { timeout: 5000 });
+               logInfo(`Killed managed process ${pid} on port ${port}`);
+               killedAny = true;
+            } catch (killErr) {
+               logError(`Failed to kill managed process ${pid}`, killErr);
+            }
+         }
+
+         if (!killedAny) {
+            logInfo(`No managed process killed on port ${port}`);
+            return false;
+         }
+
+         return true;
       }
    } catch (error) {
       logError(`Error killing process on port ${port}`, error);

@@ -18,14 +18,17 @@ MODULE     := github.com/calycode/xano-tools/bootstrapper
 
 all: windows darwin-amd64 darwin-arm64
 
-windows:
+$(OUT_DIR):
+	mkdir -p $(OUT_DIR)
+
+windows: $(OUT_DIR)
 	@echo "Building Windows x64..."
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build \
 		-ldflags "-s -w -H=windowsgui" \
 		-o $(OUT_DIR)/$(BINARY)-windows-x64.exe \
 		$(MODULE)
 
-darwin-amd64:
+darwin-amd64: $(OUT_DIR)
 	@echo "Building macOS Intel x64..."
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build \
 		-ldflags "-s -w" \
@@ -33,7 +36,7 @@ darwin-amd64:
 		$(MODULE)
 	cd $(OUT_DIR) && zip -9 $(BINARY)-darwin-x64.zip $(BINARY)-darwin-x64
 
-darwin-arm64:
+darwin-arm64: $(OUT_DIR)
 	@echo "Building macOS Apple Silicon..."
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build \
 		-ldflags "-s -w" \

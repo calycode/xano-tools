@@ -47,7 +47,7 @@ func ShowWelcome() {
 	displayDialog(
 		msg.SetupTitle,
 		msg.WelcomeMessage,
-		`"OK", "Cancel"`,
+		`"OK"`,
 		"OK",
 		"note",
 	)

@@ -21,7 +21,10 @@ func InstallCLI(version string) (output string, errOut string) {
 	setupSilent(cmd)
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return "", stderr.String()
+		if stderr.Len() > 0 {
+			return "", stderr.String()
+		}
+		return "", err.Error()
 	}
 
 	// Verify installation

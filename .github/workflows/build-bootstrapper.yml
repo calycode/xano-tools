@@ -21,10 +21,10 @@ jobs:
       runs-on: ubuntu-latest
       steps:
          - name: Checkout
-           uses: actions/checkout@v4
+           uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
          - name: Setup Go
-           uses: actions/setup-go@v5
+           uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
            with:
               go-version: "1.21"
 
@@ -68,19 +68,20 @@ jobs:
            if: github.event_name == 'release'
            env:
               GH_TOKEN: ${{ github.token }}
+              RELEASE_TAG: ${{ github.event.release.tag_name }}
            run: |
-               gh release upload "${{ github.event.release.tag_name }}" \
-                  bootstrapper/dist/calycode-installer-windows-x64.exe \
-                  bootstrapper/dist/calycode-installer-darwin-x64.zip \
-                  bootstrapper/dist/calycode-installer-darwin-arm64.zip \
-                  bootstrapper/dist/SHA256SUMS \
-                  --clobber
+              gh release upload "$RELEASE_TAG" \
+                 bootstrapper/dist/calycode-installer-windows-x64.exe \
+                 bootstrapper/dist/calycode-installer-darwin-x64.zip \
+                 bootstrapper/dist/calycode-installer-darwin-arm64.zip \
+                 bootstrapper/dist/SHA256SUMS \
+                 --clobber
 
          # --- Floating tag ---
          # Keeps `bootstrapper-latest` pointing at HEAD so
          # dev builds are always downloadable at a stable URL.
          - name: Update bootstrapper-latest tag
-           if: github.event_name != 'workflow_dispatch'
+           if: github.event_name == 'push'
            run: |
               git tag -f bootstrapper-latest
               git push -f origin bootstrapper-latest

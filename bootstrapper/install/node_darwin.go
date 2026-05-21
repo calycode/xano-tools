@@ -38,7 +38,7 @@ func InstallNode() (errOut string) {
 func installHomebrew() string {
 	var stderr bytes.Buffer
 	cmd := exec.Command("/bin/bash", "-c",
-		`"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+		`$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)`,
 	)
 	setupSilent(cmd)
 	cmd.Stderr = &stderr
