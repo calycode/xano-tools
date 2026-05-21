@@ -35,6 +35,8 @@ jobs:
               node-version: 20.x
               cache: "pnpm"
               registry-url: "https://registry.npmjs.org"
+              scope: "@calycode"
+              always-auth: true
 
          - name: Install dependencies
            run: pnpm install --frozen-lockfile
@@ -52,4 +54,6 @@ jobs:
            env:
               GITHUB_TOKEN: ${{ secrets.CHANGESETS_GH_TOKEN }}
               NPM_CONFIG_PROVENANCE: true
+              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               CALY_BUILD_OC_EXT_PUBLIC_KEY_B64: ${{ secrets.CALY_BUILD_OC_EXT_PUBLIC_KEY_B64 }}
