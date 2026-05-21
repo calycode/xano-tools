@@ -12,8 +12,14 @@ import {
    showNativeHostStatus as showNativeHostStatusImpl,
 } from './native-host/setup';
 
-const DEFAULT_OPENCODE_VERSION = '1.14.41';
+const DEFAULT_OPENCODE_VERSION = 'latest';
 const OC_VERSION_REGEX = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+const MAX_NATIVE_MESSAGE_SIZE = 1 * 1024 * 1024;
+const NATIVE_HOST_PORT_RANGE_START = 4096;
+const NATIVE_HOST_PORT_RANGE_SIZE = 32;
+const NATIVE_HOST_PORT_RANGE_END = NATIVE_HOST_PORT_RANGE_START + NATIVE_HOST_PORT_RANGE_SIZE - 1;
+const MAX_CORS_ORIGINS = 10;
+const CHROME_EXTENSION_ORIGIN_REGEX = /^chrome-extension:\/\/[a-p]{32}$/;
 
 interface LaunchOpencodeServerOptions {
    port: number;
@@ -21,6 +27,13 @@ interface LaunchOpencodeServerOptions {
    stdio?: 'inherit' | 'pipe' | 'ignore';
    detach?: boolean;
    ocVersion?: string;
+   allowGlobalFallback?: boolean;
+   onManagedFail?: (err: Error) => void;
+   onGlobalVersionMismatch?: (details: {
+      expectedVersion: string;
+      actualVersion?: string;
+      globalBinaryPath: string;
+   }) => void;
 }
 
 interface OpencodeSpawnPlan {
@@ -28,6 +41,14 @@ interface OpencodeSpawnPlan {
    args: string[];
    source: 'env' | 'managed' | 'global' | 'npx';
    displayCommand: string;
+   needsShell: boolean;
+}
+
+interface ManagedSession {
+   port: number;
+   proc: ReturnType<typeof spawn>;
+   pid: number;
+   startedAt: number;
 }
 
 interface LaunchedOpencodeServer {
@@ -56,9 +77,9 @@ function parseOcVersionFromArgv(argv: string[]): string | undefined {
 function resolveOcVersion(explicitVersion?: string): string {
    const explicit = normalizeOcVersion(explicitVersion);
    if (explicit) {
-      if (!OC_VERSION_REGEX.test(explicit)) {
+      if (explicit !== 'latest' && !OC_VERSION_REGEX.test(explicit)) {
          throw new Error(
-            `Invalid OpenCode version "${explicit}". Use semantic version format like "1.14.41".`,
+            `Invalid OpenCode version "${explicit}". Use "latest" or semantic version format like "1.14.41".`,
          );
       }
       return explicit;
@@ -66,9 +87,9 @@ function resolveOcVersion(explicitVersion?: string): string {
 
    const fromEnv = normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION);
    if (fromEnv) {
-      if (!OC_VERSION_REGEX.test(fromEnv)) {
+      if (fromEnv !== 'latest' && !OC_VERSION_REGEX.test(fromEnv)) {
          throw new Error(
-            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use semantic version format like "1.14.41".`,
+            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use "latest" or semantic version format like "1.14.41".`,
          );
       }
       return fromEnv;
@@ -92,6 +113,78 @@ function getManagedOpencodeInstallDir(version: string): string {
 function getManagedOpencodeBinPath(version: string): string {
    const binName = process.platform === 'win32' ? 'opencode.cmd' : 'opencode';
    return path.join(getManagedOpencodeInstallDir(version), 'node_modules', '.bin', binName);
+}
+
+function parseManagedVersion(version: string): {
+   major: number;
+   minor: number;
+   patch: number;
+   prerelease?: string;
+} | null {
+   if (!OC_VERSION_REGEX.test(version)) {
+      return null;
+   }
+
+   const normalized = version.split('+')[0];
+   const [core, prerelease] = normalized.split('-', 2);
+   const parts = (core || '').split('.').map((n) => Number.parseInt(n, 10));
+   if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) {
+      return null;
+   }
+
+   return {
+      major: parts[0],
+      minor: parts[1],
+      patch: parts[2],
+      prerelease,
+   };
+}
+
+function compareManagedVersionsDesc(a: string, b: string): number {
+   const av = parseManagedVersion(a);
+   const bv = parseManagedVersion(b);
+   if (!av && !bv) return b.localeCompare(a);
+   if (!av) return 1;
+   if (!bv) return -1;
+
+   if (av.major !== bv.major) return bv.major - av.major;
+   if (av.minor !== bv.minor) return bv.minor - av.minor;
+   if (av.patch !== bv.patch) return bv.patch - av.patch;
+
+   const aPre = av.prerelease;
+   const bPre = bv.prerelease;
+   if (!aPre && bPre) return -1; // stable > prerelease
+   if (aPre && !bPre) return 1;
+   if (!aPre && !bPre) return 0;
+   return (bPre || '').localeCompare(aPre || '');
+}
+
+function pruneManagedOpencodeVersions(keepLatest: number = 5): void {
+   try {
+      const versionsDir = getManagedOpencodeVersionsDir();
+      if (!fs.existsSync(versionsDir)) {
+         return;
+      }
+
+      const entries = fs
+         .readdirSync(versionsDir, { withFileTypes: true })
+         .filter((entry) => entry.isDirectory())
+         .map((entry) => entry.name)
+         .filter((name) => OC_VERSION_REGEX.test(name))
+         .sort(compareManagedVersionsDesc);
+
+      const toDelete = entries.slice(Math.max(keepLatest, 0));
+      for (const version of toDelete) {
+         const target = path.join(versionsDir, version);
+         try {
+            fs.rmSync(target, { recursive: true, force: true });
+         } catch {
+            // Best effort cleanup only.
+         }
+      }
+   } catch {
+      // Best effort cleanup only.
+   }
 }
 
 function fileExists(candidatePath: string): boolean {
@@ -131,9 +224,27 @@ function findGlobalOpencodeBinary(): string | undefined {
    }
 }
 
+function getOpencodeBinaryVersion(binaryPath: string): string | undefined {
+   try {
+      const output = execFileSync(binaryPath, ['--version'], {
+         encoding: 'utf8',
+         stdio: ['ignore', 'pipe', 'ignore'],
+         windowsHide: true,
+      })
+         .toString()
+         .trim();
+
+      const match = output.match(/\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?/);
+      return match?.[0];
+   } catch {
+      return undefined;
+   }
+}
+
 function ensureManagedOpencodeInstalled(version: string): string {
    const managedBinPath = getManagedOpencodeBinPath(version);
    if (fileExists(managedBinPath)) {
+      pruneManagedOpencodeVersions(5);
       return managedBinPath;
    }
 
@@ -162,13 +273,24 @@ function ensureManagedOpencodeInstalled(version: string): string {
       }
    }
 
+   pruneManagedOpencodeVersions(5);
+
    return managedBinPath;
 }
 
 function buildOpencodeSpawnPlan(
    version: string,
    opencodeArgs: string[],
-   options?: { ensureManagedInstall?: boolean },
+   options?: {
+      ensureManagedInstall?: boolean;
+      allowGlobalFallback?: boolean;
+      onManagedFail?: (err: Error) => void;
+      onGlobalVersionMismatch?: (details: {
+         expectedVersion: string;
+         actualVersion?: string;
+         globalBinaryPath: string;
+      }) => void;
+   },
 ): OpencodeSpawnPlan {
    const explicitBin = process.env.CALY_OC_OPENCODE_BIN?.trim();
    if (explicitBin) {
@@ -180,6 +302,7 @@ function buildOpencodeSpawnPlan(
          args: opencodeArgs,
          source: 'env',
          displayCommand: `${explicitBin} ${opencodeArgs.join(' ')}`.trim(),
+         needsShell: false,
       };
    }
 
@@ -191,6 +314,7 @@ function buildOpencodeSpawnPlan(
          args: opencodeArgs,
          source: 'managed',
          displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
+         needsShell: false,
       };
    }
 
@@ -202,20 +326,42 @@ function buildOpencodeSpawnPlan(
             args: opencodeArgs,
             source: 'managed',
             displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
+            needsShell: false,
          };
-      } catch {
-         // Continue to global/npx fallbacks when managed install is unavailable.
+      } catch (err) {
+         if (options?.onManagedFail) {
+            options.onManagedFail(err instanceof Error ? err : new Error(String(err)));
+         }
       }
    }
 
-   const globalOpencode = findGlobalOpencodeBinary();
-   if (globalOpencode) {
-      return {
-         command: globalOpencode,
-         args: opencodeArgs,
-         source: 'global',
-         displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
-      };
+   const allowGlobalFallback = options?.allowGlobalFallback !== false;
+   if (allowGlobalFallback) {
+      const globalOpencode = findGlobalOpencodeBinary();
+      if (globalOpencode) {
+         const globalVersion = getOpencodeBinaryVersion(globalOpencode);
+         const isPinnedVersion = version !== 'latest';
+         if (!isPinnedVersion || globalVersion === version) {
+            return {
+               command: globalOpencode,
+               args: opencodeArgs,
+               source: 'global',
+               displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
+               needsShell: false,
+            };
+         }
+
+         if (options?.onGlobalVersionMismatch) {
+            options.onGlobalVersionMismatch({
+               expectedVersion: version,
+               actualVersion: globalVersion,
+               globalBinaryPath: globalOpencode,
+            });
+         }
+
+         // Global binary exists but does not match requested version; fall back to npx.
+         // This preserves strict version pinning behavior.
+      }
    }
 
    const npxArgs = ['-y', getOpencodePackageSpecifier(version), ...opencodeArgs];
@@ -224,13 +370,14 @@ function buildOpencodeSpawnPlan(
       args: npxArgs,
       source: 'npx',
       displayCommand: `npx ${npxArgs.join(' ')}`,
+      needsShell: process.platform === 'win32',
    };
 }
 
 function warnIfUsingNonDefaultOcVersion(version: string): void {
    if (version !== DEFAULT_OPENCODE_VERSION) {
       log.warn(
-         `Using OpenCode ${version} (override). Our currently validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+         `Using OpenCode ${version} (override). Default channel is ${DEFAULT_OPENCODE_VERSION}.`,
       );
    }
 }
@@ -241,6 +388,9 @@ function launchOpencodeServer({
    stdio = 'inherit',
    detach = false,
    ocVersion,
+   allowGlobalFallback,
+   onManagedFail,
+   onGlobalVersionMismatch,
 }: LaunchOpencodeServerOptions) {
    validatePort(port);
 
@@ -251,12 +401,16 @@ function launchOpencodeServer({
       String(port),
       ...getCorsArgs(extraOrigins),
    ];
-   const plan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs);
+   const plan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs, {
+      allowGlobalFallback,
+      onManagedFail,
+      onGlobalVersionMismatch,
+   });
    const configDir = getCalycodeOpencodeConfigDir();
    const workingDir = getOpencodeWorkingDir('server');
 
    const proc = spawn(plan.command, plan.args, {
-      ...getSpawnOptions(stdio, { OPENCODE_CONFIG_DIR: configDir }, workingDir),
+      ...getSpawnOptions(stdio, { OPENCODE_CONFIG_DIR: configDir }, workingDir, plan.needsShell),
       detached: detach,
    });
 
@@ -268,20 +422,20 @@ function launchOpencodeServer({
 
 /**
  * Get spawn options appropriate for the current platform.
- * On Windows, shell: true is required for npx to work (it's a batch file).
- * On Unix, we can run without shell for better security.
+ * @param stdio - Standard I/O handling mode
+ * @param extraEnv - Additional environment variables to pass to the child process
+ * @param cwd - Working directory for the child process
+ * @param needsShell - Whether the command requires a shell wrapper (e.g. npx on Windows)
  */
 function getSpawnOptions(
    stdio: 'inherit' | 'pipe' | 'ignore' = 'inherit',
    extraEnv?: Record<string, string>,
    cwd?: string,
+   needsShell: boolean = false,
 ) {
-   // On Windows, npx is a batch file and requires shell: true
-   // On Unix, we can run without shell for better security
-   const isWindows = process.platform === 'win32';
    return {
       stdio,
-      shell: isWindows,
+      shell: needsShell,
       cwd,
       env: extraEnv ? { ...process.env, ...extraEnv } : process.env,
    };
@@ -305,61 +459,94 @@ function validatePort(port: number): void {
  * @param logger - Optional logger for debugging (used in native host context)
  * @returns true if a process was killed, false if no process was found
  */
-function killProcessOnPort(port: number, logger?: { log: (msg: string, data?: any) => void; error: (msg: string, err?: any) => void }): boolean {
+function validateNativeHostPort(port: number): void {
+   validatePort(port);
+   if (port < NATIVE_HOST_PORT_RANGE_START || port > NATIVE_HOST_PORT_RANGE_END) {
+      throw new Error(
+         `Port ${port} outside allowed native host range ` +
+         `(${NATIVE_HOST_PORT_RANGE_START}–${NATIVE_HOST_PORT_RANGE_END})`,
+      );
+   }
+}
+
+/**
+ * Kill orphan processes on a port, restricted to allowed PIDs only.
+ * @param port - Port number to scan
+ * @param allowedPids - Set of PIDs that are permitted to be killed
+ * @param logger - Optional logger
+ * @returns true if a process was killed, false if none found or none allowed
+ */
+function killProcessOnPort(port: number, allowedPids: Set<number>, logger?: { log: (msg: string, data?: any) => void; error: (msg: string, err?: any) => void }): boolean {
    const logInfo = logger?.log ?? ((msg: string) => { /* silent */ });
    const logError = logger?.error ?? ((msg: string) => { /* silent */ });
-   
+
+   const toAllowedPidList = (rawPids: Array<string | number>): number[] => {
+      const parsed = rawPids
+         .map((pid) => (typeof pid === 'number' ? pid : Number.parseInt(String(pid).trim(), 10)))
+         .filter((pid) => Number.isInteger(pid) && pid > 0);
+      return Array.from(new Set(parsed.filter((pid) => allowedPids.has(pid))));
+   };
+
+   const parseWindowsNetstatPids = (output: string): string[] => {
+      const lines = output.split('\n');
+      const pids: string[] = [];
+      for (const line of lines) {
+         if (!line.includes('LISTENING') || !line.includes(`:${port}`)) {
+            continue;
+         }
+         const parts = line.trim().split(/\s+/);
+         const pid = parts[parts.length - 1];
+         if (pid && /^\d+$/.test(pid) && pid !== '0') {
+            pids.push(pid);
+         }
+      }
+      return pids;
+   };
+
+   const parsePidLines = (output: string): string[] =>
+      output
+         .split('\n')
+         .map((line) => line.trim())
+         .filter((line) => /^\d+$/.test(line));
+
    try {
       validatePort(port);
-      
+
       if (os.platform() === 'win32') {
-         // Windows: Use netstat to find the PID and taskkill to terminate
          try {
-            const netstatOutput = execSync(`netstat -ano | findstr :${port}`, { 
+            const netstatOutput = execSync(`netstat -ano | findstr :${port}`, {
                encoding: 'utf8',
                timeout: 5000,
                windowsHide: true,
             });
-            
-            // Parse output to find LISTENING processes
-            const lines = netstatOutput.split('\n');
-            const pidsToKill = new Set<string>();
-            
-            for (const line of lines) {
-               // Look for lines with LISTENING state on our port
-               // Format: TCP    0.0.0.0:4096    0.0.0.0:0    LISTENING    12345
-               if (line.includes('LISTENING') && line.includes(`:${port}`)) {
-                  const parts = line.trim().split(/\s+/);
-                  const pid = parts[parts.length - 1];
-                  if (pid && /^\d+$/.test(pid) && pid !== '0') {
-                     pidsToKill.add(pid);
-                  }
-               }
-            }
-            
-            if (pidsToKill.size === 0) {
-               logInfo(`No listening process found on port ${port}`);
+
+            const allowed = toAllowedPidList(parseWindowsNetstatPids(netstatOutput));
+            if (allowed.length === 0) {
+               logInfo(`No managed process found on port ${port}`);
                return false;
             }
-            
-            // Kill each process found
-            for (const pid of pidsToKill) {
+
+            let killedAny = false;
+            for (const pid of allowed) {
                try {
-                  logInfo(`Killing process ${pid} on port ${port}`);
-                  execSync(`taskkill /F /PID ${pid}`, { 
+                  execSync(`taskkill /F /PID ${pid}`, {
                      timeout: 5000,
                      windowsHide: true,
                   });
-                  logInfo(`Successfully killed process ${pid}`);
+                  logInfo(`Killed managed process ${pid} on port ${port}`);
+                  killedAny = true;
                } catch (killErr) {
-                  // Process might have already exited
-                  logError(`Failed to kill process ${pid}`, killErr);
+                  logError(`Failed to kill managed process ${pid}`, killErr);
                }
             }
-            
+
+            if (!killedAny) {
+               logInfo(`No listening process found on port ${port}`);
+               return false;
+            }
+
             return true;
-         } catch (e: any) {
-            // netstat might return non-zero if no process found
+          } catch (e: any) {
             if (e.status === 1 || e.message?.includes('not found')) {
                logInfo(`No process found on port ${port}`);
                return false;
@@ -367,49 +554,57 @@ function killProcessOnPort(port: number, logger?: { log: (msg: string, data?: an
             throw e;
          }
       } else {
-         // Unix-like systems: Use fuser or lsof
+         const candidates = new Set<string>();
+
          try {
-            // Try fuser first (more reliable for killing)
-            execSync(`fuser -k ${port}/tcp 2>/dev/null || true`, {
+            const fuserOutput = execSync(`fuser ${port}/tcp 2>/dev/null || true`, {
+               encoding: 'utf8',
                timeout: 5000,
             });
-            logInfo(`Killed process on port ${port} using fuser`);
-            return true;
-         } catch (fuserErr) {
-            // fuser not available, try lsof + kill
-            try {
-               const lsofOutput = execSync(`lsof -ti tcp:${port}`, {
-                  encoding: 'utf8',
-                  timeout: 5000,
-               });
-               
-               const pids = lsofOutput.trim().split('\n').filter(Boolean);
-               if (pids.length === 0) {
-                  logInfo(`No process found on port ${port}`);
-                  return false;
-               }
-               
-               for (const pid of pids) {
-                  if (pid && /^\d+$/.test(pid)) {
-                     try {
-                        execSync(`kill -9 ${pid}`, { timeout: 5000 });
-                        logInfo(`Killed process ${pid} on port ${port}`);
-                     } catch (killErr) {
-                        logError(`Failed to kill process ${pid}`, killErr);
-                     }
-                  }
-               }
-               
-               return true;
-            } catch (lsofErr: any) {
-               // lsof returns non-zero if no process found
-               if (lsofErr.status === 1) {
-                  logInfo(`No process found on port ${port}`);
-                  return false;
-               }
+            for (const pid of parsePidLines(fuserOutput)) {
+               candidates.add(pid);
+            }
+         } catch {
+            // Best effort; lsof fallback below.
+         }
+
+         try {
+            const lsofOutput = execSync(`lsof -ti tcp:${port}`, {
+               encoding: 'utf8',
+               timeout: 5000,
+            });
+            for (const pid of parsePidLines(lsofOutput)) {
+               candidates.add(pid);
+            }
+         } catch (lsofErr: any) {
+            if (lsofErr.status !== 1) {
                throw lsofErr;
             }
          }
+
+         const allowed = toAllowedPidList(Array.from(candidates));
+         if (allowed.length === 0) {
+            logInfo(`No managed process found on port ${port}`);
+            return false;
+         }
+
+         let killedAny = false;
+         for (const pid of allowed) {
+            try {
+               execSync(`kill -9 ${pid}`, { timeout: 5000 });
+               logInfo(`Killed managed process ${pid} on port ${port}`);
+               killedAny = true;
+            } catch (killErr) {
+               logError(`Failed to kill managed process ${pid}`, killErr);
+            }
+         }
+
+         if (!killedAny) {
+            logInfo(`No managed process killed on port ${port}`);
+            return false;
+         }
+
+         return true;
       }
    } catch (error) {
       logError(`Error killing process on port ${port}`, error);
@@ -534,6 +729,47 @@ function getAllowedCorsOrigins(): string[] {
    return defaultOrigins;
 }
 
+function isValidCorsOrigin(origin: string, knownExtensionIds: string[]): boolean {
+   const trimmed = origin.trim();
+   if (!trimmed) return false;
+
+   if (trimmed === '*') return false;
+
+   if (trimmed.includes('*')) return false;
+
+   if (trimmed.startsWith('chrome-extension://')) {
+      return CHROME_EXTENSION_ORIGIN_REGEX.test(trimmed) &&
+         knownExtensionIds.some((id) => trimmed === `chrome-extension://${id}`);
+   }
+
+   if (trimmed.startsWith('https://')) {
+      const hostPart = trimmed.slice('https://'.length);
+      if (!hostPart || hostPart === '*') return false;
+      return true;
+   }
+
+   return false;
+}
+
+function filterAndValidateOrigins(rawOrigins: unknown, knownExtensionIds: string[]): string[] {
+   if (!Array.isArray(rawOrigins)) {
+      return [];
+   }
+
+   const valid: string[] = [];
+   for (const origin of rawOrigins) {
+      if (typeof origin !== 'string') continue;
+      if (!isValidCorsOrigin(origin, knownExtensionIds)) continue;
+      const trimmed = origin.trim();
+      if (!valid.includes(trimmed)) {
+         valid.push(trimmed);
+      }
+      if (valid.length >= MAX_CORS_ORIGINS) break;
+   }
+
+   return valid;
+}
+
 function getCorsArgs(extraOrigins: string[] = []) {
    const origins = new Set([...getAllowedCorsOrigins(), ...extraOrigins]);
    return Array.from(origins).flatMap((origin) => ['--cors', origin]);
@@ -569,7 +805,7 @@ async function proxyOpencode(
 
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
       const proc = spawn(launchPlan.command, launchPlan.args, {
-         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir),
+         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir, launchPlan.needsShell),
       });
 
       proc.on('close', (code) => {
@@ -640,12 +876,16 @@ class NativeHostLogger {
    private logPath: string;
    private logDir: string;
    private initialized: boolean = false;
+   private enabled: boolean;
 
    constructor() {
+      this.enabled = process.env.CALY_OC_NATIVE_HOST_DEBUG === '1';
       const homeDir = os.homedir();
       this.logDir = path.join(homeDir, '.calycode', 'logs');
       this.logPath = path.join(this.logDir, 'native-host.log');
-      this.ensureLogDir();
+      if (this.enabled) {
+         this.ensureLogDir();
+      }
    }
 
    private ensureLogDir() {
@@ -655,12 +895,9 @@ class NativeHostLogger {
             fs.mkdirSync(this.logDir, { recursive: true });
          }
          this.initialized = true;
-         // Write initial log to verify logging works
          this.log('Logger initialized', { logPath: this.logPath, pid: process.pid });
       } catch (e) {
-         // If we can't create the log dir, try to log to stderr as a fallback
          console.error(`[NativeHostLogger] Failed to create log directory ${this.logDir}: ${e}`);
-         // Try the temp directory as fallback
          try {
             this.logDir = os.tmpdir();
             this.logPath = path.join(this.logDir, 'calycode-native-host.log');
@@ -673,6 +910,7 @@ class NativeHostLogger {
    }
 
    log(msg: string, data?: any) {
+      if (!this.enabled) return;
       try {
          const timestamp = new Date().toISOString();
          let content = `[${timestamp}] ${msg}`;
@@ -682,12 +920,12 @@ class NativeHostLogger {
          content += '\n';
          fs.appendFileSync(this.logPath, content);
       } catch (e) {
-         // If logging fails, output to stderr as last resort
          console.error(`[NativeHostLogger] Log failed: ${msg}`);
       }
    }
 
    error(msg: string, err?: any) {
+      if (!this.enabled) return;
       try {
          const timestamp = new Date().toISOString();
          let content = `[${timestamp}] ERROR: ${msg}`;
@@ -697,7 +935,6 @@ class NativeHostLogger {
          content += '\n';
          fs.appendFileSync(this.logPath, content);
       } catch (e) {
-         // If logging fails, output to stderr as last resort
          console.error(`[NativeHostLogger] Error log failed: ${msg} - ${err}`);
       }
    }
@@ -722,6 +959,20 @@ async function startNativeHost() {
    //displayNativeHostBanner(logger.getLogPath());
 
    let serverProc: ReturnType<typeof spawn> | null = null;
+   const managedSessions = new Map<number, ManagedSession>();
+   const managedPids = new Set<number>();
+
+   const registerManagedSession = (port: number, proc: ReturnType<typeof spawn>) => {
+      if (!proc.pid) return;
+      managedSessions.set(port, { port, proc, pid: proc.pid, startedAt: Date.now() });
+      managedPids.add(proc.pid);
+   };
+
+   const unregisterManagedSession = (port: number) => {
+      const session = managedSessions.get(port);
+      if (session && session.pid) managedPids.delete(session.pid);
+      managedSessions.delete(port);
+   };
 
    // Wait for server to be ready by polling the URL
    const waitForServerReady = async (
@@ -751,7 +1002,6 @@ async function startNativeHost() {
       extraOrigins: string[] = [],
       requestedOcVersion?: string,
    ) => {
-      // Validate port to prevent injection via invalid values
       try {
          validatePort(port);
       } catch (e) {
@@ -763,12 +1013,18 @@ async function startNativeHost() {
       const serverUrl = `http://localhost:${port}`;
       logger.log(`Attempting to start server on port ${port}`, { extraOrigins });
 
-      // If already running, kill it? For now, let's assume single instance or fail if port busy
+      const existingSession = managedSessions.get(port);
+      if (existingSession) {
+         logger.log('Killing existing session on port...');
+         try { existingSession.proc.kill(); } catch { /* already dead */ }
+         unregisterManagedSession(port);
+         await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
       if (serverProc) {
          logger.log('Killing existing server process...');
          serverProc.kill();
          serverProc = null;
-         // Give it a moment to release the port
          await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
@@ -786,16 +1042,12 @@ async function startNativeHost() {
          const resolvedVersion = resolveOcVersion(
             requestedOcVersion || parseOcVersionFromArgv(process.argv),
          );
-         const opencodeArgs = ['serve', '--port', String(port), ...getCorsArgs(extraOrigins)];
-         const launchPlan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs);
-         logger.log(`Spawning ${launchPlan.displayCommand}`);
-         logger.log(`OpenCode launcher source: ${launchPlan.source}`);
          logger.log(`Using OpenCode version: ${resolvedVersion}`);
          logger.log(`Using OpenCode config directory: ${getCalycodeOpencodeConfigDir()}`);
          logger.log(`Using OpenCode working directory: ${getOpencodeWorkingDir('server')}`);
          if (resolvedVersion !== DEFAULT_OPENCODE_VERSION) {
             logger.log(
-               `Using overridden OpenCode ${resolvedVersion}. Current validated default is ${DEFAULT_OPENCODE_VERSION}.`,
+               `Using overridden OpenCode ${resolvedVersion}. Default channel is ${DEFAULT_OPENCODE_VERSION}.`,
             );
          }
 
@@ -804,8 +1056,22 @@ async function startNativeHost() {
             extraOrigins,
             stdio: 'ignore',
             ocVersion: resolvedVersion,
+            allowGlobalFallback: false,
+            onManagedFail: (err) =>
+               logger.log('Managed OpenCode install failed, falling back', {
+                  error: err.message,
+               }),
+            onGlobalVersionMismatch: ({ expectedVersion, actualVersion, globalBinaryPath }) =>
+               logger.log('Global OpenCode version mismatch; falling back to npx', {
+                  expectedVersion,
+                  actualVersion,
+                  globalBinaryPath,
+               }),
          });
+         logger.log(`Spawning ${launched.plan.displayCommand}`);
+         logger.log(`OpenCode launcher source: ${launched.plan.source}`);
          serverProc = launched.proc;
+         registerManagedSession(port, launched.proc);
 
          serverProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
@@ -815,6 +1081,7 @@ async function startNativeHost() {
          serverProc.on('exit', (code) => {
             logger.log(`Server process exited with code ${code}`);
             sendMessage({ status: 'stopped', code });
+            unregisterManagedSession(port);
             serverProc = null;
          });
 
@@ -865,7 +1132,7 @@ async function startNativeHost() {
 
       // Kill any orphan process on the port (handles lost references)
       logger.log('Checking for orphan processes on port...');
-      const killed = killProcessOnPort(port, logger);
+      const killed = killProcessOnPort(port, managedPids, logger);
       if (killed) {
          logger.log('Killed orphan process(es) on port, waiting for port release...');
          // Give more time for port to be released after force kill
@@ -899,34 +1166,53 @@ async function startNativeHost() {
          if (msg.type === 'ping') {
             sendMessage({ type: 'pong', timestamp: Date.now() });
          } else if (msg.type === 'start') {
-            const port = msg.port ? parseInt(msg.port, 10) : 4096;
-            const origins = Array.isArray(msg.origins) ? msg.origins : [];
+            const rawPort = msg.port ? parseInt(msg.port, 10) : 4096;
+            try { validateNativeHostPort(rawPort); } catch (e) {
+               logger.error('Invalid port in message', { port: rawPort, error: e });
+               sendMessage({ status: 'error', message: `Invalid port: ${rawPort}` });
+               return;
+            }
+            const port = rawPort;
+            const knownIds = resolveAllowedExtensionIds().ids;
+            const origins = filterAndValidateOrigins(msg.origins, knownIds);
             const requestedOcVersion = typeof msg.ocVersion === 'string' ? msg.ocVersion : undefined;
             startServer(port, origins, requestedOcVersion);
          } else if (msg.type === 'restart') {
-            // Restart the server with new origins - used when CORS configuration needs updating
-            const port = msg.port ? parseInt(msg.port, 10) : 4096;
-            const origins = Array.isArray(msg.origins) ? msg.origins : [];
+            const rawPort = msg.port ? parseInt(msg.port, 10) : 4096;
+            try { validateNativeHostPort(rawPort); } catch (e) {
+               logger.error('Invalid port in message', { port: rawPort, error: e });
+               sendMessage({ status: 'error', message: `Invalid port: ${rawPort}` });
+               return;
+            }
+            const port = rawPort;
+            const knownIds = resolveAllowedExtensionIds().ids;
+            const origins = filterAndValidateOrigins(msg.origins, knownIds);
             const requestedOcVersion = typeof msg.ocVersion === 'string' ? msg.ocVersion : undefined;
             restartServer(port, origins, requestedOcVersion);
          } else if (msg.type === 'stop') {
-            const port = msg.port ? parseInt(msg.port, 10) : 4096;
+            const rawPort = msg.port ? parseInt(msg.port, 10) : 4096;
+            try { validateNativeHostPort(rawPort); } catch (e) {
+               logger.error('Invalid port in message', { port: rawPort, error: e });
+               sendMessage({ status: 'error', message: `Invalid port: ${rawPort}` });
+               return;
+            }
+            const port = rawPort;
             logger.log('Stop requested', { port, hasServerProc: !!serverProc });
-            
-            // Kill by process reference if we have it
-            if (serverProc) {
+
+            const session = managedSessions.get(port);
+            if (session) {
+               logger.log('Killing managed session on port', { port, pid: session.pid });
+               try { session.proc.kill(); } catch { /* already dead */ }
+               unregisterManagedSession(port);
+               sendMessage({ status: 'stopped', message: `Server on port ${port} stopped` });
+            } else if (serverProc) {
                logger.log('Killing server process by reference...');
                serverProc.kill();
                serverProc = null;
+               sendMessage({ status: 'stopped', message: 'Server stopped by request' });
+            } else {
+               sendMessage({ status: 'error', message: `No managed server on port ${port}` });
             }
-            
-            // Also kill any orphan process on the port (handles lost references)
-            const killed = killProcessOnPort(port, logger);
-            if (killed) {
-               logger.log('Killed orphan process(es) on port');
-            }
-            
-            sendMessage({ status: 'stopped', message: 'Server stopped by request' });
          } else {
             sendMessage({ status: 'received', received: msg });
          }
@@ -936,21 +1222,17 @@ async function startNativeHost() {
       }
    };
 
-   // Cleanup function to kill server and exit cleanly
-   const cleanup = (reason: string, port: number = 4096) => {
+   // Cleanup function to kill all managed server sessions and exit cleanly
+   const cleanup = (reason: string) => {
       logger.log(`Cleanup triggered: ${reason}`);
-      
-      // Kill by process reference if we have it
-      if (serverProc) {
-         logger.log('Killing server process during cleanup');
-         serverProc.kill();
-         serverProc = null;
+
+      for (const [sessionPort, session] of managedSessions) {
+         logger.log(`Killing managed session on port ${sessionPort}`);
+         try { session.proc.kill(); } catch { /* already dead */ }
+         if (session.pid) managedPids.delete(session.pid);
       }
-      
-      // Also kill any orphan process on the port (handles lost references)
-      // This ensures clean shutdown even if we lost the process reference
-      killProcessOnPort(port, logger);
-      
+      managedSessions.clear();
+
       process.exit(0);
    };
 
@@ -977,6 +1259,13 @@ async function startNativeHost() {
 
    process.stdin.on('data', (chunk) => {
       logger.log('Received data chunk', { length: chunk.length });
+
+      if (inputBuffer.length + chunk.length > MAX_NATIVE_MESSAGE_SIZE + 4) {
+         logger.error('Input buffer exceeds max size, resetting parser');
+         inputBuffer = Buffer.alloc(0);
+         expectedLength = null;
+         return;
+      }
       inputBuffer = Buffer.concat([inputBuffer, chunk]);
 
       while (true) {
@@ -984,8 +1273,18 @@ async function startNativeHost() {
             if (inputBuffer.length >= 4) {
                expectedLength = inputBuffer.readUInt32LE(0);
                inputBuffer = inputBuffer.subarray(4);
+
+               if (expectedLength > MAX_NATIVE_MESSAGE_SIZE) {
+                  logger.error('Message exceeds max size', {
+                     size: expectedLength,
+                     max: MAX_NATIVE_MESSAGE_SIZE,
+                  });
+                  expectedLength = null;
+                  inputBuffer = Buffer.alloc(0);
+                  break;
+               }
             } else {
-               break; // Wait for more data
+               break;
             }
          }
 

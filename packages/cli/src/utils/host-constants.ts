@@ -18,6 +18,17 @@ interface HostAppInfo {
    };
 }
 
+function getAllowedExtensionIds(): string[] {
+   const prodIds = [
+      'hadkkdmpcmllbkfopioopcmeapjchpbm', // Production (Chrome Web Store)
+   ];
+   if (process.env.CALY_OC_INCLUDE_DEV_EXT === '1') {
+      return [...prodIds, 'lnhipaeaeiegnlokhokfokndgadkohfe', // Development (unpacked)
+      ];
+   }
+   return prodIds;
+}
+
 export const HOST_APP_INFO: HostAppInfo = {
    name: 'CalyCode Xano CLI',
    description: 'CalyCode Xano CLI Native Host',
@@ -27,10 +38,7 @@ export const HOST_APP_INFO: HostAppInfo = {
    url: 'https://calycode.com/xano',
    // Known extension IDs (fast-path allowlist)
    extensionId: 'hadkkdmpcmllbkfopioopcmeapjchpbm',
-   allowedExtensionIds: [
-      'hadkkdmpcmllbkfopioopcmeapjchpbm', // Production (Chrome Web Store)
-      'lnhipaeaeiegnlokhokfokndgadkohfe', // Development (unpacked)
-   ],
+   allowedExtensionIds: getAllowedExtensionIds(),
    extensionDiscovery: {
       extensionName: '@calycode | Extension',
       trustedAuthorPatterns: ['calycode', '@calycode', 'Mihály @calycode'],
@@ -39,6 +47,6 @@ export const HOST_APP_INFO: HostAppInfo = {
          'https://www.extension.calycode.com',
       ],
       requireNativeMessagingPermission: true,
-      mode: 'balanced',
+      mode: 'strict',
    },
 };
