@@ -1,5 +1,16 @@
 # @calycode/xano-cli
 
+## 0.19.0
+
+### Minor Changes
+
+- c49af1f: refactor: fixed several inconsistencies with the native host implementation
+- c49af1f: feat: downloadable bootstrapper for the cli for windows and mac os
+
+### Patch Changes
+
+- c49af1f: refactor: adjusted extension id discovery
+
 ## 0.18.5
 
 ### Patch Changes
