@@ -42,5 +42,8 @@ coverage/
 # Native binary assets
 **/*/.sea-cache/
 
+# Local planning docs
+plans/native-host-security-hardening.md
+
 # Xano's ai supporting assets:
 util-resources/xano-agentic-setups/
