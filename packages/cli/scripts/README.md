@@ -64,6 +64,8 @@ linux   → Fall back to shell script: curl ... | bash
 
 Architecture detection on macOS: check `navigator.userAgentData` or serve a universal page.
 
+For a full extension integration guide, see `docs/extension-installer-flow.md`.
+
 ---
 
 ## For Developers
