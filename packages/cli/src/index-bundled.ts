@@ -30,6 +30,22 @@ function escapeAppleScript(str: string): string {
 // If run with no arguments (double click), it triggers the init flow.
 // If run with arguments (CLI usage), it passes through to the standard program.
 
+function isNativeHostLaunchArgs(extraArgs: string[]): boolean {
+   if (extraArgs.length === 0) {
+      return true;
+   }
+
+   if (extraArgs.length === 2 && extraArgs[0] === '--oc-version' && !!extraArgs[1]) {
+      return true;
+   }
+
+   if (extraArgs.length === 1 && extraArgs[0].startsWith('--oc-version=')) {
+      return true;
+   }
+
+   return false;
+}
+
 (async () => {
    const isBundled = isSea();
    const args = process.argv;
@@ -40,8 +56,14 @@ function escapeAppleScript(str: string): string {
    // and manual "opencode native-host" invocations (Windows wrapper)
    const chromeExtensionArg = args.find((arg) => arg.startsWith('chrome-extension://'));
    const commandIndex = Math.max(args.lastIndexOf('opencode'), args.lastIndexOf('oc'));
+   const nativeHostExtraArgs =
+      commandIndex >= 0 && args[commandIndex + 1] === 'native-host'
+         ? args.slice(commandIndex + 2)
+         : [];
    const isNativeHostCommand =
-      commandIndex >= 0 && args[commandIndex + 1] === 'native-host' && commandIndex + 2 >= args.length;
+      commandIndex >= 0 &&
+      args[commandIndex + 1] === 'native-host' &&
+      isNativeHostLaunchArgs(nativeHostExtraArgs);
 
    if (chromeExtensionArg || isNativeHostCommand) {
       // We are running as a Native Host
