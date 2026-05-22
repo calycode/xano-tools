@@ -1,7 +1,7 @@
 # CalyCode Bootstrapper Build
 # Produces standalone installers for Windows (exe) and macOS (macho binary).
 #
-# Prerequisites: Go 1.21+
+# Prerequisites: Go 1.26+
 #
 # Usage:
 #   make all          Build all targets
