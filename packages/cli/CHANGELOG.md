@@ -1,5 +1,12 @@
 # @calycode/xano-cli
 
+## 0.19.1
+
+### Patch Changes
+
+- 9321db1: chore: improve native host starting behaviour for more reliable process termination
+- 9321db1: chore: update go to 1.26
+
 ## 0.19.0
 
 ### Minor Changes
