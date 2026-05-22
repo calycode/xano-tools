@@ -1031,8 +1031,17 @@ async function startNativeHost() {
       // Check if already running via fetch
       try {
          await fetch(serverUrl);
-         logger.log('Server already active on url', { serverUrl });
-         sendMessage({ status: 'running', url: serverUrl, message: 'Server already active' });
+         logger.log('Server already active on url; triggering restart to reconcile CORS/config drift', {
+            serverUrl,
+            extraOrigins,
+            requestedOcVersion,
+         });
+         sendMessage({
+            status: 'starting',
+            url: serverUrl,
+            message: 'Server already active; restarting to reconcile requested origins/config...',
+         });
+         await restartServer(port, extraOrigins, requestedOcVersion);
          return;
       } catch (e) {
          // Not running, proceed
