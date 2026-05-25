@@ -1,5 +1,11 @@
 # @calycode/xano-cli
 
+## 0.19.2
+
+### Patch Changes
+
+- 68b26e9: fix: adjusted the native host process cleanup
+
 ## 0.19.1
 
 ### Patch Changes
