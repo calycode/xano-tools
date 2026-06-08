@@ -20,7 +20,6 @@
         "developer-tools"
     ],
     "bin": {
-        "xano": "dist/legacy-xano.cjs",
         "caly-xano": "dist/index.cjs"
     },
     "main": "dist/index.cjs",
@@ -52,7 +51,6 @@
         "commander": "^14.0.0",
         "js-yaml": "^4.1.0",
         "posthog-node": "^5.9.2",
-        "postject": "1.0.0-alpha.6",
         "shx": "^0.4.0",
         "tar": "^7.4.3"
     },
@@ -62,7 +60,7 @@
         "test:coverage": "jest --coverage",
         "clean": "trash dist tsconfig.tsbuildinfo",
         "build:js": "tsx esbuild.config.ts",
-        "build:chmod": "shx chmod +x dist/index.cjs dist/legacy-xano.cjs",
+        "build:chmod": "shx chmod +x dist/index.cjs",
         "build": "pnpm clean && pnpm build:js && pnpm build:chmod && pnpm link -g",
         "bundle:ncc": "pnpm ncc build dist/index.cjs -o dist/cli.cjs && shx cp README.md LICENSE dist/cli.cjs/",
         "bundle:sea": "tsx build-sea.ts",
