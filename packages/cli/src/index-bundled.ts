@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { isSea } from 'node:sea';
 import { program } from './program';
-import { setupOpencode } from './commands/opencode/implementation';
+import { setupOpencode } from './commands/opencode/index';
 import { startNativeHost } from './commands/opencode/native-host';
 import { launchOpencodeServer } from './commands/opencode/distribution';
 import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
