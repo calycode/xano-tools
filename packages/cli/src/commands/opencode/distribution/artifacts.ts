@@ -10,7 +10,6 @@ import { getCalycodeOpencodeConfigDir } from './paths';
 export type ArtifactKind = 'templates' | 'skills';
 
 interface ArtifactSource {
-   label: string;
    fetch: { owner: string; repo: string; subpath: string; ref: string };
    /** Directory the artifact installs into, relative to the OpenCode config dir. */
    targetRelative: string;
@@ -20,12 +19,25 @@ interface ArtifactSource {
    extraDirs: string[];
    localDirName: string;
    localHasContent: (dir: string) => boolean;
+   /** Report installed/skipped entries by their top-level names (skills) vs file list (templates). */
    reportAsNames: boolean;
+   messages: {
+      fetching: string;
+      fromCache: (ageMinutes: number) => string;
+      downloaded: string;
+      localFallback: (localPath: string) => string;
+      usingLocal: string;
+      noLocal: string;
+      fetchFailed: string;
+      completed: (targetDir: string) => string;
+      updateStart: string;
+      updateDone: string;
+      clearDone: string;
+   };
 }
 
 const ARTIFACT_SOURCES: Record<ArtifactKind, ArtifactSource> = {
    templates: {
-      label: 'OpenCode configuration templates',
       fetch: {
          owner: 'calycode',
          repo: 'xano-tools',
@@ -38,9 +50,21 @@ const ARTIFACT_SOURCES: Record<ArtifactKind, ArtifactSource> = {
       localDirName: 'opencode-templates',
       localHasContent: (dir) => fs.existsSync(path.join(dir, 'opencode.json')),
       reportAsNames: false,
+      messages: {
+         fetching: 'Fetching OpenCode configuration templates...',
+         fromCache: (ageMinutes) => `Using cached templates (${ageMinutes} minutes old)`,
+         downloaded: 'Downloaded latest templates from GitHub',
+         localFallback: (localPath) => `Falling back to local templates: ${localPath}`,
+         usingLocal: 'Using local templates (development mode)',
+         noLocal: 'No local templates found. Cannot install configuration.',
+         fetchFailed: 'Failed to fetch templates from GitHub and no local fallback available.',
+         completed: (targetDir) => `OpenCode configuration installed to: ${targetDir}`,
+         updateStart: 'Updating OpenCode templates...',
+         updateDone: 'Templates updated successfully!',
+         clearDone: 'Template cache cleared.',
+      },
    },
    skills: {
-      label: 'Xano skills',
       fetch: {
          owner: 'calycode',
          repo: 'xano-tools',
@@ -57,6 +81,19 @@ const ARTIFACT_SOURCES: Record<ArtifactKind, ArtifactSource> = {
          return fs.existsSync(skillsDir) && fs.readdirSync(skillsDir).length > 0;
       },
       reportAsNames: true,
+      messages: {
+         fetching: 'Fetching Xano skills...',
+         fromCache: (ageMinutes) => `Using cached skills (${ageMinutes} minutes old)`,
+         downloaded: 'Downloaded latest skills from GitHub',
+         localFallback: (localPath) => `Falling back to local skills: ${localPath}`,
+         usingLocal: 'Using local skills (development mode)',
+         noLocal: 'No local skills found. Cannot install skills.',
+         fetchFailed: 'Failed to fetch skills from GitHub and no local fallback available.',
+         completed: (targetDir) => `Skills installed to: ${targetDir}`,
+         updateStart: 'Updating Xano skills...',
+         updateDone: 'Skills updated successfully!',
+         clearDone: 'Skills cache cleared.',
+      },
    },
 };
 
@@ -134,17 +171,17 @@ export async function installArtifact(
 ): Promise<void> {
    const { force = false } = options;
    const source = ARTIFACT_SOURCES[kind];
+   const { messages } = source;
    const fetcher = new GitHubContentFetcher();
    const configDir = getCalycodeOpencodeConfigDir();
    const targetDir = source.targetRelative
       ? path.join(configDir, source.targetRelative)
       : configDir;
 
-   log.info(`Fetching ${source.label}...`);
+   log.info(messages.fetching);
    log.info(`Installing to: ${targetDir}`);
 
    let files: Map<string, string>;
-   let sourceDescription: string;
 
    try {
       const result = await fetcher.fetchDirectory({
@@ -165,27 +202,21 @@ export async function installArtifact(
       }
 
       if (result.fromCache && result.cacheAge !== undefined) {
-         const ageMinutes = Math.round(result.cacheAge / 1000 / 60);
-         sourceDescription = `cached ${kind} (${ageMinutes} minutes old)`;
-         log.info(`Using ${sourceDescription}`);
+         log.info(messages.fromCache(Math.round(result.cacheAge / 1000 / 60)));
       } else {
-         sourceDescription = `latest ${kind} from GitHub`;
-         log.success(`Downloaded ${sourceDescription}`);
+         log.success(messages.downloaded);
       }
    } catch (error: any) {
       log.warn(`GitHub fetch failed: ${error.message}`);
 
       const localPath = findLocalArtifact(source);
       if (localPath) {
-         log.info(`Falling back to local ${kind}: ${localPath}`);
+         log.info(messages.localFallback(localPath));
          files = readLocalArtifact(source, localPath);
-         sourceDescription = `local ${kind} (development mode)`;
-         log.success(`Using ${sourceDescription}`);
+         log.success(messages.usingLocal);
       } else {
-         log.error(`No local ${kind} found. Cannot install.`);
-         throw new Error(
-            `Failed to fetch ${kind} from GitHub and no local fallback available.`,
-         );
+         log.error(messages.noLocal);
+         throw new Error(messages.fetchFailed);
       }
    }
 
@@ -225,49 +256,41 @@ export async function installArtifact(
       installed.push(filePath);
    }
 
-   reportInstall(kind, source, installed, skipped);
-   log.success(`${source.label} installed to: ${targetDir}`);
-}
-
-function reportInstall(
-   kind: ArtifactKind,
-   source: ArtifactSource,
-   installed: string[],
-   skipped: string[],
-): void {
-   const namesOf = (paths: string[]) => [
-      ...new Set(paths.map((f) => f.split('/')[0]).filter((name) => name)),
-   ];
-
    if (source.reportAsNames) {
       if (installed.length > 0) {
-         const names = namesOf(installed);
-         log.success(`Installed ${names.length} ${kind.replace(/s$/, '')}(s): ${names.join(', ')}`);
+         const names = topLevelNames(installed);
+         log.success(`Installed ${names.length} skill(s): ${names.join(', ')}`);
       }
       if (skipped.length > 0) {
-         const names = namesOf(skipped);
-         log.info(`Skipped ${names.length} existing ${kind.replace(/s$/, '')}(s) (use --force to overwrite)`);
+         const names = topLevelNames(skipped);
+         log.info(`Skipped ${names.length} existing skill(s) (use --force to overwrite)`);
       }
-      return;
+   } else {
+      if (installed.length > 0) {
+         const fileList = installed.map((f) => `  + ${f}`).join('\n');
+         log.success(`Installed ${installed.length} template file(s):\n${fileList}`);
+      }
+      if (skipped.length > 0) {
+         const fileList = skipped.map((f) => `  - ${f}`).join('\n');
+         log.info(`Skipped ${skipped.length} existing file(s) (use --force to overwrite):\n${fileList}`);
+      }
    }
 
-   if (installed.length > 0) {
-      const fileList = installed.map((f) => `  + ${f}`).join('\n');
-      log.success(`Installed ${installed.length} ${source.label} file(s):\n${fileList}`);
-   }
-   if (skipped.length > 0) {
-      const fileList = skipped.map((f) => `  - ${f}`).join('\n');
-      log.info(`Skipped ${skipped.length} existing file(s) (use --force to overwrite):\n${fileList}`);
-   }
+   log.success(messages.completed(targetDir));
+}
+
+function topLevelNames(filePaths: string[]): string[] {
+   return [...new Set(filePaths.map((f) => f.split('/')[0]).filter((name) => name))];
 }
 
 /**
  * Update an artifact by forcing a fresh download from GitHub.
  */
 export async function updateArtifact(kind: ArtifactKind): Promise<void> {
-   log.info(`Updating ${ARTIFACT_SOURCES[kind].label}...`);
+   const { messages } = ARTIFACT_SOURCES[kind];
+   log.info(messages.updateStart);
    await installArtifact(kind, { force: true });
-   log.success(`${ARTIFACT_SOURCES[kind].label} updated successfully!`);
+   log.success(messages.updateDone);
 }
 
 /**
@@ -351,5 +374,5 @@ export function getArtifactStatus(kind: ArtifactKind): ArtifactInstallStatus {
 export async function clearArtifactCache(kind: ArtifactKind): Promise<void> {
    const fetcher = new GitHubContentFetcher();
    await fetcher.clearCache(ARTIFACT_SOURCES[kind].fetch);
-   log.success(`${ARTIFACT_SOURCES[kind].label} cache cleared.`);
+   log.success(ARTIFACT_SOURCES[kind].messages.clearDone);
 }

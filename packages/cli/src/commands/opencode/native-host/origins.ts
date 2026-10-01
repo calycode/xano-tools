@@ -1,4 +1,5 @@
 import { resolveAllowedExtensionIds } from './discovery';
+import { XANO_APP_ORIGIN, getExtraCorsOriginsFromEnv } from '../distribution';
 
 export const MAX_CORS_ORIGINS = 10;
 export const CHROME_EXTENSION_ORIGIN_REGEX = /^chrome-extension:\/\/[a-p]{32}$/;
@@ -14,21 +15,14 @@ export const CHROME_EXTENSION_ORIGIN_REGEX = /^chrome-extension:\/\/[a-p]{32}$/;
  */
 export function getAllowedCorsOrigins(): string[] {
    const resolvedExtensions = resolveAllowedExtensionIds();
-   const defaultOrigins = [
+   return [
       // The main Xano application
-      'https://app.xano.com',
+      XANO_APP_ORIGIN,
       // Chrome extension origins for extension-to-server communication
       ...resolvedExtensions.ids.map((id) => `chrome-extension://${id}`),
+      // Additional origins via environment variable (for development/testing)
+      ...getExtraCorsOriginsFromEnv(),
    ];
-
-   // Allow additional CORS origins via environment variable (for development/testing)
-   const extraOriginsEnv = process.env.CALY_EXTRA_CORS_ORIGINS;
-   if (extraOriginsEnv) {
-      const extraOrigins = extraOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
-      return [...defaultOrigins, ...extraOrigins];
-   }
-
-   return defaultOrigins;
 }
 
 export function isValidCorsOrigin(origin: string, knownExtensionIds: string[]): boolean {

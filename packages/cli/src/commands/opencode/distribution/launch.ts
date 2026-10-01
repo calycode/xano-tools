@@ -8,28 +8,24 @@ import {
    type OpencodeWorkingDirOverrides,
 } from './paths';
 
-/**
- * Static CORS origins always allowed for the OpenCode server.
- *
- * Dynamic origins (browser-extension origins, user Xano instance URLs) are
- * resolved by the native host and passed in by the caller.
- */
-export function getStaticCorsOrigins(): string[] {
-   const defaultOrigins = ['https://app.xano.com'];
+/** The main Xano application origin, always allowed. */
+export const XANO_APP_ORIGIN = 'https://app.xano.com';
 
+/** Additional origins supplied via the CALY_EXTRA_CORS_ORIGINS env var. */
+export function getExtraCorsOriginsFromEnv(): string[] {
    const extraOriginsEnv = process.env.CALY_EXTRA_CORS_ORIGINS;
-   if (extraOriginsEnv) {
-      const extraOrigins = extraOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
-      return [...defaultOrigins, ...extraOrigins];
+   if (!extraOriginsEnv) {
+      return [];
    }
-
-   return defaultOrigins;
+   return extraOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
 }
 
-export function getCorsArgs(
-   extraOrigins: string[] = [],
-   allowedOrigins: string[] = getStaticCorsOrigins(),
-) {
+/** Base CORS origins (static + env var) with no browser-extension origins. */
+export function getStaticCorsOrigins(): string[] {
+   return [XANO_APP_ORIGIN, ...getExtraCorsOriginsFromEnv()];
+}
+
+export function getCorsArgs(extraOrigins: string[], allowedOrigins: string[]) {
    const origins = new Set([...allowedOrigins, ...extraOrigins]);
    return Array.from(origins).flatMap((origin) => ['--cors', origin]);
 }
@@ -48,7 +44,12 @@ export function validatePort(port: number): void {
 export interface LaunchOpencodeServerOptions {
    port: number;
    extraOrigins?: string[];
-   allowedOrigins?: string[];
+   /**
+    * Full set of CORS origins to allow. Required: the caller (the composition
+    * root) supplies `nativeHost.allowedOrigins()` so distribution never imports
+    * the native host.
+    */
+   allowedOrigins: string[];
    stdio?: 'inherit' | 'pipe' | 'ignore';
    detach?: boolean;
    ocVersion?: string;
