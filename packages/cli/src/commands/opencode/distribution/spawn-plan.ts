@@ -1,0 +1,134 @@
+import {
+   fileExists,
+   shouldUseManagedOpencodeInstall,
+   getManagedOpencodeBinPath,
+   ensureManagedOpencodeInstalled,
+   findGlobalOpencodeBinary,
+   getOpencodeBinaryVersion,
+   getOpencodePackageSpecifier,
+} from './install';
+
+export interface OpencodeSpawnPlan {
+   command: string;
+   args: string[];
+   source: 'env' | 'managed' | 'global' | 'npx';
+   displayCommand: string;
+   needsShell: boolean;
+}
+
+export function buildOpencodeSpawnPlan(
+   version: string,
+   opencodeArgs: string[],
+   options?: {
+      ensureManagedInstall?: boolean;
+      allowGlobalFallback?: boolean;
+      onManagedFail?: (err: Error) => void;
+      onGlobalVersionMismatch?: (details: {
+         expectedVersion: string;
+         actualVersion?: string;
+         globalBinaryPath: string;
+      }) => void;
+   },
+): OpencodeSpawnPlan {
+   const explicitBin = process.env.CALY_OC_OPENCODE_BIN?.trim();
+   if (explicitBin) {
+      if (!fileExists(explicitBin)) {
+         throw new Error(`CALY_OC_OPENCODE_BIN is set but not found: ${explicitBin}`);
+      }
+      return {
+         command: explicitBin,
+         args: opencodeArgs,
+         source: 'env',
+         displayCommand: `${explicitBin} ${opencodeArgs.join(' ')}`.trim(),
+         needsShell: false,
+      };
+   }
+
+   const managedEnabled = shouldUseManagedOpencodeInstall();
+   const managedBin = getManagedOpencodeBinPath(version);
+   if (managedEnabled && fileExists(managedBin)) {
+      return {
+         command: managedBin,
+         args: opencodeArgs,
+         source: 'managed',
+         displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
+         needsShell: false,
+      };
+   }
+
+   if (managedEnabled && options?.ensureManagedInstall !== false) {
+      try {
+         const installedBin = ensureManagedOpencodeInstalled(version);
+         return {
+            command: installedBin,
+            args: opencodeArgs,
+            source: 'managed',
+            displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
+            needsShell: false,
+         };
+      } catch (err) {
+         if (options?.onManagedFail) {
+            options.onManagedFail(err instanceof Error ? err : new Error(String(err)));
+         }
+      }
+   }
+
+   const allowGlobalFallback = options?.allowGlobalFallback !== false;
+   if (allowGlobalFallback) {
+      const globalOpencode = findGlobalOpencodeBinary();
+      if (globalOpencode) {
+         const globalVersion = getOpencodeBinaryVersion(globalOpencode);
+         const isPinnedVersion = version !== 'latest';
+         if (!isPinnedVersion || globalVersion === version) {
+            return {
+               command: globalOpencode,
+               args: opencodeArgs,
+               source: 'global',
+               displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
+               needsShell: false,
+            };
+         }
+
+         if (options?.onGlobalVersionMismatch) {
+            options.onGlobalVersionMismatch({
+               expectedVersion: version,
+               actualVersion: globalVersion,
+               globalBinaryPath: globalOpencode,
+            });
+         }
+
+         // Global binary exists but does not match requested version; fall back to npx.
+         // This preserves strict version pinning behavior.
+      }
+   }
+
+   const npxArgs = ['-y', getOpencodePackageSpecifier(version), ...opencodeArgs];
+   return {
+      command: 'npx',
+      args: npxArgs,
+      source: 'npx',
+      displayCommand: `npx ${npxArgs.join(' ')}`,
+      needsShell: process.platform === 'win32',
+   };
+}
+
+/**
+ * Get spawn options appropriate for the current platform.
+ * @param stdio - Standard I/O handling mode
+ * @param extraEnv - Additional environment variables to pass to the child process
+ * @param cwd - Working directory for the child process
+ * @param needsShell - Whether the command requires a shell wrapper (e.g. npx on Windows)
+ */
+export function getSpawnOptions(
+   stdio: 'inherit' | 'pipe' | 'ignore' = 'inherit',
+   extraEnv?: Record<string, string>,
+   cwd?: string,
+   needsShell: boolean = false,
+) {
+   return {
+      stdio,
+      shell: needsShell,
+      cwd,
+      env: extraEnv ? { ...process.env, ...extraEnv } : process.env,
+   };
+}

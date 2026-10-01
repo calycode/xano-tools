@@ -4,17 +4,27 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { spawn, execSync, execFileSync } from 'node:child_process';
-import { HOST_APP_INFO } from '../../utils/host-constants';
+import { spawn, execSync } from 'node:child_process';
 import { GitHubContentFetcher } from '../../utils/github-content-fetcher';
 import { resolveAllowedExtensionIds } from './native-host/discovery';
 import {
    setupNativeHostRegistration,
    showNativeHostStatus as showNativeHostStatusImpl,
 } from './native-host/setup';
+import {
+   DEFAULT_OPENCODE_VERSION,
+   resolveOcVersion,
+   parseOcVersionFromArgv,
+   warnIfUsingNonDefaultOcVersion,
+   launchOpencodeServer,
+   proxyOpencode,
+   validatePort,
+   getCalycodeOpencodeConfigDir,
+   getOpencodeWorkingDir,
+   ensureManagedOpencodeInstalled,
+   shouldUseManagedOpencodeInstall,
+} from './distribution';
 
-const DEFAULT_OPENCODE_VERSION = 'latest';
-const OC_VERSION_REGEX = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 const MAX_NATIVE_MESSAGE_SIZE = 1 * 1024 * 1024;
 const NATIVE_HOST_PORT_RANGE_START = 4096;
 const NATIVE_HOST_PORT_RANGE_SIZE = 32;
@@ -31,441 +41,11 @@ interface NativeHostSessionMetadata {
    updatedAt: string;
 }
 
-interface LaunchOpencodeServerOptions {
-   port: number;
-   extraOrigins?: string[];
-   stdio?: 'inherit' | 'pipe' | 'ignore';
-   detach?: boolean;
-   ocVersion?: string;
-   ownerToken?: string;
-   allowGlobalFallback?: boolean;
-   onManagedFail?: (err: Error) => void;
-   onGlobalVersionMismatch?: (details: {
-      expectedVersion: string;
-      actualVersion?: string;
-      globalBinaryPath: string;
-   }) => void;
-}
-
-interface OpencodeSpawnPlan {
-   command: string;
-   args: string[];
-   source: 'env' | 'managed' | 'global' | 'npx';
-   displayCommand: string;
-   needsShell: boolean;
-}
-
 interface ManagedSession {
    port: number;
    proc: ReturnType<typeof spawn>;
    pid: number;
    startedAt: number;
-}
-
-interface LaunchedOpencodeServer {
-   proc: ReturnType<typeof spawn>;
-   plan: OpencodeSpawnPlan;
-}
-
-function normalizeOcVersion(rawVersion?: string): string | undefined {
-   const value = rawVersion?.trim();
-   return value ? value : undefined;
-}
-
-function parseOcVersionFromArgv(argv: string[]): string | undefined {
-   for (let i = 0; i < argv.length; i++) {
-      const arg = argv[i];
-      if (arg === '--oc-version') {
-         return normalizeOcVersion(argv[i + 1]);
-      }
-      if (arg.startsWith('--oc-version=')) {
-         return normalizeOcVersion(arg.slice('--oc-version='.length));
-      }
-   }
-   return undefined;
-}
-
-function resolveOcVersion(explicitVersion?: string): string {
-   const explicit = normalizeOcVersion(explicitVersion);
-   if (explicit) {
-      if (explicit !== 'latest' && !OC_VERSION_REGEX.test(explicit)) {
-         throw new Error(
-            `Invalid OpenCode version "${explicit}". Use "latest" or semantic version format like "1.14.41".`,
-         );
-      }
-      return explicit;
-   }
-
-   const fromEnv = normalizeOcVersion(process.env.CALY_OC_OPENCODE_VERSION);
-   if (fromEnv) {
-      if (fromEnv !== 'latest' && !OC_VERSION_REGEX.test(fromEnv)) {
-         throw new Error(
-            `Invalid CALY_OC_OPENCODE_VERSION "${fromEnv}". Use "latest" or semantic version format like "1.14.41".`,
-         );
-      }
-      return fromEnv;
-   }
-
-   return DEFAULT_OPENCODE_VERSION;
-}
-
-function getOpencodePackageSpecifier(version: string): string {
-   return `opencode-ai@${version}`;
-}
-
-function getManagedOpencodeVersionsDir(): string {
-   return path.join(getCalycodeOpencodeConfigDir(), 'versions');
-}
-
-function getManagedOpencodeInstallDir(version: string): string {
-   return path.join(getManagedOpencodeVersionsDir(), version);
-}
-
-function getManagedOpencodeBinPath(version: string): string {
-   const binName = process.platform === 'win32' ? 'opencode.cmd' : 'opencode';
-   return path.join(getManagedOpencodeInstallDir(version), 'node_modules', '.bin', binName);
-}
-
-function parseManagedVersion(version: string): {
-   major: number;
-   minor: number;
-   patch: number;
-   prerelease?: string;
-} | null {
-   if (!OC_VERSION_REGEX.test(version)) {
-      return null;
-   }
-
-   const normalized = version.split('+')[0];
-   const [core, prerelease] = normalized.split('-', 2);
-   const parts = (core || '').split('.').map((n) => Number.parseInt(n, 10));
-   if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) {
-      return null;
-   }
-
-   return {
-      major: parts[0],
-      minor: parts[1],
-      patch: parts[2],
-      prerelease,
-   };
-}
-
-function compareManagedVersionsDesc(a: string, b: string): number {
-   const av = parseManagedVersion(a);
-   const bv = parseManagedVersion(b);
-   if (!av && !bv) return b.localeCompare(a);
-   if (!av) return 1;
-   if (!bv) return -1;
-
-   if (av.major !== bv.major) return bv.major - av.major;
-   if (av.minor !== bv.minor) return bv.minor - av.minor;
-   if (av.patch !== bv.patch) return bv.patch - av.patch;
-
-   const aPre = av.prerelease;
-   const bPre = bv.prerelease;
-   if (!aPre && bPre) return -1; // stable > prerelease
-   if (aPre && !bPre) return 1;
-   if (!aPre && !bPre) return 0;
-   return (bPre || '').localeCompare(aPre || '');
-}
-
-function pruneManagedOpencodeVersions(keepLatest: number = 5): void {
-   try {
-      const versionsDir = getManagedOpencodeVersionsDir();
-      if (!fs.existsSync(versionsDir)) {
-         return;
-      }
-
-      const entries = fs
-         .readdirSync(versionsDir, { withFileTypes: true })
-         .filter((entry) => entry.isDirectory())
-         .map((entry) => entry.name)
-         .filter((name) => OC_VERSION_REGEX.test(name))
-         .sort(compareManagedVersionsDesc);
-
-      const toDelete = entries.slice(Math.max(keepLatest, 0));
-      for (const version of toDelete) {
-         const target = path.join(versionsDir, version);
-         try {
-            fs.rmSync(target, { recursive: true, force: true });
-         } catch {
-            // Best effort cleanup only.
-         }
-      }
-   } catch {
-      // Best effort cleanup only.
-   }
-}
-
-function fileExists(candidatePath: string): boolean {
-   try {
-      return fs.existsSync(candidatePath);
-   } catch {
-      return false;
-   }
-}
-
-function isTruthy(value?: string): boolean {
-   return ['1', 'true', 'yes', 'on'].includes((value || '').toLowerCase());
-}
-
-function shouldUseManagedOpencodeInstall(): boolean {
-   return !isTruthy(process.env.CALY_OC_DISABLE_MANAGED_INSTALL);
-}
-
-function findGlobalOpencodeBinary(): string | undefined {
-   try {
-      const command = process.platform === 'win32' ? 'where opencode' : 'which opencode';
-      const output = execSync(command, {
-         encoding: 'utf8',
-         stdio: ['ignore', 'pipe', 'ignore'],
-      })
-         .split(/\r?\n/)
-         .map((line) => line.trim())
-         .find(Boolean);
-
-      if (!output) {
-         return undefined;
-      }
-
-      return fileExists(output) ? output : undefined;
-   } catch {
-      return undefined;
-   }
-}
-
-function getOpencodeBinaryVersion(binaryPath: string): string | undefined {
-   try {
-      const output = execFileSync(binaryPath, ['--version'], {
-         encoding: 'utf8',
-         stdio: ['ignore', 'pipe', 'ignore'],
-         windowsHide: true,
-      })
-         .toString()
-         .trim();
-
-      const match = output.match(/\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?/);
-      return match?.[0];
-   } catch {
-      return undefined;
-   }
-}
-
-function ensureManagedOpencodeInstalled(version: string): string {
-   const managedBinPath = getManagedOpencodeBinPath(version);
-   if (fileExists(managedBinPath)) {
-      pruneManagedOpencodeVersions(5);
-      return managedBinPath;
-   }
-
-   const installDir = getManagedOpencodeInstallDir(version);
-   ensureDirectoryExists(installDir);
-
-   const packageSpecifier = getOpencodePackageSpecifier(version);
-   execFileSync('npm', ['install', '--no-save', '--prefix', installDir, packageSpecifier], {
-      stdio: 'ignore',
-      env: process.env,
-   });
-
-   if (!fileExists(managedBinPath)) {
-      throw new Error(
-         `Managed OpenCode install completed but launcher not found at ${managedBinPath}.`,
-      );
-   }
-
-   if (process.platform === 'darwin') {
-      try {
-         execFileSync('xattr', ['-dr', 'com.apple.quarantine', installDir], {
-            stdio: 'ignore',
-         });
-      } catch {
-         // Best effort only.
-      }
-   }
-
-   pruneManagedOpencodeVersions(5);
-
-   return managedBinPath;
-}
-
-function buildOpencodeSpawnPlan(
-   version: string,
-   opencodeArgs: string[],
-   options?: {
-      ensureManagedInstall?: boolean;
-      allowGlobalFallback?: boolean;
-      onManagedFail?: (err: Error) => void;
-      onGlobalVersionMismatch?: (details: {
-         expectedVersion: string;
-         actualVersion?: string;
-         globalBinaryPath: string;
-      }) => void;
-   },
-): OpencodeSpawnPlan {
-   const explicitBin = process.env.CALY_OC_OPENCODE_BIN?.trim();
-   if (explicitBin) {
-      if (!fileExists(explicitBin)) {
-         throw new Error(`CALY_OC_OPENCODE_BIN is set but not found: ${explicitBin}`);
-      }
-      return {
-         command: explicitBin,
-         args: opencodeArgs,
-         source: 'env',
-         displayCommand: `${explicitBin} ${opencodeArgs.join(' ')}`.trim(),
-         needsShell: false,
-      };
-   }
-
-   const managedEnabled = shouldUseManagedOpencodeInstall();
-   const managedBin = getManagedOpencodeBinPath(version);
-   if (managedEnabled && fileExists(managedBin)) {
-      return {
-         command: managedBin,
-         args: opencodeArgs,
-         source: 'managed',
-         displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
-         needsShell: false,
-      };
-   }
-
-   if (managedEnabled && options?.ensureManagedInstall !== false) {
-      try {
-         const installedBin = ensureManagedOpencodeInstalled(version);
-         return {
-            command: installedBin,
-            args: opencodeArgs,
-            source: 'managed',
-            displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
-            needsShell: false,
-         };
-      } catch (err) {
-         if (options?.onManagedFail) {
-            options.onManagedFail(err instanceof Error ? err : new Error(String(err)));
-         }
-      }
-   }
-
-   const allowGlobalFallback = options?.allowGlobalFallback !== false;
-   if (allowGlobalFallback) {
-      const globalOpencode = findGlobalOpencodeBinary();
-      if (globalOpencode) {
-         const globalVersion = getOpencodeBinaryVersion(globalOpencode);
-         const isPinnedVersion = version !== 'latest';
-         if (!isPinnedVersion || globalVersion === version) {
-            return {
-               command: globalOpencode,
-               args: opencodeArgs,
-               source: 'global',
-               displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
-               needsShell: false,
-            };
-         }
-
-         if (options?.onGlobalVersionMismatch) {
-            options.onGlobalVersionMismatch({
-               expectedVersion: version,
-               actualVersion: globalVersion,
-               globalBinaryPath: globalOpencode,
-            });
-         }
-
-         // Global binary exists but does not match requested version; fall back to npx.
-         // This preserves strict version pinning behavior.
-      }
-   }
-
-   const npxArgs = ['-y', getOpencodePackageSpecifier(version), ...opencodeArgs];
-   return {
-      command: 'npx',
-      args: npxArgs,
-      source: 'npx',
-      displayCommand: `npx ${npxArgs.join(' ')}`,
-      needsShell: process.platform === 'win32',
-   };
-}
-
-function warnIfUsingNonDefaultOcVersion(version: string): void {
-   if (version !== DEFAULT_OPENCODE_VERSION) {
-      log.warn(
-         `Using OpenCode ${version} (override). Default channel is ${DEFAULT_OPENCODE_VERSION}.`,
-      );
-   }
-}
-
-function launchOpencodeServer({
-   port,
-   extraOrigins = [],
-   stdio = 'inherit',
-   detach = false,
-   ocVersion,
-   ownerToken,
-   allowGlobalFallback,
-   onManagedFail,
-   onGlobalVersionMismatch,
-}: LaunchOpencodeServerOptions) {
-   validatePort(port);
-
-   const resolvedVersion = resolveOcVersion(ocVersion);
-   const opencodeArgs = [
-      'serve',
-      '--port',
-      String(port),
-      ...getCorsArgs(extraOrigins),
-   ];
-   const plan = buildOpencodeSpawnPlan(resolvedVersion, opencodeArgs, {
-      allowGlobalFallback,
-      onManagedFail,
-      onGlobalVersionMismatch,
-   });
-   const configDir = getCalycodeOpencodeConfigDir();
-   const workingDir = getOpencodeWorkingDir('server');
-   const extraEnv: Record<string, string> = { OPENCODE_CONFIG_DIR: configDir };
-   if (ownerToken) {
-      extraEnv.CALY_OC_NATIVE_OWNER_TOKEN = ownerToken;
-   }
-
-   const proc = spawn(plan.command, plan.args, {
-      ...getSpawnOptions(stdio, extraEnv, workingDir, plan.needsShell),
-      detached: detach,
-   });
-
-   return {
-      proc,
-      plan,
-   } as LaunchedOpencodeServer;
-}
-
-/**
- * Get spawn options appropriate for the current platform.
- * @param stdio - Standard I/O handling mode
- * @param extraEnv - Additional environment variables to pass to the child process
- * @param cwd - Working directory for the child process
- * @param needsShell - Whether the command requires a shell wrapper (e.g. npx on Windows)
- */
-function getSpawnOptions(
-   stdio: 'inherit' | 'pipe' | 'ignore' = 'inherit',
-   extraEnv?: Record<string, string>,
-   cwd?: string,
-   needsShell: boolean = false,
-) {
-   return {
-      stdio,
-      shell: needsShell,
-      cwd,
-      env: extraEnv ? { ...process.env, ...extraEnv } : process.env,
-   };
-}
-
-/**
- * Validates a port number to ensure it's a safe integer in valid range.
- * @param port - Port number to validate
- * @throws {Error} if port is invalid
- */
-function validatePort(port: number): void {
-   if (!Number.isInteger(port) || port < 1 || port > 65535) {
-      throw new Error(`Invalid port number: ${port}. Must be an integer between 1 and 65535.`);
-   }
 }
 
 /**
@@ -696,49 +276,6 @@ function killProcessOnPort(
    }
 }
 
-/**
- * Configuration for fetching OpenCode templates from GitHub
- */
-const TEMPLATES_CONFIG = {
-   owner: 'calycode',
-   repo: 'xano-tools',
-   subpath: 'packages/opencode-templates',
-   ref: 'main',
-};
-
-/**
- * Configuration for fetching Xano skills from GitHub
- */
-const SKILLS_CONFIG = {
-   owner: 'calycode',
-   repo: 'xano-tools',
-   subpath: 'packages/xano-skills',
-   ref: 'main',
-};
-
-/**
- * Get the CalyCode-specific OpenCode configuration directory.
- * This is separate from the default OpenCode config (~/.config/opencode/)
- * to avoid polluting user's own OpenCode configuration.
- */
-function getCalycodeOpencodeConfigDir(): string {
-   return path.join(os.homedir(), '.calycode', 'opencode');
-}
-
-/**
- * Get the scoped workspace directory used by OpenCode server/native host processes.
- * This limits default execution scope for background/browser-triggered runs.
- */
-function getCalycodeOpencodeWorkspaceDir(): string {
-   return path.join(getCalycodeOpencodeConfigDir(), 'workspace');
-}
-
-function ensureDirectoryExists(dirPath: string): void {
-   if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-   }
-}
-
 function getOrCreateNativeHostOwnerToken(): string {
    ensureDirectoryExists(NATIVE_HOST_STATE_DIR);
    try {
@@ -846,59 +383,19 @@ async function isLikelyOpenCodeServerOnPort(
    }
 }
 
-interface OpencodeWorkingDirOverrides {
-   forceCwd?: boolean;
-   explicitWorkdir?: string;
+function ensureDirectoryExists(dirPath: string): void {
+   if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+   }
 }
 
 /**
- * Resolve the working directory for OpenCode child processes.
+ * Get the allowed CORS origins for the OpenCode server.
  *
- * Priority:
- * 1. CALY_OPENCODE_WORKDIR env var (absolute or relative path)
- * 2. mode='proxy' + CALY_OC_CWD=true: current shell cwd
- * 3. default: ~/.calycode/opencode/workspace (shared scoped sandbox)
- */
-function getOpencodeWorkingDir(
-   mode: 'proxy' | 'server',
-   overrides?: OpencodeWorkingDirOverrides,
-): string {
-   const explicitWorkdir = overrides?.explicitWorkdir?.trim();
-   if (explicitWorkdir) {
-      const resolvedPath = path.resolve(explicitWorkdir);
-      ensureDirectoryExists(resolvedPath);
-      return resolvedPath;
-   }
-
-   const envWorkdir = process.env.CALY_OPENCODE_WORKDIR?.trim();
-   if (envWorkdir) {
-      const resolvedPath = path.resolve(envWorkdir);
-      ensureDirectoryExists(resolvedPath);
-      return resolvedPath;
-   }
-
-   const proxyUseCwdValue = process.env.CALY_OC_CWD || process.env.CALY_OPENCODE_PROXY_USE_CWD;
-   const proxyUseCwd =
-      mode === 'proxy' &&
-      (overrides?.forceCwd === true ||
-         ['1', 'true', 'yes', 'on'].includes((proxyUseCwdValue || '').toLowerCase()));
-
-   if (proxyUseCwd) {
-      return process.cwd();
-   }
-
-   const workspaceDir = getCalycodeOpencodeWorkspaceDir();
-   ensureDirectoryExists(workspaceDir);
-   return workspaceDir;
-}
-
-/**
- * Get the base allowed CORS origins for the OpenCode server.
- * 
- * These are the static origins that are always allowed. Dynamic origins
- * (like user-specific Xano instance URLs) are passed by the browser extension
- * when it starts the server via the native messaging protocol.
- * 
+ * These are the static origins plus the browser-extension origins discovered
+ * on this machine. Dynamic origins (user-specific Xano instance URLs) are passed
+ * by the browser extension when it starts the server via the native messaging protocol.
+ *
  * Environment variable: CALY_EXTRA_CORS_ORIGINS (comma-separated list of additional origins)
  */
 function getAllowedCorsOrigins(): string[] {
@@ -959,58 +456,6 @@ function filterAndValidateOrigins(rawOrigins: unknown, knownExtensionIds: string
    }
 
    return valid;
-}
-
-function getCorsArgs(extraOrigins: string[] = []) {
-   const origins = new Set([...getAllowedCorsOrigins(), ...extraOrigins]);
-   return Array.from(origins).flatMap((origin) => ['--cors', origin]);
-}
-
-/**
- * Proxy command to the underlying OpenCode AI CLI.
- * This allows exposing the full capability of the OpenCode agent.
- * Sets OPENCODE_CONFIG_DIR to use CalyCode-specific configuration.
- */
-async function proxyOpencode(
-   args: string[],
-   workdirOverrides?: OpencodeWorkingDirOverrides,
-   ocVersion?: string,
-) {
-   log.info(
-      '🤖 Powered by OpenCode - The open source AI coding agent\n' +
-         '   https://github.com/anomalyco/opencode (MIT License)',
-   );
-   log.message('Passing command to opencode-ai...');
-
-   // Set the CalyCode OpenCode config directory
-   const configDir = getCalycodeOpencodeConfigDir();
-   const workingDir = getOpencodeWorkingDir('proxy', workdirOverrides);
-   log.info(`OpenCode working directory: ${workingDir}`);
-
-   const resolvedVersion = resolveOcVersion(ocVersion);
-   warnIfUsingNonDefaultOcVersion(resolvedVersion);
-
-   return new Promise<void>((resolve, reject) => {
-      const launchPlan = buildOpencodeSpawnPlan(resolvedVersion, args);
-      log.info(`OpenCode launcher: ${launchPlan.source}`);
-
-      // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
-      const proc = spawn(launchPlan.command, launchPlan.args, {
-         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir, launchPlan.needsShell),
-      });
-
-      proc.on('close', (code) => {
-         if (code === 0) {
-            resolve();
-         } else {
-            process.exit(code || 1);
-         }
-      });
-
-      proc.on('error', (err) => {
-         reject(new Error(`Failed to execute OpenCode CLI: ${err.message}`));
-      });
-   });
 }
 
 // --- Native Messaging Protocol Helpers ---
@@ -1267,6 +712,7 @@ async function startNativeHost() {
           const launched = launchOpencodeServer({
              port,
              extraOrigins,
+             allowedOrigins: getAllowedCorsOrigins(),
              stdio: 'ignore',
              ocVersion: resolvedVersion,
              ownerToken,
@@ -1274,7 +720,7 @@ async function startNativeHost() {
              onManagedFail: (err) =>
                 logger.log('Managed OpenCode install failed, falling back', {
                   error: err.message,
-               }),
+                }),
             onGlobalVersionMismatch: ({ expectedVersion, actualVersion, globalBinaryPath }) =>
                logger.log('Global OpenCode version mismatch; falling back to npx', {
                   expectedVersion,
@@ -1462,7 +908,7 @@ async function startNativeHost() {
                   }
                }
             }
-          } else {
+         } else {
              sendMessage({ status: 'received', received: msg });
          }
       } catch (err) {
@@ -1636,6 +1082,8 @@ function findLocalTemplatesPath(): string | null {
       path.resolve(__dirname, '../../../../packages/opencode-templates'),
       // Relative to dist folder
       path.resolve(__dirname, '../../../packages/opencode-templates'),
+      // Relative to this file when nested under commands/opencode
+      path.resolve(__dirname, '../../../../opencode-templates'),
    ];
 
    for (const p of possiblePaths) {
@@ -1672,6 +1120,26 @@ function readLocalTemplates(templatesDir: string): Map<string, string> {
    readDir(templatesDir);
    return files;
 }
+
+/**
+ * Configuration for fetching OpenCode templates from GitHub
+ */
+const TEMPLATES_CONFIG = {
+   owner: 'calycode',
+   repo: 'xano-tools',
+   subpath: 'packages/opencode-templates',
+   ref: 'main',
+};
+
+/**
+ * Configuration for fetching Xano skills from GitHub
+ */
+const SKILLS_CONFIG = {
+   owner: 'calycode',
+   repo: 'xano-tools',
+   subpath: 'packages/xano-skills',
+   ref: 'main',
+};
 
 /**
  * Fetches and installs OpenCode configuration templates (agents, commands, instructions).
@@ -1891,6 +1359,8 @@ function findLocalSkillsPath(): string | null {
       path.resolve(__dirname, '../../../../packages/xano-skills'),
       // Relative to dist folder
       path.resolve(__dirname, '../../../packages/xano-skills'),
+      // Relative to this file when nested under commands/opencode
+      path.resolve(__dirname, '../../../../xano-skills'),
    ];
 
    for (const p of possiblePaths) {
@@ -2126,6 +1596,7 @@ async function serveOpencode({
          stdio: 'ignore',
          detach: true,
          ocVersion: resolvedVersion,
+         allowedOrigins: getAllowedCorsOrigins(),
       });
       log.info(`OpenCode launcher: ${launched.plan.source}`);
       const proc = launched.proc;
@@ -2141,6 +1612,7 @@ async function serveOpencode({
          port,
          stdio: 'inherit',
          ocVersion: resolvedVersion,
+         allowedOrigins: getAllowedCorsOrigins(),
       });
       log.info(`OpenCode launcher: ${launched.plan.source}`);
       const proc = launched.proc;
