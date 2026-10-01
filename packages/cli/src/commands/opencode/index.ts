@@ -1,9 +1,6 @@
 import {
    setupOpencode,
    serveOpencode,
-   startNativeHost,
-   showNativeHostStatus,
-   proxyOpencode,
    setupOpencodeConfig,
    updateOpencodeTemplates,
    getTemplateInstallStatus,
@@ -13,6 +10,8 @@ import {
    getSkillsInstallStatus,
    clearSkillsCache,
 } from './implementation';
+import { startNativeHost, showNativeHostStatus } from './native-host';
+import { proxyOpencode, launchOpencodeServer } from './distribution';
 import { log } from '@clack/prompts';
 import { hideFromRootHelp } from '../../utils/commands/main-program-utils';
 
@@ -187,7 +186,7 @@ async function registerOpencodeCommands(program) {
          // so they don't break the native messaging protocol
          console.log = console.error;
          console.info = console.error;
-         await startNativeHost();
+         await startNativeHost({ launchServer: launchOpencodeServer });
       });
 
    nativeHostCommand

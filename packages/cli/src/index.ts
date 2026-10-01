@@ -1,5 +1,6 @@
 import { program } from './program';
-import { startNativeHost } from './commands/opencode/implementation';
+import { startNativeHost } from './commands/opencode/native-host';
+import { launchOpencodeServer } from './commands/opencode/distribution';
 import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 
 // Check if we are being called as the Native Host
@@ -36,7 +37,7 @@ const isDirectNativeHostInvocation =
    isNativeHostLaunchArgs(nativeHostExtraArgs);
 
 if (chromeExtensionArg || isDirectNativeHostInvocation) {
-   startNativeHost();
+   startNativeHost({ launchServer: launchOpencodeServer });
 } else {
    program.parseAsync();
 }
