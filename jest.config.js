@@ -8,4 +8,5 @@ export default {
    transform: {
       ...tsJestTransformCfg,
    },
+   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/dist/'],
 };

@@ -102,7 +102,8 @@ describe('BrowserConfigStorage', () => {
             const content = 'test content';
             await storage.writeFile('test.txt', content);
             const readContent = await storage.readFile('test.txt');
-            expect(readContent).toBe(content);
+            // readFile always returns raw bytes; decode for text.
+            expect(new TextDecoder().decode(readContent as Uint8Array)).toBe(content);
         });
 
         it('should write and read binary file', async () => {

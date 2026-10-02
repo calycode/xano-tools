@@ -2,5 +2,5 @@ import config from '../../jest.config.js';
 
 export default {
     ...config,
-    testEnvironment: 'jsdom',
+    setupFiles: ['<rootDir>/jest.setup.ts'],
 };
