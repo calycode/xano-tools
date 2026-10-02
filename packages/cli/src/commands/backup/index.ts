@@ -11,13 +11,19 @@ import { restorationWizard, exportWizard } from './implementation/backup';
 function registerBackupCommands(program, core) {
    const backupNamespace = program
       .command('backup')
+      .summary('Back up and restore Xano workspaces')
       .description('Backup and restoration operations.');
 
    const backupExportCommand = backupNamespace
       .command('export')
+      .summary('Export a workspace backup')
       .description('Backup Xano Workspace via Metadata API');
    addFullContextOptions(backupExportCommand);
    addPrintOutputFlag(backupExportCommand);
+   backupExportCommand.option(
+      '-O, --output <dir>',
+      'Output directory (overrides default config).',
+   );
    backupExportCommand.action(
       withErrorHandler(async (options) => {
          await exportWizard({
@@ -33,6 +39,7 @@ function registerBackupCommands(program, core) {
 
    const backupRestoreCommand = backupNamespace
       .command('restore')
+      .summary('Restore a backup to a workspace (destructive)')
       .description(
          'Restore a backup to a Xano Workspace via Metadata API. DANGER! This action will override all business logic and restore the original v1 branch. Data will be also restored from the backup file.'
       );

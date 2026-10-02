@@ -99,6 +99,7 @@ We appreciate your support and commitment to making @calycode/cli better!
 export function registerInitCommand(program, core) {
    program
       .command('init')
+      .summary('Initialize the CLI with a Xano instance')
       .description(
          'Initialize the CLI with Xano instance configurations (interactively or via flags), this enables the CLI to know about context, APIs and in general this is required for any command to succeed.'
       )

@@ -14,15 +14,17 @@ import { generateXanoscriptRepo } from './implementation/xanoscript';
 function registerGenerateCommands(program, core) {
    const generateNamespace = program
       .command('generate')
+      .summary('Generate code, specs, docs and repos from Xano')
       .description(
-         'Transforamtive operations that allow you to view you Xano through a fresh set of eyes.'
+         'Transformative operations that let you view your Xano through a fresh set of eyes.'
       );
 
    // Codegen command
    const codeGenCommand = generateNamespace
       .command('codegen')
+      .summary('Create a client library from the OpenAPI spec')
       .description(
-         'Create a library based on the OpenAPI specification. If the openapi specification has not yet been generated, this will generate that as well as the first step. Supports **all** openapi tools generators + orval clients.'
+         'Create a client library from the OpenAPI specification. If the spec has not been generated yet, it is produced as the first step. Supports all OpenAPI Generator clients plus Orval clients (as orval-<client>).',
       );
 
    addFullContextOptions(codeGenCommand);
@@ -32,7 +34,7 @@ function registerGenerateCommands(program, core) {
    codeGenCommand
       .option(
          '--generator <generator>',
-         'Generator to use, see all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.'
+         'Generator to use (default: typescript-fetch). If omitted in an interactive terminal you will be prompted to pick one. See all options at: https://openapi-generator.tech/docs/generators or the full list of orval clients. To use orval client, write the generator as this: orval-<orval-client>.'
       )
       .option(
          '--debug',
@@ -45,8 +47,8 @@ function registerGenerateCommands(program, core) {
       )
       .action(
          withErrorHandler(async (passthroughArgs, opts) => {
-            const stack: { generator: string; args: string[] } = {
-               generator: opts.generator || 'typescript-fetch',
+            const stack: { generator?: string; args: string[] } = {
+               generator: opts.generator,
                args: passthroughArgs || [],
             };
             await generateCodeFromOas({
@@ -66,8 +68,9 @@ function registerGenerateCommands(program, core) {
    // Internal doc generation command
    const internalDocsGenCommand = generateNamespace
       .command('docs')
+      .summary('Generate an internal documentation suite')
       .description(
-         'Collect all descriptions, and internal documentation from a Xano instance and combine it into a nice documentation suite that can be hosted on a static hosting.'
+         'Collect all descriptions and internal documentation from a Xano instance and combine them into a documentation suite that can be hosted on static hosting.',
       )
       .option('-I, --input <file>', 'Workspace schema file (.yaml [legacy] or .json) from a local source, if present.')
       .option(
@@ -101,8 +104,9 @@ function registerGenerateCommands(program, core) {
    // OpenAPI sepc generation command
    const specGenCommand = generateNamespace
       .command('spec')
+      .summary('Generate OpenAPI spec(s)')
       .description(
-         'Update and generate OpenAPI spec(s) for the current context, or all API groups simultaneously. This generates an opinionated API documentation powered by Scalar API Reference. + this command brings the Swagger docs to OAS 3.1+ version.'
+         'Update and generate OpenAPI spec(s) for the current context, or all API groups at once. Fetches the API definition directly from the Xano instance via the metadata API (there is no local-input mode). Produces an opinionated API reference powered by Scalar and upgrades the docs to OAS 3.1+.',
       );
 
    addFullContextOptions(specGenCommand);
@@ -132,8 +136,9 @@ function registerGenerateCommands(program, core) {
    // Generate repo comman
    const repoGenCommand = generateNamespace
       .command('repo')
+      .summary('Process the workspace into a browsable repo')
       .description(
-         'Process Xano workspace into repo structure. We use the export-schema metadata API to offer the full details. However that is enriched with the Xanoscripts after Xano 2.0 release.'
+         'Process a Xano workspace into a repo structure using the export-schema metadata API, enriched with XanoScripts after Xano 2.0. Fetches from the instance by default; pass --input to use a local schema file instead.',
       )
       .option(
          '-I, --input <file>',
@@ -171,8 +176,9 @@ function registerGenerateCommands(program, core) {
    const xanoscriptGenCommand = hideFromRootHelp(
       generateNamespace
          .command('xanoscript')
+         .summary('Generate XanoScript repo (prefer the Xano VS Code extension)')
          .description(
-            'Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.',
+            'Process a Xano workspace into XanoScript files. Supports tables, functions and APIs. The Xano VS Code extension is the preferred solution over this command. These outputs are also included in the default repo generation command.',
          ),
    );
 

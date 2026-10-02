@@ -9,6 +9,7 @@ import { runTest } from './implementation/test';
 function registerTestCommands(program, core) {
    const testNamespace = program
       .command('test')
+      .summary('Run automated API tests')
       .description(
          'Set of test related operations for the Xano CLI, these help you build a reliable system.'
       );
@@ -16,6 +17,7 @@ function registerTestCommands(program, core) {
    // Run tests command:
    const runTestsCommand = testNamespace
       .command('run')
+      .summary('Run an API test suite')
       .description(
          'Run an API test suite. Requires a test config file (.json or .js). Schema: https://calycode.com/schemas/testing/config.json | Full guide: https://calycode.github.io/xano-tools/#/guides/testing'
       );

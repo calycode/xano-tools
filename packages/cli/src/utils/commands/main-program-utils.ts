@@ -88,7 +88,13 @@ function customFormatHelp(cmd, helper) {
    const argList = helper.visibleArguments(cmd);
    if (argList.length) {
       output.push(font.combo.boldCyan('Arguments:'));
-      const longestArg = argList.reduce((max, arg) => Math.max(max, arg.name().length), 0);
+      // Show required as <name> and optional as [name], with variadic "..." so a
+      // required argument is visually distinct from an optional one.
+      const argLabel = (arg) => {
+         const inner = `${arg.name()}${arg.variadic ? '...' : ''}`;
+         return arg.required ? `<${inner}>` : `[${inner}]`;
+      };
+      const longestArg = argList.reduce((max, arg) => Math.max(max, argLabel(arg).length), 0);
       const pad = (str, len) => str + ' '.repeat(Math.max(0, len - str.length));
 
       for (let i = 0; i < argList.length; i++) {
@@ -97,7 +103,7 @@ function customFormatHelp(cmd, helper) {
          const prefix = isLast ? '  └─' : '  ├─';
          const desc = arg.description || '';
          output.push(
-            `${font.color.gray(prefix)} ${font.color.yellowBright(pad(arg.name(), longestArg))}  ${font.color.gray(desc)}`,
+            `${font.color.gray(prefix)} ${font.color.yellowBright(pad(argLabel(arg), longestArg))}  ${font.color.gray(desc)}`,
          );
       }
       output.push('');
@@ -132,7 +138,8 @@ function customFormatHelp(cmd, helper) {
          const sub = subcommands[i];
          const isLast = i === subcommands.length - 1;
          const prefix = isLast ? '  └─' : '  ├─';
-         const desc = sub.description ? sub.description() : '';
+         // Prefer the short summary for the command list; fall back to description.
+         const desc = (sub.summary && sub.summary()) || (sub.description ? sub.description() : '');
          // Truncate long descriptions for compact display
          const shortDesc = desc.length > 60 ? desc.substring(0, 57) + '...' : desc;
          output.push(
@@ -250,7 +257,8 @@ function customFormatHelpForRoot(cmd) {
          const c = cmdMap[cname];
          const isLast = cmdIdx === validCommands.length - 1;
          const prefix = isLast ? '  └─' : '  ├─';
-         const shortDesc = shortDescriptions[cname] || c.description;
+         const shortDesc =
+            c.command?.summary?.() || shortDescriptions[cname] || c.description || '';
 
          output.push(
             `${font.color.gray(prefix)} ${font.color.yellowBright(pad(cname, longestName))}  ${font.color.gray(shortDesc)}`,

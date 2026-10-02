@@ -1,4 +1,4 @@
-import { log, outro, intro, spinner } from '@clack/prompts';
+import { log, outro, intro, spinner, select, text, isCancel, cancel } from '@clack/prompts';
 import { metaApiGet, normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
@@ -8,6 +8,64 @@ import {
 } from '../../../utils/index';
 import { runOpenApiGenerator } from '../../../features/code-gen/open-api-generator';
 
+/** Generator used when the user does not choose one. */
+const DEFAULT_GENERATOR = 'typescript-fetch';
+
+/** Most-used OpenAPI Generator clients, offered as an interactive picker. */
+const COMMON_GENERATORS = [
+   'typescript-fetch',
+   'typescript-axios',
+   'typescript-node',
+   'python',
+   'go',
+   'java',
+   'csharp',
+   'php',
+   'ruby',
+   'kotlin',
+   'dart',
+];
+
+/**
+ * Interactively pick a generator. Returns undefined in a non-interactive
+ * terminal so the caller falls back to DEFAULT_GENERATOR.
+ */
+async function pickGenerator(): Promise<string | undefined> {
+   if (!process.stdin.isTTY) {
+      return undefined;
+   }
+
+   const choice = await select({
+      message: `Select an OpenAPI generator (default: ${DEFAULT_GENERATOR}):`,
+      initialValue: DEFAULT_GENERATOR,
+      options: [
+         ...COMMON_GENERATORS.map((g) => ({
+            value: g,
+            label: g === DEFAULT_GENERATOR ? `${g} (default)` : g,
+         })),
+         { value: '__custom__', label: 'Other — type a generator name' },
+      ],
+   });
+
+   if (isCancel(choice)) {
+      cancel('Code generation cancelled.');
+      process.exit(0);
+   }
+
+   if (choice === '__custom__') {
+      const custom = await text({
+         message: 'Generator name (see https://openapi-generator.tech/docs/generators):',
+      });
+      if (isCancel(custom)) {
+         cancel('Code generation cancelled.');
+         process.exit(0);
+      }
+      return String(custom).trim() || undefined;
+   }
+
+   return String(choice);
+}
+
 async function generateCodeFromOas({
    instance,
    workspace,
@@ -15,7 +73,7 @@ async function generateCodeFromOas({
    group,
    isAll = false,
    stack = {
-      generator: 'typescript-fetch',
+      generator: DEFAULT_GENERATOR,
       args: ['--additional-properties=supportsES6=true'],
    },
    logger = false,
@@ -27,7 +85,7 @@ async function generateCodeFromOas({
    branch: string;
    group: string;
    isAll: boolean;
-   stack: { generator: string; args: string[] };
+   stack: { generator?: string; args: string[] };
    logger: boolean;
    printOutput: boolean;
    core;
@@ -41,7 +99,7 @@ async function generateCodeFromOas({
    });
 
    // Determine generator and extra args
-   const generator = stack.generator || 'typescript-fetch';
+   const generator = stack.generator || (await pickGenerator()) || DEFAULT_GENERATOR;
    const additionalArgs = stack.args || [];
 
    // 2. Get API groups (prompt or all)

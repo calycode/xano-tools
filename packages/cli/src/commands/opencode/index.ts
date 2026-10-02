@@ -110,6 +110,7 @@ async function registerOpencodeCommands(program) {
    const opencodeNamespace = program
       .command('oc')
       .alias('opencode')
+      .summary('Run and configure the OpenCode AI agent')
       .description(
           'Manage OpenCode AI integration and tools.\n' +
              '  Powered by OpenCode - The open source AI coding agent.\n' +
@@ -139,11 +140,17 @@ async function registerOpencodeCommands(program) {
    // Template management subcommands
    const templatesNamespace = opencodeNamespace
       .command('templates')
-      .description('Manage OpenCode configuration templates (agents, commands, instructions).');
+      .summary('Configure the OpenCode agent (agents, commands, instructions)')
+      .description(
+         'Manage the OpenCode agent configuration: opencode.json, AGENTS.md, and the agents/ + commands/ prompt files that shape how the AI behaves. Installed under ~/.calycode/opencode.',
+      );
 
    templatesNamespace
       .command('install')
-      .description('Install or reinstall OpenCode configuration templates.')
+      .summary('Install OpenCode agent config (templates)')
+      .description(
+         'Install or reinstall the OpenCode agent configuration (opencode.json, AGENTS.md, agents/, commands/). Use --force to overwrite local edits.',
+      )
       .option('-f, --force', 'Force overwrite existing configuration files')
       .action(async (options) => {
          await distribution.artifacts.install('templates', { force: options.force });
@@ -199,11 +206,17 @@ async function registerOpencodeCommands(program) {
    // Skills management subcommands
    const skillsNamespace = opencodeNamespace
       .command('skills')
-      .description('Manage Xano skills for AI agents (database optimization, security, best practices).');
+      .summary('Install Xano skills (reusable agent capabilities)')
+      .description(
+         'Manage Xano skills: self-contained SKILL.md capability packs that teach the agent Xano-specific workflows (database optimization, security, best practices). Installed under ~/.calycode/opencode/skills.',
+      );
 
    skillsNamespace
       .command('install')
-      .description('Install or reinstall Xano skills for AI agents.')
+      .summary('Install Xano skills')
+      .description(
+         'Install or reinstall the Xano skill packs. Use --force to overwrite local edits.',
+      )
       .option('-f, --force', 'Force overwrite existing skills')
       .action(async (options) => {
          await distribution.artifacts.install('skills', { force: options.force });
