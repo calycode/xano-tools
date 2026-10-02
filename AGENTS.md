@@ -15,24 +15,27 @@ This project provides a suite of tools to improve developer experience with Xano
 
 ## Architecture Overview
 - **Monorepo Layout:** Managed by PNPM and TurboRepo with logical separation by package:
-    - `@calycode/cli`: The main CLI.
-    - `@calycode/core`: Business and program logic for processing Xano data and interfacing with metadata APIs.
-    - `@calycode/types`: Shared type definitions.
-    - `@calycode/utils`: Shared utilities.
-- **CLI Entry Point:** The CLI (`xano`) registers commands for setup, codegen, OAS gen, tests, registry, backup, etc. Each command routes into core business logic via composed packages.
+    - `@calycode/cli`: The main CLI (bin: `caly-xano`). Includes the OpenCode subsystem behind the `oc`/`opencode` commands (native host + OpenCode distribution).
+    - `@calycode/core`: Platform-agnostic business logic for Xano data and metadata APIs, exposed through the `Caly` facade.
+    - `@repo/types`: Shared type definitions (platform-agnostic, types-only).
+    - `@repo/utils`: Shared utilities (platform-agnostic; must not import Node-only APIs).
+    - `@calycode/browser-consumer`: Browser `ConfigStorage` implementation backed by IndexedDB.
+    - `@calycode/xano-skills`, `@calycode/opencode-templates`: Markdown content packages (skills/templates) installed by the CLI.
+- **CLI Entry Point:** The CLI (`caly-xano`) registers commands for setup, codegen, OAS generation, tests, registry, backup, context, and `oc`/`opencode`. Xano-data commands route into `@calycode/core`; the OpenCode subsystem lives entirely in the CLI because it depends on Node-only APIs.
 - **Extensible Registry System:** For sharing and consuming standardized Xano components (functions, tables, queries, etc.).
 - **Configurable Storage and Context Management:** Multi-user, multi-environment ready.
 - **Automated CI/CD Ready:** Designed to run in GitHub Actions or local workflows.
 
 **Data Flow & Interactions:**
-- User issues a CLI command (`xano ...`)
+- User issues a CLI command (`caly-xano ...`)
 - CLI parses config/context, invokes logic in `@calycode/core`
 - Utilities help fetch, transform, and validate data
 - Output is written to file system, appropriate directories, or remote registries
 - CI/CD scripts automate build and publish steps
 
 ## Directory Structure
-- **./packages**: Main monorepo packages (cli, core, types, utils)
+- **./packages**: Main monorepo packages (cli, core, types, utils, browser-consumer, xano-skills, opencode-templates)
+- **./bootstrapper**: Go-based installer/bootstrapper for the native host
 - **./docs**: Documentation, including CLI command references
 - **./schemas**: JSON schemas for registries and related features
 - **.github/**: GitHub workflows for CI/CD and publishing
@@ -45,7 +48,7 @@ This project provides a suite of tools to improve developer experience with Xano
 ## Development Workflow
 - **Install/Setup**: `pnpm install` to install everything. (Requires pnpm)
 - **Build**: `pnpm build` (runs TurboRepo, builds all packages)
-- **Run CLI**: `pnpm xano <command>` or if globally linked, `xano <command>`
+- **Run CLI**: `pnpm --filter @calycode/cli build` then `caly-xano <command>` (or the globally linked `caly-xano`)
 - **Testing**: `pnpm test` (runs tests across all packages)
 - **Linting/Formatting**: Eslint/Prettier with default configs, e.g. `pnpm lint`, some packages have their own config and scripts
 - **CI/CD**: See `.github/workflows`. Ready for automated release, docs update, and registry actions
