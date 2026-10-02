@@ -39,6 +39,7 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
       port: listen,
       cors,
       label: 'OpenAPI spec',
+      entryPath: '/',
       missingHint: "Run 'caly-xano generate spec' first to produce the spec.",
    });
 }
@@ -49,6 +50,7 @@ function serveRegistry({ root = 'registry', listen = 5000, cors = false }) {
       port: listen,
       cors,
       label: 'registry',
+      entryPath: '/index.json',
       missingHint:
          "Run 'caly-xano registry scaffold --output <path>' first, or pass --root <path>.",
    });

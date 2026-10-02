@@ -1,7 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { log } from '@clack/prompts';
+import { note } from '@clack/prompts';
 
 const MIME_TYPES: Record<string, string> = {
    '.html': 'text/html; charset=utf-8',
@@ -99,6 +99,11 @@ export function createStaticServer({
 
 export interface ServeStaticDirectoryOptions extends StaticServerOptions {
    port: number;
+   /**
+    * Path appended to the local URL so the printed link opens something useful
+    * (e.g. `/index.json` for a registry).
+    */
+   entryPath?: string;
 }
 
 /**
@@ -119,10 +124,18 @@ export async function serveStaticDirectory(options: ServeStaticDirectoryOptions)
       server.listen(portNumber, () => resolve());
    });
 
-   log.success(
-      `Serving ${options.label ?? 'assets'} at http://localhost:${portNumber}${options.cors ? ' (CORS enabled)' : ''}`,
+   const entryUrl = `http://localhost:${portNumber}${options.entryPath ?? '/'}`;
+   note(
+      [
+         `Serving ${options.label ?? 'assets'}${options.cors ? ' (CORS enabled)' : ''}`,
+         '',
+         `  ➜  ${entryUrl}`,
+         '',
+         `  Files: ${path.resolve(options.root)}`,
+         `  Press Ctrl+C to stop`,
+      ].join('\n'),
+      'Local server ready',
    );
-   log.info(`Serving files from: ${path.resolve(options.root)}`);
 
    await new Promise<void>((resolve) => server.on('close', () => resolve()));
 }
