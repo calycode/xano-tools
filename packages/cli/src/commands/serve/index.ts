@@ -22,7 +22,7 @@ function registerServeCommands(program, core) {
       )
       .option('--cors', 'Do you want to enable CORS? By default false.')
       .action((options) => {
-         serveRegistry({
+         return serveRegistry({
             root: options.root,
             listen: options.listen,
             cors: options.cors,
@@ -44,7 +44,7 @@ function registerServeCommands(program, core) {
       )
       .option('--cors', 'Do you want to enable CORS? By default false.')
       .action((options) => {
-         serveOas({
+         return serveOas({
             instance: options.instance,
             workspace: options.workspace,
             branch: options.branch,

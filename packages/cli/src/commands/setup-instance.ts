@@ -1,32 +1,54 @@
-import { intro, text, password, confirm, log } from '@clack/prompts';
+import { intro, text, password, confirm, log, isCancel, cancel } from '@clack/prompts';
 import { sanitizeInstanceName } from '@repo/utils';
 import { ensureGitignore, withErrorHandler } from '../utils/index';
 
+/**
+ * Unwrap a clack prompt answer, exiting cleanly if the user cancelled (Ctrl-C /
+ * Esc). Without this, a cancelled prompt yields a symbol and callers crash on
+ * string operations.
+ */
+function requireAnswer<T>(value: T | symbol): T {
+   if (isCancel(value)) {
+      cancel('Setup cancelled.');
+      process.exit(0);
+   }
+   return value as T;
+}
+
 async function setupInstanceWizard(core) {
+   if (!process.stdin.isTTY) {
+      throw new Error(
+         'Interactive setup requires a TTY. Provide --name, --url and --token for non-interactive setup.',
+      );
+   }
+
    intro('✨ Xano CLI Instance Setup ✨');
 
    // Gather info from user
-   let nameInput = (
-      (await text({
+   let nameInput = requireAnswer(
+      await text({
          message:
             'Give an easy to remember name to this Xano instance (e.g. prod, staging, client-a), you will use this to identify it during command usage:',
-      })) as string
+      }),
    ).trim();
    const instanceName = sanitizeInstanceName(nameInput);
-   const url = (
-      (await text({
+   const url = requireAnswer(
+      await text({
          message: `What's the base URL for "${instanceName}"? This is your instance URL.`,
-      })) as string
+      }),
    ).trim();
-   const apiKey = await password({ message: `Enter the Metadata API key for "${instanceName}":` });
+   const apiKey = requireAnswer(
+      await password({ message: `Enter the Metadata API key for "${instanceName}":` }),
+   );
    const defaultPath = `xano/${instanceName}`;
-   let userDirectory = (await text({
-      message:
-         'Where do you want the repo to be initialized at? (What is the local folder where we will set up your project)',
-      placeholder: defaultPath,
-   })) as string;
+   let userDirectory = requireAnswer(
+      await text({
+         message:
+            'Where do you want the repo to be initialized at? (What is the local folder where we will set up your project)',
+         placeholder: defaultPath,
+      }),
+   ).trim();
    if (userDirectory) {
-      userDirectory.trim();
       if (userDirectory === '.') {
          userDirectory = process.cwd();
       }
@@ -39,10 +61,12 @@ async function setupInstanceWizard(core) {
    const { currentContext } = global;
    let setAsCurrent = true;
    if (currentContext?.instance && currentContext.instance !== instanceName) {
-      setAsCurrent = (await confirm({
-         message: `Set "${instanceName}" as your current context?`,
-         initialValue: true,
-      })) as boolean;
+      setAsCurrent = requireAnswer(
+         await confirm({
+            message: `Set "${instanceName}" as your current context?`,
+            initialValue: true,
+         }),
+      );
    }
 
    log.info(

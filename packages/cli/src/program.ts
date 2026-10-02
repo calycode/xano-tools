@@ -2,6 +2,13 @@ import { Command } from 'commander';
 import { font } from './utils';
 import pkg from '../package.json' with { type: "json" };
 
+// Node emits DEP0190 whenever a `.cmd`/`.bat` (npx, opencode shims) is spawned
+// with shell:true on Windows. That is required here, so silence deprecation
+// warnings unless explicitly debugging.
+if (!process.env.CALY_DEBUG) {
+   (process as NodeJS.Process & { noDeprecation?: boolean }).noDeprecation = true;
+}
+
 // Import commands:
 import { registerContextCommands } from './commands/context';
 import { registerBackupCommands } from './commands/backup';

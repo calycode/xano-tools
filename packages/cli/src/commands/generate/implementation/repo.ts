@@ -1,4 +1,5 @@
 import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { log, intro, outro } from '@clack/prompts';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
@@ -30,6 +31,8 @@ async function generateRepo({
       printOutput,
    });
 
+   intro('Building directory structure...');
+
    let instanceConfig, workspaceConfig, branchConfig;
    if (input && !fetch) {
       // Skip context validation, provide dummy configs or minimal required fields
@@ -60,9 +63,11 @@ async function generateRepo({
    clearDirectory(outputDir);
    await mkdir(outputDir, { recursive: true });
 
-   // Ensure we have the input file, default to local, but override if --fetch
+   // Default to fetching the schema from the instance when no local input was
+   // provided, so `generate repo` works with no arguments.
    let inputFile = input;
-   if (fetch) {
+   const shouldFetch = fetch || !input;
+   if (shouldFetch) {
       inputFile = await fetchAndExtractYaml({
          baseUrl: instanceConfig.url,
          token: await core.loadToken(instanceConfig.name),
@@ -73,12 +78,10 @@ async function generateRepo({
       });
    }
 
-   intro('Building directory structure...');
-
    if (!inputFile) throw new Error('Input schema file (.json or .yaml) is required');
    if (!outputDir) throw new Error('Output directory is required');
 
-   log.step(`Reading and parsing schema file -> ${inputFile}`);
+   log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
 
    const jsonData = parseSchemaContents(fileContents, inputFile);
@@ -91,7 +94,7 @@ async function generateRepo({
       branch: branchConfig.label,
    });
 
-   log.step(`Writing Repository to the output directory -> ${outputDir}`);
+   log.step(`Writing Repository to the output directory -> ${path.normalize(outputDir)}`);
 
    // Track results for logging
    const writeResults = await Promise.all(

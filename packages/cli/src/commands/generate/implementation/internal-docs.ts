@@ -1,4 +1,5 @@
 import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { log, intro, outro } from '@clack/prompts';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
@@ -67,7 +68,7 @@ async function generateInternalDocs({
    if (!inputFile) throw new Error('Input schema file (.json or .yaml) is required');
    if (!outputDir) throw new Error('Output directory is required');
 
-   log.step(`Reading and parsing schema file -> ${inputFile}`);
+   log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
 
    const jsonData = parseSchemaContents(fileContents, inputFile);
