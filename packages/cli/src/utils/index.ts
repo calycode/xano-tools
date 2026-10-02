@@ -8,6 +8,7 @@ export * from './feature-focused/registry/scaffold';
 export * from './methods/choose-api-group';
 export * from './methods/clear-directory';
 export * from './methods/font';
+export * from './methods/note-box';
 export * from './methods/parse-boolean';
 export * from './methods/parse-schema';
 export * from './methods/print-output-dir';

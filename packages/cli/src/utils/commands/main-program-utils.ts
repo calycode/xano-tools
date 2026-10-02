@@ -1,5 +1,5 @@
-import { note } from '@clack/prompts';
 import { font } from '../methods/font';
+import { noteBox } from '../methods/note-box';
 
 function isDeprecated(cmd) {
    const desc = cmd.description ? cmd.description() : '';
@@ -82,8 +82,7 @@ function customFormatHelp(cmd, helper) {
    if (description) {
       if (process.stdout.isTTY) {
          const commandPath = getFullCommandPath(cmd);
-         process.stdout.write('\n');
-         note(description, commandPath ? `caly-xano ${commandPath}` : undefined);
+         noteBox(description, commandPath ? `caly-xano ${commandPath}` : undefined);
       } else {
          output.push(description);
          output.push('');

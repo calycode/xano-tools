@@ -1,7 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { note } from '@clack/prompts';
+import { noteBox } from './note-box';
 
 const MIME_TYPES: Record<string, string> = {
    '.html': 'text/html; charset=utf-8',
@@ -125,14 +125,14 @@ export async function serveStaticDirectory(options: ServeStaticDirectoryOptions)
    });
 
    const entryUrl = `http://localhost:${portNumber}${options.entryPath ?? '/'}`;
-   note(
+   noteBox(
       [
          `Serving ${options.label ?? 'assets'}${options.cors ? ' (CORS enabled)' : ''}`,
          '',
-         `  ➜  ${entryUrl}`,
+         `➜ ${entryUrl}`,
          '',
-         `  Files: ${path.resolve(options.root)}`,
-         `  Press Ctrl+C to stop`,
+         `Files: ${path.resolve(options.root)}`,
+         'Press Ctrl+C to stop',
       ].join('\n'),
       'Local server ready',
    );
