@@ -47,3 +47,9 @@ plans/native-host-security-hardening.md
 
 # Xano's ai supporting assets:
 util-resources/xano-agentic-setups/
+
+# Native build artifacts (SEA binaries, symbols, LLVM IR)
+/caly-xano.exe
+/caly-xano-pkg.exe
+/caly-xano.pdb
+/index.ll
