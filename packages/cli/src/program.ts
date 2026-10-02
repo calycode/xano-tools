@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { font } from './utils';
 import pkg from '../package.json' with { type: "json" };
 
 // Node emits DEP0190 whenever a `.cmd`/`.bat` (npx, opencode shims) is spawned
@@ -70,11 +69,7 @@ program
    .name('caly-xano')
    .version(version, '-v, --version', 'output the version number')
    .usage('<command> [options]')
-   .description(
-      font.combo.boldCyan('caly-xano-cli') +
-         font.color.gray(` v${version}`) +
-         font.color.white(' — Automate backups, docs, testing & version control for Xano'),
-   );
+   .description('Automate backups, docs, testing & version control for Xano');
 
 registerInitCommand(program, core);
 registerGenerateCommands(program, core);

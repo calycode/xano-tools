@@ -1,6 +1,9 @@
 import { font } from '../methods/font';
 import { noteBox } from '../methods/note-box';
 
+/** Documentation link shown in the root help box. */
+const DOCS_URL = 'https://calycode.com/cli/docs';
+
 function isDeprecated(cmd) {
    const desc = cmd.description ? cmd.description() : '';
    return desc.trim().startsWith('[DEPRECATED]');
@@ -244,9 +247,15 @@ function customFormatHelpForRoot(cmd) {
    // 6. Build output
    let output = [];
 
-   // Header with description
-   if (cmd.description()) {
-      output.push(cmd.description());
+   // Header — a note box with the tool name + version, short description, and
+   // docs link. Plain fallback when piped.
+   const tagline = cmd.description ? cmd.description() : '';
+   const version = cmd.version ? cmd.version() : undefined;
+   const banner = `caly-xano${version ? ` v${version}` : ''}`;
+   if (process.stdout.isTTY) {
+      noteBox([tagline, '', `Docs: ${DOCS_URL}`].join('\n'), banner);
+   } else {
+      output.push(`${banner} — ${tagline}`);
    }
    output.push('');
    output.push(font.color.gray('Usage: caly-xano <command> [options]'));
