@@ -13,4 +13,5 @@ export * from './methods/parse-schema';
 export * from './methods/print-output-dir';
 export * from './methods/safe-version-control';
 export * from './methods/spawn-options';
+export * from './methods/static-server';
 export * from './methods/with-error-handler';
