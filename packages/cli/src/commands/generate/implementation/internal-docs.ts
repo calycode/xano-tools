@@ -1,40 +1,14 @@
-import { mkdir, access, readdir, lstat, rm, unlink } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { log, intro, outro } from '@clack/prompts';
 import { load } from 'js-yaml';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
+   clearDirectory,
    findProjectRoot,
    printOutputDir,
    resolveConfigs,
 } from '../../../utils/index';
-
-/**
- * Recursively removes all files and subdirectories in a directory.
- * @param {string} directory - The directory to clear.
- */
-async function clearDirectory(directory: string): Promise<void> {
-   try {
-      await access(directory);
-   } catch {
-      // Directory does not exist; nothing to clear
-      return;
-   }
-
-   const files = await readdir(directory);
-   await Promise.all(
-      files.map(async (file) => {
-         const curPath = joinPath(directory, file);
-         const stat = await lstat(curPath);
-         if (stat.isDirectory()) {
-            await clearDirectory(curPath);
-            await rm(curPath, { recursive: true, force: true }); // removes the (now-empty) dir
-         } else {
-            await unlink(curPath);
-         }
-      })
-   );
-}
 
 async function generateInternalDocs({
    instance,
