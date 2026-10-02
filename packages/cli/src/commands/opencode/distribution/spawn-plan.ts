@@ -1,7 +1,7 @@
 import {
    fileExists,
    shouldUseManagedOpencodeInstall,
-   getManagedOpencodeBinPath,
+   resolveManagedOpencodeBinary,
    ensureManagedOpencodeInstalled,
    findGlobalOpencodeBinary,
    getOpencodeBinaryVersion,
@@ -61,15 +61,17 @@ export function buildOpencodeSpawnPlan(
    }
 
    const managedEnabled = shouldUseManagedOpencodeInstall();
-   const managedBin = getManagedOpencodeBinPath(version);
-   if (managedEnabled && fileExists(managedBin)) {
-      return {
-         command: managedBin,
-         args: opencodeArgs,
-         source: 'managed',
-         displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
-         needsShell: requiresShell(managedBin),
-      };
+   if (managedEnabled) {
+      const managedBin = resolveManagedOpencodeBinary(version);
+      if (managedBin) {
+         return {
+            command: managedBin,
+            args: opencodeArgs,
+            source: 'managed',
+            displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
+            needsShell: requiresShell(managedBin),
+         };
+      }
    }
 
    if (managedEnabled && options?.ensureManagedInstall !== false) {

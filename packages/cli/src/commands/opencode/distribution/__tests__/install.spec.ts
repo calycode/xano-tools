@@ -1,4 +1,12 @@
-import { compareManagedVersionsDesc, parseManagedVersion, selectGlobalOpencodeBinary } from '../install';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+   compareManagedVersionsDesc,
+   parseManagedVersion,
+   selectGlobalOpencodeBinary,
+   isOpencodePlaceholder,
+} from '../install';
 
 describe('parseManagedVersion', () => {
    it('parses a plain semantic version', () => {
@@ -60,5 +68,35 @@ describe('selectGlobalOpencodeBinary', () => {
       expect(
          selectGlobalOpencodeBinary(['/usr/local/bin/opencode', '/usr/bin/opencode'], 'darwin'),
       ).toBe('/usr/local/bin/opencode');
+   });
+});
+
+describe('isOpencodePlaceholder', () => {
+   let directory: string;
+
+   beforeAll(async () => {
+      directory = await mkdtemp(join(tmpdir(), 'oc-placeholder-'));
+   });
+
+   afterAll(async () => {
+      await rm(directory, { recursive: true, force: true });
+   });
+
+   it('treats a missing binary as a placeholder', () => {
+      expect(isOpencodePlaceholder(join(directory, 'missing.exe'))).toBe(true);
+   });
+
+   it('treats a small file as a placeholder', async () => {
+      const path = join(directory, 'placeholder.exe');
+      await writeFile(path, 'echo "postinstall was not run"');
+
+      expect(isOpencodePlaceholder(path)).toBe(true);
+   });
+
+   it('treats a large binary as real', async () => {
+      const path = join(directory, 'real.exe');
+      await writeFile(path, Buffer.alloc(128 * 1024));
+
+      expect(isOpencodePlaceholder(path)).toBe(false);
    });
 });
