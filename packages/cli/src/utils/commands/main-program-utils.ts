@@ -1,3 +1,4 @@
+import { note } from '@clack/prompts';
 import { font } from '../methods/font';
 
 function isDeprecated(cmd) {
@@ -74,11 +75,20 @@ function collectVisibleLeafCommands(cmd, parentPath = [], parentHiddenFromRoot =
 function customFormatHelp(cmd, helper) {
    let output = [];
 
-   // 1. Description
-   if (cmd.description()) {
-      output.push(cmd.description());
+   // 1. Description — on a real terminal render it as a clack note box so the
+   // long text is visually detached and easier to read; when piped (agents, CI)
+   // keep it plain so the output stays compact.
+   const description = cmd.description();
+   if (description) {
+      if (process.stdout.isTTY) {
+         const commandPath = getFullCommandPath(cmd);
+         process.stdout.write('\n');
+         note(description, commandPath ? `caly-xano ${commandPath}` : undefined);
+      } else {
+         output.push(description);
+         output.push('');
+      }
    }
-   output.push('');
 
    // 2. Usage
    output.push(font.color.gray(`Usage: ${helper.commandUsage(cmd)}`));
