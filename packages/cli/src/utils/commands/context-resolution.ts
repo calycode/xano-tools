@@ -1,11 +1,5 @@
 import { select, text } from '@clack/prompts';
-import {
-   Context,
-   WorkspaceConfig,
-   BranchConfig,
-   ApiGroupConfig,
-   CoreContext,
-} from '@repo/types';
+import { Context, CoreContext, CurrentContextConfig } from '@repo/types';
 
 async function promptForContext(
    missingFields: string[],
@@ -56,7 +50,13 @@ async function resolveConfigs({
    interactive = true,
 }: {
    cliContext?: Context;
-   core: { storage: any };
+   core: {
+      storage: { loadMergedConfig: (startDir: string, configFiles?: string[]) => any };
+      getCurrentContextConfig: (args: {
+         startDir?: string;
+         context: Context;
+      }) => Promise<CurrentContextConfig>;
+   };
    startDir?: string;
    requiredFields?: string[];
    configFiles?: string[];
@@ -85,43 +85,21 @@ async function resolveConfigs({
       throw new Error(`Missing context: ${missing.join(', ')}`);
    }
 
-   // 4. Now derive the correct configs for the fully resolved context
-   // (use the pattern from getCurrentContextConfigImplementation)
-   // Ensure all configs are correct for the *final* context
-   let finalWorkspaceConfig: WorkspaceConfig | null = null;
-   let finalBranchConfig: BranchConfig | null = null;
-   let finalApiGroupConfig: ApiGroupConfig | null = null;
-
-   // Instance config is always mergedConfig/instanceConfig
-   // Extract workspace config
-   if (instanceConfig?.workspaces) {
-      finalWorkspaceConfig =
-         instanceConfig.workspaces.find(
-            (ws: any) =>
-               String(ws.id) === String(context.workspace) || ws.name === context.workspace
-         ) ?? null;
-   }
-   // Extract branch config
-   if (finalWorkspaceConfig?.branches) {
-      finalBranchConfig =
-         finalWorkspaceConfig.branches.find(
-            (b: any) => b.label === context.branch || String(b.id) === String(context.branch)
-         ) ?? null;
-   }
-   // Extract apigroup config
-   if (finalWorkspaceConfig?.apigroups && context.apigroup) {
-      finalApiGroupConfig =
-         finalWorkspaceConfig.apigroups.find(
-            (g: any) => String(g.id) === String(context.apigroup) || g.name === context.apigroup
-         ) ?? null;
-   }
+   // 4. Derive the configs for the fully resolved context through core, so the
+   // workspace/branch/apigroup resolution lives in one place.
+   const {
+      instanceConfig: resolvedInstanceConfig,
+      workspaceConfig,
+      branchConfig,
+      apigroupConfig,
+   } = await core.getCurrentContextConfig({ context, startDir });
 
    return {
       context,
-      instanceConfig,
-      workspaceConfig: finalWorkspaceConfig,
-      branchConfig: finalBranchConfig,
-      apigroupConfig: finalApiGroupConfig,
+      instanceConfig: resolvedInstanceConfig ?? instanceConfig,
+      workspaceConfig,
+      branchConfig,
+      apigroupConfig,
       mergedConfig,
       foundLevels,
    };

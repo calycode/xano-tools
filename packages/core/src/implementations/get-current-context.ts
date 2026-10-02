@@ -6,12 +6,60 @@ import {
    ApiGroupConfig,
    CurrentContextConfig,
    ConfigStorage,
-   CoreContext,
 } from '@repo/types';
 
 /**
+ * Find a workspace by id or name. This is the single place workspace references
+ * are resolved, shared by core and the CLI.
+ */
+function findWorkspaceConfig(
+   instanceConfig: InstanceConfig | undefined,
+   workspace: unknown,
+): WorkspaceConfig | null {
+   if (!instanceConfig?.workspaces || workspace == null) {
+      return null;
+   }
+   return (
+      (instanceConfig.workspaces as any[]).find(
+         (ws) => String(ws.id) === String(workspace) || ws.name === workspace,
+      ) ?? null
+   );
+}
+
+/** Find a branch by label or id. */
+function findBranchConfig(
+   workspaceConfig: WorkspaceConfig | null,
+   branch: unknown,
+): BranchConfig | null {
+   if (!workspaceConfig?.branches) {
+      return null;
+   }
+   return (
+      workspaceConfig.branches.find(
+         (b) => b.label === branch || String((b as any).id) === String(branch),
+      ) ?? null
+   );
+}
+
+/** Find an API group by id or name. */
+function findApiGroupConfig(
+   workspaceConfig: WorkspaceConfig | null,
+   apigroup: unknown,
+): ApiGroupConfig | null {
+   if (!workspaceConfig?.apigroups || apigroup == null) {
+      return null;
+   }
+   return (
+      (workspaceConfig.apigroups as any[]).find(
+         (g) => String(g.id) === String(apigroup) || g.name === apigroup,
+      ) ?? null
+   );
+}
+
+/**
  * Loads and merges the current context config from the directory tree.
- * Returns { instanceConfig, workspaceConfig, branchConfig, apigroupConfig }
+ * Explicit `context` overrides win over levels found in the tree. Returns
+ * { instanceConfig, workspaceConfig, branchConfig, apigroupConfig }.
  */
 async function getCurrentContextConfigImplementation({
    storage,
@@ -22,53 +70,21 @@ async function getCurrentContextConfigImplementation({
    context?: Context;
    startDir: string;
 }): Promise<CurrentContextConfig> {
-   let {
-      workspaceConfig,
-      branchConfig,
-      instanceConfig,
-      foundLevels,
-   }: {
-      mergedConfig: InstanceConfig;
-      workspaceConfig?: WorkspaceConfig;
-      branchConfig?: BranchConfig;
-      instanceConfig?: InstanceConfig;
-      foundLevels: CoreContext;
-   } = storage.loadMergedConfig(startDir);
+   const { instanceConfig, foundLevels } = storage.loadMergedConfig(startDir);
 
-   // Extract context from config & override with explicit context
    const workspace = context.workspace ?? foundLevels.workspace ?? null;
    const branch = context.branch ?? foundLevels.branch ?? null;
    const apigroup = context.apigroup ?? null;
 
-   // "instanceConfig" is always the fully merged config
-   // Optionally, you can also extract the raw configs at each level if needed
-
-   let apigroupConfig: ApiGroupConfig | null = null;
-
-   // If your config contains workspaces/branches as arrays, extract the matching config objects
-   if (!workspaceConfig) {
-      workspaceConfig =
-         (instanceConfig.workspaces as any[]).find(
-            (ws) => String(ws.id) === String(workspace) || ws.name === workspace
-         ) ?? null;
-   }
-   if (!branchConfig) {
-      branchConfig =
-         (workspaceConfig.branches ?? []).find((b) => b.label === branch) ??
-         workspaceConfig.branches[0] ??
-         null;
-   }
-
-   // If you have apigroups as well, extract here
-   if (workspaceConfig && apigroup) {
-      apigroupConfig =
-         (workspaceConfig.apigroups ?? []).find(
-            (g) => String(g.id) === String(apigroup) || g.name === apigroup
-         ) ?? null;
-   }
+   const workspaceConfig = findWorkspaceConfig(instanceConfig, workspace);
+   // Fall back to the first branch when only a workspace is known (e.g. backups,
+   // which require instance + workspace but not branch).
+   const branchConfig =
+      findBranchConfig(workspaceConfig, branch) ?? workspaceConfig?.branches?.[0] ?? null;
+   const apigroupConfig = findApiGroupConfig(workspaceConfig, apigroup);
 
    return {
-      instanceConfig: instanceConfig,
+      instanceConfig: instanceConfig ?? null,
       workspaceConfig,
       branchConfig,
       apigroupConfig,
