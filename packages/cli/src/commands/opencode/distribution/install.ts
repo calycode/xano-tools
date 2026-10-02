@@ -109,22 +109,50 @@ export function shouldUseManagedOpencodeInstall(): boolean {
    return !isTruthy(process.env.CALY_OC_DISABLE_MANAGED_INSTALL);
 }
 
+/**
+ * Pick a spawnable `opencode` from the candidates reported by the OS.
+ *
+ * On Windows, `where` lists the extensionless POSIX shim before the runnable
+ * `.cmd`/`.exe` wrappers; the extensionless shim cannot be spawned directly, so
+ * prefer a real executable and reject the list when only shims are present.
+ */
+export function selectGlobalOpencodeBinary(
+   candidates: string[],
+   platform: NodeJS.Platform = process.platform,
+): string | undefined {
+   if (platform !== 'win32') {
+      return candidates[0];
+   }
+
+   const rank = (candidate: string): number => {
+      const lower = candidate.toLowerCase();
+      if (lower.endsWith('.exe')) return 0;
+      if (lower.endsWith('.cmd')) return 1;
+      if (lower.endsWith('.bat')) return 2;
+      // Extensionless POSIX shims cannot be spawned directly on Windows.
+      return 3;
+   };
+
+   const best = candidates
+      .map((candidate) => ({ candidate, rank: rank(candidate) }))
+      .sort((a, b) => a.rank - b.rank)[0];
+
+   return best && best.rank < 3 ? best.candidate : undefined;
+}
+
 export function findGlobalOpencodeBinary(): string | undefined {
    try {
       const command = process.platform === 'win32' ? 'where opencode' : 'which opencode';
-      const output = execSync(command, {
+      const candidates = execSync(command, {
          encoding: 'utf8',
          stdio: ['ignore', 'pipe', 'ignore'],
       })
          .split(/\r?\n/)
          .map((line) => line.trim())
-         .find(Boolean);
+         .filter(Boolean)
+         .filter((candidate) => fileExists(candidate));
 
-      if (!output) {
-         return undefined;
-      }
-
-      return fileExists(output) ? output : undefined;
+      return selectGlobalOpencodeBinary(candidates);
    } catch {
       return undefined;
    }
@@ -132,11 +160,21 @@ export function findGlobalOpencodeBinary(): string | undefined {
 
 export function getOpencodeBinaryVersion(binaryPath: string): string | undefined {
    try {
-      const output = execFileSync(binaryPath, ['--version'], {
-         encoding: 'utf8',
-         stdio: ['ignore', 'pipe', 'ignore'],
-         windowsHide: true,
-      })
+      // A `.cmd`/`.bat` shim must be run through a shell on Windows.
+      const useShell = process.platform === 'win32' && /\.(cmd|bat)$/i.test(binaryPath);
+      const output = (
+         useShell
+            ? execSync(`"${binaryPath}" --version`, {
+                 encoding: 'utf8',
+                 stdio: ['ignore', 'pipe', 'ignore'],
+                 windowsHide: true,
+              })
+            : execFileSync(binaryPath, ['--version'], {
+                 encoding: 'utf8',
+                 stdio: ['ignore', 'pipe', 'ignore'],
+                 windowsHide: true,
+              })
+      )
          .toString()
          .trim();
 
@@ -161,6 +199,8 @@ export function ensureManagedOpencodeInstalled(version: string): string {
    execFileSync('npm', ['install', '--no-save', '--prefix', installDir, packageSpecifier], {
       stdio: 'ignore',
       env: process.env,
+      // `npm` is a `.cmd` shim on Windows and must be run through a shell.
+      shell: process.platform === 'win32',
    });
 
    if (!fileExists(managedBinPath)) {

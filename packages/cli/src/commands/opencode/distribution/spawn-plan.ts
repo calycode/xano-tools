@@ -16,6 +16,22 @@ export interface OpencodeSpawnPlan {
    needsShell: boolean;
 }
 
+/**
+ * Whether a command must be run through a shell. On Windows, `.cmd`/`.bat`
+ * shims (npm/pnpm wrappers, the managed install, `npx`) cannot be spawned
+ * directly and require `shell: true`.
+ */
+export function requiresShell(
+   command: string,
+   platform: NodeJS.Platform = process.platform,
+): boolean {
+   if (platform !== 'win32') {
+      return false;
+   }
+   const lower = command.toLowerCase();
+   return lower.endsWith('.cmd') || lower.endsWith('.bat');
+}
+
 export function buildOpencodeSpawnPlan(
    version: string,
    opencodeArgs: string[],
@@ -40,7 +56,7 @@ export function buildOpencodeSpawnPlan(
          args: opencodeArgs,
          source: 'env',
          displayCommand: `${explicitBin} ${opencodeArgs.join(' ')}`.trim(),
-         needsShell: false,
+         needsShell: requiresShell(explicitBin),
       };
    }
 
@@ -52,7 +68,7 @@ export function buildOpencodeSpawnPlan(
          args: opencodeArgs,
          source: 'managed',
          displayCommand: `${managedBin} ${opencodeArgs.join(' ')}`.trim(),
-         needsShell: false,
+         needsShell: requiresShell(managedBin),
       };
    }
 
@@ -64,7 +80,7 @@ export function buildOpencodeSpawnPlan(
             args: opencodeArgs,
             source: 'managed',
             displayCommand: `${installedBin} ${opencodeArgs.join(' ')}`.trim(),
-            needsShell: false,
+            needsShell: requiresShell(installedBin),
          };
       } catch (err) {
          if (options?.onManagedFail) {
@@ -85,7 +101,7 @@ export function buildOpencodeSpawnPlan(
                args: opencodeArgs,
                source: 'global',
                displayCommand: `${globalOpencode} ${opencodeArgs.join(' ')}`.trim(),
-               needsShell: false,
+               needsShell: requiresShell(globalOpencode),
             };
          }
 
