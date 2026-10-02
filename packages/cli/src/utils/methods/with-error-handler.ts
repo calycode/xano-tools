@@ -6,14 +6,11 @@ const DEBUG = ['1', 'true', 'yes', 'on'].includes(
 
 /**
  * Report an error to the user. The stack trace is only shown when CALY_DEBUG is
- * set; by default users see the message alone.
+ * set; by default users see a single inline line with the message.
  */
 function reportError(err: any): void {
-   if (err?.message) {
-      log.error(err.message);
-   } else {
-      log.error(String(err));
-   }
+   const message = err?.message ? err.message : String(err);
+   log.error(`\n💥  ${message}`);
    if (DEBUG && err?.stack) {
       log.error(err.stack);
    }
@@ -27,12 +24,10 @@ function gracefulExit(code = 0, msg = '👋 Goodbye!') {
 process.on('SIGINT', () => gracefulExit(0, '👋 Exiting, see you next time!'));
 process.on('SIGTERM', () => gracefulExit(0));
 process.on('uncaughtException', (err) => {
-   log.error('\n💥 ');
    reportError(err);
    gracefulExit(1, '👋 Exiting after error.');
 });
 process.on('unhandledRejection', (reason: any) => {
-   log.error('\n💥 ');
    reportError(reason);
    gracefulExit(1, '👋 Exiting after promise rejection.');
 });
