@@ -189,7 +189,13 @@ export interface MetaApiRequestOptions {
    path?: string;
    pathParams?: PathParams;
    query?: QueryParams;
+   /** JSON body; serialized and sent with a JSON content type. */
    body?: unknown;
+   /**
+    * Body passed to fetch untouched (string, FormData, binary, ...). When set,
+    * `body` is ignored and no default content type is applied.
+    */
+   rawBody?: unknown;
    headers?: Headers;
    allowError?: boolean;
 }

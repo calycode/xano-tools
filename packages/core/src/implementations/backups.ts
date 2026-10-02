@@ -1,4 +1,4 @@
-import { replacePlaceholders, joinPath, dirname } from '@repo/utils';
+import { replacePlaceholders, joinPath, dirname, metaApiFetch } from '@repo/utils';
 
 /**
  * Exports a backup and emits events for CLI/UI.
@@ -50,17 +50,13 @@ async function exportBackupImplementation({ outputDir, instance, workspace, bran
 
       let backupStreamRequest;
       try {
-         backupStreamRequest = await fetch(
-            `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/export`,
-            {
-               method: 'POST',
-               headers: {
-                  Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
-                  'Content-Type': 'application/json',
-               },
-               body: JSON.stringify({ branch: branchConfig.label }),
-            }
-         );
+         backupStreamRequest = await metaApiFetch({
+            baseUrl: instanceConfig.url,
+            token: await core.loadToken(instanceConfig.name),
+            method: 'POST',
+            path: `/workspace/${workspaceConfig.id}/export`,
+            body: { branch: branchConfig.label },
+         });
       } catch (err) {
          core.emit('error', {
             error: err,
@@ -141,24 +137,19 @@ async function restoreBackupImplementation({ instance, workspace, formData, core
       startDir,
    });
 
-   const headers = {
-      Authorization: `Bearer ${await core.loadToken(instanceConfig.name)}`,
-      ...(formData.getHeaders ? formData.getHeaders() : {}),
-   };
-
    core.emit('progress', {
       name: 'restore-backup',
       message: 'Preparing request for Xano API...',
       percent: 20,
    });
-   const response = await fetch(
-      `${instanceConfig.url}/api:meta/workspace/${workspaceConfig.id}/import`,
-      {
-         method: 'POST',
-         body: formData,
-         headers,
-      }
-   );
+   const response = await metaApiFetch({
+      baseUrl: instanceConfig.url,
+      token: await core.loadToken(instanceConfig.name),
+      method: 'POST',
+      path: `/workspace/${workspaceConfig.id}/import`,
+      rawBody: formData,
+      headers: formData.getHeaders ? formData.getHeaders() : {},
+   });
 
    core.emit('progress', {
       name: 'restore-backup',

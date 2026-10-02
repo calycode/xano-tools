@@ -61,6 +61,40 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
 }
 
 /**
+ * Makes an authenticated request to the Xano Metadata API and returns the raw
+ * `Response`. This is the single low-level adapter the JSON and blob helpers
+ * build on; use it directly when you need the response stream, a non-JSON body
+ * (text, FormData, binary), or status-aware handling.
+ */
+export async function metaApiFetch({
+   baseUrl,
+   token,
+   method = 'GET',
+   path = '',
+   pathParams = {},
+   query = {},
+   body = null,
+   rawBody,
+   headers = {},
+}: MetaApiRequestOptions): Promise<Response> {
+   const url = buildMetaApiUrl(baseUrl, path, pathParams, query);
+   const hasRawBody = rawBody !== undefined;
+   const fetchHeaders = hasRawBody
+      ? { Authorization: `Bearer ${token}`, ...headers }
+      : buildHeaders(token, headers, body);
+
+   return fetch(url, {
+      method,
+      headers: fetchHeaders,
+      ...(hasRawBody
+         ? { body: rawBody as BodyInit }
+         : body
+           ? { body: JSON.stringify(body) }
+           : {}),
+   });
+}
+
+/**
  * Makes authenticated HTTP requests to the Xano Metadata API.
  * Handles JSON parsing, error handling, and authentication automatically.
  *
@@ -99,25 +133,9 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
  * });
  * ```
  */
-async function metaApiRequest({
-   baseUrl,
-   token,
-   method = 'GET',
-   path = '',
-   pathParams = {},
-   query = {},
-   body = null,
-   headers = {},
-   allowError = false,
-}: MetaApiRequestOptions): Promise<any> {
-   const url = buildMetaApiUrl(baseUrl, path, pathParams, query);
-   const fetchHeaders = buildHeaders(token, headers, body);
-
-   const res = await fetch(url, {
-      method,
-      headers: fetchHeaders,
-      ...(body ? { body: JSON.stringify(body) } : {}),
-   });
+async function metaApiRequest(options: MetaApiRequestOptions): Promise<any> {
+   const { method = 'GET', allowError = false } = options;
+   const res = await metaApiFetch(options);
 
    let result: any;
    try {
@@ -128,7 +146,7 @@ async function metaApiRequest({
 
    if (!res.ok && !allowError) {
       const msg = result && result.message ? result.message : res.statusText;
-      throw new Error(`Xano API ${method} ${url} failed: ${msg} (${res.status})`);
+      throw new Error(`Xano API ${method} ${res.url} failed: ${msg} (${res.status})`);
    }
    return result;
 }
@@ -164,27 +182,12 @@ async function metaApiRequest({
  * await fs.writeFile('backup.tar.gz', backupData);
  * ```
  */
-export async function metaApiRequestBlob({
-   baseUrl,
-   token,
-   method = 'GET',
-   path = '',
-   pathParams = {},
-   query = {},
-   body = null,
-   headers = {},
-}: MetaApiRequestBlobOptions): Promise<Uint8Array> {
-   const url = buildMetaApiUrl(baseUrl, path, pathParams, query);
-   const fetchHeaders = buildHeaders(token, headers, body);
-
-   const res = await fetch(url, {
-      method,
-      headers: fetchHeaders,
-      ...(body ? { body: JSON.stringify(body) } : {}),
-   });
+export async function metaApiRequestBlob(options: MetaApiRequestBlobOptions): Promise<Uint8Array> {
+   const { method = 'GET' } = options;
+   const res = await metaApiFetch(options);
 
    if (!res.ok) {
-      throw new Error(`Xano API ${method} ${url} failed: ${res.statusText} (${res.status})`);
+      throw new Error(`Xano API ${method} ${res.url} failed: ${res.statusText} (${res.status})`);
    }
    const arrayBuffer = await res.arrayBuffer();
    return new Uint8Array(arrayBuffer);
