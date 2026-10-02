@@ -72,7 +72,7 @@ export function killProcessOnPort(
 ): boolean {
    const logInfo = logger?.log ?? ((msg: string) => { /* silent */ });
    const logError = logger?.error ?? ((msg: string) => { /* silent */ });
-   const allowUnmanagedOpencode = options?.allowUnmanagedOpencode !== false;
+   const allowUnmanagedOpencode = options?.allowUnmanagedOpencode === true;
    const allowedOwnerToken = options?.allowedOwnerToken?.trim().toLowerCase();
    const ownedPersistedPids = allowedOwnerToken
       ? loadPersistedManagedPids(allowedOwnerToken)
@@ -108,10 +108,6 @@ export function killProcessOnPort(
       }
 
       if (!allowUnmanagedOpencode) {
-         return false;
-      }
-
-      if (allowedOwnerToken && !allowUnmanagedOpencode) {
          return false;
       }
 
@@ -451,19 +447,28 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
          });
          logger.log(`Spawning ${launched.plan.displayCommand}`);
          logger.log(`OpenCode launcher source: ${launched.plan.source}`);
-         serverProc = launched.proc;
-         registerManagedSession(port, launched.proc);
+         const launchedProc = launched.proc;
+         serverProc = launchedProc;
+         registerManagedSession(port, launchedProc);
 
-         serverProc.on('error', (err) => {
+         launchedProc.on('error', (err) => {
             logger.error('Failed to spawn server process', err);
             sendMessage({ status: 'error', message: `Failed to spawn server: ${err.message}` });
          });
 
-         serverProc.on('exit', (code) => {
+         launchedProc.on('exit', (code) => {
+            // Ignore exits from a process that has already been superseded on
+            // this port; otherwise a stale exit would tear down the new session.
+            if (managedSessions.get(port)?.proc !== launchedProc) {
+               logger.log(`Ignoring exit from stale server process ${launchedProc.pid} on port ${port}`);
+               return;
+            }
             logger.log(`Server process exited with code ${code}`);
             sendMessage({ status: 'stopped', code });
             unregisterManagedSession(port);
-            serverProc = null;
+            if (serverProc === launchedProc) {
+               serverProc = null;
+            }
          });
 
          logger.log('Server process spawned, waiting for ready...');

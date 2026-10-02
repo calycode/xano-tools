@@ -48,7 +48,7 @@ This project provides a suite of tools to improve developer experience with Xano
 ## Development Workflow
 - **Install/Setup**: `pnpm install` to install everything. (Requires pnpm)
 - **Build**: `pnpm build` (runs TurboRepo, builds all packages)
-- **Run CLI**: `pnpm --filter @calycode/cli build` then `caly-xano <command>` (or the globally linked `caly-xano`)
+- **Run CLI**: `pnpm --filter @calycode/cli build` then `pnpm --filter @calycode/cli caly-xano <command>` (or the globally linked `caly-xano`)
 - **Testing**: `pnpm test` (runs tests across all packages)
 - **Linting/Formatting**: Eslint/Prettier with default configs, e.g. `pnpm lint`, some packages have their own config and scripts
 - **CI/CD**: See `.github/workflows`. Ready for automated release, docs update, and registry actions

@@ -39,9 +39,15 @@ export function isValidCorsOrigin(origin: string, knownExtensionIds: string[]): 
    }
 
    if (trimmed.startsWith('https://')) {
-      const hostPart = trimmed.slice('https://'.length);
-      if (!hostPart || hostPart === '*') return false;
-      return true;
+      let parsed: URL;
+      try {
+         parsed = new URL(trimmed);
+      } catch {
+         return false;
+      }
+      // Only a bare HTTPS origin is allowed: reject URLs carrying paths,
+      // credentials, queries, or fragments by requiring an exact match.
+      return parsed.protocol === 'https:' && parsed.origin === trimmed;
    }
 
    return false;

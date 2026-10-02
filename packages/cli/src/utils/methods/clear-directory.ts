@@ -1,5 +1,5 @@
 import { access, readdir, lstat, rm, unlink } from 'node:fs/promises';
-import { joinPath } from '@repo/utils';
+import { join } from 'node:path';
 
 /**
  * Recursively removes all files and subdirectories in a directory.
@@ -17,7 +17,7 @@ export async function clearDirectory(directory: string): Promise<void> {
    const files = await readdir(directory);
    await Promise.all(
       files.map(async (file) => {
-         const curPath = joinPath(directory, file);
+         const curPath = join(directory, file);
          const stat = await lstat(curPath);
          if (stat.isDirectory()) {
             await clearDirectory(curPath);

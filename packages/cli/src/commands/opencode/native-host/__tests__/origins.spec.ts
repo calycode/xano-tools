@@ -27,6 +27,21 @@ describe('isValidCorsOrigin', () => {
    it('rejects a non-https origin', () => {
       expect(isValidCorsOrigin('http://app.xano.com', [KNOWN_EXTENSION_ID])).toBe(false);
    });
+
+   it('rejects https values that are not bare origins', () => {
+      const invalid = [
+         'https://app.xano.com/path',
+         'https://app.xano.com/',
+         'https://user:pass@app.xano.com',
+         'https://app.xano.com?query=1',
+         'https://app.xano.com#fragment',
+         'https://',
+      ];
+
+      for (const origin of invalid) {
+         expect(isValidCorsOrigin(origin, [KNOWN_EXTENSION_ID])).toBe(false);
+      }
+   });
 });
 
 describe('filterAndValidateOrigins', () => {

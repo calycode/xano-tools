@@ -42,6 +42,24 @@ describe('metaApiFetch', () => {
       expect(init.headers['Content-Type']).toBe('application/json');
    });
 
+   it('serializes falsy non-null bodies and sets a JSON content type', async () => {
+      for (const body of [false, 0, '']) {
+         mockFetchOnce({ ok: true });
+
+         await metaApiFetch({
+            baseUrl: 'https://x123.xano.io',
+            token: 'test-token',
+            method: 'POST',
+            path: '/workspace/1/export',
+            body,
+         });
+
+         const [, init] = firstFetchCall();
+         expect(init.body).toBe(JSON.stringify(body));
+         expect(init.headers['Content-Type']).toBe('application/json');
+      }
+   });
+
    it('passes a raw body through untouched without a default content type', async () => {
       mockFetchOnce({ ok: true });
 

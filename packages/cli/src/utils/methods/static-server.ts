@@ -88,8 +88,21 @@ export function createStaticServer({
          }
 
          const ext = path.extname(filePath).toLowerCase();
-         res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
-         fs.createReadStream(filePath).pipe(res);
+         const stream = fs.createReadStream(filePath);
+         stream.on('error', () => {
+            if (!res.headersSent) {
+               res.writeHead(500, { 'Content-Type': 'text/plain' });
+               res.end('Internal server error');
+            } else {
+               res.end();
+            }
+         });
+         stream.on('open', () => {
+            if (!res.headersSent) {
+               res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+            }
+         });
+         stream.pipe(res);
       } catch {
          res.writeHead(500, { 'Content-Type': 'text/plain' });
          res.end('Internal server error');

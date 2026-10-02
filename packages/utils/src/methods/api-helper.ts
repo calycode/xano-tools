@@ -56,7 +56,7 @@ function buildHeaders(token: string, headers: Headers = {}, body: unknown = null
    return {
       ...headers,
       Authorization: `Bearer ${token}`,
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(body != null ? { 'Content-Type': 'application/json' } : {}),
    };
 }
 
@@ -88,7 +88,7 @@ export async function metaApiFetch({
       headers: fetchHeaders,
       ...(hasRawBody
          ? { body: rawBody as BodyInit }
-         : body
+         : body != null
            ? { body: JSON.stringify(body) }
            : {}),
    });

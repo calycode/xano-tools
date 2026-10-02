@@ -78,9 +78,12 @@ async function getCurrentContextConfigImplementation({
 
    const workspaceConfig = findWorkspaceConfig(instanceConfig, workspace);
    // Fall back to the first branch when only a workspace is known (e.g. backups,
-   // which require instance + workspace but not branch).
+   // which require instance + workspace but not branch). An explicit branch that
+   // cannot be found stays null rather than silently resolving to another branch.
    const branchConfig =
-      findBranchConfig(workspaceConfig, branch) ?? workspaceConfig?.branches?.[0] ?? null;
+      branch == null
+         ? workspaceConfig?.branches?.[0] ?? null
+         : findBranchConfig(workspaceConfig, branch);
    const apigroupConfig = findApiGroupConfig(workspaceConfig, apigroup);
 
    return {

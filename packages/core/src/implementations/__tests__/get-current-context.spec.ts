@@ -70,6 +70,17 @@ describe('getCurrentContextConfigImplementation', () => {
       expect(result.branchConfig).toMatchObject({ label: 'master' });
    });
 
+   it('returns null for an explicit branch that is not found', async () => {
+      const result = await getCurrentContextConfigImplementation({
+         storage: makeStorage({ instanceConfig }),
+         context: { workspace: 'main', branch: 'does-not-exist' },
+         startDir: '.',
+      });
+
+      expect(result.workspaceConfig).toMatchObject({ id: 1 });
+      expect(result.branchConfig).toBeNull();
+   });
+
    it('returns null configs when the workspace cannot be found', async () => {
       const result = await getCurrentContextConfigImplementation({
          storage: makeStorage({ instanceConfig }),
