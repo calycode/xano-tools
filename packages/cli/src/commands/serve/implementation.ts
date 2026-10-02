@@ -1,6 +1,11 @@
 import { spawn } from 'node:child_process';
 import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
-import { chooseApiGroupOrAll, findProjectRoot, resolveConfigs } from '../../utils/index';
+import {
+   chooseApiGroupOrAll,
+   findProjectRoot,
+   getSpawnOptions,
+   resolveConfigs,
+} from '../../utils/index';
 
 /**
  * Validates a path argument to prevent command injection.
@@ -20,18 +25,11 @@ function validatePathArg(value: string, name: string): void {
 }
 
 /**
- * Get spawn options appropriate for the current platform.
- * On Windows, shell: true is required for npx to work (it's a batch file).
- * On Unix, we avoid shell: true when possible for better security.
+ * Spawn options for the `npx`-based serve commands. On Windows `npx` is a
+ * batch file and requires a shell.
  */
-function getSpawnOptions(stdio: 'inherit' | 'pipe' = 'inherit') {
-   // On Windows, npx is a batch file and requires shell: true
-   // On Unix, we can run without shell for better security
-   const isWindows = process.platform === 'win32';
-   return {
-      stdio,
-      shell: isWindows,
-   };
+function serveSpawnOptions(): ReturnType<typeof getSpawnOptions> {
+   return getSpawnOptions('inherit', process.platform === 'win32');
 }
 
 async function serveOas({ instance, workspace, branch, group, listen = 5999, cors = false, core }) {
@@ -72,7 +70,7 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
 
       const cliArgs: string[] = ['serve', specHtmlPath, ...serveArgs];
 
-      const oasProc = spawn('npx', cliArgs, getSpawnOptions());
+      const oasProc = spawn('npx', cliArgs, serveSpawnOptions());
 
       oasProc.on('close', (code) => {
          if (code === 0) {
@@ -97,7 +95,7 @@ function serveRegistry({ root = 'registry', listen = 5000, cors = false }) {
 
       const cliArgs = ['serve', ...serveArgs];
 
-      const proc = spawn('npx', cliArgs, getSpawnOptions());
+      const proc = spawn('npx', cliArgs, serveSpawnOptions());
 
       proc.on('close', (code) => {
          if (code === 0) {

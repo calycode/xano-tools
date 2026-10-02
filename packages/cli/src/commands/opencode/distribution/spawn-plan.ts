@@ -129,24 +129,3 @@ export function buildOpencodeSpawnPlan(
       needsShell: process.platform === 'win32',
    };
 }
-
-/**
- * Get spawn options appropriate for the current platform.
- * @param stdio - Standard I/O handling mode
- * @param extraEnv - Additional environment variables to pass to the child process
- * @param cwd - Working directory for the child process
- * @param needsShell - Whether the command requires a shell wrapper (e.g. npx on Windows)
- */
-export function getSpawnOptions(
-   stdio: 'inherit' | 'pipe' | 'ignore' = 'inherit',
-   extraEnv?: Record<string, string>,
-   cwd?: string,
-   needsShell: boolean = false,
-) {
-   return {
-      stdio,
-      shell: needsShell,
-      cwd,
-      env: extraEnv ? { ...process.env, ...extraEnv } : process.env,
-   };
-}

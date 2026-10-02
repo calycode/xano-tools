@@ -3,6 +3,7 @@ import path from 'node:path';
 import { execSync, execFileSync } from 'node:child_process';
 import { getCalycodeOpencodeConfigDir, ensureDirectoryExists } from './paths';
 import { OC_VERSION_REGEX } from './version';
+import { parseBooleanEnv } from '../../../utils';
 
 /**
  * opencode-ai ships a small placeholder binary until its postinstall copies the
@@ -176,12 +177,8 @@ export function fileExists(candidatePath: string): boolean {
    }
 }
 
-export function isTruthy(value?: string): boolean {
-   return ['1', 'true', 'yes', 'on'].includes((value || '').toLowerCase());
-}
-
 export function shouldUseManagedOpencodeInstall(): boolean {
-   return !isTruthy(process.env.CALY_OC_DISABLE_MANAGED_INSTALL);
+   return !parseBooleanEnv(process.env.CALY_OC_DISABLE_MANAGED_INSTALL, false);
 }
 
 /**

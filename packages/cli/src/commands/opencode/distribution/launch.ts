@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
 import { log } from '@clack/prompts';
 import { resolveOcVersion, warnIfUsingNonDefaultOcVersion } from './version';
-import { buildOpencodeSpawnPlan, getSpawnOptions, type OpencodeSpawnPlan } from './spawn-plan';
+import { buildOpencodeSpawnPlan, type OpencodeSpawnPlan } from './spawn-plan';
+import { getSpawnOptions } from '../../../utils';
 import {
    getCalycodeOpencodeConfigDir,
    getOpencodeWorkingDir,
@@ -102,7 +103,7 @@ export function launchOpencodeServer({
    }
 
    const proc = spawn(plan.command, plan.args, {
-      ...getSpawnOptions(stdio, extraEnv, workingDir, plan.needsShell),
+      ...getSpawnOptions(stdio, plan.needsShell, extraEnv, workingDir),
       detached: detach,
    });
 
@@ -142,7 +143,7 @@ export async function proxyOpencode(
 
       // Set OPENCODE_CONFIG_DIR to use our custom config without polluting user's global config
       const proc = spawn(launchPlan.command, launchPlan.args, {
-         ...getSpawnOptions('inherit', { OPENCODE_CONFIG_DIR: configDir }, workingDir, launchPlan.needsShell),
+         ...getSpawnOptions('inherit', launchPlan.needsShell, { OPENCODE_CONFIG_DIR: configDir }, workingDir),
       });
 
       proc.on('close', (code) => {

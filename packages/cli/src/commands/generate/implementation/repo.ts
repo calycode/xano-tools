@@ -1,11 +1,11 @@
 import { mkdir } from 'node:fs/promises';
 import { log, intro, outro } from '@clack/prompts';
-import { load } from 'js-yaml';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
    clearDirectory,
    findProjectRoot,
+   parseSchemaContents,
    printOutputDir,
    resolveConfigs,
 } from '../../../utils/index';
@@ -81,23 +81,7 @@ async function generateRepo({
    log.step(`Reading and parsing schema file -> ${inputFile}`);
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
 
-   let jsonData: any;
-   try {
-      if (inputFile.endsWith('.json')) {
-         jsonData = JSON.parse(fileContents);
-      } else if (inputFile.endsWith('.yaml') || inputFile.endsWith('.yml')) {
-         jsonData = load(fileContents);
-      } else {
-         // Fallback: Try JSON, then YAML if extension is missing or weird
-         try {
-            jsonData = JSON.parse(fileContents);
-         } catch {
-            jsonData = load(fileContents);
-         }
-      }
-   } catch (err) {
-      throw new Error(`Failed to parse schema file: ${err.message}`);
-   }
+   const jsonData = parseSchemaContents(fileContents, inputFile);
 
    // 3. Proceed with generation
    const plannedWrites: { path: string; content: string }[] = await core.generateRepo({
