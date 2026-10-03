@@ -1,26 +1,18 @@
 # registry
->[!NOTE|label:Description]
-> #### Registry related operations. Use this when you wish to add prebuilt components to your Xano instance.
 
-```term
-$ caly-xano registry [options]
-```
-
-### registry --help
-```term
-$ caly-xano registry --help
+{% alert type="note" title="Description" %}
 Registry related operations. Use this when you wish to add prebuilt components to your Xano instance.
+{% /alert %}
 
-Usage: caly-xano registry [options] [command]
+## Usage
 
-Options:
-  └─ -h, --help  display help for command
-
-Commands:
-  ├─ add       Add a prebuilt component to the current Xano context, ess...
-  ├─ scaffold  Scaffold a Xano registry folder with a sample component. ...
-  └─ help      display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
+```term {% anim=true %}
+$ caly-xano registry <command> [options]
 ```
+
+## Subcommands
+
+| Command | Description |
+| --- | --- |
+| `add` | Add a prebuilt component to the current Xano context, essentially by pushing an item from the registry to the Xano instance. |
+| `scaffold` | Scaffold a Xano registry folder with a sample component. A registry has three parts: • index.json — the item list (each entry follows the registry item schema) • <type>/<name>.json — item descriptors (e.g. functions/hello-world.json) • components/<type>/<name>.xs — the actual source files that items point at An item's files[].path points into components/; an item may instead carry inline content. See the registry and registry-item schemas at https://calycode.com/schemas/registry/. |

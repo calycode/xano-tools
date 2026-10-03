@@ -1,0 +1,38 @@
+/**
+ * content-kit — Tailwind v4 preset.
+ *
+ * Import this once in your application stylesheet:
+ *
+ *     @import "tailwindcss";
+ *     @import "@calycode/content-kit/tailwind.css";
+ *
+ * It does two things:
+ *
+ *   1. Defines the design tokens the default components rely on (`background`, `foreground`,
+ *      `muted`, `muted-foreground`, `border`, `ring`, `destructive`, `primary`). These are
+ *      defaults, not overrides: declare your own `@theme` block after this import to replace any
+ *      of them with your palette.
+ *
+ *   2. Points Tailwind's scanner at the package's compiled components, because Tailwind v4 does
+ *      not scan `node_modules` on its own. Without this the component class names would never be
+ *      generated and the markup would arrive unstyled.
+ *
+ * If your bundler does not resolve `@source` inside an imported stylesheet, add this to your own
+ * stylesheet instead:
+ *
+ *     @source "../node_modules/@calycode/content-kit/dist";
+ */
+
+@theme {
+   --color-background: oklch(1 0 0);
+   --color-foreground: oklch(0.145 0 0);
+   --color-muted: oklch(0.97 0 0);
+   --color-muted-foreground: oklch(0.556 0 0);
+   --color-border: oklch(0.922 0 0);
+   --color-ring: oklch(0.708 0 0);
+   --color-destructive: oklch(0.577 0.245 27.325);
+   --color-primary: oklch(0.205 0 0);
+   --color-primary-foreground: oklch(0.985 0 0);
+}
+
+@source "./dist";

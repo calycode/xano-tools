@@ -1,0 +1,69 @@
+{
+   "name": "@calycode/content-kit",
+   "version": "0.1.0-vendored",
+   "private": true,
+   "description": "Vendored build of @calycode/content-kit: one Markdoc document model, rendered to HTML or Preact. Source: https://github.com/calycode/ai-workspace/tree/main/packages/content-kit. Replace this directory with an npm dependency once the package is published.",
+   "license": "MIT",
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "sideEffects": [
+      "./tailwind.css",
+      "./dist/prism-worker-scope.js",
+      "./assets/rich.css",
+      "./assets/rich-enhance.js"
+   ],
+   "dependencies": {
+      "@markdoc/markdoc": "^0.5.10",
+      "prismjs": "^1.30.0"
+   },
+   "peerDependencies": {
+      "beautiful-mermaid": "^1.1.3",
+      "dompurify": "^3.4.8",
+      "preact": "^10.26.9"
+   },
+   "peerDependenciesMeta": {
+      "beautiful-mermaid": {
+         "optional": true
+      },
+      "dompurify": {
+         "optional": true
+      },
+      "preact": {
+         "optional": true
+      }
+   },
+   "exports": {
+      ".": {
+         "types": "./dist/index.d.ts",
+         "import": "./dist/index.js",
+         "default": "./dist/index.js"
+      },
+      "./preact": {
+         "types": "./dist/preact/index.d.ts",
+         "import": "./dist/preact/index.js",
+         "default": "./dist/preact/index.js"
+      },
+      "./preact/rich": {
+         "types": "./dist/preact/rich/index.d.ts",
+         "import": "./dist/preact/rich/index.js",
+         "default": "./dist/preact/rich/index.js"
+      },
+      "./html/rich": {
+         "types": "./dist/html-rich/index.d.ts",
+         "import": "./dist/html-rich/index.js",
+         "default": "./dist/html-rich/index.js"
+      },
+      "./html/rich.css": "./assets/rich.css",
+      "./assets/rich-enhance.js": "./assets/rich-enhance.js",
+      "./tailwind.css": "./tailwind.css",
+      "./package.json": "./package.json"
+   },
+   "files": [
+      "dist",
+      "assets",
+      "tailwind.css",
+      "README.md",
+      "LICENSE"
+   ]
+}

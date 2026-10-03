@@ -1,0 +1,23 @@
+# .github/actions/upload-static-docs/action.yml
+name: Upload Static Docs to GCP
+description: Upload the pre-rendered static docs site (dist) to the cli.calycode.com GCS bucket
+
+inputs:
+   gcp_credentials:
+      description: 'GCP service account key'
+      required: true
+
+runs:
+   using: 'composite'
+   steps:
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v3
+        with:
+           credentials_json: '${{ inputs.GCP_CREDENTIALS }}'
+
+      - name: Upload static docs folder to GCP
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+           path: 'dist'
+           destination: 'cli.calycode.com'
+           parent: false

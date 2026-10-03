@@ -26,6 +26,29 @@
    </div>
    <div id="app"></div>
    <script>
+      /**
+       * The markdown in docs/ is authored for the static content-kit renderer, but this same
+       * folder also feeds the legacy docsify site. Rewrite the content-kit vocabulary into what
+       * the docsify plugins here understand: `{% alert %}...{% /alert %}` becomes the
+       * docsify-flexible-alerts blockquote, and the `{% anim=true %}` fence modifier becomes the
+       * termynal `data-termynal` attribute. Keeps both deployments rendering from one source.
+       */
+      function beforeEach(content) {
+         content = content.replace(
+            /{%\s*alert\s+type="([^"]+)"(?:\s+title="([^"]*)")?\s*%}\r?\n?([\s\S]*?)\r?\n?{%\s*\/alert\s*%}/g,
+            (match, type, title, body) => {
+               const heading = title ? `> #### ${title}\r\n` : '';
+               const lines = (heading + body.trim()).split(/\r?\n/).map((line) => `> ${line}`);
+               return `>[!${type.toUpperCase()}]\r\n${lines.join('\r\n')}`;
+            }
+         );
+
+         content = content.replace(/```term\s*{%\s*anim=true\s*%}/g, '```termynal');
+         content = content.replace(/```term\b/g, '```termynal');
+
+         return content;
+      }
+
       window.$docsify = {
          el: '#app',
          name: '@calycode/cli Docs',

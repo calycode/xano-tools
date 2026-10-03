@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-manifest-version="%%MANIFEST_VERSION%%">
+<head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>@calycode/cli — Xano developer tools</title>
+   <meta name="description" content="The @calycode/cli command line toolkit for Xano: automate backups, generate OpenAPI specs, codegen, docs, tests, and registry workflows." />
+   <link rel="canonical" href="https://cli.calycode.com/" />
+   <link rel="alternate" type="text/markdown" href="/README.md" />
+   <meta property="og:type" content="website" />
+   <meta property="og:title" content="@calycode/cli — Xano developer tools" />
+   <meta property="og:description" content="Automate backups, docs, testing and version control for Xano — no AI guesswork, just reliable, transparent dev tools." />
+   <meta property="og:url" content="https://cli.calycode.com/" />
+   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+   <link href="/assets/docs.css" rel="stylesheet" />
+</head>
+<body class="d-body d-body--landing" data-manifest-version="%%MANIFEST_VERSION%%">
+   <header class="d-header d-header--landing">
+      <a class="d-brand" href="/">
+         <img src="/assets/logo.png" alt="" width="28" height="28" />
+         <span class="d-brand__name">@calycode/cli</span>
+      </a>
+      <div class="d-header__spacer"></div>
+      <a class="d-header__link" href="/docs/">Docs</a>
+      <a class="d-header__link" href="https://github.com/calycode/xano-tools" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <button class="d-theme" type="button" data-theme-toggle aria-label="Toggle color theme">
+         <span data-theme-icon>◐</span>
+      </button>
+   </header>
+
+   <main class="d-landing">
+      <section class="d-hero">
+         <p class="d-hero__eyebrow">caly-xano · v%%VERSION%%</p>
+         <h1 class="d-hero__title">Supercharge your Xano workflow</h1>
+         <p class="d-hero__lede">
+            Automate backups, generate OpenAPI specs and typed clients, build browsable repos from
+            your metadata, scaffold registries, and run automated API tests — with clarity,
+            transparency, and version control in place. No AI guesswork, just reliable dev tools.
+         </p>
+         <div class="d-hero__actions">
+            <a class="d-btn d-btn--primary" href="/docs/">Read the docs</a>
+            <a class="d-btn" href="https://github.com/calycode/xano-tools" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+         </div>
+         <div class="d-install" role="group" aria-label="Install command">
+            <div class="d-install__dots"><span></span><span></span><span></span></div>
+            <code>%%INSTALL_CMD%%</code>
+            <button class="d-install__copy" type="button" data-copy-install aria-label="Copy install command">copy</button>
+         </div>
+      </section>
+
+      <section class="d-features" aria-label="Features">
+         <article class="d-feature">
+            <h2>Backups &amp; restore</h2>
+            <p>Export and restore Xano metadata over the Metadata API, so every environment is reproducible.</p>
+         </article>
+         <article class="d-feature">
+            <h2>Specs &amp; codegen</h2>
+            <p>Generate OpenAPI plus a Scalar reference UI, then typed clients straight from your API groups.</p>
+         </article>
+         <article class="d-feature">
+            <h2>Docs &amp; repos</h2>
+            <p>Turn queries, functions, and tables into a browsable repository that lives in Git.</p>
+         </article>
+         <article class="d-feature">
+            <h2>Registry</h2>
+            <p>Scaffold and consume reusable Xano components with a schema-backed registry system.</p>
+         </article>
+         <article class="d-feature">
+            <h2>Testing</h2>
+            <p>Run automated API tests with JSON or JavaScript configuration and custom assertions.</p>
+         </article>
+         <article class="d-feature">
+            <h2>OpenCode</h2>
+            <p>Install skills, templates, and a native host for a grounded, reproducible agent setup.</p>
+         </article>
+      </section>
+
+      <section class="d-cta">
+         <h2>Start with the CLI reference</h2>
+         <p>Every command is documented and machine-readable.</p>
+         <a class="d-btn d-btn--primary" href="/docs/">Browse the docs</a>
+      </section>
+   </main>
+
+   <footer class="d-footer d-footer--landing">
+      <span>For devs with 💖 by devs at <a href="https://calycode.com" target="_blank" rel="noopener noreferrer">calycode</a>.</span>
+      <span>Built %%GENERATED_AT%% · <a href="/docs/">docs</a> · <a href="https://links.calycode.com/discord" target="_blank" rel="noopener noreferrer">Discord</a></span>
+   </footer>
+
+   <script src="/assets/docs.js" defer></script>
+</body>
+</html>

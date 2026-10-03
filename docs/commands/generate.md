@@ -1,29 +1,21 @@
 # generate
->[!NOTE|label:Description]
-> #### Transforamtive operations that allow you to view you Xano through a fresh set of eyes.
 
-```term
-$ caly-xano generate [options]
+{% alert type="note" title="Description" %}
+Transformative operations that let you view your Xano through a fresh set of eyes.
+{% /alert %}
+
+## Usage
+
+```term {% anim=true %}
+$ caly-xano generate <command> [options]
 ```
 
-### generate --help
-```term
-$ caly-xano generate --help
-Transforamtive operations that allow you to view you Xano through a fresh set of eyes.
+## Subcommands
 
-Usage: caly-xano generate [options] [command]
-
-Options:
-  └─ -h, --help  display help for command
-
-Commands:
-  ├─ codegen     Create a library based on the OpenAPI specification. If t...
-  ├─ docs        Collect all descriptions, and internal documentation from...
-  ├─ spec        Update and generate OpenAPI spec(s) for the current conte...
-  ├─ repo        Process Xano workspace into repo structure. We use the ex...
-  ├─ xanoscript  Process Xano workspace into repo structure. Supports tabl...
-  └─ help        display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
-```
+| Command | Description |
+| --- | --- |
+| `codegen` | Create a client library from the OpenAPI specification. If the spec has not been generated yet, it is produced as the first step. Supports all OpenAPI Generator clients plus Orval clients (as orval-<client>). |
+| `docs` | Collect all descriptions and internal documentation from a Xano instance and combine them into a documentation suite that can be hosted on static hosting. |
+| `spec` | Update and generate OpenAPI spec(s) for the current context, or all API groups at once. Fetches the API definition directly from the Xano instance via the metadata API (there is no local-input mode). Produces an opinionated API reference powered by Scalar and upgrades the docs to OAS 3.1+. |
+| `repo` | Process a Xano workspace into a repo structure using the export-schema metadata API, enriched with XanoScripts after Xano 2.0. Fetches from the instance by default; pass --input to use a local schema file instead. |
+| `xanoscript` | Process a Xano workspace into XanoScript files. Supports tables, functions and APIs. The Xano VS Code extension is the preferred solution over this command. These outputs are also included in the default repo generation command. |
