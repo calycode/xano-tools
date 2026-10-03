@@ -1,5 +1,36 @@
 # @calycode/xano-cli
 
+## 0.20.0
+
+### Minor Changes
+
+- 34fac1c: Add a static documentation site for the CLI.
+
+  `pnpm build:docs:static` pre-renders the docsify markdown into complete HTML pages with an in-page search index, a theme-aware shell, sidebar, and landing page, then deploys them to cli.calycode.com. The renderer converts legacy docsify `> [!NOTE]` callouts into `{% alert %}` blocks and restores `<details>` disclosures, and the sidebar rail, section headings, external links, and scrollbars all follow the theme. On localhost the pages additionally mount an Agentation toolbar for in-context UI feedback.
+
+- e03c632: Deepen the OpenCode subsystem, unify Xano HTTP, and harden the CLI.
+
+  The OpenCode command is split into two deep modules — `native-host` (messaging
+  protocol, runtime, origins) and distribution (version/install/spawn/launch,
+  artifact install) — with tests at the seams, and the Windows launcher now
+  resolves `.exe`/`.cmd` shims correctly and repairs `opencode-ai`'s npm-blocked
+  postinstall instead of shipping a placeholder binary. Core Xano calls route
+  through a single `metaApiFetch` adapter, context resolution and registry
+  file-type ordering are unified, and duplicated helpers (dead registry client,
+  `clearDirectory`, `getSpawnOptions`, boolean-env parsing, schema loading) are
+  collapsed.
+
+  The CLI is also more predictable and easier to use: prompt cancellation and
+  non-TTY runs are handled, errors no longer print stack traces, `generate repo`
+  fetches by default, `serve` uses a built-in static server and guards a missing
+  registry, help shows required vs optional arguments and gains short flags,
+  `codegen` gets an interactive generator picker, and help/serve banners use a
+  width-capped note box.
+
+### Patch Changes
+
+- caf6514: chore: remove the legacy 'xano' command handling completely to avoid collisions with xano cli
+
 ## 0.19.2
 
 ### Patch Changes
