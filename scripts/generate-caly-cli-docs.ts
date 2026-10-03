@@ -113,6 +113,27 @@ function escapePipes(value: string) {
    return value.replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Build the usage synopsis from what the command actually accepts: its registered positional
+ * arguments and whether it has its own action and/or subcommands. A namespace with both a direct
+ * action and children (e.g. `oc native-host`) shows both forms.
+ */
+function buildUsage(name: string, cmd: any, hasSubcommands: boolean): string {
+   const args = (cmd.registeredArguments ?? []).map((arg: any) => {
+      const label = arg.variadic ? `${arg.name()}...` : arg.name();
+      return arg.required ? `<${label}>` : `[${label}]`;
+   });
+   const hasAction = typeof cmd._actionHandler === 'function';
+
+   const direct = [`$ caly-xano`, name, ...args, '[options]'].join(' ');
+   const child = `$ caly-xano ${name} <command> [options]`;
+
+   if (hasAction && hasSubcommands) return `${direct}\n${child}`;
+   if (hasAction) return direct;
+   if (hasSubcommands) return child;
+   return `$ caly-xano ${name} [options]`;
+}
+
 function writeDocForCommand(cmd: any, docPath: string, nameParts: string[]) {
    const name = nameParts.join(' ');
    const description = cmd.description ? cmd.description() : '';
@@ -120,9 +141,7 @@ function writeDocForCommand(cmd: any, docPath: string, nameParts: string[]) {
    const subcommands = (cmd.commands ?? []).filter((sub: any) => !isDeprecated(sub));
    const hasSubcommands = subcommands.length > 0;
 
-   const usage = hasSubcommands
-      ? `$ caly-xano ${name} <command> [options]`
-      : `$ caly-xano ${name} [options]`;
+   const usage = buildUsage(name, cmd, hasSubcommands);
 
    const sections: string[] = [`# ${name}`];
 

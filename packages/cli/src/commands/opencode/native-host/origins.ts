@@ -4,6 +4,12 @@ import { XANO_APP_ORIGIN, getExtraCorsOriginsFromEnv } from '../distribution';
 export const MAX_CORS_ORIGINS = 10;
 export const CHROME_EXTENSION_ORIGIN_REGEX = /^chrome-extension:\/\/[a-p]{32}$/;
 
+// A bare HTTPS origin's host must be a DNS name (letters, digits, dots, hyphens) or a bracketed
+// IPv6 literal. The WHATWG URL parser allows shell metacharacters such as `&` in a host, so the
+// exact-origin comparison alone is not enough to keep a `--cors` value shell-safe.
+const SAFE_DNS_HOST = /^[a-z0-9.-]+$/i;
+const SAFE_IPV6_HOST = /^\[[0-9a-f:.]+\]$/i;
+
 /**
  * Get the allowed CORS origins for the OpenCode server.
  *
@@ -46,8 +52,11 @@ export function isValidCorsOrigin(origin: string, knownExtensionIds: string[]): 
          return false;
       }
       // Only a bare HTTPS origin is allowed: reject URLs carrying paths,
-      // credentials, queries, or fragments by requiring an exact match.
-      return parsed.protocol === 'https:' && parsed.origin === trimmed;
+      // credentials, queries, or fragments by requiring an exact match, and
+      // reject hosts whose characters could be interpreted by a shell.
+      const host = parsed.hostname;
+      const safeHost = SAFE_IPV6_HOST.test(host) || SAFE_DNS_HOST.test(host);
+      return parsed.protocol === 'https:' && parsed.origin === trimmed && safeHost;
    }
 
    return false;

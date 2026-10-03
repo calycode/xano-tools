@@ -24,6 +24,10 @@ oas.json
 
 # Other
 dist/
+# The vendored content-kit ships a compiled build with no source, so its dist must be tracked
+# even though every other dist/ is generated.
+!vendor/content-kit/dist/
+!vendor/content-kit/dist/**
 debug_requests.json
 .VSCodeCounter/
 project-plan.md

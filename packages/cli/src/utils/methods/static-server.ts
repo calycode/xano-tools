@@ -94,7 +94,9 @@ export function createStaticServer({
                res.writeHead(500, { 'Content-Type': 'text/plain' });
                res.end('Internal server error');
             } else {
-               res.end();
+               // Headers (a 200) already went out; tear the connection down rather than ending it
+               // cleanly, which would present a truncated asset as a complete response.
+               res.destroy();
             }
          });
          stream.on('open', () => {

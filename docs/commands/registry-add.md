@@ -7,7 +7,7 @@ Add a prebuilt component to the current Xano context, essentially by pushing an 
 ## Usage
 
 ```term {% anim=true %}
-$ caly-xano registry add [options]
+$ caly-xano registry add [components...] [options]
 ```
 
 ## Options

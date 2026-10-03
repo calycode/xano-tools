@@ -7,7 +7,7 @@ Create a client library from the OpenAPI specification. If the spec has not been
 ## Usage
 
 ```term {% anim=true %}
-$ caly-xano generate codegen [options]
+$ caly-xano generate codegen [passthroughArgs...] [options]
 ```
 
 ## Options

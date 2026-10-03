@@ -7,5 +7,5 @@ Run any OpenCode CLI command (default)
 ## Usage
 
 ```term {% anim=true %}
-$ caly-xano oc run [options]
+$ caly-xano oc run [args...] [options]
 ```

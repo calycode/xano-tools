@@ -181,6 +181,9 @@ function renderAssets(assets: Asset[], position: 'head' | 'body'): string {
  * dead `.md` hrefs in navigation. Absolute URLs and pure fragments are left alone.
  */
 function resolveHref(href: string): string {
+   // Remember whether the author already rooted the link under /docs/ — the pages live there, so
+   // it has to be put back after normalizing.
+   const hadDocsPrefix = /^\/docs\//.test(href);
    let next = href;
    next = next.replace(/^\/docs\//, '/');
    next = next.replace(/^\.\//, '');
@@ -195,7 +198,11 @@ function resolveHref(href: string): string {
       resolved += 'index.html';
    }
    if (!resolved.startsWith('/')) resolved = '/' + resolved;
-   if (resolved === '/xano.html') resolved = '/docs/xano.html';
+   if (resolved === '/xano.html') {
+      resolved = '/docs/xano.html';
+   } else if (hadDocsPrefix) {
+      resolved = '/docs' + resolved;
+   }
    return `${resolved}${hash ? '#' + hash : ''}`;
 }
 

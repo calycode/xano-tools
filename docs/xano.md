@@ -4,7 +4,9 @@ Automate backups, docs, testing and version control for Xano. Every command is l
 below; pick one from the sidebar, or run `caly-xano <command> --help` in your terminal.
 
 ```term
-$ Usage: caly-xano <command> [options]
+$ caly-xano v0.19.2 — Automate backups, docs, testing & version control for Xano
+
+Usage: caly-xano <command> [options]
 
 Core:
   └─ init                   Initialize the CLI with a Xano instance

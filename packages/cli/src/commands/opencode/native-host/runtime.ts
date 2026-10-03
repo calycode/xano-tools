@@ -461,6 +461,10 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
             // this port; otherwise a stale exit would tear down the new session.
             if (managedSessions.get(port)?.proc !== launchedProc) {
                logger.log(`Ignoring exit from stale server process ${launchedProc.pid} on port ${port}`);
+               // Don't leave a dangling reference if this process is still the one we track.
+               if (serverProc === launchedProc) {
+                  serverProc = null;
+               }
                return;
             }
             logger.log(`Server process exited with code ${code}`);

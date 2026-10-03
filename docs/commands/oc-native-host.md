@@ -7,6 +7,7 @@ Native host operations for browser extension integration.
 ## Usage
 
 ```term {% anim=true %}
+$ caly-xano oc native-host [options]
 $ caly-xano oc native-host <command> [options]
 ```
 
