@@ -1,40 +1,44 @@
-# @calycode/cli
-```sh
-caly-xano-cli v0.19.2 — Automate backups, docs, testing & version control for Xano
+# caly-xano — the core command
+
+Automate backups, docs, testing and version control for Xano. Every command is listed
+below; pick one from the sidebar, or run `caly-xano <command> --help` in your terminal.
+
+```term
+$ caly-xano v0.19.2 — Automate backups, docs, testing & version control for Xano
 
 Usage: caly-xano <command> [options]
 
 Core:
-  └─ init                   Initialize CLI with Xano instance config
+  └─ init                   Initialize the CLI with a Xano instance
 
 Agentic Development:
   ├─ oc init                Initialize OpenCode host integration
   ├─ oc serve               Serve OpenCode AI server locally
-  └─ oc templates install   Install OpenCode agent templates
+  └─ oc templates install   Install OpenCode agent config (templates)
 
 Testing:
-  └─ test run               Run API test suite via OpenAPI spec
+  └─ test run               Run an API test suite
 
 Generate:
-  ├─ generate codegen       Create library from OpenAPI spec
-  ├─ generate docs          Generate documentation suite
-  ├─ generate repo          Process workspace into repo structure
+  ├─ generate codegen       Create a client library from the OpenAPI spec
+  ├─ generate docs          Generate an internal documentation suite
+  ├─ generate repo          Process the workspace into a browsable repo
   └─ generate spec          Generate OpenAPI spec(s)
 
 Registry:
-  ├─ registry add           Add prebuilt component to Xano
-  └─ registry scaffold      Scaffold registry folder
+  ├─ registry add           Add a prebuilt component to Xano
+  └─ registry scaffold      Scaffold a registry folder with a sample component
 
 Serve:
-  ├─ serve spec             Serve OpenAPI spec locally
-  └─ serve registry         Serve registry locally
+  ├─ serve spec             Serve the OpenAPI spec locally
+  └─ serve registry         Serve the registry locally
 
 Backups:
-  ├─ backup export          Export workspace backup
-  └─ backup restore         Restore backup to workspace
+  ├─ backup export          Export a workspace backup
+  └─ backup restore         Restore a backup to a workspace (destructive)
 
 Other:
-  ├─ oc skills install      Install or reinstall Xano skills for AI agents.
+  ├─ oc skills install      Install Xano skills
   └─ oc native-host status  Show native host manifest, wrapper, and extension allowlist status.
 
 Run 'caly-xano <command> --help' for detailed usage.

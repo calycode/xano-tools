@@ -1,26 +1,18 @@
 # serve
->[!NOTE|label:Description]
-> #### Serve locally available assets for quick preview or local reuse.
 
-```term
-$ caly-xano serve [options]
-```
-
-### serve --help
-```term
-$ caly-xano serve --help
+{% alert type="note" title="Description" %}
 Serve locally available assets for quick preview or local reuse.
+{% /alert %}
 
-Usage: caly-xano serve [options] [command]
+## Usage
 
-Options:
-  └─ -h, --help  display help for command
-
-Commands:
-  ├─ registry  Serve the registry locally. This allows you to actually u...
-  ├─ spec      Serve the Open API specification locally for quick visual...
-  └─ help      display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
+```term {% anim=true %}
+$ caly-xano serve <command> [options]
 ```
+
+## Subcommands
+
+| Command | Description |
+| --- | --- |
+| `registry` | Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host. |
+| `spec` | Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference. |

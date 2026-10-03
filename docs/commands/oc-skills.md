@@ -1,28 +1,20 @@
 # oc skills
->[!NOTE|label:Description]
-> #### Manage Xano skills for AI agents (database optimization, security, best practices).
 
-```term
-$ caly-xano oc skills [options]
+{% alert type="note" title="Description" %}
+Manage Xano skills: self-contained SKILL.md capability packs that teach the agent Xano-specific workflows (database optimization, security, best practices). Installed under ~/.calycode/opencode/skills.
+{% /alert %}
+
+## Usage
+
+```term {% anim=true %}
+$ caly-xano oc skills <command> [options]
 ```
 
-### oc skills --help
-```term
-$ caly-xano oc skills --help
-Manage Xano skills for AI agents (database optimization, security, best practices).
+## Subcommands
 
-Usage: caly-xano oc skills [options] [command]
-
-Options:
-  └─ -h, --help  display help for command
-
-Commands:
-  ├─ install      Install or reinstall Xano skills for AI agents.
-  ├─ update       Update skills by fetching the latest versions from GitHub.
-  ├─ status       Show the status of installed skills.
-  ├─ clear-cache  Clear the skills cache (skills will be re-downloaded on n...
-  └─ help         display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
-```
+| Command | Description |
+| --- | --- |
+| `install` | Install or reinstall the Xano skill packs. Use --force to overwrite local edits. |
+| `update` | Update skills by fetching the latest versions from GitHub. |
+| `status` | Show the status of installed skills. |
+| `clear-cache` | Clear the skills cache (skills will be re-downloaded on next install). |

@@ -46,6 +46,7 @@
     "devDependencies": {
         "@repo/types": "workspace:*",
         "@repo/utils": "workspace:*",
+        "fake-indexeddb": "^6.2.5",
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0"
     },

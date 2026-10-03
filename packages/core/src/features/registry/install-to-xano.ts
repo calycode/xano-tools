@@ -1,4 +1,5 @@
 import { BranchConfig, InstanceConfig, InstallResults, WorkspaceConfig } from '@repo/types';
+import { metaApiFetch } from '@repo/utils';
 import type { Caly } from '../..';
 import { sortFilesByType } from './general';
 import { fetchRegistryFileContent } from './api';
@@ -135,7 +136,6 @@ async function installRegistryItemToXano(
          }
 
          // Post to Xano
-         const xanoApiUrl = `${instanceConfig.url}/api:meta`;
          const installUrl = resolveInstallUrl(file.type, {
             instanceConfig,
             workspaceConfig,
@@ -144,13 +144,13 @@ async function installRegistryItemToXano(
             apiGroupId,
          });
 
-         const response = await fetch(`${xanoApiUrl}${installUrl}`, {
+         const response = await metaApiFetch({
+            baseUrl: instanceConfig.url,
+            token: xanoToken,
             method: 'POST',
-            headers: {
-               Authorization: `Bearer ${xanoToken}`,
-               'Content-Type': 'text/x-xanoscript',
-            },
-            body: content,
+            path: installUrl,
+            rawBody: content,
+            headers: { 'Content-Type': 'text/x-xanoscript' },
          });
 
          if (response.ok) {

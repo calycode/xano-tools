@@ -1,0 +1,533 @@
+/**
+ * content-kit — rich article stylesheet.
+ *
+ * Import once, after your base styles, and wrap rendered rich HTML in `.ck-article`:
+ *
+ *     @import "@calycode/content-kit/html/rich.css";
+ *     <div class="ck-article" set:html={html} />
+ *
+ * It styles only the rich components (`md-code-wrap`, `md-term-wrap`, `md-mermaid`, `md-alert`,
+ * `md-img-wrap`), Prism tokens, and the dialogs/link-preview card the enhancer creates — the
+ * prose typography is yours, so the package never fights a host's article styles. Dark by
+ * default; a `.ck-article.light` (or a parent `.light`) switches the palette.
+ */
+
+.ck-article {
+   --ck-text: #e7e7ea;
+   --ck-heading: #fff;
+   --ck-muted: #b9bcc4;
+   --ck-faint: #8c9099;
+   --ck-border: rgba(255, 255, 255, 0.08);
+   --ck-accent: #45f3ff;
+   --ck-warning: #ffcc66;
+   --ck-danger: #ff7d7d;
+   --ck-radius: 14px;
+   --ck-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+   --ck-inline-code-bg: rgba(255, 255, 255, 0.06);
+   --ck-inline-code-color: #f2f4f8;
+   --ck-pre-bg: linear-gradient(180deg, #2b2d31, #212328);
+   --ck-pre-color: #eef2f7;
+   --ck-code-header-bg: rgba(255, 255, 255, 0.04);
+   --ck-table-header-bg: rgba(255, 255, 255, 0.04);
+   --ck-alert-bg: rgba(255, 255, 255, 0.03);
+   --ck-mermaid-bg: linear-gradient(180deg, #26282c, #202226);
+   --ck-button-hover-bg: rgba(255, 255, 255, 0.06);
+   --ck-button-hover-border: rgba(255, 255, 255, 0.2);
+
+   --ck-token-comment: #7f8c98;
+   --ck-token-punctuation: #cfd7df;
+   --ck-token-property: #f78c6c;
+   --ck-token-selector: #c3e88d;
+   --ck-token-operator: #89ddff;
+   --ck-token-atrule: #c792ea;
+   --ck-token-function: #82aaff;
+   --ck-token-regex: #fcd34d;
+}
+
+.ck-article.light {
+   --ck-text: #1a1a2e;
+   --ck-heading: #111827;
+   --ck-muted: #5a5d6b;
+   --ck-faint: #858a99;
+   --ck-border: rgba(0, 0, 0, 0.08);
+   --ck-accent: #0891b2;
+   --ck-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+   --ck-inline-code-bg: rgba(0, 0, 0, 0.06);
+   --ck-inline-code-color: #c7254e;
+   --ck-pre-bg: linear-gradient(180deg, #f7f8fa, #f0f1f4);
+   --ck-pre-color: #24292e;
+   --ck-code-header-bg: rgba(0, 0, 0, 0.03);
+   --ck-table-header-bg: rgba(0, 0, 0, 0.03);
+   --ck-alert-bg: rgba(0, 0, 0, 0.02);
+   --ck-mermaid-bg: linear-gradient(180deg, #f5f6f9, #f0f1f3);
+   --ck-button-hover-bg: rgba(0, 0, 0, 0.06);
+   --ck-button-hover-border: rgba(0, 0, 0, 0.15);
+
+   --ck-token-comment: #6a737d;
+   --ck-token-punctuation: #24292e;
+   --ck-token-property: #e36209;
+   --ck-token-selector: #22863a;
+   --ck-token-operator: #005cc5;
+   --ck-token-atrule: #6f42c1;
+   --ck-token-function: #005cc5;
+   --ck-token-regex: #e36209;
+}
+
+/* ── Prose headings & links ──────────────────────── */
+.ck-article h1,
+.ck-article h2,
+.ck-article h3,
+.ck-article h4 {
+   padding-bottom: 0.35em;
+   border-bottom: 1px solid var(--ck-border);
+}
+
+.ck-article a,
+.ck-article .md-link {
+   color: var(--ck-accent);
+   text-decoration: underline;
+   text-decoration-thickness: 1px;
+   text-underline-offset: 2px;
+}
+
+.ck-article a:hover,
+.ck-article .md-link:hover {
+   color: #9bfaff;
+   text-decoration-color: currentColor;
+}
+
+/* ── Inline code ─────────────────────────────────── */
+.ck-article :not(pre) > code {
+   background: var(--ck-inline-code-bg);
+   color: var(--ck-inline-code-color);
+   border: 1px solid var(--ck-border);
+   border-radius: 8px;
+   padding: 0.16rem 0.42rem;
+   font-size: 0.92em;
+}
+
+/* ── Code & terminal wrappers ────────────────────── */
+.ck-article .md-code-wrap,
+.ck-article .md-term-wrap {
+   margin: 1.2rem 0 1.4rem;
+   border-radius: 16px;
+   overflow: hidden;
+   border: 1px solid var(--ck-border);
+   box-shadow: var(--ck-shadow);
+   background: var(--ck-pre-bg);
+}
+
+.ck-article .md-code,
+.ck-article .md-term {
+   margin: 0;
+   border: 0;
+   border-radius: 0;
+   box-shadow: none;
+   background: var(--ck-pre-bg);
+   color: var(--ck-pre-color);
+   padding: 1rem 1rem 1.1rem;
+   overflow-x: auto;
+}
+
+.ck-article .md-code code,
+.ck-article .md-term code {
+   background: transparent;
+   border: 0;
+   padding: 0;
+   color: inherit;
+   font-size: 0.96rem;
+   line-height: 1.65;
+   white-space: pre;
+}
+
+/* ── Code header bar ─────────────────────────────── */
+.ck-article .md-code-header,
+.ck-article .md-term-header {
+   display: flex;
+   align-items: center;
+   padding: 0.45rem 0.85rem;
+   background: var(--ck-code-header-bg);
+   border-bottom: 1px solid var(--ck-border);
+   font-size: 0.82rem;
+   gap: 0.5rem;
+}
+
+.ck-article .md-code-lang {
+   color: var(--ck-faint);
+   text-transform: capitalize;
+}
+
+/* ── Copy button ─────────────────────────────────── */
+.ck-article .md-code-copy {
+   margin-left: auto;
+   background: none;
+   border: 1px solid var(--ck-border);
+   border-radius: 6px;
+   color: var(--ck-muted);
+   cursor: pointer;
+   padding: 3px 8px;
+   font-size: 0.78rem;
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   transition: all 0.15s ease;
+}
+
+.ck-article .md-code-copy:hover {
+   color: var(--ck-heading);
+   border-color: var(--ck-button-hover-border);
+   background: var(--ck-button-hover-bg);
+}
+
+.ck-article .md-code-copy svg {
+   width: 14px;
+   height: 14px;
+}
+
+/* ── Terminal chrome ─────────────────────────────── */
+.ck-article .md-term-header {
+   background: var(--ck-code-header-bg);
+}
+
+.ck-article .md-term-dots {
+   display: flex;
+   gap: 7px;
+}
+
+.ck-article .md-dot {
+   width: 12px;
+   height: 12px;
+   border-radius: 999px;
+}
+
+.ck-article .md-dot--red {
+   background: #ff5f57;
+}
+.ck-article .md-dot--yellow {
+   background: #febc2e;
+}
+.ck-article .md-dot--green {
+   background: #28c840;
+}
+
+.ck-article .md-term-title {
+   color: var(--ck-faint);
+   font-size: 0.82rem;
+}
+
+.ck-article .md-term-replay {
+   margin-left: auto;
+   background: none;
+   border: 1px solid var(--ck-border);
+   border-radius: 6px;
+   color: var(--ck-muted);
+   cursor: pointer;
+   padding: 3px 8px;
+   font-size: 0.78rem;
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   transition: all 0.15s ease;
+}
+
+.ck-article .md-term-replay:hover {
+   color: var(--ck-heading);
+   border-color: var(--ck-button-hover-border);
+   background: var(--ck-button-hover-bg);
+}
+
+.ck-article .md-term-replay svg {
+   width: 14px;
+   height: 14px;
+}
+
+/* ── Mermaid diagrams ────────────────────────────── */
+.ck-article .md-mermaid {
+   overflow-x: auto;
+   background: var(--ck-mermaid-bg);
+   border: 1px solid rgba(69, 243, 255, 0.35);
+   border-radius: 18px;
+   padding: 1rem;
+   box-shadow: var(--ck-shadow);
+   margin: 1.3rem 0 1.6rem;
+   cursor: zoom-in;
+   transition: border-color 0.2s ease;
+}
+
+.ck-article .md-mermaid:hover {
+   border-color: rgba(69, 243, 255, 0.6);
+}
+
+.ck-article .md-mermaid svg {
+   max-width: 100%;
+   height: auto;
+   display: block;
+   margin: 0 auto;
+}
+
+/* ── Alert callouts ──────────────────────────────── */
+.ck-article .md-alert {
+   border: 1px solid var(--ck-border);
+   border-left: 4px solid var(--ck-accent);
+   background: var(--ck-alert-bg);
+   border-radius: 14px;
+   padding: 0.95rem 1rem;
+   margin: 1.25rem 0;
+}
+
+.ck-article .md-alert__title {
+   font-weight: 800;
+   color: var(--ck-heading);
+   margin-bottom: 0.4rem;
+}
+
+.ck-article .md-alert__body > *:first-child {
+   margin-top: 0;
+}
+
+.ck-article .md-alert__body > *:last-child {
+   margin-bottom: 0;
+}
+
+.ck-article .md-alert--note,
+.ck-article .md-alert--tip {
+   border-left-color: var(--ck-accent);
+}
+
+.ck-article .md-alert--important {
+   border-left-color: var(--ck-warning);
+}
+
+.ck-article .md-alert--warning,
+.ck-article .md-alert--caution {
+   border-left-color: var(--ck-danger);
+}
+
+/* ── Tables ──────────────────────────────────────── */
+.ck-article table {
+   width: 100%;
+   border-collapse: collapse;
+   overflow: hidden;
+   border: 1px solid var(--ck-border);
+   border-radius: 14px;
+}
+
+.ck-article th,
+.ck-article td {
+   text-align: left;
+   padding: 0.8rem 0.9rem;
+   border-bottom: 1px solid var(--ck-border);
+}
+
+.ck-article th {
+   color: var(--ck-heading);
+   background: var(--ck-table-header-bg);
+}
+
+/* ── Images ──────────────────────────────────────── */
+.ck-article .md-img-wrap {
+   margin: 1.5rem 0;
+   cursor: zoom-in;
+   text-align: center;
+}
+
+.ck-article .md-img {
+   max-width: 100%;
+   border-radius: 16px;
+   transition: transform 0.2s ease;
+}
+
+.ck-article .md-img-wrap:hover .md-img {
+   transform: scale(1.01);
+}
+
+.ck-article .md-img-caption {
+   margin-top: 0.5rem;
+   font-size: 0.9rem;
+   color: var(--ck-faint);
+   font-style: italic;
+}
+
+/* ── Image zoom dialog ───────────────────────────── */
+.md-img-dialog {
+   background: rgba(0, 0, 0, 0.85);
+   border: none;
+   border-radius: 16px;
+   padding: 24px;
+   max-width: 90vw;
+   max-height: 90vh;
+   width: fit-content;
+   height: fit-content;
+   cursor: zoom-out;
+}
+
+.md-img-dialog::backdrop {
+   background: rgba(0, 0, 0, 0.7);
+}
+
+.md-img-dialog-inner {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 12px;
+}
+
+.md-img-dialog-inner img {
+   max-width: 100%;
+   max-height: 80vh;
+   border-radius: 12px;
+   object-fit: contain;
+}
+
+.md-img-dialog-caption {
+   color: #ccc;
+   font-size: 0.9rem;
+   font-style: italic;
+}
+
+/* ── Mermaid zoom dialog ─────────────────────────── */
+.md-mermaid-dialog {
+   background: #222326;
+   border: 1px solid rgba(255, 255, 255, 0.08);
+   border-radius: 18px;
+   padding: 32px;
+   max-width: 92vw;
+   max-height: 92vh;
+   width: fit-content;
+   height: fit-content;
+   cursor: zoom-out;
+}
+
+.md-mermaid-dialog::backdrop {
+   background: rgba(0, 0, 0, 0.75);
+}
+
+.md-mermaid-dialog svg {
+   max-width: 100%;
+   max-height: 85vh;
+   height: auto;
+   display: block;
+}
+
+/* ── Prism token colors ──────────────────────────── */
+.ck-article .token.comment,
+.ck-article .token.prolog,
+.ck-article .token.doctype,
+.ck-article .token.cdata {
+   color: var(--ck-token-comment);
+}
+
+.ck-article .token.punctuation {
+   color: var(--ck-token-punctuation);
+}
+
+.ck-article .token.property,
+.ck-article .token.tag,
+.ck-article .token.boolean,
+.ck-article .token.number,
+.ck-article .token.constant,
+.ck-article .token.symbol,
+.ck-article .token.deleted {
+   color: var(--ck-token-property);
+}
+
+.ck-article .token.selector,
+.ck-article .token.attr-name,
+.ck-article .token.string,
+.ck-article .token.char,
+.ck-article .token.builtin,
+.ck-article .token.inserted {
+   color: var(--ck-token-selector);
+}
+
+.ck-article .token.operator,
+.ck-article .token.entity,
+.ck-article .token.url,
+.ck-article .language-css .token.string,
+.ck-article .style .token.string {
+   color: var(--ck-token-operator);
+}
+
+.ck-article .token.atrule,
+.ck-article .token.attr-value,
+.ck-article .token.keyword {
+   color: var(--ck-token-atrule);
+}
+
+.ck-article .token.function,
+.ck-article .token.class-name {
+   color: var(--ck-token-function);
+}
+
+.ck-article .token.regex,
+.ck-article .token.important,
+.ck-article .token.variable {
+   color: var(--ck-token-regex);
+}
+
+/* ── Link preview card (portaled to body) ────────── */
+[data-link-preview-card] {
+   position: fixed;
+   z-index: 1000;
+   width: min(360px, calc(100vw - 24px));
+   padding: 10px 12px;
+   border-radius: 12px;
+   border: 1px solid rgba(255, 255, 255, 0.12);
+   background: rgba(20, 22, 28, 0.96);
+   color: #f5f7fb;
+   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+   backdrop-filter: blur(14px);
+   pointer-events: auto;
+}
+
+[data-link-preview-card][hidden] {
+   display: none;
+}
+
+.md-link-preview__media {
+   margin: -2px -2px 10px;
+   overflow: hidden;
+   border-radius: 10px;
+   background: rgba(255, 255, 255, 0.04);
+   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.md-link-preview__image {
+   display: block;
+   width: 100%;
+   aspect-ratio: 16 / 9;
+   object-fit: cover;
+}
+
+.md-link-preview__domain {
+   font-size: 12px;
+   opacity: 0.72;
+   margin-bottom: 6px;
+}
+
+.md-link-preview__title {
+   font-size: 14px;
+   font-weight: 600;
+   line-height: 1.35;
+   margin-bottom: 6px;
+   word-break: break-word;
+}
+
+.md-link-preview__description {
+   font-size: 12px;
+   line-height: 1.45;
+   opacity: 0.82;
+   margin-bottom: 8px;
+}
+
+.md-link-preview__url {
+   font-size: 12px;
+   opacity: 0.8;
+   word-break: break-all;
+}
+
+.md-link-preview__hint {
+   margin-top: 8px;
+   font-size: 11px;
+   opacity: 0.6;
+}

@@ -1,40 +1,15 @@
-import { mkdir, access, readdir, lstat, rm, unlink } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { log, intro, outro } from '@clack/prompts';
-import { load } from 'js-yaml';
 import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
+   clearDirectory,
    findProjectRoot,
+   parseSchemaContents,
    printOutputDir,
    resolveConfigs,
 } from '../../../utils/index';
-
-/**
- * Recursively removes all files and subdirectories in a directory.
- * @param {string} directory - The directory to clear.
- */
-async function clearDirectory(directory: string): Promise<void> {
-   try {
-      await access(directory);
-   } catch {
-      // Directory does not exist; nothing to clear
-      return;
-   }
-
-   const files = await readdir(directory);
-   await Promise.all(
-      files.map(async (file) => {
-         const curPath = joinPath(directory, file);
-         const stat = await lstat(curPath);
-         if (stat.isDirectory()) {
-            await clearDirectory(curPath);
-            await rm(curPath, { recursive: true, force: true }); // removes the (now-empty) dir
-         } else {
-            await unlink(curPath);
-         }
-      })
-   );
-}
 
 async function generateRepo({
    instance,
@@ -55,6 +30,8 @@ async function generateRepo({
       fetch,
       printOutput,
    });
+
+   intro('Building directory structure...');
 
    let instanceConfig, workspaceConfig, branchConfig;
    if (input && !fetch) {
@@ -86,9 +63,11 @@ async function generateRepo({
    clearDirectory(outputDir);
    await mkdir(outputDir, { recursive: true });
 
-   // Ensure we have the input file, default to local, but override if --fetch
+   // Default to fetching the schema from the instance when no local input was
+   // provided, so `generate repo` works with no arguments.
    let inputFile = input;
-   if (fetch) {
+   const shouldFetch = fetch || !input;
+   if (shouldFetch) {
       inputFile = await fetchAndExtractYaml({
          baseUrl: instanceConfig.url,
          token: await core.loadToken(instanceConfig.name),
@@ -99,31 +78,13 @@ async function generateRepo({
       });
    }
 
-   intro('Building directory structure...');
-
    if (!inputFile) throw new Error('Input schema file (.json or .yaml) is required');
    if (!outputDir) throw new Error('Output directory is required');
 
-   log.step(`Reading and parsing schema file -> ${inputFile}`);
+   log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
    const fileContents = await core.storage.readFile(inputFile, 'utf8');
 
-   let jsonData: any;
-   try {
-      if (inputFile.endsWith('.json')) {
-         jsonData = JSON.parse(fileContents);
-      } else if (inputFile.endsWith('.yaml') || inputFile.endsWith('.yml')) {
-         jsonData = load(fileContents);
-      } else {
-         // Fallback: Try JSON, then YAML if extension is missing or weird
-         try {
-            jsonData = JSON.parse(fileContents);
-         } catch {
-            jsonData = load(fileContents);
-         }
-      }
-   } catch (err) {
-      throw new Error(`Failed to parse schema file: ${err.message}`);
-   }
+   const jsonData = parseSchemaContents(fileContents, inputFile);
 
    // 3. Proceed with generation
    const plannedWrites: { path: string; content: string }[] = await core.generateRepo({
@@ -133,7 +94,7 @@ async function generateRepo({
       branch: branchConfig.label,
    });
 
-   log.step(`Writing Repository to the output directory -> ${outputDir}`);
+   log.step(`Writing Repository to the output directory -> ${path.normalize(outputDir)}`);
 
    // Track results for logging
    const writeResults = await Promise.all(

@@ -4,11 +4,13 @@ import { serveOas, serveRegistry } from './implementation';
 function registerServeCommands(program, core) {
    const serveNamespace = program
       .command('serve')
+      .summary('Serve local assets for preview (registry, spec)')
       .description('Serve locally available assets for quick preview or local reuse.');
 
    // Add the registry.
    serveNamespace
       .command('registry')
+      .summary('Serve the registry locally')
       .description(
          'Serve the registry locally. This allows you to actually use your registry without deploying it to any remote host.'
       )
@@ -22,7 +24,7 @@ function registerServeCommands(program, core) {
       )
       .option('--cors', 'Do you want to enable CORS? By default false.')
       .action((options) => {
-         serveRegistry({
+         return serveRegistry({
             root: options.root,
             listen: options.listen,
             cors: options.cors,
@@ -32,6 +34,7 @@ function registerServeCommands(program, core) {
    // Add the specification serving
    const specCommand = serveNamespace
       .command('spec')
+      .summary('Serve the OpenAPI spec locally')
       .description(
          'Serve the Open API specification locally for quick visual check, or to test your APIs via the Scalar API reference.'
       );
@@ -44,7 +47,7 @@ function registerServeCommands(program, core) {
       )
       .option('--cors', 'Do you want to enable CORS? By default false.')
       .action((options) => {
-         serveOas({
+         return serveOas({
             instance: options.instance,
             workspace: options.workspace,
             branch: options.branch,

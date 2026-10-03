@@ -1,0 +1,82 @@
+import { resolveAllowedExtensionIds } from './discovery';
+import { XANO_APP_ORIGIN, getExtraCorsOriginsFromEnv } from '../distribution';
+
+export const MAX_CORS_ORIGINS = 10;
+export const CHROME_EXTENSION_ORIGIN_REGEX = /^chrome-extension:\/\/[a-p]{32}$/;
+
+// A bare HTTPS origin's host must be a DNS name (letters, digits, dots, hyphens) or a bracketed
+// IPv6 literal. The WHATWG URL parser allows shell metacharacters such as `&` in a host, so the
+// exact-origin comparison alone is not enough to keep a `--cors` value shell-safe.
+const SAFE_DNS_HOST = /^[a-z0-9.-]+$/i;
+const SAFE_IPV6_HOST = /^\[[0-9a-f:.]+\]$/i;
+
+/**
+ * Get the allowed CORS origins for the OpenCode server.
+ *
+ * These are the static origins plus the browser-extension origins discovered
+ * on this machine. Dynamic origins (user-specific Xano instance URLs) are passed
+ * by the browser extension when it starts the server via the native messaging protocol.
+ *
+ * Environment variable: CALY_EXTRA_CORS_ORIGINS (comma-separated list of additional origins)
+ */
+export function getAllowedCorsOrigins(): string[] {
+   const resolvedExtensions = resolveAllowedExtensionIds();
+   return [
+      // The main Xano application
+      XANO_APP_ORIGIN,
+      // Chrome extension origins for extension-to-server communication
+      ...resolvedExtensions.ids.map((id) => `chrome-extension://${id}`),
+      // Additional origins via environment variable (for development/testing)
+      ...getExtraCorsOriginsFromEnv(),
+   ];
+}
+
+export function isValidCorsOrigin(origin: string, knownExtensionIds: string[]): boolean {
+   const trimmed = origin.trim();
+   if (!trimmed) return false;
+
+   if (trimmed === '*') return false;
+
+   if (trimmed.includes('*')) return false;
+
+   if (trimmed.startsWith('chrome-extension://')) {
+      return CHROME_EXTENSION_ORIGIN_REGEX.test(trimmed) &&
+         knownExtensionIds.some((id) => trimmed === `chrome-extension://${id}`);
+   }
+
+   if (trimmed.startsWith('https://')) {
+      let parsed: URL;
+      try {
+         parsed = new URL(trimmed);
+      } catch {
+         return false;
+      }
+      // Only a bare HTTPS origin is allowed: reject URLs carrying paths,
+      // credentials, queries, or fragments by requiring an exact match, and
+      // reject hosts whose characters could be interpreted by a shell.
+      const host = parsed.hostname;
+      const safeHost = SAFE_IPV6_HOST.test(host) || SAFE_DNS_HOST.test(host);
+      return parsed.protocol === 'https:' && parsed.origin === trimmed && safeHost;
+   }
+
+   return false;
+}
+
+export function filterAndValidateOrigins(rawOrigins: unknown, knownExtensionIds: string[]): string[] {
+   if (!Array.isArray(rawOrigins)) {
+      return [];
+   }
+
+   const valid: string[] = [];
+   for (const origin of rawOrigins) {
+      if (typeof origin !== 'string') continue;
+      if (!isValidCorsOrigin(origin, knownExtensionIds)) continue;
+      const trimmed = origin.trim();
+      if (!valid.includes(trimmed)) {
+         valid.push(trimmed);
+      }
+      if (valid.length >= MAX_CORS_ORIGINS) break;
+   }
+
+   return valid;
+}

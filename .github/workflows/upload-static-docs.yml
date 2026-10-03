@@ -1,0 +1,46 @@
+# .github/workflows/upload-static-docs.yml
+name: Release Static Docs for Caly-Xano CLI
+
+on:
+   workflow_dispatch
+
+jobs:
+   release:
+      name: Release Static Docs
+      runs-on: ubuntu-latest
+      permissions:
+         contents: read
+      steps:
+         - name: Checkout repo
+           uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+           with:
+              persist-credentials: false
+
+         - name: Install pnpm
+           uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+           with:
+              run_install: true
+
+         - name: Setup Node
+           uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+           with:
+              node-version: 20.x
+              cache: 'pnpm'
+              registry-url: 'https://registry.npmjs.org'
+              scope: '@calycode'
+              always-auth: true
+           env:
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+         - name: Install dependencies
+           run: pnpm install --frozen-lockfile
+
+         - name: Build the static docs site
+           run: pnpm build:docs:static
+
+         # Upload the pre-rendered site to the cli.calycode.com bucket. The legacy docsify
+         # deployment (upload-docs.yml) is untouched and keeps publishing to calycode.com/cli.
+         - name: Upload static docs
+           uses: './.github/actions/upload-static-docs'
+           with:
+              gcp_credentials: '${{ secrets.GCP_CREDENTIALS }}'

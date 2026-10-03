@@ -3,6 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { HOST_APP_INFO } from '../../../utils/host-constants';
+import { parseBooleanEnv } from '../../../utils';
 
 const CHROME_EXTENSION_ID_REGEX = /^[a-p]{32}$/;
 
@@ -58,21 +59,6 @@ interface ResolveExtensionIdsResult {
    ids: string[];
    matched: ExtensionCandidateMatch[];
    source: string;
-}
-
-function parseBooleanEnv(envValue: string | undefined, defaultValue: boolean): boolean {
-   if (!envValue) {
-      return defaultValue;
-   }
-
-   const normalized = envValue.trim().toLowerCase();
-   if (['1', 'true', 'yes', 'on'].includes(normalized)) {
-      return true;
-   }
-   if (['0', 'false', 'no', 'off'].includes(normalized)) {
-      return false;
-   }
-   return defaultValue;
 }
 
 function parseListEnv(envValue: string | undefined): string[] {

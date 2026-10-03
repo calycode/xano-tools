@@ -1,21 +1,11 @@
 # oc native-host status
->[!NOTE|label:Description]
-> #### Show native host manifest, wrapper, and extension allowlist status.
 
-```term
-$ caly-xano oc native-host status [options]
-```
-
-### oc native-host status --help
-```term
-$ caly-xano oc native-host status --help
+{% alert type="note" title="Description" %}
 Show native host manifest, wrapper, and extension allowlist status.
+{% /alert %}
 
-Usage: caly-xano oc native-host status [options]
+## Usage
 
-Options:
-  └─ -h, --help  display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
+```term {% anim=true %}
+$ caly-xano oc native-host status [options]
 ```

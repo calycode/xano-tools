@@ -1,26 +1,17 @@
 # oc skills install
->[!NOTE|label:Description]
-> #### Install or reinstall Xano skills for AI agents.
 
-```term
+{% alert type="note" title="Description" %}
+Install or reinstall the Xano skill packs. Use --force to overwrite local edits.
+{% /alert %}
+
+## Usage
+
+```term {% anim=true %}
 $ caly-xano oc skills install [options]
 ```
-### Options
 
-#### -f, --force
-**Description:** Force overwrite existing skills
+## Options
 
-### oc skills install --help
-```term
-$ caly-xano oc skills install --help
-Install or reinstall Xano skills for AI agents.
-
-Usage: caly-xano oc skills install [options]
-
-Options:
-  ├─ -f, --force  Force overwrite existing skills
-  └─ -h, --help   display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
-```
+| Flag | Description |
+| --- | --- |
+| `-f, --force` | Force overwrite existing skills |

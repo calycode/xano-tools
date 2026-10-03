@@ -1,4 +1,4 @@
-export { metaApiGet, metaApiPost, metaApiRequestBlob } from './methods/api-helper';
+export { metaApiGet, metaApiPost, metaApiFetch, metaApiRequestBlob } from './methods/api-helper';
 export { fetchAndExtractYaml } from './methods/fetch-and-extract-yaml';
 export { fetchWorkspacesAndBranches } from './methods/fetch-workspaces-branches';
 export { isEmptySchema, isNotEmpty } from './methods/is-empty';

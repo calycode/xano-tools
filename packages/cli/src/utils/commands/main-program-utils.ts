@@ -1,4 +1,8 @@
 import { font } from '../methods/font';
+import { noteBox } from '../methods/note-box';
+
+/** Documentation link shown in the root help box. */
+const DOCS_URL = 'https://calycode.com/cli/docs';
 
 function isDeprecated(cmd) {
    const desc = cmd.description ? cmd.description() : '';
@@ -74,11 +78,19 @@ function collectVisibleLeafCommands(cmd, parentPath = [], parentHiddenFromRoot =
 function customFormatHelp(cmd, helper) {
    let output = [];
 
-   // 1. Description
-   if (cmd.description()) {
-      output.push(cmd.description());
+   // 1. Description — on a real terminal render it as a clack note box so the
+   // long text is visually detached and easier to read; when piped (agents, CI)
+   // keep it plain so the output stays compact.
+   const description = cmd.description();
+   if (description) {
+      if (process.stdout.isTTY) {
+         const commandPath = getFullCommandPath(cmd);
+         noteBox(description, commandPath ? `caly-xano ${commandPath}` : undefined);
+      } else {
+         output.push(description);
+         output.push('');
+      }
    }
-   output.push('');
 
    // 2. Usage
    output.push(font.color.gray(`Usage: ${helper.commandUsage(cmd)}`));
@@ -88,7 +100,13 @@ function customFormatHelp(cmd, helper) {
    const argList = helper.visibleArguments(cmd);
    if (argList.length) {
       output.push(font.combo.boldCyan('Arguments:'));
-      const longestArg = argList.reduce((max, arg) => Math.max(max, arg.name().length), 0);
+      // Show required as <name> and optional as [name], with variadic "..." so a
+      // required argument is visually distinct from an optional one.
+      const argLabel = (arg) => {
+         const inner = `${arg.name()}${arg.variadic ? '...' : ''}`;
+         return arg.required ? `<${inner}>` : `[${inner}]`;
+      };
+      const longestArg = argList.reduce((max, arg) => Math.max(max, argLabel(arg).length), 0);
       const pad = (str, len) => str + ' '.repeat(Math.max(0, len - str.length));
 
       for (let i = 0; i < argList.length; i++) {
@@ -97,7 +115,7 @@ function customFormatHelp(cmd, helper) {
          const prefix = isLast ? '  └─' : '  ├─';
          const desc = arg.description || '';
          output.push(
-            `${font.color.gray(prefix)} ${font.color.yellowBright(pad(arg.name(), longestArg))}  ${font.color.gray(desc)}`,
+            `${font.color.gray(prefix)} ${font.color.yellowBright(pad(argLabel(arg), longestArg))}  ${font.color.gray(desc)}`,
          );
       }
       output.push('');
@@ -132,7 +150,8 @@ function customFormatHelp(cmd, helper) {
          const sub = subcommands[i];
          const isLast = i === subcommands.length - 1;
          const prefix = isLast ? '  └─' : '  ├─';
-         const desc = sub.description ? sub.description() : '';
+         // Prefer the short summary for the command list; fall back to description.
+         const desc = (sub.summary && sub.summary()) || (sub.description ? sub.description() : '');
          // Truncate long descriptions for compact display
          const shortDesc = desc.length > 60 ? desc.substring(0, 57) + '...' : desc;
          output.push(
@@ -228,9 +247,15 @@ function customFormatHelpForRoot(cmd) {
    // 6. Build output
    let output = [];
 
-   // Header with description
-   if (cmd.description()) {
-      output.push(cmd.description());
+   // Header — a note box with the tool name + version, short description, and
+   // docs link. Plain fallback when piped.
+   const tagline = cmd.description ? cmd.description() : '';
+   const version = cmd.version ? cmd.version() : undefined;
+   const banner = `caly-xano${version ? ` v${version}` : ''}`;
+   if (process.stdout.isTTY) {
+      noteBox([tagline, '', `Docs: ${DOCS_URL}`].join('\n'), banner);
+   } else {
+      output.push(`${banner} — ${tagline}`);
    }
    output.push('');
    output.push(font.color.gray('Usage: caly-xano <command> [options]'));
@@ -250,7 +275,8 @@ function customFormatHelpForRoot(cmd) {
          const c = cmdMap[cname];
          const isLast = cmdIdx === validCommands.length - 1;
          const prefix = isLast ? '  └─' : '  ├─';
-         const shortDesc = shortDescriptions[cname] || c.description;
+         const shortDesc =
+            c.command?.summary?.() || shortDescriptions[cname] || c.description || '';
 
          output.push(
             `${font.color.gray(prefix)} ${font.color.yellowBright(pad(cname, longestName))}  ${font.color.gray(shortDesc)}`,

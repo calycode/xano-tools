@@ -1,7 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import { isSea } from 'node:sea';
 import { program } from './program';
-import { setupOpencode, startNativeHost } from './commands/opencode/implementation';
+import { setupOpencode } from './commands/opencode/index';
+import { startNativeHost } from './commands/opencode/native-host';
+import { launchOpencodeServer } from './commands/opencode/distribution';
 import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 
 /**
@@ -68,7 +70,7 @@ function isNativeHostLaunchArgs(extraArgs: string[]): boolean {
    if (chromeExtensionArg || isNativeHostCommand) {
       // We are running as a Native Host
       // BYPASS Commander entirely to prevent stdout pollution
-      startNativeHost();
+      startNativeHost({ launchServer: launchOpencodeServer });
       return;
    }
 

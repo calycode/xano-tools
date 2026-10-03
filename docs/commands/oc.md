@@ -1,46 +1,33 @@
 # oc
->[!NOTE|label:Description]
-> #### Manage OpenCode AI integration and tools.
-  Powered by OpenCode - The open source AI coding agent.
-  GitHub: https://github.com/anomalyco/opencode
-  License: MIT (see LICENSES/opencode-ai.txt)
 
-```term
-$ caly-xano oc [options]
-```
-### Options
-
-#### --cwd
-**Description:** Run OpenCode proxy commands from the current shell directory
-#### --workdir <path>
-**Description:** Run OpenCode proxy commands from a specific working directory
-#### --oc-version <version>
-**Description:** Override OpenCode package version for this command
-
-### oc --help
-```term
-$ caly-xano oc --help
+{% alert type="note" title="Description" %}
 Manage OpenCode AI integration and tools.
   Powered by OpenCode - The open source AI coding agent.
   GitHub: https://github.com/anomalyco/opencode
   License: MIT (see LICENSES/opencode-ai.txt)
+{% /alert %}
 
-Usage: caly-xano oc|opencode [options] [command]
+## Usage
 
-Options:
-  ├─ --cwd                   Run OpenCode proxy commands from the current shell directory
-  ├─ --workdir <path>        Run OpenCode proxy commands from a specific working directory
-  ├─ --oc-version <version>  Override OpenCode package version for this command
-  └─ -h, --help              display help for command
-
-Commands:
-  ├─ init         Initialize OpenCode native host integration and configura...
-  ├─ templates    Manage OpenCode configuration templates (agents, commands...
-  ├─ skills       Manage Xano skills for AI agents (database optimization, ...
-  ├─ serve        Serve the OpenCode AI server locally.
-  ├─ native-host  Native host operations for browser extension integration.
-  └─ help         display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
+```term {% anim=true %}
+$ caly-xano oc <command> [options]
 ```
+
+## Options
+
+| Flag | Description |
+| --- | --- |
+| `--cwd` | Run OpenCode proxy commands from the current shell directory |
+| `--workdir <path>` | Run OpenCode proxy commands from a specific working directory |
+| `--oc-version <version>` | Override OpenCode package version for this command |
+
+## Subcommands
+
+| Command | Description |
+| --- | --- |
+| `init` | Initialize OpenCode native host integration and configuration for use with the CalyCode extension. |
+| `templates` | Manage the OpenCode agent configuration: opencode.json, AGENTS.md, and the agents/ + commands/ prompt files that shape how the AI behaves. Installed under ~/.calycode/opencode. |
+| `skills` | Manage Xano skills: self-contained SKILL.md capability packs that teach the agent Xano-specific workflows (database optimization, security, best practices). Installed under ~/.calycode/opencode/skills. |
+| `serve` | Serve the OpenCode AI server locally. |
+| `native-host` | Native host operations for browser extension integration. |
+| `run` | Run any OpenCode CLI command (default) |

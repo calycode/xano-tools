@@ -1,26 +1,17 @@
 # oc templates install
->[!NOTE|label:Description]
-> #### Install or reinstall OpenCode configuration templates.
 
-```term
+{% alert type="note" title="Description" %}
+Install or reinstall the OpenCode agent configuration (opencode.json, AGENTS.md, agents/, commands/). Use --force to overwrite local edits.
+{% /alert %}
+
+## Usage
+
+```term {% anim=true %}
 $ caly-xano oc templates install [options]
 ```
-### Options
 
-#### -f, --force
-**Description:** Force overwrite existing configuration files
+## Options
 
-### oc templates install --help
-```term
-$ caly-xano oc templates install --help
-Install or reinstall OpenCode configuration templates.
-
-Usage: caly-xano oc templates install [options]
-
-Options:
-  ├─ -f, --force  Force overwrite existing configuration files
-  └─ -h, --help   display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
-```
+| Flag | Description |
+| --- | --- |
+| `-f, --force` | Force overwrite existing configuration files |

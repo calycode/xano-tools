@@ -1,25 +1,17 @@
 # context
->[!NOTE|label:Description]
-> #### Context related operations.
 
-```term
-$ caly-xano context [options]
-```
-
-### context --help
-```term
-$ caly-xano context --help
+{% alert type="note" title="Description" %}
 Context related operations.
+{% /alert %}
 
-Usage: caly-xano context [options] [command]
+## Usage
 
-Options:
-  └─ -h, --help  display help for command
-
-Commands:
-  ├─ show  Show the current known context.
-  └─ help  display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
+```term {% anim=true %}
+$ caly-xano context <command> [options]
 ```
+
+## Subcommands
+
+| Command | Description |
+| --- | --- |
+| `show` | Show the current known context. |

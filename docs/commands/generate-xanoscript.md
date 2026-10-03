@@ -1,35 +1,20 @@
 # generate xanoscript
->[!NOTE|label:Description]
-> #### Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
 
-```term
+{% alert type="note" title="Description" %}
+Process a Xano workspace into XanoScript files. Supports tables, functions and APIs. The Xano VS Code extension is the preferred solution over this command. These outputs are also included in the default repo generation command.
+{% /alert %}
+
+## Usage
+
+```term {% anim=true %}
 $ caly-xano generate xanoscript [options]
 ```
-### Options
 
-#### --instance <instance>
-**Description:** The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
-#### --workspace <workspace>
-**Description:** The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
-#### --branch <branch>
-**Description:** The branch name. This is used to select the branch configuration. Same as on Xano Interface.
-#### --print-output-dir
-**Description:** Expose usable output path for further reuse.
+## Options
 
-### generate xanoscript --help
-```term
-$ caly-xano generate xanoscript --help
-Process Xano workspace into repo structure. Supports table, function and apis as of know. Xano VSCode extension is the preferred solution over this command. Outputs of this process are also included in the default repo generation command.
-
-Usage: caly-xano generate xanoscript [options]
-
-Options:
-  ├─ --instance <instance>    The instance name. This is used to fetch the instance configuration. The value provided at the setup command.
-  ├─ --workspace <workspace>  The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface.
-  ├─ --branch <branch>        The branch name. This is used to select the branch configuration. Same as on Xano Interface.
-  ├─ --print-output-dir       Expose usable output path for further reuse.
-  └─ -h, --help               display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
-```
+| Flag | Description |
+| --- | --- |
+| `-i, --instance <instance>` | The instance name. This is used to fetch the instance configuration. The value provided at the setup command. |
+| `-w, --workspace <workspace>` | The workspace name. This is used to fetch the workspace configuration. Same as on Xano interface. |
+| `-b, --branch <branch>` | The branch name. This is used to select the branch configuration. Same as on Xano Interface. |
+| `--print-output-dir` | Expose usable output path for further reuse. |

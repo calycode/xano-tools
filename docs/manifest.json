@@ -1,0 +1,658 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-03T11:01:53.323Z",
+  "entries": [
+    {
+      "section": "Overview",
+      "path": "",
+      "title": "@calycode/cli Docs",
+      "group": null,
+      "parent": null,
+      "order": 0,
+      "source": "overview",
+      "segments": [],
+      "file": "README.md"
+    },
+    {
+      "section": "Commands",
+      "path": "xano",
+      "title": "caly-xano - the core command",
+      "group": null,
+      "parent": null,
+      "order": 1,
+      "source": "generated",
+      "segments": [
+        "xano"
+      ],
+      "file": "xano.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/init",
+      "title": "init",
+      "group": null,
+      "parent": null,
+      "order": 2,
+      "source": "generated",
+      "segments": [
+        "init"
+      ],
+      "file": "commands/init.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/generate",
+      "title": "generate",
+      "group": null,
+      "parent": null,
+      "order": 3,
+      "source": "generated",
+      "segments": [
+        "generate"
+      ],
+      "file": "commands/generate.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/generate-codegen",
+      "title": "generate codegen",
+      "group": "generate",
+      "parent": null,
+      "order": 4,
+      "source": "generated",
+      "segments": [
+        "generate",
+        "codegen"
+      ],
+      "file": "commands/generate-codegen.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/generate-docs",
+      "title": "generate docs",
+      "group": "generate",
+      "parent": null,
+      "order": 5,
+      "source": "generated",
+      "segments": [
+        "generate",
+        "docs"
+      ],
+      "file": "commands/generate-docs.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/generate-spec",
+      "title": "generate spec",
+      "group": "generate",
+      "parent": null,
+      "order": 6,
+      "source": "generated",
+      "segments": [
+        "generate",
+        "spec"
+      ],
+      "file": "commands/generate-spec.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/generate-repo",
+      "title": "generate repo",
+      "group": "generate",
+      "parent": null,
+      "order": 7,
+      "source": "generated",
+      "segments": [
+        "generate",
+        "repo"
+      ],
+      "file": "commands/generate-repo.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/generate-xanoscript",
+      "title": "generate xanoscript",
+      "group": "generate",
+      "parent": null,
+      "order": 8,
+      "source": "generated",
+      "segments": [
+        "generate",
+        "xanoscript"
+      ],
+      "file": "commands/generate-xanoscript.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/serve",
+      "title": "serve",
+      "group": null,
+      "parent": null,
+      "order": 9,
+      "source": "generated",
+      "segments": [
+        "serve"
+      ],
+      "file": "commands/serve.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/serve-registry",
+      "title": "serve registry",
+      "group": "serve",
+      "parent": null,
+      "order": 10,
+      "source": "generated",
+      "segments": [
+        "serve",
+        "registry"
+      ],
+      "file": "commands/serve-registry.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/serve-spec",
+      "title": "serve spec",
+      "group": "serve",
+      "parent": null,
+      "order": 11,
+      "source": "generated",
+      "segments": [
+        "serve",
+        "spec"
+      ],
+      "file": "commands/serve-spec.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/registry",
+      "title": "registry",
+      "group": null,
+      "parent": null,
+      "order": 12,
+      "source": "generated",
+      "segments": [
+        "registry"
+      ],
+      "file": "commands/registry.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/registry-add",
+      "title": "registry add",
+      "group": "registry",
+      "parent": null,
+      "order": 13,
+      "source": "generated",
+      "segments": [
+        "registry",
+        "add"
+      ],
+      "file": "commands/registry-add.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/registry-scaffold",
+      "title": "registry scaffold",
+      "group": "registry",
+      "parent": null,
+      "order": 14,
+      "source": "generated",
+      "segments": [
+        "registry",
+        "scaffold"
+      ],
+      "file": "commands/registry-scaffold.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/backup",
+      "title": "backup",
+      "group": null,
+      "parent": null,
+      "order": 15,
+      "source": "generated",
+      "segments": [
+        "backup"
+      ],
+      "file": "commands/backup.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/backup-export",
+      "title": "backup export",
+      "group": "backup",
+      "parent": null,
+      "order": 16,
+      "source": "generated",
+      "segments": [
+        "backup",
+        "export"
+      ],
+      "file": "commands/backup-export.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/backup-restore",
+      "title": "backup restore",
+      "group": "backup",
+      "parent": null,
+      "order": 17,
+      "source": "generated",
+      "segments": [
+        "backup",
+        "restore"
+      ],
+      "file": "commands/backup-restore.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/test",
+      "title": "test",
+      "group": null,
+      "parent": null,
+      "order": 18,
+      "source": "generated",
+      "segments": [
+        "test"
+      ],
+      "file": "commands/test.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/test-run",
+      "title": "test run",
+      "group": "test",
+      "parent": null,
+      "order": 19,
+      "source": "generated",
+      "segments": [
+        "test",
+        "run"
+      ],
+      "file": "commands/test-run.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/context",
+      "title": "context",
+      "group": null,
+      "parent": null,
+      "order": 20,
+      "source": "generated",
+      "segments": [
+        "context"
+      ],
+      "file": "commands/context.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/context-show",
+      "title": "context show",
+      "group": "context",
+      "parent": null,
+      "order": 21,
+      "source": "generated",
+      "segments": [
+        "context",
+        "show"
+      ],
+      "file": "commands/context-show.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc",
+      "title": "oc",
+      "group": null,
+      "parent": null,
+      "order": 22,
+      "source": "generated",
+      "segments": [
+        "oc"
+      ],
+      "file": "commands/oc.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-init",
+      "title": "oc init",
+      "group": "oc",
+      "parent": null,
+      "order": 23,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "init"
+      ],
+      "file": "commands/oc-init.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-templates",
+      "title": "oc templates",
+      "group": "oc",
+      "parent": null,
+      "order": 24,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "templates"
+      ],
+      "file": "commands/oc-templates.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-templates-install",
+      "title": "oc templates install",
+      "group": "templates",
+      "parent": "oc",
+      "order": 25,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "templates",
+        "install"
+      ],
+      "file": "commands/oc-templates-install.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-templates-update",
+      "title": "oc templates update",
+      "group": "templates",
+      "parent": "oc",
+      "order": 26,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "templates",
+        "update"
+      ],
+      "file": "commands/oc-templates-update.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-templates-status",
+      "title": "oc templates status",
+      "group": "templates",
+      "parent": "oc",
+      "order": 27,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "templates",
+        "status"
+      ],
+      "file": "commands/oc-templates-status.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-templates-clear-cache",
+      "title": "oc templates clear-cache",
+      "group": "templates",
+      "parent": "oc",
+      "order": 28,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "templates",
+        "clear-cache"
+      ],
+      "file": "commands/oc-templates-clear-cache.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-skills",
+      "title": "oc skills",
+      "group": "oc",
+      "parent": null,
+      "order": 29,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "skills"
+      ],
+      "file": "commands/oc-skills.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-skills-install",
+      "title": "oc skills install",
+      "group": "skills",
+      "parent": "oc",
+      "order": 30,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "skills",
+        "install"
+      ],
+      "file": "commands/oc-skills-install.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-skills-update",
+      "title": "oc skills update",
+      "group": "skills",
+      "parent": "oc",
+      "order": 31,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "skills",
+        "update"
+      ],
+      "file": "commands/oc-skills-update.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-skills-status",
+      "title": "oc skills status",
+      "group": "skills",
+      "parent": "oc",
+      "order": 32,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "skills",
+        "status"
+      ],
+      "file": "commands/oc-skills-status.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-skills-clear-cache",
+      "title": "oc skills clear-cache",
+      "group": "skills",
+      "parent": "oc",
+      "order": 33,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "skills",
+        "clear-cache"
+      ],
+      "file": "commands/oc-skills-clear-cache.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-serve",
+      "title": "oc serve",
+      "group": "oc",
+      "parent": null,
+      "order": 34,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "serve"
+      ],
+      "file": "commands/oc-serve.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-native-host",
+      "title": "oc native-host",
+      "group": "oc",
+      "parent": null,
+      "order": 35,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "native-host"
+      ],
+      "file": "commands/oc-native-host.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-native-host-status",
+      "title": "oc native-host status",
+      "group": "native-host",
+      "parent": "oc",
+      "order": 36,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "native-host",
+        "status"
+      ],
+      "file": "commands/oc-native-host-status.md"
+    },
+    {
+      "section": "Commands",
+      "path": "commands/oc-run",
+      "title": "oc run",
+      "group": "oc",
+      "parent": null,
+      "order": 37,
+      "source": "generated",
+      "segments": [
+        "oc",
+        "run"
+      ],
+      "file": "commands/oc-run.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/git-workflow",
+      "title": "Git Workflow for Xano Projects",
+      "group": null,
+      "parent": null,
+      "order": 38,
+      "source": "guide",
+      "segments": [
+        "git-workflow"
+      ],
+      "file": "guides/git-workflow.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/opencode-setup",
+      "title": "OpenCode AI Agent Setup",
+      "group": null,
+      "parent": null,
+      "order": 39,
+      "source": "guide",
+      "segments": [
+        "opencode-setup"
+      ],
+      "file": "guides/opencode-setup.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/patterns",
+      "title": "Xano Development Patterns & Best Practices",
+      "group": null,
+      "parent": null,
+      "order": 40,
+      "source": "guide",
+      "segments": [
+        "patterns"
+      ],
+      "file": "guides/patterns.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/registry-authoring",
+      "title": "Registry Authoring Guide",
+      "group": null,
+      "parent": null,
+      "order": 41,
+      "source": "guide",
+      "segments": [
+        "registry-authoring"
+      ],
+      "file": "guides/registry-authoring.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/scaffolding",
+      "title": "Scaffolding New Xano Components",
+      "group": null,
+      "parent": null,
+      "order": 42,
+      "source": "guide",
+      "segments": [
+        "scaffolding"
+      ],
+      "file": "guides/scaffolding.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/testing",
+      "title": "API Testing Guide",
+      "group": null,
+      "parent": null,
+      "order": 43,
+      "source": "guide",
+      "segments": [
+        "testing"
+      ],
+      "file": "guides/testing.md"
+    },
+    {
+      "section": "Guides",
+      "path": "guides/xanoscript",
+      "title": "XanoScript in Xano Tools",
+      "group": null,
+      "parent": null,
+      "order": 44,
+      "source": "guide",
+      "segments": [
+        "xanoscript"
+      ],
+      "file": "guides/xanoscript.md"
+    }
+  ],
+  "links": [
+    {
+      "section": "External Resources",
+      "title": "Calycode Extension",
+      "href": "https://extension.calycode.com"
+    },
+    {
+      "section": "External Resources",
+      "title": "StateChange.ai",
+      "href": "https://statechange.ai"
+    },
+    {
+      "section": "External Resources",
+      "title": "Axiom Logging",
+      "href": "https://axiom.co"
+    },
+    {
+      "section": "Changelog",
+      "title": "CLI",
+      "href": "https://github.com/calycode/xano-tools/blob/main/packages/cli/CHANGELOG.md"
+    },
+    {
+      "section": "Changelog",
+      "title": "CORE",
+      "href": "https://github.com/calycode/xano-tools/blob/main/packages/core/CHANGELOG.md"
+    },
+    {
+      "section": "Community",
+      "title": "calycode on Discord",
+      "href": "https://links.calycode.com/discord"
+    }
+  ]
+}

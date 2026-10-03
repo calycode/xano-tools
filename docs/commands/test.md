@@ -1,25 +1,17 @@
 # test
->[!NOTE|label:Description]
-> #### Set of test related operations for the Xano CLI, these help you build a reliable system.
 
-```term
-$ caly-xano test [options]
-```
-
-### test --help
-```term
-$ caly-xano test --help
+{% alert type="note" title="Description" %}
 Set of test related operations for the Xano CLI, these help you build a reliable system.
+{% /alert %}
 
-Usage: caly-xano test [options] [command]
+## Usage
 
-Options:
-  └─ -h, --help  display help for command
-
-Commands:
-  ├─ run   Run an API test suite. Requires a test config file (.json...
-  └─ help  display help for command
-
-Run 'caly-xano <command> --help' for detailed usage.
-https://github.com/calycode/xano-tools | https://links.calycode.com/discord
+```term {% anim=true %}
+$ caly-xano test <command> [options]
 ```
+
+## Subcommands
+
+| Command | Description |
+| --- | --- |
+| `run` | Run an API test suite. Requires a test config file (.json or .js). Schema: https://calycode.com/schemas/testing/config.json \| Full guide: https://calycode.github.io/xano-tools/#/guides/testing |

@@ -28,7 +28,7 @@ const eventHandlers: Record<string, HandlerMap> = {
       progress: (data, context) => {
          if (!context.spinnerInstance) {
             context.spinnerInstance = spinner();
-            context.spinnerInstance.start('Processing workspace inforamtion...');
+            context.spinnerInstance.start('Processing workspace information...');
          }
       },
       end: (data, context) => {
@@ -70,7 +70,7 @@ const eventHandlers: Record<string, HandlerMap> = {
       progress: (data, context) => {
          if (!context.spinnerInstance) {
             context.spinnerInstance = spinner();
-            context.spinnerInstance.start('Processing workspace inforamtion...');
+            context.spinnerInstance.start('Processing workspace information...');
          }
       },
       end: (data, context) => {
@@ -115,9 +115,17 @@ function attachCliEventHandlers(
    context?: any
 ) {
    const handlers: HandlerMap = { ...defaultHandlers, ...eventHandlers[commandKey] };
+   const firedOnce = new Set<CoreEventName>();
    (Object.entries(handlers) as [CoreEventName, HandlerFn][]).forEach(([event, handler]) => {
       if (typeof handler === 'function') {
-         core.on(event, (data: any) => handler(data, context));
+         core.on(event, (data: any) => {
+            // Some core flows emit 'end' more than once; only render it once.
+            if (event === 'end') {
+               if (firedOnce.has('end')) return;
+               firedOnce.add('end');
+            }
+            handler(data, context);
+         });
       }
    });
 }

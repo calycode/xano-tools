@@ -1,25 +1,116 @@
-import {
-   setupOpencode,
-   serveOpencode,
-   startNativeHost,
-   showNativeHostStatus,
-   proxyOpencode,
-   setupOpencodeConfig,
-   updateOpencodeTemplates,
-   getTemplateInstallStatus,
-   clearTemplateCache,
-   setupOpencodeSkills,
-   updateOpencodeSkills,
-   getSkillsInstallStatus,
-   clearSkillsCache,
-} from './implementation';
 import { log } from '@clack/prompts';
 import { hideFromRootHelp } from '../../utils/commands/main-program-utils';
+import { distribution, validatePort } from './distribution';
+import { nativeHost } from './native-host';
+
+/**
+ * Composition root for OpenCode setup: install the managed distribution, then
+ * register the native host and install its templates and skills.
+ */
+async function setupOpencode({
+   extensionIds,
+   force = false,
+   skipConfig = false,
+   ocVersion,
+}: {
+   extensionIds?: string[];
+   force?: boolean;
+   skipConfig?: boolean;
+   ocVersion?: string;
+} = {}) {
+   const resolvedVersion = distribution.resolveVersion(ocVersion);
+   distribution.warnIfNonDefault(resolvedVersion);
+
+   if (distribution.shouldUseManagedInstall()) {
+      try {
+         const managedBinPath = distribution.ensureInstalled(resolvedVersion);
+         log.info(`Managed OpenCode launcher ready: ${managedBinPath}`);
+      } catch (error: any) {
+         log.warn(
+            `Managed OpenCode install failed (${error?.message || 'unknown error'}). Falling back to global/npx launchers.`,
+         );
+      }
+   }
+
+   await nativeHost.register(extensionIds, resolvedVersion);
+   log.info('Native host setup complete.');
+
+   // Setup OpenCode configuration (agents, commands, instructions) and skills
+   if (!skipConfig) {
+      log.info('');
+      await distribution.artifacts.install('templates', { force });
+      log.info('');
+      await distribution.artifacts.install('skills', { force });
+   }
+
+   log.info('');
+   log.success('Setup complete! OpenCode is ready to use.');
+}
+
+/**
+ * Serve the OpenCode server locally, in the foreground or detached.
+ */
+async function serveOpencode({
+   port = 4096,
+   detach = false,
+   ocVersion,
+}: {
+   port?: number;
+   detach?: boolean;
+   ocVersion?: string;
+}) {
+   validatePort(port);
+
+   const resolvedVersion = distribution.resolveVersion(ocVersion);
+   distribution.warnIfNonDefault(resolvedVersion);
+   const allowedOrigins = nativeHost.allowedOrigins();
+
+   if (detach) {
+      log.info(`Starting OpenCode server on port ${port} in background...`);
+      const launched = distribution.launchServer({
+         port,
+         stdio: 'ignore',
+         detach: true,
+         ocVersion: resolvedVersion,
+         allowedOrigins,
+      });
+      log.info(`OpenCode launcher: ${launched.plan.source}`);
+      launched.proc.unref();
+      log.success('OpenCode server started in background.');
+      return;
+   }
+
+   return new Promise<void>((resolve, reject) => {
+      log.info(`Starting OpenCode server on port ${port}...`);
+
+      const launched = distribution.launchServer({
+         port,
+         stdio: 'inherit',
+         ocVersion: resolvedVersion,
+         allowedOrigins,
+      });
+      log.info(`OpenCode launcher: ${launched.plan.source}`);
+      const proc = launched.proc;
+
+      proc.on('close', (code) => {
+         if (code === 0) {
+            resolve();
+         } else {
+            reject(new Error(`OpenCode server exited with code ${code}`));
+         }
+      });
+
+      proc.on('error', (err) => {
+         reject(new Error(`Failed to start OpenCode server: ${err.message}`));
+      });
+   });
+}
 
 async function registerOpencodeCommands(program) {
    const opencodeNamespace = program
       .command('oc')
       .alias('opencode')
+      .summary('Run and configure the OpenCode AI agent')
       .description(
           'Manage OpenCode AI integration and tools.\n' +
              '  Powered by OpenCode - The open source AI coding agent.\n' +
@@ -49,14 +140,20 @@ async function registerOpencodeCommands(program) {
    // Template management subcommands
    const templatesNamespace = opencodeNamespace
       .command('templates')
-      .description('Manage OpenCode configuration templates (agents, commands, instructions).');
+      .summary('Configure the OpenCode agent (agents, commands, instructions)')
+      .description(
+         'Manage the OpenCode agent configuration: opencode.json, AGENTS.md, and the agents/ + commands/ prompt files that shape how the AI behaves. Installed under ~/.calycode/opencode.',
+      );
 
    templatesNamespace
       .command('install')
-      .description('Install or reinstall OpenCode configuration templates.')
+      .summary('Install OpenCode agent config (templates)')
+      .description(
+         'Install or reinstall the OpenCode agent configuration (opencode.json, AGENTS.md, agents/, commands/). Use --force to overwrite local edits.',
+      )
       .option('-f, --force', 'Force overwrite existing configuration files')
       .action(async (options) => {
-         await setupOpencodeConfig({ force: options.force });
+         await distribution.artifacts.install('templates', { force: options.force });
       });
 
    // These commands are hidden from root help but visible in `oc templates --help`
@@ -65,7 +162,7 @@ async function registerOpencodeCommands(program) {
          .command('update')
          .description('Update templates by fetching the latest versions from GitHub.')
          .action(async () => {
-            await updateOpencodeTemplates();
+            await distribution.artifacts.update('templates');
          }),
    );
 
@@ -74,7 +171,7 @@ async function registerOpencodeCommands(program) {
          .command('status')
          .description('Show the status of installed OpenCode templates.')
          .action(async () => {
-            const status = getTemplateInstallStatus();
+            const status = distribution.artifacts.status('templates');
 
             if (!status.installed) {
                log.info(
@@ -84,11 +181,11 @@ async function registerOpencodeCommands(program) {
             }
 
             const lines = ['OpenCode Templates Status:', '  ├─ Installed: Yes'];
-            if (status.configDir) {
-               lines.push(`  ├─ Location:  ${status.configDir}`);
+            if (status.dir) {
+               lines.push(`  ├─ Location:  ${status.dir}`);
             }
-            if (status.fileCount !== undefined) {
-               lines.push(`  ├─ Files:     ${status.fileCount}`);
+            if (status.count !== undefined) {
+               lines.push(`  ├─ Files:     ${status.count}`);
             }
             if (status.lastModified) {
                lines.push(`  └─ Modified:  ${status.lastModified.toLocaleString()}`);
@@ -102,21 +199,27 @@ async function registerOpencodeCommands(program) {
          .command('clear-cache')
          .description('Clear the template cache (templates will be re-downloaded on next install).')
          .action(async () => {
-            await clearTemplateCache();
+            await distribution.artifacts.clear('templates');
          }),
    );
 
    // Skills management subcommands
    const skillsNamespace = opencodeNamespace
       .command('skills')
-      .description('Manage Xano skills for AI agents (database optimization, security, best practices).');
+      .summary('Install Xano skills (reusable agent capabilities)')
+      .description(
+         'Manage Xano skills: self-contained SKILL.md capability packs that teach the agent Xano-specific workflows (database optimization, security, best practices). Installed under ~/.calycode/opencode/skills.',
+      );
 
    skillsNamespace
       .command('install')
-      .description('Install or reinstall Xano skills for AI agents.')
+      .summary('Install Xano skills')
+      .description(
+         'Install or reinstall the Xano skill packs. Use --force to overwrite local edits.',
+      )
       .option('-f, --force', 'Force overwrite existing skills')
       .action(async (options) => {
-         await setupOpencodeSkills({ force: options.force });
+         await distribution.artifacts.install('skills', { force: options.force });
       });
 
    hideFromRootHelp(
@@ -124,7 +227,7 @@ async function registerOpencodeCommands(program) {
          .command('update')
          .description('Update skills by fetching the latest versions from GitHub.')
          .action(async () => {
-            await updateOpencodeSkills();
+            await distribution.artifacts.update('skills');
          }),
    );
 
@@ -133,7 +236,7 @@ async function registerOpencodeCommands(program) {
          .command('status')
          .description('Show the status of installed skills.')
          .action(async () => {
-            const status = getSkillsInstallStatus();
+            const status = distribution.artifacts.status('skills');
 
             if (!status.installed) {
                log.info('No skills installed. Run "caly-xano opencode skills install" to install.');
@@ -141,14 +244,14 @@ async function registerOpencodeCommands(program) {
             }
 
             const lines = ['Xano Skills Status:', '  ├─ Installed: Yes'];
-            if (status.skillsDir) {
-               lines.push(`  ├─ Location:  ${status.skillsDir}`);
+            if (status.dir) {
+               lines.push(`  ├─ Location:  ${status.dir}`);
             }
-            if (status.skillCount !== undefined) {
-               lines.push(`  ├─ Skills:    ${status.skillCount}`);
+            if (status.count !== undefined) {
+               lines.push(`  ├─ Skills:    ${status.count}`);
             }
-            if (status.skills && status.skills.length > 0) {
-               lines.push(`  ├─ Names:     ${status.skills.join(', ')}`);
+            if (status.files && status.files.length > 0) {
+               lines.push(`  ├─ Names:     ${status.files.join(', ')}`);
             }
             if (status.lastModified) {
                lines.push(`  └─ Modified:  ${status.lastModified.toLocaleString()}`);
@@ -162,7 +265,7 @@ async function registerOpencodeCommands(program) {
          .command('clear-cache')
          .description('Clear the skills cache (skills will be re-downloaded on next install).')
          .action(async () => {
-            await clearSkillsCache();
+            await distribution.artifacts.clear('skills');
          }),
    );
 
@@ -187,14 +290,14 @@ async function registerOpencodeCommands(program) {
          // so they don't break the native messaging protocol
          console.log = console.error;
          console.info = console.error;
-         await startNativeHost();
+         await nativeHost.start({ launchServer: distribution.launchServer });
       });
 
    nativeHostCommand
       .command('status')
       .description('Show native host manifest, wrapper, and extension allowlist status.')
       .action(() => {
-         showNativeHostStatus();
+         nativeHost.status();
       });
 
    // Proxy all other commands to the underlying OpenCode CLI
@@ -212,7 +315,7 @@ async function registerOpencodeCommands(program) {
          // A safer way for a "passthrough" is often to inspect process.argv directly,
          // but let's try to trust the explicit args first or just grab the raw rest.
 
-          // Actually, for a pure proxy where we want "caly-xano opencode foo --bar",
+         // Actually, for a pure proxy where we want "caly-xano opencode foo --bar",
          // "foo" becomes an arg, "--bar" might be parsed as an option if not careful.
 
          // Let's filter process.argv to find everything after "opencode" or "oc".
@@ -226,67 +329,67 @@ async function registerOpencodeCommands(program) {
             return;
          }
 
-          const passThroughArgs = rawArgs.slice(opencodeIndex + 1);
+         const passThroughArgs = rawArgs.slice(opencodeIndex + 1);
 
-           let forceCwd = !!command.parent?.opts()?.cwd;
-           let explicitWorkdir = command.parent?.opts()?.workdir as string | undefined;
-           let ocVersion = command.parent?.opts()?.ocVersion as string | undefined;
-           const sanitizedPassThroughArgs: string[] = [];
+          let forceCwd = !!command.parent?.opts()?.cwd;
+          let explicitWorkdir = command.parent?.opts()?.workdir as string | undefined;
+          let ocVersion = command.parent?.opts()?.ocVersion as string | undefined;
+          const sanitizedPassThroughArgs: string[] = [];
 
-          for (let i = 0; i < passThroughArgs.length; i++) {
-             const arg = passThroughArgs[i];
+         for (let i = 0; i < passThroughArgs.length; i++) {
+            const arg = passThroughArgs[i];
 
-             if (arg === '--cwd') {
-                forceCwd = true;
-                continue;
-             }
+            if (arg === '--cwd') {
+               forceCwd = true;
+               continue;
+            }
 
-             if (arg.startsWith('--cwd=')) {
-                const value = arg.slice('--cwd='.length).toLowerCase();
-                forceCwd = ['1', 'true', 'yes', 'on'].includes(value);
-                continue;
-             }
+            if (arg.startsWith('--cwd=')) {
+               const value = arg.slice('--cwd='.length).toLowerCase();
+               forceCwd = ['1', 'true', 'yes', 'on'].includes(value);
+               continue;
+            }
 
-             if (arg === '--workdir') {
-                const next = passThroughArgs[i + 1];
-                if (next) {
-                   explicitWorkdir = next;
-                   i++;
-                }
-                continue;
-             }
+            if (arg === '--workdir') {
+               const next = passThroughArgs[i + 1];
+               if (next) {
+                  explicitWorkdir = next;
+                  i++;
+               }
+               continue;
+            }
 
-             if (arg.startsWith('--workdir=')) {
-                explicitWorkdir = arg.slice('--workdir='.length);
-                continue;
-             }
+            if (arg.startsWith('--workdir=')) {
+               explicitWorkdir = arg.slice('--workdir='.length);
+               continue;
+            }
 
-             if (arg === '--oc-version') {
-                const next = passThroughArgs[i + 1];
-                if (next) {
-                   ocVersion = next;
-                   i++;
-                }
-                continue;
-             }
+            if (arg === '--oc-version') {
+               const next = passThroughArgs[i + 1];
+               if (next) {
+                  ocVersion = next;
+                  i++;
+               }
+               continue;
+            }
 
-             if (arg.startsWith('--oc-version=')) {
-                ocVersion = arg.slice('--oc-version='.length);
-                continue;
-             }
+            if (arg.startsWith('--oc-version=')) {
+               ocVersion = arg.slice('--oc-version='.length);
+               continue;
+            }
 
-             sanitizedPassThroughArgs.push(arg);
-          }
+            sanitizedPassThroughArgs.push(arg);
+         }
 
          // Filter out our own known subcommands if they were accidentally matched?
          // No, if we are here, it's because it wasn't init/serve/native-host (mostly).
           // BUT 'run' is default, so 'caly-xano opencode' (no args) also lands here.
 
-           await proxyOpencode(sanitizedPassThroughArgs, {
-              forceCwd,
-              explicitWorkdir,
-           }, ocVersion);
-        });
+          await distribution.proxy(sanitizedPassThroughArgs, {
+             forceCwd,
+             explicitWorkdir,
+          }, ocVersion);
+       });
 }
 
-export { registerOpencodeCommands };
+export { registerOpencodeCommands, setupOpencode };
