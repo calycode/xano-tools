@@ -4,7 +4,7 @@ Automate backups, docs, testing and version control for Xano. Every command is l
 below; pick one from the sidebar, or run `caly-xano <command> --help` in your terminal.
 
 ```term
-$ caly-xano v0.19.2 — Automate backups, docs, testing & version control for Xano
+$ caly-xano v0.20.0 — Automate backups, docs, testing & version control for Xano
 
 Usage: caly-xano <command> [options]
 
