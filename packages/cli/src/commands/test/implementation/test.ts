@@ -1,12 +1,14 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { intro, log, spinner, outro } from '@clack/prompts';
-import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
+import { normalizeApiGroupName } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
-   findProjectRoot,
+   createArtifactFileSystem,
    printOutputDir,
+   resolveArtifactDestination,
    resolveConfigs,
+   writeArtifacts,
 } from '../../../utils/index';
 
 /**
@@ -254,20 +256,27 @@ async function runTest({
    let totalFailed = 0;
    let totalWarnings = 0;
 
+   const fileSystem = createArtifactFileSystem(core.storage);
+
    for (const outcome of testResults) {
-      const apiGroupTestPath = replacePlaceholders(instanceConfig.test.output, {
-         '@': await findProjectRoot(),
-         instance: instanceConfig.name,
-         workspace: workspaceConfig.name,
-         branch: branchConfig.label,
-         api_group_normalized_name: normalizeApiGroupName(outcome.group.name),
+      const apiGroupTestPath = await resolveArtifactDestination({
+         template: instanceConfig.test.output,
+         context: {
+            instance: instanceConfig.name,
+            workspace: workspaceConfig.name,
+            branch: branchConfig.label,
+            apiGroupNormalized: normalizeApiGroupName(outcome.group.name),
+         },
       });
 
-      await mkdir(apiGroupTestPath, { recursive: true });
-      await writeFile(
-         `${apiGroupTestPath}/${testFileName}`,
-         JSON.stringify(outcome.results, null, 2)
-      );
+      await writeArtifacts({
+         fileSystem,
+         destination: apiGroupTestPath,
+         entries: [
+            { path: testFileName, content: JSON.stringify(outcome.results, null, 2) },
+         ],
+         clear: false,
+      });
 
       log.step(
          `Tests for ${outcome.group.name} completed. Results -> ${apiGroupTestPath}/${testFileName}`

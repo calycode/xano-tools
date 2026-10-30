@@ -1,14 +1,15 @@
-import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { log, intro, outro } from '@clack/prompts';
-import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
+import { fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
-   clearDirectory,
-   findProjectRoot,
+   createArtifactFileSystem,
    parseSchemaContents,
+   prepareArtifactDirectory,
    printOutputDir,
+   resolveArtifactDestination,
    resolveConfigs,
+   writeArtifacts,
 } from '../../../utils/index';
 
 async function generateRepo({
@@ -35,7 +36,11 @@ async function generateRepo({
 
    let instanceConfig, workspaceConfig, branchConfig;
    if (input && !fetch) {
-      // Skip context validation, provide dummy configs or minimal required fields
+      // Local-input mode skips context validation by fabricating a dummy
+      // context. Core still needs real config beyond the parsed schema (the
+      // output template resolves against the project root, and any config or
+      // network lookup Core performs sees the dummy ids), so pass `--output`
+      // to avoid requiring instance.config.json.
       instanceConfig = {
          name: instance || 'defaultInstance',
          process: { output: output || './output' },
@@ -51,17 +56,21 @@ async function generateRepo({
    }
 
    // Resolve output dir
-   const outputDir = output
-      ? output
-      : replacePlaceholders(instanceConfig.process.output, {
-           '@': await findProjectRoot(),
-           instance: instanceConfig.name,
-           workspace: workspaceConfig.name,
-           branch: branchConfig.label,
-        });
+   const outputDir = await resolveArtifactDestination({
+      template: instanceConfig.process.output,
+      override: output,
+      context: {
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
+         branch: branchConfig.label,
+      },
+   });
 
-   clearDirectory(outputDir);
-   await mkdir(outputDir, { recursive: true });
+   const fileSystem = createArtifactFileSystem(core.storage);
+
+   // Prepare up front: the schema fetched below is extracted into this same
+   // directory and must survive until the generated entries are written.
+   await prepareArtifactDirectory({ fileSystem, destination: outputDir });
 
    // Default to fetching the schema from the instance when no local input was
    // provided, so `generate repo` works with no arguments.
@@ -96,29 +105,18 @@ async function generateRepo({
 
    log.step(`Writing Repository to the output directory -> ${path.normalize(outputDir)}`);
 
-   // Track results for logging
-   const writeResults = await Promise.all(
-      plannedWrites.map(async ({ path, content }) => {
-         const outputPath = joinPath(outputDir, path);
-         const writeDir = dirname(outputPath);
-
-         try {
-            if (!(await core.storage.exists(writeDir))) {
-               await core.storage.mkdir(writeDir, { recursive: true });
-            }
-            await core.storage.writeFile(outputPath, content);
-            return { path: outputPath, success: true };
-         } catch (err) {
-            return { path: outputPath, success: false, error: err };
-         }
-      })
-   );
+   const { failures } = await writeArtifacts({
+      fileSystem,
+      destination: outputDir,
+      entries: plannedWrites,
+      clear: false,
+      collectErrors: true,
+   });
 
    // Summary log
-   const failedWrites = writeResults.filter((r) => !r.success);
-   if (failedWrites.length) {
-      log.warn(`Some files failed to write (${failedWrites.length}):`);
-      failedWrites.forEach((r) => log.warn(` - ${r.path}: ${r.error}`));
+   if (failures.length) {
+      log.warn(`Some files failed to write (${failures.length}):`);
+      failures.forEach((r) => log.warn(` - ${r.path}: ${r.error}`));
    } else {
       log.info('All files written successfully.');
    }

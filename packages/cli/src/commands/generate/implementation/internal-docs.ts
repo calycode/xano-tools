@@ -1,14 +1,15 @@
-import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { log, intro, outro } from '@clack/prompts';
-import { joinPath, dirname, replacePlaceholders, fetchAndExtractYaml } from '@repo/utils';
+import { fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
-   clearDirectory,
-   findProjectRoot,
+   createArtifactFileSystem,
    parseSchemaContents,
+   prepareArtifactDirectory,
    printOutputDir,
+   resolveArtifactDestination,
    resolveConfigs,
+   writeArtifacts,
 } from '../../../utils/index';
 
 async function generateInternalDocs({
@@ -38,17 +39,21 @@ async function generateInternalDocs({
    });
 
    // Resolve output dir
-   const outputDir = output
-      ? output
-      : replacePlaceholders(instanceConfig.internalDocs.output, {
-           '@': await findProjectRoot(),
-           instance: instanceConfig.name,
-           workspace: workspaceConfig.name,
-           branch: branchConfig.label,
-        });
+   const outputDir = await resolveArtifactDestination({
+      template: instanceConfig.internalDocs.output,
+      override: output,
+      context: {
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
+         branch: branchConfig.label,
+      },
+   });
 
-   clearDirectory(outputDir);
-   await mkdir(outputDir, { recursive: true });
+   const fileSystem = createArtifactFileSystem(core.storage);
+
+   // Prepare up front: the fetched schema is extracted into this directory and
+   // must survive until the generated entries are written.
+   await prepareArtifactDirectory({ fileSystem, destination: outputDir });
 
    // Ensure we have the input file, default to local, but override if --fetch
    let inputFile = input;
@@ -80,16 +85,12 @@ async function generateInternalDocs({
       branch: branchConfig.label,
    });
    log.step(`Writing Documentation to the output directory -> ${outputDir}`);
-   await Promise.all(
-      plannedWrites.map(async ({ path, content }) => {
-         const outputPath = joinPath(outputDir, path);
-         const writeDir = dirname(outputPath);
-         if (!(await core.storage.exists(writeDir))) {
-            await core.storage.mkdir(writeDir, { recursive: true });
-         }
-         await core.storage.writeFile(outputPath, content);
-      })
-   );
+   await writeArtifacts({
+      fileSystem,
+      destination: outputDir,
+      entries: plannedWrites,
+      clear: false,
+   });
 
    printOutputDir(printOutput, outputDir);
    outro('Documentation built successfully!');
