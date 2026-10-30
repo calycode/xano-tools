@@ -102,26 +102,33 @@ function sanitizeObject(obj: any): any {
    return result;
 }
 
-function selectiveDeepMerge(source: any, target: any): any {
-   // Only merge the keys we care about; otherwise, leave target as is.
-   // `source` is the nearer level, so its merge keys win.
-   // Sanitize source to prevent prototype pollution
-   const safeSource = sanitizeObject(source);
-   const result = { ...target };
+/**
+ * Overlays a parent level onto the merge keys accumulated from nearer levels.
+ * Only `MERGE_KEYS` propagate, and the nearer level wins on conflicts, so a
+ * nested branch config overrides the same key higher up the tree.
+ */
+function mergeConfigLevels(nearest: any, parent: any): any {
+   const safeNearest = sanitizeObject(nearest);
+   const safeParent = sanitizeObject(parent);
+   const result: any = {};
+
    for (const key of MERGE_KEYS) {
-      if (safeSource[key]) {
-         if (
-            typeof safeSource[key] === 'object' &&
-            typeof target[key] === 'object' &&
-            safeSource[key] !== null &&
-            target[key] !== null
-         ) {
-            result[key] = { ...target[key], ...safeSource[key] };
-         } else {
-            result[key] = safeSource[key];
-         }
+      const near = safeNearest[key];
+      const far = safeParent[key];
+      if (near === undefined && far === undefined) continue;
+
+      if (
+         typeof near === 'object' &&
+         near !== null &&
+         typeof far === 'object' &&
+         far !== null
+      ) {
+         result[key] = { ...far, ...near };
+      } else {
+         result[key] = near !== undefined ? near : far;
       }
    }
+
    return result;
 }
 
@@ -247,7 +254,7 @@ export const nodeConfigStorage: ConfigStorage = {
                   // Nearest level wins: only the first config of each kind found
                   // while walking up is kept. Parent levels still contribute
                   // merge keys (e.g. `test`) without overriding the nearest one.
-                  mergedConfig = selectiveDeepMerge(mergedConfig, config);
+                  mergedConfig = mergeConfigLevels(mergedConfig, config);
                   if (configFile === 'branch.config.json') {
                      if (!branchConfig) {
                         branchConfig = config;
