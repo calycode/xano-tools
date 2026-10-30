@@ -1,4 +1,5 @@
 import { log } from '@clack/prompts';
+import { telemetry } from '../../telemetry';
 
 const DEBUG = ['1', 'true', 'yes', 'on'].includes(
    (process.env.CALY_DEBUG || '').toLowerCase(),
@@ -19,6 +20,9 @@ function reportError(err: any): void {
 // ---- EXIT HANDLERS START ---
 function gracefulExit(code = 0, msg = '👋 Goodbye!') {
    log.message('\n' + msg);
+   // The dispatcher spawns synchronously, so queued events still leave the
+   // process before this exit.
+   void telemetry.shutdown();
    process.exit(code);
 }
 process.on('SIGINT', () => gracefulExit(0, '👋 Exiting, see you next time!'));
