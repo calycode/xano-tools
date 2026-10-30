@@ -5,7 +5,7 @@ import { select, confirm, outro, log } from '@clack/prompts';
 import {
    attachCliEventHandlers,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
 } from '../../../utils';
 const { FormData } = globalThis;
@@ -34,7 +34,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
          );
 
          // Find available backups for the selected branch
-         const backupsDir = await resolveArtifactDestination({
+         const backupsDir = await resolveOutputDestination({
             template: instanceConfig.backups.output,
             context: {
                instance: instanceConfig.name,
@@ -107,7 +107,7 @@ async function exportWizard({ instance, workspace, branch, core, doLog, output }
    });
 
    // Resolve output dir
-   const outputDir = await resolveArtifactDestination({
+   const outputDir = await resolveOutputDestination({
       template: instanceConfig.backups.output,
       override: output,
       context: {

@@ -4,11 +4,11 @@ import { intro, log, spinner, outro } from '@clack/prompts';
 import { normalizeApiGroupName } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
-   createArtifactFileSystem,
+   createOutputFileSystem,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
-   writeArtifacts,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 
 /**
@@ -257,10 +257,10 @@ async function runTest({
    let totalFailed = 0;
    let totalWarnings = 0;
 
-   const fileSystem = createArtifactFileSystem(core.storage);
+   const fileSystem = createOutputFileSystem(core.storage);
 
    for (const outcome of testResults) {
-      const apiGroupTestPath = await resolveArtifactDestination({
+      const apiGroupTestPath = await resolveOutputDestination({
          template: instanceConfig.test.output,
          context: {
             instance: instanceConfig.name,
@@ -270,7 +270,7 @@ async function runTest({
          },
       });
 
-      await writeArtifacts({
+      await writeGeneratedOutput({
          fileSystem,
          destination: apiGroupTestPath,
          entries: [

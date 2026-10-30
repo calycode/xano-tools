@@ -1,4 +1,4 @@
-import { resolveArtifactDestination } from '../resolve-destination';
+import { resolveOutputDestination } from '../resolve-destination';
 
 const context = {
    instance: 'acme',
@@ -6,9 +6,9 @@ const context = {
    branch: 'main',
 };
 
-describe('resolveArtifactDestination', () => {
+describe('resolveOutputDestination', () => {
    it('expands the project-root and context placeholders', async () => {
-      const destination = await resolveArtifactDestination({
+      const destination = await resolveOutputDestination({
          template: '{@}/output/repo/{instance}/{workspace}/{branch}',
          context,
          projectRoot: '/project',
@@ -18,7 +18,7 @@ describe('resolveArtifactDestination', () => {
    });
 
    it('expands the normalized API group placeholder', async () => {
-      const destination = await resolveArtifactDestination({
+      const destination = await resolveOutputDestination({
          template: '{@}/output/spec/{instance}/{workspace}/{branch}/{api_group_normalized_name}',
          context: { ...context, apiGroupNormalized: 'users-v2' },
          projectRoot: '/project',
@@ -28,7 +28,7 @@ describe('resolveArtifactDestination', () => {
    });
 
    it('uses an explicit override verbatim without needing a project root', async () => {
-      const destination = await resolveArtifactDestination({
+      const destination = await resolveOutputDestination({
          template: '{@}/output/repo/{instance}',
          context,
          override: './custom-output',
@@ -38,7 +38,7 @@ describe('resolveArtifactDestination', () => {
    });
 
    it('matches placeholder keys case-insensitively', async () => {
-      const destination = await resolveArtifactDestination({
+      const destination = await resolveOutputDestination({
          template: '{@}/{Instance}/{WORKSPACE}/{branch}',
          context,
          projectRoot: '/project',

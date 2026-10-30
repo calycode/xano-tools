@@ -1,10 +1,10 @@
 import {
    attachCliEventHandlers,
-   createArtifactFileSystem,
+   createOutputFileSystem,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
-   writeArtifacts,
+   writeGeneratedOutput,
 } from '../../../utils';
 
 async function generateXanoscriptRepo({ instance, workspace, branch, core, printOutput = false }) {
@@ -20,7 +20,7 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
    });
 
    // Resolve output dir
-   const outputDir = await resolveArtifactDestination({
+   const outputDir = await resolveOutputDestination({
       template: instanceConfig.xanoscript.output,
       context: {
          instance: instanceConfig.name,
@@ -35,8 +35,8 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
       branch: context.branch,
    });
 
-   await writeArtifacts({
-      fileSystem: createArtifactFileSystem(core.storage),
+   await writeGeneratedOutput({
+      fileSystem: createOutputFileSystem(core.storage),
       destination: outputDir,
       entries: plannedWrites,
    });

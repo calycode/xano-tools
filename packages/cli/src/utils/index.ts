@@ -1,4 +1,4 @@
-export * from './artifacts';
+export * from './generated-output';
 export * from './commands/context-resolution';
 export * from './commands/option-sets';
 export * from './commands/project-root-finder';

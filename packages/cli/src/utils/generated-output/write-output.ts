@@ -1,16 +1,16 @@
 import { dirname, joinPath } from '@repo/utils';
-import type { ArtifactFileSystem } from './file-system';
+import type { OutputFileSystem } from './file-system';
 
 /** A single generated file, relative to the destination directory. */
-export interface ArtifactEntry {
+export interface OutputEntry {
    path: string;
    content: string | Uint8Array;
 }
 
-export type ArtifactStage = 'clear' | 'mkdir' | 'write';
+export type OutputStage = 'clear' | 'mkdir' | 'write';
 
-export interface ArtifactProgressEvent {
-   stage: ArtifactStage;
+export interface OutputProgressEvent {
+   stage: OutputStage;
    /** Directory for `clear`/`mkdir`, file path for `write`. */
    path: string;
    /** Entry index, set for entry-level `mkdir`/`write` events. */
@@ -19,32 +19,32 @@ export interface ArtifactProgressEvent {
    total?: number;
 }
 
-export interface PrepareArtifactDirectoryOptions {
-   fileSystem: ArtifactFileSystem;
+export interface PrepareOutputDirectoryOptions {
+   fileSystem: OutputFileSystem;
    destination: string;
    /** Clear the destination first. Defaults to true. */
    clear?: boolean;
-   onProgress?: (event: ArtifactProgressEvent) => void;
+   onProgress?: (event: OutputProgressEvent) => void;
 }
 
-export interface WriteArtifactsOptions extends PrepareArtifactDirectoryOptions {
-   entries: ArtifactEntry[];
+export interface WriteGeneratedOutputOptions extends PrepareOutputDirectoryOptions {
+   entries: OutputEntry[];
    /**
     * Keep writing after a failed write and report the failures instead of
-    * rejecting. Defaults to false (`writeArtifacts` rejects on the first error).
+    * rejecting. Defaults to false (`writeGeneratedOutput` rejects on the first error).
     */
    collectErrors?: boolean;
 }
 
-export interface ArtifactWriteFailure {
+export interface OutputWriteFailure {
    path: string;
    error: unknown;
 }
 
-export interface ArtifactWriteResult {
+export interface OutputWriteResult {
    destination: string;
    written: string[];
-   failures: ArtifactWriteFailure[];
+   failures: OutputWriteFailure[];
 }
 
 /**
@@ -54,12 +54,12 @@ export interface ArtifactWriteResult {
  * intermediate step runs (e.g. fetching a schema file into the same directory)
  * and only write the generated entries afterwards.
  */
-export async function prepareArtifactDirectory({
+export async function prepareOutputDirectory({
    fileSystem,
    destination,
    clear = true,
    onProgress = () => {},
-}: PrepareArtifactDirectoryOptions): Promise<void> {
+}: PrepareOutputDirectoryOptions): Promise<void> {
    if (!destination) {
       throw new Error('Output directory is required');
    }
@@ -80,18 +80,18 @@ export async function prepareArtifactDirectory({
  * write. Every filesystem call is awaited, so a write can never race the
  * clear that precedes it.
  */
-export async function writeArtifacts({
+export async function writeGeneratedOutput({
    fileSystem,
    destination,
    entries,
    clear = true,
    collectErrors = false,
    onProgress = () => {},
-}: WriteArtifactsOptions): Promise<ArtifactWriteResult> {
-   await prepareArtifactDirectory({ fileSystem, destination, clear, onProgress });
+}: WriteGeneratedOutputOptions): Promise<OutputWriteResult> {
+   await prepareOutputDirectory({ fileSystem, destination, clear, onProgress });
 
    const written: string[] = [];
-   const failures: ArtifactWriteFailure[] = [];
+   const failures: OutputWriteFailure[] = [];
 
    for (let index = 0; index < entries.length; index++) {
       const entry = entries[index];

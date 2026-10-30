@@ -2,7 +2,7 @@ import path from 'node:path';
 import { normalizeApiGroupName } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
    serveStaticDirectory,
 } from '../../utils/index';
@@ -26,7 +26,7 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
    const currentApiGroup = apiGroups[0];
    const apiGroupNameNorm = normalizeApiGroupName(currentApiGroup.name);
 
-   const specBasePath = await resolveArtifactDestination({
+   const specBasePath = await resolveOutputDestination({
       template: instanceConfig.openApiSpec.output,
       context: {
          instance: instanceConfig.name,

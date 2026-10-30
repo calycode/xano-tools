@@ -3,13 +3,13 @@ import { log, intro, outro } from '@clack/prompts';
 import { fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
-   createArtifactFileSystem,
+   createOutputFileSystem,
    parseSchemaContents,
-   prepareArtifactDirectory,
+   prepareOutputDirectory,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
-   writeArtifacts,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 
 async function generateRepo({
@@ -56,7 +56,7 @@ async function generateRepo({
    }
 
    // Resolve output dir
-   const outputDir = await resolveArtifactDestination({
+   const outputDir = await resolveOutputDestination({
       template: instanceConfig.process.output,
       override: output,
       context: {
@@ -66,11 +66,11 @@ async function generateRepo({
       },
    });
 
-   const fileSystem = createArtifactFileSystem(core.storage);
+   const fileSystem = createOutputFileSystem(core.storage);
 
    // Prepare up front: the schema fetched below is extracted into this same
    // directory and must survive until the generated entries are written.
-   await prepareArtifactDirectory({ fileSystem, destination: outputDir });
+   await prepareOutputDirectory({ fileSystem, destination: outputDir });
 
    // Default to fetching the schema from the instance when no local input was
    // provided, so `generate repo` works with no arguments.
@@ -105,7 +105,7 @@ async function generateRepo({
 
    log.step(`Writing Repository to the output directory -> ${path.normalize(outputDir)}`);
 
-   const { failures } = await writeArtifacts({
+   const { failures } = await writeGeneratedOutput({
       fileSystem,
       destination: outputDir,
       entries: plannedWrites,

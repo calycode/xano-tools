@@ -2,11 +2,11 @@ import { log, outro, intro, spinner, select, text, isCancel, cancel } from '@cla
 import { metaApiGet, normalizeApiGroupName } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
-   createArtifactFileSystem,
+   createOutputFileSystem,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
-   writeArtifacts,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 import { runOpenApiGenerator } from '../../../features/code-gen/open-api-generator';
 
@@ -121,7 +121,7 @@ async function generateCodeFromOas({
       s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
 
       const apiGroupNameNorm = normalizeApiGroupName(group.name);
-      const outputPath = await resolveArtifactDestination({
+      const outputPath = await resolveOutputDestination({
          template: instanceConfig.codegen.output,
          context: {
             instance: instanceConfig.name,
@@ -148,8 +148,8 @@ async function generateCodeFromOas({
 
       // Create a temp file for the oas to reuse. The directory is not cleared:
       // the generator's own output lives next to spec.json.
-      await writeArtifacts({
-         fileSystem: createArtifactFileSystem(core.storage),
+      await writeGeneratedOutput({
+         fileSystem: createOutputFileSystem(core.storage),
          destination: outputPath,
          entries: [{ path: 'spec.json', content: JSON.stringify(oas, null, 2) }],
          clear: false,

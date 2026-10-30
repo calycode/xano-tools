@@ -2,11 +2,11 @@ import { normalizeApiGroupName } from '@repo/utils';
 import {
    attachCliEventHandlers,
    chooseApiGroupOrAll,
-   createArtifactFileSystem,
+   createOutputFileSystem,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
-   writeArtifacts,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 
 async function updateOasWizard({
@@ -68,12 +68,12 @@ async function updateOasWizard({
       includeTables
    );
 
-   const fileSystem = createArtifactFileSystem(core.storage);
+   const fileSystem = createOutputFileSystem(core.storage);
 
    for (const { group, generatedItems } of allGroupResults) {
       const apiGroupNameNorm = normalizeApiGroupName(group);
 
-      const outputPath = await resolveArtifactDestination({
+      const outputPath = await resolveOutputDestination({
          template: instanceConfig.openApiSpec.output,
          context: {
             instance: instanceConfig.name,
@@ -85,7 +85,7 @@ async function updateOasWizard({
 
       // Existing spec output is not cleared: it can be regenerated per group
       // and stale sibling files are intentionally left in place.
-      await writeArtifacts({
+      await writeGeneratedOutput({
          fileSystem,
          destination: outputPath,
          entries: generatedItems,

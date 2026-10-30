@@ -3,13 +3,13 @@ import { log, intro, outro } from '@clack/prompts';
 import { fetchAndExtractYaml } from '@repo/utils';
 import {
    attachCliEventHandlers,
-   createArtifactFileSystem,
+   createOutputFileSystem,
    parseSchemaContents,
-   prepareArtifactDirectory,
+   prepareOutputDirectory,
    printOutputDir,
-   resolveArtifactDestination,
+   resolveOutputDestination,
    resolveConfigs,
-   writeArtifacts,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 
 async function generateInternalDocs({
@@ -39,7 +39,7 @@ async function generateInternalDocs({
    });
 
    // Resolve output dir
-   const outputDir = await resolveArtifactDestination({
+   const outputDir = await resolveOutputDestination({
       template: instanceConfig.internalDocs.output,
       override: output,
       context: {
@@ -49,11 +49,11 @@ async function generateInternalDocs({
       },
    });
 
-   const fileSystem = createArtifactFileSystem(core.storage);
+   const fileSystem = createOutputFileSystem(core.storage);
 
    // Prepare up front: the fetched schema is extracted into this directory and
    // must survive until the generated entries are written.
-   await prepareArtifactDirectory({ fileSystem, destination: outputDir });
+   await prepareOutputDirectory({ fileSystem, destination: outputDir });
 
    // Ensure we have the input file, default to local, but override if --fetch
    let inputFile = input;
@@ -85,7 +85,7 @@ async function generateInternalDocs({
       branch: branchConfig.label,
    });
    log.step(`Writing Documentation to the output directory -> ${outputDir}`);
-   await writeArtifacts({
+   await writeGeneratedOutput({
       fileSystem,
       destination: outputDir,
       entries: plannedWrites,

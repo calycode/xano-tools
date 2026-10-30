@@ -1,10 +1,10 @@
-import type { ArtifactFileSystem } from '../file-system';
-import { prepareArtifactDirectory, writeArtifacts } from '../write-artifacts';
+import type { OutputFileSystem } from '../file-system';
+import { prepareOutputDirectory, writeGeneratedOutput } from '../write-output';
 
 const destination = 'output/repo';
 
 /** In-memory filesystem that records every call in order. */
-class FakeArtifactFileSystem implements ArtifactFileSystem {
+class FakeOutputFileSystem implements OutputFileSystem {
    events: string[] = [];
    files = new Map<string, string>();
    directories = new Set<string>();
@@ -29,11 +29,11 @@ class FakeArtifactFileSystem implements ArtifactFileSystem {
    }
 }
 
-describe('writeArtifacts', () => {
+describe('writeGeneratedOutput', () => {
    it('clears, creates directories and writes strictly in that order', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
 
-      const result = await writeArtifacts({
+      const result = await writeGeneratedOutput({
          fileSystem,
          destination,
          entries: [
@@ -57,7 +57,7 @@ describe('writeArtifacts', () => {
    });
 
    it('does not start writing before the clear promise resolves', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
       let releaseClear: () => void = () => {};
       const clearGate = new Promise<void>((resolve) => {
          releaseClear = resolve;
@@ -69,7 +69,7 @@ describe('writeArtifacts', () => {
          fileSystem.events.push(`clear-end:${directory}`);
       };
 
-      const write = writeArtifacts({
+      const write = writeGeneratedOutput({
          fileSystem,
          destination,
          entries: [{ path: 'a.txt', content: 'a' }],
@@ -92,10 +92,10 @@ describe('writeArtifacts', () => {
    });
 
    it('skips clearing when clear is false but still creates and writes', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
       fileSystem.files.set('output/repo/existing.txt', 'keep');
 
-      await writeArtifacts({
+      await writeGeneratedOutput({
          fileSystem,
          destination,
          entries: [{ path: 'a.txt', content: 'a' }],
@@ -108,11 +108,11 @@ describe('writeArtifacts', () => {
    });
 
    it('propagates write failures to the caller', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
       fileSystem.failOn = 'output/repo/a.txt';
 
       await expect(
-         writeArtifacts({
+         writeGeneratedOutput({
             fileSystem,
             destination,
             entries: [{ path: 'a.txt', content: 'a' }],
@@ -121,10 +121,10 @@ describe('writeArtifacts', () => {
    });
 
    it('collects failures instead of rejecting when collectErrors is set', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
       fileSystem.failOn = 'output/repo/a.txt';
 
-      const result = await writeArtifacts({
+      const result = await writeGeneratedOutput({
          fileSystem,
          destination,
          entries: [
@@ -141,10 +141,10 @@ describe('writeArtifacts', () => {
    });
 
    it('emits progress events around each stage', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
       const events: string[] = [];
 
-      await writeArtifacts({
+      await writeGeneratedOutput({
          fileSystem,
          destination,
          entries: [{ path: 'a.txt', content: 'a' }],
@@ -160,10 +160,10 @@ describe('writeArtifacts', () => {
    });
 
    it('rejects an empty destination before touching the filesystem', async () => {
-      const fileSystem = new FakeArtifactFileSystem();
+      const fileSystem = new FakeOutputFileSystem();
 
       await expect(
-         prepareArtifactDirectory({ fileSystem, destination: '' })
+         prepareOutputDirectory({ fileSystem, destination: '' })
       ).rejects.toThrow('Output directory is required');
       expect(fileSystem.events).toEqual([]);
    });

@@ -2,12 +2,12 @@ import type { ConfigStorage } from '@repo/types';
 import { clearDirectory } from '../methods/clear-directory';
 
 /**
- * Minimal filesystem contract required by the generated-artifact pipeline.
+ * Minimal filesystem contract required by the generated-output pipeline.
  *
  * Deliberately narrower than `ConfigStorage` so tests (and other hosts) can
  * provide an in-memory implementation without touching disk.
  */
-export interface ArtifactFileSystem {
+export interface OutputFileSystem {
    /** Removes everything inside `directory`. No-op when the directory is missing. */
    clearDirectory(directory: string): Promise<void>;
    /** Creates `directory` (and parents when `recursive` is set). */
@@ -20,9 +20,9 @@ export interface ArtifactFileSystem {
  * Production adapter: directory clearing stays on node:fs, file writes go
  * through the caller's `ConfigStorage` (normally `nodeConfigStorage`).
  */
-export function createArtifactFileSystem(
+export function createOutputFileSystem(
    storage: Pick<ConfigStorage, 'mkdir' | 'writeFile'>
-): ArtifactFileSystem {
+): OutputFileSystem {
    return {
       clearDirectory: (directory) => clearDirectory(directory),
       mkdir: (directory, options) => storage.mkdir(directory, options),

@@ -2,7 +2,7 @@ import { replacePlaceholders } from '@repo/utils';
 import { findProjectRoot } from '../commands/project-root-finder';
 
 /** Values substituted into a configured output template. */
-export interface ArtifactContext {
+export interface OutputContext {
    instance: string;
    workspace: string;
    branch: string;
@@ -10,10 +10,10 @@ export interface ArtifactContext {
    apiGroupNormalized?: string;
 }
 
-export interface ResolveArtifactDestinationOptions {
+export interface ResolveOutputDestinationOptions {
    /** Output template from the instance config, e.g. `output/spec/{instance}/{api_group_normalized_name}`. */
    template: string;
-   context: ArtifactContext;
+   context: OutputContext;
    /** Explicit `--output` value. Used verbatim, bypassing the template and project-root lookup. */
    override?: string;
    /** Project root for the `@` placeholder. Defaults to `findProjectRoot()`. */
@@ -26,12 +26,12 @@ export interface ResolveArtifactDestinationOptions {
  * This is the only place that knows how output templates and the `@`
  * placeholder are expanded, so every command agrees on where files land.
  */
-export async function resolveArtifactDestination({
+export async function resolveOutputDestination({
    template,
    context,
    override,
    projectRoot,
-}: ResolveArtifactDestinationOptions): Promise<string> {
+}: ResolveOutputDestinationOptions): Promise<string> {
    if (override) {
       return override;
    }
