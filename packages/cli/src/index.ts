@@ -2,6 +2,7 @@ import { program } from './program';
 import { startNativeHost } from './commands/opencode/native-host';
 import { launchOpencodeServer } from './commands/opencode/distribution';
 import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
+import { maybeRunTelemetrySink } from './telemetry';
 
 // Check if we are being called as the Native Host
 // This happens when the argument list includes 'opencode' and 'native-host'
@@ -36,7 +37,9 @@ const isDirectNativeHostInvocation =
    args[commandIndex + 1] === 'native-host' &&
    isNativeHostLaunchArgs(nativeHostExtraArgs);
 
-if (chromeExtensionArg || isDirectNativeHostInvocation) {
+if (maybeRunTelemetrySink()) {
+   // Detached telemetry sink: it flushes the batch and exits on its own.
+} else if (chromeExtensionArg || isDirectNativeHostInvocation) {
    startNativeHost({ launchServer: launchOpencodeServer });
 } else {
    program.parseAsync();

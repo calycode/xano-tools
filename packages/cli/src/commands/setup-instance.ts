@@ -82,6 +82,7 @@ Here’s exactly what we track:
       – Timestamp
 
 By continuing to use @calycode/cli, you consent to this data collection.
+You can opt out at any time by setting CALY_TELEMETRY=0 or DO_NOT_TRACK=1.
 We appreciate your support and commitment to making @calycode/cli better!
       `
    );
