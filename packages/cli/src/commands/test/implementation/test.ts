@@ -240,6 +240,7 @@ async function runTest({
       groups: groups,
       testConfig,
       initialRuntimeValues,
+      contextConfigs: { instanceConfig, workspaceConfig, branchConfig },
    });
    s.stop();
 

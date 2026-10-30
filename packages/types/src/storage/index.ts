@@ -22,17 +22,34 @@ import { InstanceConfig, CoreContext, WorkspaceConfig, BranchConfig } from '..';
 export interface ConfigStorage {
    ensureDirs(): Promise<void>;
    loadGlobalConfig(): Promise<{ currentContext: CoreContext; instances: string[] }>;
+   /**
+    * Loads the config for a named instance. Node resolves a per-instance copy
+    * (falling back to the nearest local config); browser keys configs by name.
+    */
    loadInstanceConfig(instance: string): Promise<InstanceConfig>;
+   /**
+    * Loads the nearest branch/workspace/instance config by walking up from
+    * `startDir`. Implementations may return synchronously (Node/browser do);
+    * callers should await it so both contracts work.
+    */
    loadMergedConfig(
       startDir: string,
       configFiles?: string[]
-   ): {
-      mergedConfig: any;
-      instanceConfig?: InstanceConfig;
-      workspaceConfig?: WorkspaceConfig;
-      branchConfig?: BranchConfig;
-      foundLevels: { branch?: string; workspace?: string; instance?: string };
-   };
+   ):
+      | {
+           mergedConfig: any;
+           instanceConfig?: InstanceConfig;
+           workspaceConfig?: WorkspaceConfig;
+           branchConfig?: BranchConfig;
+           foundLevels: { branch?: string; workspace?: string; instance?: string };
+        }
+      | Promise<{
+           mergedConfig: any;
+           instanceConfig?: InstanceConfig;
+           workspaceConfig?: WorkspaceConfig;
+           branchConfig?: BranchConfig;
+           foundLevels: { branch?: string; workspace?: string; instance?: string };
+        }>;
    loadToken(instance: string): Promise<string>;
    saveGlobalConfig(config: any): Promise<void>;
    saveInstanceConfig(projectRoot: string, data: InstanceConfig): Promise<void>;

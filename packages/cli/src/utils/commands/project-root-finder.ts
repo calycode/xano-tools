@@ -1,17 +1,11 @@
-import { join, dirname } from 'node:path';
-import { access } from 'node:fs/promises';
+import { findProjectRoot as findProjectRootInStorage } from '../../node-config-storage';
 
+/**
+ * Project root discovery lives with the storage walker so there is exactly one
+ * directory-walk implementation. Kept async for existing callers.
+ */
 async function findProjectRoot(startDir = process.cwd(), sentinel = 'instance.config.json') {
-   let dir = startDir;
-   while (dir !== dirname(dir)) {
-      try {
-         await access(join(dir, sentinel));
-         return dir;
-      } catch {
-         dir = dirname(dir);
-      }
-   }
-   throw new Error(`Project root not found (missing ${sentinel})`);
+   return findProjectRootInStorage(startDir, sentinel);
 }
 
 export { findProjectRoot };

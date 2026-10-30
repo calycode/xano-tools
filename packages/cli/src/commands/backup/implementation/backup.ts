@@ -90,6 +90,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
          formData,
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
+         contextConfigs: { instanceConfig, workspaceConfig },
       });
    } catch (err) {
       process.exit(1);
@@ -114,7 +115,11 @@ async function exportWizard({ instance, workspace, branch, core, doLog, output }
            branch: branchConfig.label,
         });
 
-   const outputObject = await core.exportBackup({ ...context, outputDir });
+   const outputObject = await core.exportBackup({
+      ...context,
+      outputDir,
+      contextConfigs: { instanceConfig, workspaceConfig, branchConfig },
+   });
 
    printOutputDir(doLog, outputObject.outputDir);
 }

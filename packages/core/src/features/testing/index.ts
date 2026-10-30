@@ -4,10 +4,13 @@ import {
    AssertContext,
    AssertDefinition,
    AssertOptions,
+   BranchConfig,
    CoreContext,
+   InstanceConfig,
    TestConfigEntry,
    TestGroupResult,
    TestResult,
+   WorkspaceConfig,
 } from '@repo/types';
 import { metaApiGet, prepareRequest } from '@repo/utils';
 import { availableAsserts } from './asserts';
@@ -71,6 +74,7 @@ async function testRunner({
    core,
    storage,
    initialRuntimeValues = {},
+   contextConfigs,
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -78,17 +82,24 @@ async function testRunner({
    core: Caly;
    storage: Caly['storage'];
    initialRuntimeValues?: Record<string, any>;
+   contextConfigs?: {
+      instanceConfig?: InstanceConfig;
+      workspaceConfig?: WorkspaceConfig;
+      branchConfig?: BranchConfig;
+   };
 }): Promise<TestGroupResult[]> {
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
    const startDir = storage.getStartDir();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
-      startDir,
-   });
+   const { instanceConfig, workspaceConfig, branchConfig } =
+      contextConfigs ??
+      (await core.loadAndValidateContext({
+         instance,
+         workspace,
+         branch,
+         startDir,
+      }));
 
    const DEFAULT_HEADERS = {
       'X-Data-Source': 'test',
