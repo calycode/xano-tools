@@ -1,11 +1,10 @@
-import { mkdir } from 'node:fs/promises';
-import { joinPath, dirname, replacePlaceholders } from '@repo/utils';
 import {
    attachCliEventHandlers,
-   clearDirectory,
-   findProjectRoot,
+   createArtifactFileSystem,
    printOutputDir,
+   resolveArtifactDestination,
    resolveConfigs,
+   writeArtifacts,
 } from '../../../utils';
 
 async function generateXanoscriptRepo({ instance, workspace, branch, core, printOutput = false }) {
@@ -21,31 +20,26 @@ async function generateXanoscriptRepo({ instance, workspace, branch, core, print
    });
 
    // Resolve output dir
-   const outputDir = replacePlaceholders(instanceConfig.xanoscript.output, {
-      '@': await findProjectRoot(),
-      instance: instanceConfig.name,
-      workspace: workspaceConfig.name,
-      branch: branchConfig.label,
+   const outputDir = await resolveArtifactDestination({
+      template: instanceConfig.xanoscript.output,
+      context: {
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
+         branch: branchConfig.label,
+      },
    });
-
-   clearDirectory(outputDir);
-   await mkdir(outputDir, { recursive: true });
 
    const plannedWrites: { path: string; content: string }[] = await core.buildXanoscriptRepo({
       instance: context.instance,
       workspace: context.workspace,
       branch: context.branch,
    });
-   await Promise.all(
-      plannedWrites.map(async ({ path, content }) => {
-         const outputPath = joinPath(outputDir, path);
-         const writeDir = dirname(outputPath);
-         if (!(await core.storage.exists(writeDir))) {
-            await core.storage.mkdir(writeDir, { recursive: true });
-         }
-         await core.storage.writeFile(outputPath, content);
-      })
-   );
+
+   await writeArtifacts({
+      fileSystem: createArtifactFileSystem(core.storage),
+      destination: outputDir,
+      entries: plannedWrites,
+   });
 
    printOutputDir(printOutput, outputDir);
 }
