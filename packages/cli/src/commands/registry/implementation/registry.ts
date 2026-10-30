@@ -36,7 +36,7 @@ async function addToXano({
    const registryIndex = await core.getRegistryIndex(registryUrl);
 
    if (!componentNames?.length)
-      componentNames = (await promptForComponents(core, registryUrl)) as string[];
+      componentNames = (await promptForComponents(registryIndex)) as string[];
 
    const results = { installed: [], failed: [], skipped: [] };
 

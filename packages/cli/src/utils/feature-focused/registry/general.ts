@@ -1,11 +1,22 @@
 import { metaApiGet, metaApiPost } from '@repo/utils';
 import { multiselect, isCancel } from '@clack/prompts';
 
-async function promptForComponents(core, registryUrl) {
-     try {
-        const registry = await core.getRegistryIndex(registryUrl);
+interface RegistryIndexEntry {
+   name: string;
+   description?: string;
+}
 
-        const items = registry?.items ?? [];
+interface RegistryIndex {
+   items?: RegistryIndexEntry[];
+}
+
+/**
+ * Prompts for registry components from an already fetched registry index.
+ * The caller owns the fetch so `registry add` downloads the index once.
+ */
+async function promptForComponents(registryIndex: RegistryIndex) {
+     try {
+        const items = registryIndex?.items ?? [];
         if (!items.length) {
            console.error('No components available in registry index.');
            return [];
@@ -28,7 +39,7 @@ async function promptForComponents(core, registryUrl) {
 
          return selected;
      } catch (error) {
-        console.error('Failed to fetch available components:', error);
+        console.error('Failed to prompt for components:', error);
         return [];
      }
  }

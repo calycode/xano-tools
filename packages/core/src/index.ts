@@ -3,7 +3,6 @@ import {
     BranchConfig,
     ConfigStorage,
     Context,
-    CoreContext,
     CurrentContextConfig,
     EventMap,
     InstanceConfig,
@@ -25,7 +24,6 @@ import {
 import type { ContextInputs, ContextResolution } from './implementations/context';
 import { runTestsImplementation } from './implementations/run-tests';
 import { setupInstanceImplementation } from './implementations/setup';
-import { switchContextImplementation } from './implementations/switch-context';
 import { getRegistryItem } from './features/registry/api';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import { generateInternalDocsImplementation } from './implementations/generate-internal-docs';
@@ -106,30 +104,6 @@ export class Caly extends TypedEmitter<EventMap> {
       projectRoot: string;
    }) {
       return setupInstanceImplementation(this.storage, options);
-   }
-
-   /**
-    * @deprecated This has been deprecated in favor for feature invokation level overrides.
-    * Switches the current active context to a different instance, workspace, or branch.
-    * Updates the global configuration to reflect the new active context.
-    *
-    * @param context - The new context to switch to
-    * @param context.instance - Instance name to switch to
-    * @param context.workspace - Workspace identifier to switch to
-    * @param context.branch - Branch name to switch to
-    * @throws {Error} When the specified context configuration is invalid
-    *
-    * @example
-    * ```typescript
-    * await calyInstance.switchContext({
-    *   instance: 'staging',
-    *   workspace: 'main',
-    *   branch: 'develop'
-    * });
-    * ```
-    */
-   async switchContext({ instance, workspace, branch }: CoreContext): Promise<void> {
-      return switchContextImplementation(this.storage, { instance, workspace, branch });
    }
 
    /**
@@ -583,23 +557,6 @@ export class Caly extends TypedEmitter<EventMap> {
     */
    async loadGlobalConfig(): Promise<any> {
       return this.storage.loadGlobalConfig();
-   }
-
-   /**
-    * Loads the configuration for a specific Xano instance.
-    * @param instance - Name of the instance to load configuration for
-    * @returns Promise resolving to the instance configuration
-    * @throws {Error} When instance configuration is not found
-    *
-    * @example
-    * ```typescript
-    * const instanceConfig = await calyInstance.loadInstanceConfig('production');
-    * console.log('Instance URL:', instanceConfig.url);
-    * console.log('Available workspaces:', instanceConfig.workspaces);
-    * ```
-    */
-   async loadInstanceConfig(instance: string): Promise<InstanceConfig> {
-      return this.storage.loadInstanceConfig(instance);
    }
 
    /**
