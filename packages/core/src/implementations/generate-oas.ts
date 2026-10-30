@@ -24,7 +24,8 @@ async function updateOpenapiSpecImplementation(
    });
 
    try {
-      // PARALLELIZE: process all groups concurrently
+      // Each group is independent: it fetches and transforms its own OAS document.
+      // Promise.all preserves input order, so results stay aligned with options.groups.
       const results = await Promise.all(
          options.groups.map(async (grp, i) => {
             core.emit('progress', {
