@@ -3,7 +3,14 @@ import { replacePlaceholders, joinPath, dirname, metaApiFetch } from '@repo/util
 /**
  * Exports a backup and emits events for CLI/UI.
  */
-async function exportBackupImplementation({ outputDir, instance, workspace, branch, core }) {
+async function exportBackupImplementation({
+   outputDir,
+   instance,
+   workspace,
+   branch,
+   contextConfigs,
+   core,
+}) {
    core.emit('start', {
       name: 'export-backup',
       payload: { instance, workspace, branch },
@@ -16,12 +23,14 @@ async function exportBackupImplementation({ outputDir, instance, workspace, bran
          percent: 5,
       });
       const startDir = core.storage.getStartDir();
-      const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-         instance,
-         workspace,
-         branch,
-         startDir,
-      });
+      const { instanceConfig, workspaceConfig, branchConfig } =
+         contextConfigs ??
+         (await core.loadAndValidateContext({
+            instance,
+            workspace,
+            branch,
+            startDir,
+         }));
 
       if (!instanceConfig || !workspaceConfig || !branchConfig) {
          throw new Error(
@@ -124,18 +133,20 @@ async function exportBackupImplementation({ outputDir, instance, workspace, bran
    }
 }
 
-async function restoreBackupImplementation({ instance, workspace, formData, core }) {
+async function restoreBackupImplementation({ instance, workspace, formData, contextConfigs, core }) {
    core.emit('progress', {
       name: 'restore-backup',
       message: 'Loading context...',
       percent: 5,
    });
    const startDir = core.storage.getStartDir();
-   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      startDir,
-   });
+   const { instanceConfig, workspaceConfig } =
+      contextConfigs ??
+      (await core.loadAndValidateContext({
+         instance,
+         workspace,
+         startDir,
+      }));
 
    core.emit('progress', {
       name: 'restore-backup',

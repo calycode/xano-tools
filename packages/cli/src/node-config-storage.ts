@@ -17,6 +17,7 @@ import { ConfigStorage, InstanceConfig } from '@repo/types';
 const BASE_DIR = path.join(homedir(), '.xano-tools');
 const GLOBAL_CONFIG_PATH = path.join(BASE_DIR, 'config.json');
 const TOKENS_DIR = path.join(BASE_DIR, 'tokens');
+const INSTANCES_DIR = path.join(BASE_DIR, 'instances');
 const DEFAULT_LOCAL_CONFIG_FILE = 'instance.config.json';
 const MERGE_KEYS = ['test'];
 
@@ -45,30 +46,41 @@ function validateInstanceName(instance: string): void {
 const DANGEROUS_KEYS = ['__proto__', 'constructor', 'prototype'];
 
 /**
- * Walks up the directory tree to find the first directory containing
- * .xano-tools/cli.config.json, starting from startDir or process.cwd().
- * @param startDir Optional directory to start search from. Defaults to process.cwd().
- * @returns The project root directory containing the config file.
- * @throws {Error} if no config file is found up to the filesystem root.
+ * The only directory walk in the CLI. Walks from `startDir` to the filesystem
+ * root, calling `visit` per directory until it returns true. Shared by project
+ * root discovery, merged config loading, and instance config lookup.
  */
-async function walkDirs(startDir?: string): Promise<string> {
-   let dir = startDir ?? process.cwd();
+function walkUp(
+   startDir: string | undefined,
+   visit: (dir: string) => boolean | void
+): string | null {
+   let dir = path.resolve(startDir ?? process.cwd());
 
    while (true) {
-      const configPath = path.join(dir, DEFAULT_LOCAL_CONFIG_FILE);
-
-      if (fs.existsSync(configPath)) {
+      if (visit(dir)) {
          return dir;
       }
       const parent = path.dirname(dir);
       if (parent === dir) {
-         // reached root
-         throw new Error(
-            `No local config found under any parent directories. Looked for ${dir}/${DEFAULT_LOCAL_CONFIG_FILE}`
-         );
+         return null;
       }
       dir = parent;
    }
+}
+
+/**
+ * Finds the nearest directory containing `sentinel`, starting from startDir.
+ * @throws {Error} when no matching directory exists up to the filesystem root.
+ */
+function findProjectRoot(
+   startDir: string = process.cwd(),
+   sentinel: string = DEFAULT_LOCAL_CONFIG_FILE
+): string {
+   const found = walkUp(startDir, (dir) => fs.existsSync(path.join(dir, sentinel)));
+   if (!found) {
+      throw new Error(`Project root not found (missing ${sentinel})`);
+   }
+   return found;
 }
 
 /**
@@ -92,6 +104,7 @@ function sanitizeObject(obj: any): any {
 
 function selectiveDeepMerge(source: any, target: any): any {
    // Only merge the keys we care about; otherwise, leave target as is.
+   // `source` is the nearer level, so its merge keys win.
    // Sanitize source to prevent prototype pollution
    const safeSource = sanitizeObject(source);
    const result = { ...target };
@@ -130,7 +143,7 @@ export const nodeConfigStorage: ConfigStorage = {
     * Creates ~/.xano-tools/instances and ~/.xano-tools/tokens if they don't exist.
     */
    async ensureDirs() {
-      [TOKENS_DIR].forEach((dir) => {
+      [TOKENS_DIR, INSTANCES_DIR].forEach((dir) => {
          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       });
    },
@@ -153,17 +166,50 @@ export const nodeConfigStorage: ConfigStorage = {
 
    async saveInstanceConfig(projectRoot: string = '', config: InstanceConfig) {
       const configPath = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_FILE);
-      if (!fs.existsSync(projectRoot)) {
+      if (projectRoot && !fs.existsSync(projectRoot)) {
          fs.mkdirSync(projectRoot, { recursive: true });
       }
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+      // Keep a per-instance copy so `--instance <name>` can select a config
+      // from any directory (browser storage already keys configs by name).
+      if (config?.name) {
+         validateInstanceName(config.name);
+         if (!fs.existsSync(INSTANCES_DIR)) {
+            fs.mkdirSync(INSTANCES_DIR, { recursive: true });
+         }
+         fs.writeFileSync(
+            path.join(INSTANCES_DIR, `${config.name}.json`),
+            JSON.stringify(config, null, 2)
+         );
+      }
    },
 
-   async loadInstanceConfig(workingDir?: string): Promise<any> {
-      const projectRoot = await walkDirs(workingDir);
+   async loadInstanceConfig(instance?: string): Promise<any> {
+      // Backwards compatibility: a directory argument used to be treated as
+      // the search start dir rather than an instance name.
+      let instanceName = instance;
+      let startDir = process.cwd();
+      if (instance && fs.existsSync(instance) && fs.statSync(instance).isDirectory()) {
+         startDir = instance;
+         instanceName = undefined;
+      }
+
+      if (instanceName) {
+         validateInstanceName(instanceName);
+         const globalPath = path.join(INSTANCES_DIR, `${instanceName}.json`);
+         if (fs.existsSync(globalPath)) {
+            return JSON.parse(fs.readFileSync(globalPath, 'utf-8'));
+         }
+      }
+
+      const projectRoot = findProjectRoot(startDir);
       const configPath = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_FILE);
-      if (!fs.existsSync(configPath)) throw new Error(`Local config not found: ${configPath}`);
-      return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (instanceName && config.name !== instanceName) {
+         throw new Error(`Instance config not found: ${instanceName}`);
+      }
+      return config;
    },
 
    /**
@@ -184,14 +230,13 @@ export const nodeConfigStorage: ConfigStorage = {
       instanceConfig?: any;
       foundLevels: { branch?: string; workspace?: string; instance?: string };
    } {
-      let dir = path.resolve(startDir);
       let mergedConfig: any = {};
       let branchConfig: any = null;
       let workspaceConfig: any = null;
       let instanceConfig: any = null;
       const foundLevels: { branch?: string; workspace?: string; instance?: string } = {};
 
-      while (dir && dir !== path.dirname(dir)) {
+      walkUp(startDir, (dir) => {
          for (const configFile of configFiles) {
             const configPath = path.join(dir, configFile);
             if (fs.existsSync(configPath)) {
@@ -199,27 +244,33 @@ export const nodeConfigStorage: ConfigStorage = {
                   const raw = fs.readFileSync(configPath, 'utf-8');
                   const config = JSON.parse(raw);
 
-                  // Special handling by config file type
+                  // Nearest level wins: only the first config of each kind found
+                  // while walking up is kept. Parent levels still contribute
+                  // merge keys (e.g. `test`) without overriding the nearest one.
+                  mergedConfig = selectiveDeepMerge(mergedConfig, config);
                   if (configFile === 'branch.config.json') {
-                     mergedConfig = selectiveDeepMerge(config, mergedConfig);
-                     branchConfig = config;
-                     foundLevels.branch = branchConfig.label;
+                     if (!branchConfig) {
+                        branchConfig = config;
+                        foundLevels.branch = branchConfig.label;
+                     }
                   } else if (configFile === 'workspace.config.json') {
-                     mergedConfig = selectiveDeepMerge(config, mergedConfig);
-                     workspaceConfig = config;
-                     foundLevels.workspace = workspaceConfig.name;
+                     if (!workspaceConfig) {
+                        workspaceConfig = config;
+                        foundLevels.workspace = workspaceConfig.name;
+                     }
                   } else if (configFile === 'instance.config.json') {
-                     mergedConfig = selectiveDeepMerge(config, mergedConfig);
-                     instanceConfig = config;
-                     foundLevels.instance = instanceConfig.name;
+                     if (!instanceConfig) {
+                        instanceConfig = config;
+                        foundLevels.instance = instanceConfig.name;
+                     }
                   }
                } catch (err) {
                   console.warn(`⚠️  Failed to load or parse ${configPath}: ${err}`);
                }
             }
          }
-         dir = path.dirname(dir);
-      }
+         // Keep walking: parent levels still contribute to the selective merge.
+      });
 
       return {
          mergedConfig,
@@ -363,3 +414,5 @@ export const nodeConfigStorage: ConfigStorage = {
       return result;
    },
 };
+
+export { findProjectRoot };
