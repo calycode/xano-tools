@@ -1,23 +1,59 @@
 import { spawn } from 'node:child_process';
-import {
-   isTelemetryEnabled,
-   MAX_TELEMETRY_PAYLOAD_CHARS,
-   TELEMETRY_PAYLOAD_ENV,
-   TELEMETRY_SINK_ENV,
-} from '../config';
+import { mkdtempSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { isTelemetryEnabled, TELEMETRY_SINK_ENV } from '../config';
 import { createDetachedDispatcher } from '../detached-dispatcher';
 import { createTelemetry } from '../index';
 import {
    isTelemetrySinkInvocation,
    maybeRunTelemetrySink,
    sendTelemetryEvents,
+   SINK_HARD_LIMIT_MS,
    TelemetryClient,
 } from '../sink';
+import { createEventSpool, createSinkLock, type EventSpool } from '../spool';
 
 function mockChild() {
    return {
+      pid: 4242,
       on: jest.fn(),
       unref: jest.fn(),
+   };
+}
+
+function makeTempDir(): string {
+   return mkdtempSync(join(tmpdir(), 'caly-telemetry-'));
+}
+
+function fakeSpool(): EventSpool & { events: unknown[] } {
+   return {
+      path: '/tmp/spool.jsonl',
+      events: [],
+      append(events) {
+         this.events.push(...events);
+         return true;
+      },
+      drain() {
+         return [];
+      },
+   };
+}
+
+function fakeLock() {
+   return {
+      path: '/tmp/sink.lock',
+      held: false,
+      identify: jest.fn(),
+      own: jest.fn(),
+      acquire: jest.fn(function () {
+         if (this.held) return false;
+         this.held = true;
+         return true;
+      }),
+      release: jest.fn(function () {
+         this.held = false;
+      }),
    };
 }
 
@@ -85,9 +121,7 @@ describe('telemetry', () => {
 
    describe('failure isolation', () => {
       it('resolves when the dispatcher rejects', async () => {
-         const dispatch = jest.fn(() =>
-            Promise.reject(new Error('network down'))
-         );
+         const dispatch = jest.fn(() => Promise.reject(new Error('network down')));
          const analytics = createTelemetry({ env: {}, dispatch });
          analytics.recordEvent('command_started');
 
@@ -107,9 +141,11 @@ describe('telemetry', () => {
 });
 
 describe('detached dispatcher', () => {
-   it('spawns a detached sink with the encoded batch', () => {
+   it('spools the batch and spawns one flusher', () => {
       const child = mockChild();
       const spawnProcess = jest.fn(() => child);
+      const spool = fakeSpool();
+      const lock = fakeLock();
       const dispatch = createDetachedDispatcher({
          env: { PATH: '/bin' },
          execPath: 'node',
@@ -117,10 +153,15 @@ describe('detached dispatcher', () => {
          fileExists: () => true,
          isSea: () => false,
          spawnProcess: spawnProcess as unknown as typeof spawn,
+         spool,
+         lock,
       });
 
       dispatch([{ event: 'command_started', properties: { command: 'status' } }]);
 
+      expect(spool.events).toEqual([
+         { event: 'command_started', properties: { command: 'status' } },
+      ]);
       expect(spawnProcess).toHaveBeenCalledTimes(1);
       const [command, args, options] = spawnProcess.mock.calls[0] as any[];
       expect(command).toBe('node');
@@ -128,19 +169,57 @@ describe('detached dispatcher', () => {
       expect(options.detached).toBe(true);
       expect(options.stdio).toBe('ignore');
       expect(options.env[TELEMETRY_SINK_ENV]).toBe('1');
+      expect(options.env.CALY_TELEMETRY_SPOOL).toBe('/tmp/spool.jsonl');
+      expect(options.env.CALY_TELEMETRY_LOCK).toBe('/tmp/sink.lock');
 
-      const payload = JSON.parse(
-         Buffer.from(options.env[TELEMETRY_PAYLOAD_ENV], 'base64').toString()
-      );
-      expect(payload).toEqual([
-         { event: 'command_started', properties: { command: 'status' } },
-      ]);
-
+      expect(lock.identify).toHaveBeenCalledWith(4242);
       expect(child.unref).toHaveBeenCalled();
       expect(child.on).toHaveBeenCalledWith('error', expect.any(Function));
    });
 
-   it('swallows spawn failures', () => {
+   it('does not spawn a second flusher while one holds the lock', () => {
+      const spawnProcess = jest.fn(() => mockChild());
+      const spool = fakeSpool();
+      const lock = fakeLock();
+      lock.held = true;
+
+      const dispatch = createDetachedDispatcher({
+         env: {},
+         execPath: 'node',
+         scriptPath: '/app/dist/index.cjs',
+         fileExists: () => true,
+         isSea: () => false,
+         spawnProcess: spawnProcess as unknown as typeof spawn,
+         spool,
+         lock,
+      });
+
+      dispatch([{ event: 'command_started' }]);
+
+      // The batch is still spooled for the running flusher / next run.
+      expect(spool.events).toHaveLength(1);
+      expect(spawnProcess).not.toHaveBeenCalled();
+   });
+
+   it('releases the lock when no safe entry point can be found', () => {
+      const lock = fakeLock();
+      const dispatch = createDetachedDispatcher({
+         execPath: 'node',
+         scriptPath: 'caly.exe',
+         fileExists: () => true,
+         isSea: () => false,
+         spawnProcess: jest.fn() as unknown as typeof spawn,
+         spool: fakeSpool(),
+         lock,
+      });
+
+      dispatch([{ event: 'command_started' }]);
+
+      expect(lock.release).toHaveBeenCalled();
+   });
+
+   it('releases the lock when spawning throws', () => {
+      const lock = fakeLock();
       const dispatch = createDetachedDispatcher({
          execPath: 'node',
          scriptPath: '/app/dist/index.cjs',
@@ -149,44 +228,108 @@ describe('detached dispatcher', () => {
          spawnProcess: (() => {
             throw new Error('ENOENT');
          }) as unknown as typeof spawn,
+         spool: fakeSpool(),
+         lock,
       });
 
       expect(() => dispatch([{ event: 'command_started' }])).not.toThrow();
+      expect(lock.release).toHaveBeenCalled();
    });
 
-   it('drops batches that exceed the environment payload limit', () => {
+   it('ignores empty batches', () => {
       const spawnProcess = jest.fn();
+      const spool = fakeSpool();
       const dispatch = createDetachedDispatcher({
          execPath: 'node',
          scriptPath: '/app/dist/index.cjs',
          fileExists: () => true,
          isSea: () => false,
          spawnProcess: spawnProcess as unknown as typeof spawn,
+         spool,
+         lock: fakeLock(),
       });
 
-      dispatch([
-         {
-            event: 'command_started',
-            properties: { blob: 'x'.repeat(MAX_TELEMETRY_PAYLOAD_CHARS) },
-         },
-      ]);
+      dispatch([]);
 
+      expect(spool.events).toHaveLength(0);
       expect(spawnProcess).not.toHaveBeenCalled();
    });
+});
 
-   it('skips launching when no safe entry point can be found', () => {
-      const spawnProcess = jest.fn();
-      const dispatch = createDetachedDispatcher({
-         execPath: 'node',
-         scriptPath: 'caly.exe',
-         fileExists: () => true,
-         isSea: () => false,
-         spawnProcess: spawnProcess as unknown as typeof spawn,
-      });
+describe('event spool', () => {
+   let dir: string;
 
-      dispatch([{ event: 'command_started' }]);
+   beforeEach(() => {
+      dir = makeTempDir();
+   });
 
-      expect(spawnProcess).not.toHaveBeenCalled();
+   afterEach(() => {
+      rmSync(dir, { recursive: true, force: true });
+   });
+
+   it('round-trips appended batches and removes the file on drain', () => {
+      const spool = createEventSpool(join(dir, 'spool.jsonl'));
+
+      spool.append([{ event: 'command_started', properties: { command: 'a' } }]);
+      spool.append([{ event: 'command_finished' }]);
+
+      expect(spool.drain()).toEqual([
+         { event: 'command_started', properties: { command: 'a' } },
+         { event: 'command_finished' },
+      ]);
+      expect(spool.drain()).toEqual([]);
+   });
+
+   it('skips corrupt lines without dropping the rest', () => {
+      const path = join(dir, 'spool.jsonl');
+      writeFileSync(path, 'not json\n{"event":"kept"}\n');
+
+      const spool = createEventSpool(path);
+
+      expect(spool.drain()).toEqual([{ event: 'kept' }]);
+   });
+
+   it('stops appending once the spool is full', () => {
+      const path = join(dir, 'spool.jsonl');
+      const spool = createEventSpool(path);
+      const big = { event: 'command_started', properties: { blob: 'x'.repeat(250_000) } };
+
+      expect(spool.append([big])).toBe(true);
+      expect(spool.append([big])).toBe(true);
+      expect(spool.append([big])).toBe(false);
+      expect(statSync(path).size).toBeLessThanOrEqual(512 * 1024);
+   });
+});
+
+describe('sink lock', () => {
+   let dir: string;
+
+   beforeEach(() => {
+      dir = makeTempDir();
+   });
+
+   afterEach(() => {
+      rmSync(dir, { recursive: true, force: true });
+   });
+
+   it('allows only one holder at a time', () => {
+      const lock = createSinkLock(join(dir, 'sink.lock'));
+
+      expect(lock.acquire()).toBe(true);
+      expect(lock.acquire()).toBe(false);
+
+      lock.release();
+      expect(lock.acquire()).toBe(true);
+   });
+
+   it('replaces a stale lock left by a crashed flusher', () => {
+      const path = join(dir, 'sink.lock');
+      writeFileSync(path, '999\n0');
+      utimesSync(path, new Date(0), new Date(0));
+
+      const lock = createSinkLock(path);
+
+      expect(lock.acquire()).toBe(true);
    });
 });
 
@@ -195,6 +338,67 @@ describe('sink', () => {
       expect(isTelemetrySinkInvocation({})).toBe(false);
       expect(isTelemetrySinkInvocation({ [TELEMETRY_SINK_ENV]: '1' })).toBe(true);
       expect(maybeRunTelemetrySink({})).toBe(false);
+   });
+
+   it('drains the spool, sends, releases the lock and exits', async () => {
+      const spool = fakeSpool();
+      spool.drain = () => [{ event: 'command_finished' }];
+      const lock = fakeLock();
+      const send = jest.fn().mockResolvedValue(undefined);
+      const exit = jest.fn() as unknown as (code: number) => never;
+
+      const tookOver = maybeRunTelemetrySink(
+         { [TELEMETRY_SINK_ENV]: '1' },
+         { spool, lock, send, exit }
+      );
+
+      expect(tookOver).toBe(true);
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(send).toHaveBeenCalledWith([{ event: 'command_finished' }]);
+      expect(lock.own).toHaveBeenCalled();
+      expect(lock.release).toHaveBeenCalled();
+      expect(exit).toHaveBeenCalledWith(0);
+   });
+
+   it('exits without sending when telemetry is disabled', () => {
+      const spool = fakeSpool();
+      const lock = fakeLock();
+      const send = jest.fn();
+      const exit = jest.fn() as unknown as (code: number) => never;
+
+      maybeRunTelemetrySink(
+         { [TELEMETRY_SINK_ENV]: '1', CALY_TELEMETRY: '0' },
+         { spool, lock, send, exit }
+      );
+
+      expect(send).not.toHaveBeenCalled();
+      expect(lock.release).toHaveBeenCalled();
+      expect(exit).toHaveBeenCalledWith(0);
+   });
+
+   it('exits at the hard deadline even if sending never settles', () => {
+      jest.useFakeTimers();
+      const exit = jest.fn() as unknown as (code: number) => never;
+      const lock = fakeLock();
+      const spool = fakeSpool();
+      spool.drain = () => [{ event: 'command_started' }];
+
+      maybeRunTelemetrySink(
+         { [TELEMETRY_SINK_ENV]: '1' },
+         {
+            spool,
+            lock,
+            send: () => new Promise<void>(() => undefined),
+            exit,
+         }
+      );
+
+      jest.advanceTimersByTime(SINK_HARD_LIMIT_MS);
+
+      expect(exit).toHaveBeenCalledWith(0);
+      expect(lock.release).toHaveBeenCalled();
+      jest.useRealTimers();
    });
 
    it('captures anonymous events with the person profile disabled', async () => {

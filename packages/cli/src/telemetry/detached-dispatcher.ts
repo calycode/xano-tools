@@ -1,10 +1,18 @@
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import {
-   MAX_TELEMETRY_PAYLOAD_CHARS,
-   TELEMETRY_PAYLOAD_ENV,
+   TELEMETRY_LOCK_ENV,
    TELEMETRY_SINK_ENV,
+   TELEMETRY_SPOOL_ENV,
 } from './config';
+import {
+   createEventSpool,
+   createSinkLock,
+   defaultSinkLockPath,
+   defaultSpoolPath,
+   type EventSpool,
+   type SinkLock,
+} from './spool';
 import type { TelemetryDispatcher, TelemetryEvent } from './types';
 
 export interface DetachedDispatcherDeps {
@@ -14,6 +22,8 @@ export interface DetachedDispatcherDeps {
    spawnProcess?: typeof spawn;
    fileExists?: (path: string) => boolean;
    isSea?: () => boolean;
+   spool?: EventSpool;
+   lock?: SinkLock;
 }
 
 /**
@@ -34,11 +44,7 @@ function resolveSinkArgs(
    fileExists: (path: string) => boolean,
    isSea: () => boolean
 ): string[] | null {
-   if (
-      scriptPath &&
-      /\.(c|m)?js$/i.test(scriptPath) &&
-      fileExists(scriptPath)
-   ) {
+   if (scriptPath && /\.(c|m)?js$/i.test(scriptPath) && fileExists(scriptPath)) {
       return [scriptPath];
    }
 
@@ -51,14 +57,13 @@ function resolveSinkArgs(
    return null;
 }
 
-function encodeEvents(events: TelemetryEvent[]): string {
-   return Buffer.from(JSON.stringify(events), 'utf8').toString('base64');
-}
-
 /**
- * Sends events from a short-lived detached process. The spawn is the only work
- * the CLI process performs; the network request (and any retries or failures)
- * happen after the CLI has already exited.
+ * Spools events and guarantees at most one detached flusher at a time.
+ *
+ * The parent only appends to a file and spawns when no flusher holds the lock.
+ * A flusher drains everything spooled so far, so a burst of commands costs one
+ * process, not one per command, and a crashed flusher is replaced after its
+ * lock goes stale.
  */
 export function createDetachedDispatcher(
    deps: DetachedDispatcherDeps = {}
@@ -69,14 +74,23 @@ export function createDetachedDispatcher(
    const spawnProcess = deps.spawnProcess ?? spawn;
    const fileExists = deps.fileExists ?? existsSync;
    const isSea = deps.isSea ?? isSeaRuntime;
+   const spool = deps.spool ?? createEventSpool(defaultSpoolPath(env));
+   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env));
 
-   return (events) => {
+   return (events: TelemetryEvent[]) => {
       try {
-         const payload = encodeEvents(events);
-         if (payload.length > MAX_TELEMETRY_PAYLOAD_CHARS) return;
+         if (events.length === 0) return;
+         spool.append(events);
+
+         // A flusher is already draining; it will pick these events up on its
+         // next run, or the next command will.
+         if (!lock.acquire()) return;
 
          const args = resolveSinkArgs(scriptPath, fileExists, isSea);
-         if (!args) return;
+         if (!args) {
+            lock.release();
+            return;
+         }
 
          const child = spawnProcess(execPath, args, {
             detached: true,
@@ -85,16 +99,23 @@ export function createDetachedDispatcher(
             env: {
                ...env,
                [TELEMETRY_SINK_ENV]: '1',
-               [TELEMETRY_PAYLOAD_ENV]: payload,
+               [TELEMETRY_SPOOL_ENV]: spool.path,
+               [TELEMETRY_LOCK_ENV]: lock.path,
             },
          });
 
+         // Identify the flusher immediately: the parent usually exits before the
+         // child reaches its own entry point, and the lock is the way to find a
+         // running flusher if it ever needs reaping.
+         if (child.pid) lock.identify(child.pid);
+
          // Without a listener, a failed spawn would surface as an uncaught
          // 'error' event and take the CLI down with it.
-         child.on('error', () => {});
+         child.on('error', () => lock.release());
          child.unref();
       } catch {
          // Telemetry is best effort and must never break a command.
+         lock.release();
       }
    };
 }

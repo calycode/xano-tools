@@ -4,14 +4,26 @@ import {
    isTelemetryEnabled,
    POSTHOG_API_KEY,
    POSTHOG_HOST,
-   TELEMETRY_PAYLOAD_ENV,
    TELEMETRY_SINK_ENV,
 } from './config';
+import {
+   createEventSpool,
+   createSinkLock,
+   defaultSinkLockPath,
+   defaultSpoolPath,
+   type EventSpool,
+   type SinkLock,
+} from './spool';
 import type { TelemetryEvent } from './types';
 
-const SINK_REQUEST_TIMEOUT_MS = 3_000;
-const SINK_SHUTDOWN_TIMEOUT_MS = 4_000;
-const SINK_HARD_LIMIT_MS = 10_000;
+/**
+ * The flusher is disposable. These bounds guarantee it cannot linger: no retry,
+ * a short request timeout, a short shutdown timeout, and a hard process deadline
+ * that is always armed even if a socket is left open.
+ */
+const SINK_REQUEST_TIMEOUT_MS = 2_000;
+const SINK_SHUTDOWN_TIMEOUT_MS = 2_000;
+const SINK_HARD_LIMIT_MS = 5_000;
 
 export interface TelemetryClient {
    capture(props: {
@@ -29,8 +41,8 @@ export interface SendTelemetryDeps {
 function createPostHogClient(): TelemetryClient {
    return new PostHog(POSTHOG_API_KEY, {
       host: POSTHOG_HOST,
-      // The sink is disposable and already detached, so retries only delay its
-      // exit. One attempt with a hard request timeout is enough.
+      // The flusher is disposable, so retries only delay its exit. One attempt
+      // with a hard request timeout is enough.
       fetchRetryCount: 0,
       requestTimeout: SINK_REQUEST_TIMEOUT_MS,
    });
@@ -38,7 +50,7 @@ function createPostHogClient(): TelemetryClient {
 
 /**
  * Flushes a batch through PostHog. Every failure is swallowed: losing an event
- * is acceptable, crashing the sink (or the CLI) is not.
+ * is acceptable, crashing the flusher (or the CLI) is not.
  */
 export async function sendTelemetryEvents(
    events: TelemetryEvent[],
@@ -65,56 +77,71 @@ export async function sendTelemetryEvents(
    }
 }
 
-function decodePayload(raw: string | undefined): TelemetryEvent[] {
-   if (!raw) return [];
-   try {
-      const parsed = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
-      if (!Array.isArray(parsed)) return [];
-      return parsed.filter(
-         (entry): entry is TelemetryEvent =>
-            !!entry &&
-            typeof entry === 'object' &&
-            typeof (entry as TelemetryEvent).event === 'string'
-      );
-   } catch {
-      return [];
-   }
-}
-
 export function isTelemetrySinkInvocation(
    env: NodeJS.ProcessEnv = process.env
 ): boolean {
    return env[TELEMETRY_SINK_ENV] === '1';
 }
 
-function runTelemetrySink(env: NodeJS.ProcessEnv): void {
-   const events = decodePayload(env[TELEMETRY_PAYLOAD_ENV]);
+export interface RunTelemetrySinkDeps {
+   spool?: EventSpool;
+   lock?: SinkLock;
+   send?: (events: TelemetryEvent[]) => Promise<void>;
+   exit?: (code: number) => never;
+}
+
+function runTelemetrySink(
+   env: NodeJS.ProcessEnv,
+   deps: RunTelemetrySinkDeps = {}
+): void {
+   const spool = deps.spool ?? createEventSpool(defaultSpoolPath(env));
+   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env));
+   const send = deps.send ?? ((events) => sendTelemetryEvents(events));
+
+   // Identify this flusher in the lock file so it can be found and killed while
+   // it is draining (it removes the lock itself on exit).
+   lock.own();
+   const exit = deps.exit ?? ((code: number) => process.exit(code));
+
+   let finished = false;
+   const finish = (): void => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(guard);
+      lock.release();
+      exit(0);
+   };
+
+   // Ref'd on purpose: this is the last line of defence, so it must be able to
+   // end the process even if a client handle keeps the loop alive.
+   const guard = setTimeout(finish, SINK_HARD_LIMIT_MS);
+
+   const events = spool.drain();
    if (!isTelemetryEnabled(env) || events.length === 0) {
-      process.exit(0);
+      finish();
+      return;
    }
 
-   // The parent normally outlives us only briefly, but never linger forever if
-   // something keeps the socket open.
-   const guard = setTimeout(() => process.exit(0), SINK_HARD_LIMIT_MS);
-   guard.unref();
-
-   void sendTelemetryEvents(events)
+   void send(events)
       .catch(() => {})
-      .finally(() => process.exit(0));
+      .finally(finish);
 }
 
 /**
  * Called at the top of the CLI entry point. Returns true when this process is
- * the detached telemetry sink; it then owns its own exit.
+ * the detached telemetry flusher; it then owns its own exit.
  */
 export function maybeRunTelemetrySink(
-   env: NodeJS.ProcessEnv = process.env
+   env: NodeJS.ProcessEnv = process.env,
+   deps: RunTelemetrySinkDeps = {}
 ): boolean {
    if (!isTelemetrySinkInvocation(env)) return false;
    try {
-      runTelemetrySink(env);
+      runTelemetrySink(env, deps);
    } catch {
-      process.exit(0);
+      deps.exit ? deps.exit(0) : process.exit(0);
    }
    return true;
 }
+
+export { SINK_HARD_LIMIT_MS, SINK_REQUEST_TIMEOUT_MS, SINK_SHUTDOWN_TIMEOUT_MS };
