@@ -1,6 +1,7 @@
 import { testRunner } from '../features/testing';
 import type { Caly } from '..';
-import { ApiGroupConfig, BranchConfig, CoreContext, InstanceConfig, TestConfigEntry, TestGroupResult, WorkspaceConfig } from '@repo/types';
+import { ApiGroupConfig, CoreContext, TestConfigEntry, TestGroupResult } from '@repo/types';
+import type { FeatureContextConfigs } from '../utils/methods/resolve-feature-context';
 
 async function runTestsImplementation({
    context,
@@ -17,11 +18,7 @@ async function runTestsImplementation({
    core: Caly;
    storage: Caly['storage'];
    initialRuntimeValues: Record<string, any>;
-   contextConfigs?: {
-      instanceConfig?: InstanceConfig;
-      workspaceConfig?: WorkspaceConfig;
-      branchConfig?: BranchConfig;
-   };
+   contextConfigs?: FeatureContextConfigs;
 }): Promise<TestGroupResult[]> {
    return await testRunner({
       context,

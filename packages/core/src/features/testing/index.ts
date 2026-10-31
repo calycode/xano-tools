@@ -4,15 +4,14 @@ import {
    AssertContext,
    AssertDefinition,
    AssertOptions,
-   BranchConfig,
    CoreContext,
-   InstanceConfig,
    TestConfigEntry,
    TestGroupResult,
    TestResult,
-   WorkspaceConfig,
 } from '@repo/types';
 import { metaApiGet, prepareRequest } from '@repo/utils';
+import { resolveFeatureContext } from '../../utils/methods/resolve-feature-context';
+import type { FeatureContextConfigs } from '../../utils/methods/resolve-feature-context';
 import { availableAsserts } from './asserts';
 
 // ----------- UTILS ------------- //
@@ -82,24 +81,18 @@ async function testRunner({
    core: Caly;
    storage: Caly['storage'];
    initialRuntimeValues?: Record<string, any>;
-   contextConfigs?: {
-      instanceConfig?: InstanceConfig;
-      workspaceConfig?: WorkspaceConfig;
-      branchConfig?: BranchConfig;
-   };
+   contextConfigs?: FeatureContextConfigs;
 }): Promise<TestGroupResult[]> {
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
    const startDir = storage.getStartDir();
-   const { instanceConfig, workspaceConfig, branchConfig } =
-      contextConfigs ??
-      (await core.loadAndValidateContext({
-         instance,
-         workspace,
-         branch,
-         startDir,
-      }));
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveFeatureContext({
+      core,
+      context: { instance, workspace, branch },
+      startDir,
+      contextConfigs,
+   });
 
    const DEFAULT_HEADERS = {
       'X-Data-Source': 'test',
