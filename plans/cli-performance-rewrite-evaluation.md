@@ -36,7 +36,7 @@ The CLI's own JavaScript — module graph, Commander registration, help formatti
 
 ### Command tail: where the wall clock actually goes
 
-Running `oc native-host status`:
+Running `oc native-host status` (measured at base `b7bb631`):
 
 | Condition                    | CLI-reported action | Wall clock | Unattributed tail |
 | ---------------------------- | ------------------: | ---------: | ----------------: |
@@ -55,6 +55,8 @@ Isolated on the PostHog client alone:
 `packages/cli/src/program.ts:56-65` calls `captureImmediate()` and `shutdown()` from `postAction` without `await` or `.catch()`. The promise is not awaited, but the HTTP socket keeps the event loop alive, so the process still waits for the flush. When the endpoint is unreachable, the CLI stalls for ~9.5 s after the command has visibly finished; an uncaught shutdown rejection is also possible depending on how the bundler surfaces it.
 
 The CLI's own completion line (`⏱️ Command "…" completed in 0.14s`) measures only the action, so both the tail and the offline stall are invisible in the product's own telemetry.
+
+**Resolved in this PR:** telemetry now spools events to disk and a single detached flusher drains them with a five-second cap. The measured parent tail is gone (blackholed endpoint ~2.5 s, refused ~0.3 s, online ~0.3 s after the parent).
 
 ### Real commands: request orchestration dominates
 
@@ -142,4 +144,4 @@ Note: the offline simulation depends on the literal host string staying present 
 
 ## Decision
 
-**No rewrite.** The CLI is ~90 ms on a trivial command and that is not the cost users feel. Fix the ~270 ms telemetry tail and the 17 sequential round-trips in TypeScript first; both are smaller, testable, and address the numbers users actually wait on.
+**No rewrite.** The CLI is ~90 ms on a trivial command and that is not the cost users feel. The telemetry tail is fixed in this PR; the remaining work is the 17 sequential round-trips in TypeScript, which is smaller, testable, and addresses the numbers users actually wait on.

@@ -100,6 +100,68 @@ describe('buildXanoscriptRepoImplementation', () => {
       expect(percentages).toEqual([...percentages].sort((a, b) => a - b));
    });
 
+   it('rejects a non-JSON metadata response instead of returning an empty page', async () => {
+      mockedGet.mockResolvedValue('not json');
+
+      const emitted: any[] = [];
+
+      await expect(
+         buildXanoscriptRepoImplementation({
+            storage,
+            core: makeCore(emitted),
+            options: { instance: 'prod', workspace: 'main', branch: 'main' } as any,
+         })
+      ).rejects.toThrow('Invalid metadata response for addon (page 1)');
+   });
+
+   it('rejects a metadata response without an items array', async () => {
+      mockedGet.mockResolvedValue({});
+
+      const emitted: any[] = [];
+
+      await expect(
+         buildXanoscriptRepoImplementation({
+            storage,
+            core: makeCore(emitted),
+            options: { instance: 'prod', workspace: 'main', branch: 'main' } as any,
+         })
+      ).rejects.toThrow('Invalid metadata response for addon (page 1)');
+   });
+
+   it('stops emitting progress from in-flight mappers after a failure', async () => {
+      mockedGet.mockImplementation(async ({ path }: any) => {
+         if (path === '/workspace/1/addon') throw new Error('addon failed');
+         if (path === '/workspace/1/agent') {
+            await delay(30);
+            return { items: [entity('agent-a')] };
+         }
+         await delay(1);
+         return { items: [] };
+      });
+
+      const emitted: any[] = [];
+
+      await expect(
+         buildXanoscriptRepoImplementation({
+            storage,
+            core: makeCore(emitted),
+            options: { instance: 'prod', workspace: 'main', branch: 'main' } as any,
+         })
+      ).rejects.toThrow('addon failed');
+
+      const progressFrom = () =>
+         emitted.filter(
+            (event) => event.name === 'xs-repo-generation' && event.type === 'progress'
+         ).length;
+      const atFailure = progressFrom();
+
+      // The slow in-flight mapper resolves after the rejection; it must not
+      // report progress for a run that already failed.
+      await delay(60);
+      expect(progressFrom()).toBe(atFailure);
+      expect(emitted.some((event) => event.type === 'end')).toBe(false);
+   });
+
    it('fails fast when one entity fetch rejects', async () => {
       mockedGet.mockImplementation(async ({ path }: any) => {
          if (path === '/workspace/1/function') throw new Error('entity failed');
