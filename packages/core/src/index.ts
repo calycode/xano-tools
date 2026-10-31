@@ -29,17 +29,7 @@ import { updateOpenapiSpecImplementation } from './implementations/generate-oas'
 import { generateInternalDocsImplementation } from './implementations/generate-internal-docs';
 import { getRegistryIndex } from './features/registry/api';
 import { installRegistryItemToXano } from './features/registry/install-to-xano';
-
-/**
- * Configs the CLI already resolved, passed down so Core features do not read
- * the same files again. Direct Core callers can omit them and Core will resolve.
- */
-type FeatureContextConfigs = {
-   instanceConfig?: InstanceConfig | null;
-   workspaceConfig?: WorkspaceConfig | null;
-   branchConfig?: BranchConfig | null;
-   apigroupConfig?: ApiGroupConfig | null;
-};
+import type { FeatureContextConfigs } from './utils/methods/resolve-feature-context';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
