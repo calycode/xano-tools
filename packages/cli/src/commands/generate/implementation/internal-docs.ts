@@ -51,12 +51,23 @@ async function generateInternalDocs({
 
    const fileSystem = createOutputFileSystem(core.storage);
 
+   // Read a local schema before preparing the output: `--input` may live inside
+   // `--output`, and preparation clears that directory.
+   let inputFile = input;
+   let jsonData;
+   let parsedLocalSchema = false;
+   if (!fetch && inputFile) {
+      log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
+      const fileContents = await core.storage.readFile(inputFile, 'utf8');
+      jsonData = parseSchemaContents(fileContents, inputFile);
+      parsedLocalSchema = true;
+   }
+
    // Prepare up front: the fetched schema is extracted into this directory and
    // must survive until the generated entries are written.
    await prepareOutputDirectory({ fileSystem, destination: outputDir });
 
    // Ensure we have the input file, default to local, but override if --fetch
-   let inputFile = input;
    if (fetch) {
       inputFile = await fetchAndExtractYaml({
          baseUrl: instanceConfig.url,
@@ -73,10 +84,11 @@ async function generateInternalDocs({
    if (!inputFile) throw new Error('Input schema file (.json or .yaml) is required');
    if (!outputDir) throw new Error('Output directory is required');
 
-   log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
-   const fileContents = await core.storage.readFile(inputFile, 'utf8');
-
-   const jsonData = parseSchemaContents(fileContents, inputFile);
+   if (!parsedLocalSchema) {
+      log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
+      const fileContents = await core.storage.readFile(inputFile, 'utf8');
+      jsonData = parseSchemaContents(fileContents, inputFile);
+   }
 
    const plannedWrites: { path: string; content: string }[] = await core.generateInternalDocs({
       jsonData,

@@ -98,11 +98,11 @@ export async function writeGeneratedOutput({
       const outputPath = joinPath(destination, entry.path);
       const writeDir = dirname(outputPath);
 
-      onProgress({ stage: 'mkdir', path: writeDir, index, total: entries.length });
-      await fileSystem.mkdir(writeDir, { recursive: true });
-
-      onProgress({ stage: 'write', path: outputPath, index, total: entries.length });
       try {
+         onProgress({ stage: 'mkdir', path: writeDir, index, total: entries.length });
+         await fileSystem.mkdir(writeDir, { recursive: true });
+
+         onProgress({ stage: 'write', path: outputPath, index, total: entries.length });
          await fileSystem.writeFile(outputPath, entry.content);
          written.push(outputPath);
       } catch (error) {

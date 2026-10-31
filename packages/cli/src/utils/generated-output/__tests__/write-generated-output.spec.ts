@@ -9,6 +9,7 @@ class FakeOutputFileSystem implements OutputFileSystem {
    files = new Map<string, string>();
    directories = new Set<string>();
    failOn?: string;
+   failMkdirOn?: string;
 
    async clearDirectory(directory: string): Promise<void> {
       this.events.push(`clear:${directory}`);
@@ -17,6 +18,9 @@ class FakeOutputFileSystem implements OutputFileSystem {
 
    async mkdir(directory: string): Promise<void> {
       this.events.push(`mkdir:${directory}`);
+      if (this.failMkdirOn === directory) {
+         throw new Error(`cannot create ${directory}`);
+      }
       this.directories.add(directory);
    }
 
@@ -138,6 +142,27 @@ describe('writeGeneratedOutput', () => {
       expect(result.failures).toHaveLength(1);
       expect(result.failures[0].path).toBe('output/repo/a.txt');
       expect(fileSystem.files.get('output/repo/b.txt')).toBe('b');
+   });
+
+   it('collects a per-entry mkdir failure instead of rejecting', async () => {
+      const fileSystem = new FakeOutputFileSystem();
+      fileSystem.failMkdirOn = 'output/repo/nested';
+
+      const result = await writeGeneratedOutput({
+         fileSystem,
+         destination,
+         entries: [
+            { path: 'a.txt', content: 'a' },
+            { path: 'nested/b.txt', content: 'b' },
+         ],
+         collectErrors: true,
+      });
+
+      expect(result.written).toEqual(['output/repo/a.txt']);
+      expect(result.failures).toHaveLength(1);
+      expect(result.failures[0].path).toBe('output/repo/nested/b.txt');
+      expect(fileSystem.files.get('output/repo/a.txt')).toBe('a');
+      expect(fileSystem.files.has('output/repo/nested/b.txt')).toBe(false);
    });
 
    it('emits progress events around each stage', async () => {

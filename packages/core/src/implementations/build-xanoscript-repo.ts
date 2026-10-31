@@ -28,7 +28,7 @@ const FETCH_CONCURRENCY = 4;
 /** Page size for metadata list endpoints. */
 const PER_PAGE = 500;
 
-async function fetchMetadataPage({ baseUrl, token, path, branchLabel, page }) {
+async function fetchMetadataPage({ baseUrl, token, path, label, branchLabel, page }) {
    const response = await metaApiGet({
       baseUrl,
       token,
@@ -43,10 +43,16 @@ async function fetchMetadataPage({ baseUrl, token, path, branchLabel, page }) {
       },
    });
 
+   if (!response || typeof response !== 'object' || !Array.isArray(response.items)) {
+      throw new Error(
+         `Invalid metadata response for ${label ?? path} (page ${page}): expected an object with an items array`
+      );
+   }
+
    return {
-      items: response?.items ?? [],
-      total: response?.total,
-      next: response?.next,
+      items: response.items,
+      total: response.total,
+      next: response.next,
    };
 }
 
@@ -58,6 +64,7 @@ async function fetchAndProcessEntities({
    entity,
    apiGroupId,
 }) {
+   const label = apiGroupId ? `apigroup/${apiGroupId}/${entity}` : entity;
    const path = apiGroupId
       ? `/workspace/${workspaceId}/apigroup/${apiGroupId}/${entity}`
       : `/workspace/${workspaceId}/${entity}`;
@@ -65,9 +72,10 @@ async function fetchAndProcessEntities({
    const tempResults: { path: string; content: string }[] = [];
 
    const allItems = await fetchAllPages<any>({
-      label: apiGroupId ? `apigroup/${apiGroupId}/${entity}` : entity,
+      label,
       perPage: PER_PAGE,
-      fetchPage: ({ page }) => fetchMetadataPage({ baseUrl, token, path, branchLabel, page }),
+      fetchPage: ({ page }) =>
+         fetchMetadataPage({ baseUrl, token, path, label, branchLabel, page }),
    });
 
    for (const item of allItems) {
@@ -130,27 +138,37 @@ async function buildXanoscriptRepoImplementation({
 
    // Supported entities: functions, tables, api groups > apis.
    // Results stay grouped in SUPPORTED_ENTITIES order; only the fetches overlap.
+   // In-flight mappers keep running after mapConcurrent rejects, so a shared
+   // flag stops them from emitting progress for a run that already failed.
+   let failed = false;
    let completedEntities = 0;
    const entityResults = await mapConcurrent(
       SUPPORTED_ENTITIES,
       async (entity) => {
-         const tempResults = await fetchAndProcessEntities({
-            baseUrl,
-            token,
-            workspaceId,
-            branchLabel,
-            entity,
-            apiGroupId: null,
-         });
-         completedEntities++;
-         core.emit('progress', {
-            name: 'xs-repo-generation',
-            payload: {
+         try {
+            const tempResults = await fetchAndProcessEntities({
+               baseUrl,
+               token,
+               workspaceId,
+               branchLabel,
                entity,
-            },
-            percent: (completedEntities / SUPPORTED_ENTITIES.length) * 60,
-         });
-         return tempResults;
+               apiGroupId: null,
+            });
+            completedEntities++;
+            if (!failed) {
+               core.emit('progress', {
+                  name: 'xs-repo-generation',
+                  payload: {
+                     entity,
+                  },
+                  percent: (completedEntities / SUPPORTED_ENTITIES.length) * 60,
+               });
+            }
+            return tempResults;
+         } catch (error) {
+            failed = true;
+            throw error;
+         }
       },
       { concurrency: FETCH_CONCURRENCY }
    );
@@ -165,6 +183,7 @@ async function buildXanoscriptRepoImplementation({
             baseUrl,
             token,
             path: `/workspace/${workspaceId}/apigroup`,
+            label: 'apigroup',
             branchLabel,
             page,
          }),
@@ -181,30 +200,37 @@ async function buildXanoscriptRepoImplementation({
    const apiResults = await mapConcurrent(
       apiGroups,
       async (apiGroup) => {
-         const apiGroupPath = sanitizeFileName(apiGroup.name);
-         const tempResults = await fetchAndProcessEntities({
-            baseUrl,
-            token,
-            workspaceId,
-            branchLabel,
-            entity: 'api',
-            apiGroupId: apiGroup.id,
-         });
-
-         completedGroups++;
-         core.emit('progress', {
-            name: 'xs-repo-generation',
-            payload: {
+         try {
+            const apiGroupPath = sanitizeFileName(apiGroup.name);
+            const tempResults = await fetchAndProcessEntities({
+               baseUrl,
+               token,
+               workspaceId,
+               branchLabel,
                entity: 'api',
-            },
-            percent: 60 + (completedGroups / apiGroups.length) * 40,
-         });
+               apiGroupId: apiGroup.id,
+            });
 
-         return tempResults.map((item) => ({
-            // Add the apigroup name to the path for nice folder structure
-            path: `app/${apiGroupPath}/${item.path}`,
-            content: item.content,
-         }));
+            completedGroups++;
+            if (!failed) {
+               core.emit('progress', {
+                  name: 'xs-repo-generation',
+                  payload: {
+                     entity: 'api',
+                  },
+                  percent: 60 + (completedGroups / apiGroups.length) * 40,
+               });
+            }
+
+            return tempResults.map((item) => ({
+               // Add the apigroup name to the path for nice folder structure
+               path: `app/${apiGroupPath}/${item.path}`,
+               content: item.content,
+            }));
+         } catch (error) {
+            failed = true;
+            throw error;
+         }
       },
       { concurrency: FETCH_CONCURRENCY }
    );

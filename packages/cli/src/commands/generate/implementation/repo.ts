@@ -68,14 +68,26 @@ async function generateRepo({
 
    const fileSystem = createOutputFileSystem(core.storage);
 
-   // Prepare up front: the schema fetched below is extracted into this same
-   // directory and must survive until the generated entries are written.
-   await prepareOutputDirectory({ fileSystem, destination: outputDir });
-
    // Default to fetching the schema from the instance when no local input was
    // provided, so `generate repo` works with no arguments.
    let inputFile = input;
    const shouldFetch = fetch || !input;
+
+   // Read a local schema before preparing the output: `--input` may live inside
+   // `--output`, and preparation clears that directory.
+   let jsonData;
+   let parsedLocalSchema = false;
+   if (!shouldFetch) {
+      log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
+      const fileContents = await core.storage.readFile(inputFile, 'utf8');
+      jsonData = parseSchemaContents(fileContents, inputFile);
+      parsedLocalSchema = true;
+   }
+
+   // Prepare up front: the schema fetched below is extracted into this same
+   // directory and must survive until the generated entries are written.
+   await prepareOutputDirectory({ fileSystem, destination: outputDir });
+
    if (shouldFetch) {
       inputFile = await fetchAndExtractYaml({
          baseUrl: instanceConfig.url,
@@ -90,10 +102,11 @@ async function generateRepo({
    if (!inputFile) throw new Error('Input schema file (.json or .yaml) is required');
    if (!outputDir) throw new Error('Output directory is required');
 
-   log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
-   const fileContents = await core.storage.readFile(inputFile, 'utf8');
-
-   const jsonData = parseSchemaContents(fileContents, inputFile);
+   if (!parsedLocalSchema) {
+      log.step(`Reading and parsing schema file -> ${path.normalize(inputFile)}`);
+      const fileContents = await core.storage.readFile(inputFile, 'utf8');
+      jsonData = parseSchemaContents(fileContents, inputFile);
+   }
 
    // 3. Proceed with generation
    const plannedWrites: { path: string; content: string }[] = await core.generateRepo({
