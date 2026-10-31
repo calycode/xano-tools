@@ -12,7 +12,13 @@ import {
    SINK_HARD_LIMIT_MS,
    TelemetryClient,
 } from '../sink';
-import { createEventSpool, createSinkLock, type EventSpool } from '../spool';
+import {
+   createEventSpool,
+   createSinkLock,
+   defaultSinkLockPath,
+   type EventSpool,
+} from '../spool';
+import type { TelemetryEvent } from '../types';
 
 function mockChild() {
    return {
@@ -312,6 +318,34 @@ describe('sink lock', () => {
       rmSync(dir, { recursive: true, force: true });
    });
 
+   it('derives a different default lock for each spool path', () => {
+      const one = defaultSinkLockPath({
+         CALY_TELEMETRY_SPOOL: join(dir, 'one.jsonl'),
+      });
+      const two = defaultSinkLockPath({
+         CALY_TELEMETRY_SPOOL: join(dir, 'two.jsonl'),
+      });
+
+      expect(one).not.toBe(two);
+      // The same spool always maps to the same lock, so the two wrappers that
+      // share a spool still share one flusher.
+      expect(
+         defaultSinkLockPath({ CALY_TELEMETRY_SPOOL: join(dir, 'one.jsonl') })
+      ).toBe(one);
+   });
+
+   it('lets CALY_TELEMETRY_LOCK override the spool-derived default', () => {
+      const override = join(dir, 'explicit.lock');
+
+      expect(
+         defaultSinkLockPath({
+            CALY_TELEMETRY_SPOOL: join(dir, 'one.jsonl'),
+            CALY_TELEMETRY_LOCK: override,
+         })
+      ).toBe(override);
+      expect(defaultSinkLockPath({ CALY_TELEMETRY_LOCK: override })).toBe(override);
+   });
+
    it('allows only one holder at a time', () => {
       const lock = createSinkLock(join(dir, 'sink.lock'));
 
@@ -342,7 +376,8 @@ describe('sink', () => {
 
    it('drains the spool, sends, releases the lock and exits', async () => {
       const spool = fakeSpool();
-      spool.drain = () => [{ event: 'command_finished' }];
+      const batches = [[{ event: 'command_finished' }]];
+      spool.drain = () => batches.shift() ?? [];
       const lock = fakeLock();
       const send = jest.fn().mockResolvedValue(undefined);
       const exit = jest.fn() as unknown as (code: number) => never;
@@ -358,6 +393,32 @@ describe('sink', () => {
       expect(send).toHaveBeenCalledWith([{ event: 'command_finished' }]);
       expect(lock.own).toHaveBeenCalled();
       expect(lock.release).toHaveBeenCalled();
+      expect(exit).toHaveBeenCalledWith(0);
+   });
+
+   it('sends a batch appended while the first send is in flight', async () => {
+      const lock = fakeLock();
+      const spool = fakeSpool();
+      // The first drain empties the spool; a command appends the second batch
+      // while the first send is still running (it cannot take the lock).
+      const batches: TelemetryEvent[][] = [[{ event: 'command_started' }]];
+      spool.drain = () => batches.shift() ?? [];
+      let sends = 0;
+      const send = jest.fn(async () => {
+         sends += 1;
+         if (sends === 1) batches.push([{ event: 'command_finished' }]);
+      });
+      const exit = jest.fn() as unknown as (code: number) => never;
+
+      maybeRunTelemetrySink(
+         { [TELEMETRY_SINK_ENV]: '1' },
+         { spool, lock, send, exit }
+      );
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(send).toHaveBeenNthCalledWith(1, [{ event: 'command_started' }]);
+      expect(send).toHaveBeenNthCalledWith(2, [{ event: 'command_finished' }]);
+      expect(send).toHaveBeenCalledTimes(2);
       expect(exit).toHaveBeenCalledWith(0);
    });
 

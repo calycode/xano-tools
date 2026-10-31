@@ -75,7 +75,7 @@ export function createDetachedDispatcher(
    const fileExists = deps.fileExists ?? existsSync;
    const isSea = deps.isSea ?? isSeaRuntime;
    const spool = deps.spool ?? createEventSpool(defaultSpoolPath(env));
-   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env));
+   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env, spool.path));
 
    return (events: TelemetryEvent[]) => {
       try {

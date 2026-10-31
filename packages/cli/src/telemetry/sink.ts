@@ -24,6 +24,8 @@ import type { TelemetryEvent } from './types';
 const SINK_REQUEST_TIMEOUT_MS = 2_000;
 const SINK_SHUTDOWN_TIMEOUT_MS = 2_000;
 const SINK_HARD_LIMIT_MS = 5_000;
+/** Do not start another send when the hard deadline is this close. */
+const SINK_DRAIN_MARGIN_MS = 500;
 
 export interface TelemetryClient {
    capture(props: {
@@ -95,13 +97,15 @@ function runTelemetrySink(
    deps: RunTelemetrySinkDeps = {}
 ): void {
    const spool = deps.spool ?? createEventSpool(defaultSpoolPath(env));
-   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env));
+   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env, spool.path));
    const send = deps.send ?? ((events) => sendTelemetryEvents(events));
 
    // Identify this flusher in the lock file so it can be found and killed while
    // it is draining (it removes the lock itself on exit).
    lock.own();
    const exit = deps.exit ?? ((code: number) => process.exit(code));
+
+   const deadline = Date.now() + SINK_HARD_LIMIT_MS;
 
    let finished = false;
    const finish = (): void => {
@@ -116,13 +120,29 @@ function runTelemetrySink(
    // end the process even if a client handle keeps the loop alive.
    const guard = setTimeout(finish, SINK_HARD_LIMIT_MS);
 
-   const events = spool.drain();
-   if (!isTelemetryEnabled(env) || events.length === 0) {
+   const first = spool.drain();
+   if (!isTelemetryEnabled(env) || first.length === 0) {
       finish();
       return;
    }
 
-   void send(events)
+   // Commands that append while this flusher is sending cannot take the lock,
+   // so their events would otherwise sit on disk until the next command. Drain
+   // again after every send and keep going while there is data and the hard
+   // deadline leaves room for another request.
+   const flush = async (events: TelemetryEvent[]): Promise<void> => {
+      let batch = events;
+      while (!finished) {
+         await send(batch).catch(() => {});
+         if (finished) return;
+         if (deadline - Date.now() < SINK_DRAIN_MARGIN_MS) return;
+
+         batch = spool.drain();
+         if (batch.length === 0) return;
+      }
+   };
+
+   void flush(first)
       .catch(() => {})
       .finally(finish);
 }

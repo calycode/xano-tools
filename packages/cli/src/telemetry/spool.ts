@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import {
-   appendFileSync,
    closeSync,
+   fstatSync,
    mkdirSync,
    openSync,
    readFileSync,
@@ -48,20 +48,32 @@ export function createEventSpool(path: string): EventSpool {
       append(events) {
          if (events.length === 0) return true;
 
+         let fd: number | undefined;
          try {
             mkdirSync(dirname(path), { recursive: true });
             const line = `${JSON.stringify(events)}\n`;
-            let existingSize = 0;
-            try {
-               existingSize = statSync(path).size;
-            } catch {
-               // Missing spool file: nothing to size-check.
-            }
-            if (existingSize + Buffer.byteLength(line) > MAX_SPOOL_BYTES) return false;
-            appendFileSync(path, line, { encoding: 'utf8', mode: 0o600 });
+            const lineBytes = Buffer.byteLength(line);
+
+            // One descriptor for both the size check and the write, so this
+            // process cannot race itself between stat and append. This is not
+            // atomic across processes: two writers can each pass the check and
+            // overshoot the cap by at most one batch apiece. The cap is a disk
+            // guard, not an invariant.
+            fd = openSync(path, 'a', 0o600);
+            const existingSize = fstatSync(fd).size;
+            if (existingSize + lineBytes > MAX_SPOOL_BYTES) return false;
+            writeSync(fd, line);
             return true;
          } catch {
             return false;
+         } finally {
+            if (fd !== undefined) {
+               try {
+                  closeSync(fd);
+               } catch {
+                  // Nothing left to do if the descriptor is already gone.
+               }
+            }
          }
       },
 
@@ -180,8 +192,8 @@ export function createSinkLock(path: string, staleMs = SINK_LOCK_STALE_MS): Sink
    };
 }
 
-function userHash(): string {
-   return createHash('sha256').update(homedir()).digest('hex').slice(0, 12);
+function pathHash(path: string): string {
+   return createHash('sha256').update(path).digest('hex').slice(0, 12);
 }
 
 /** Path overrides exist so tests and wrappers can isolate the spool. */
@@ -189,8 +201,20 @@ export function defaultSpoolPath(env: NodeJS.ProcessEnv = process.env): string {
    return env.CALY_TELEMETRY_SPOOL || join(homedir(), '.xano-tools', 'telemetry-spool.jsonl');
 }
 
-export function defaultSinkLockPath(env: NodeJS.ProcessEnv = process.env): string {
-   return env.CALY_TELEMETRY_LOCK || join(tmpdir(), `caly-xano-telemetry-${userHash()}.lock`);
+/**
+ * The default lock is scoped to the spool it guards. Two wrappers that point at
+ * different spools must not share a single flusher slot: the loser would only
+ * append, and the winner would drain the other spool. `CALY_TELEMETRY_LOCK`
+ * still wins so a caller can pin the lock explicitly.
+ */
+export function defaultSinkLockPath(
+   env: NodeJS.ProcessEnv = process.env,
+   spoolPath: string = defaultSpoolPath(env)
+): string {
+   return (
+      env.CALY_TELEMETRY_LOCK ||
+      join(tmpdir(), `caly-xano-telemetry-${pathHash(spoolPath)}.lock`)
+   );
 }
 
 export { MAX_SPOOL_EVENTS, SINK_LOCK_STALE_MS };
