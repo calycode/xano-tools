@@ -1,9 +1,11 @@
+import { NoDirectoryTreeError } from '@repo/utils';
 import {
    assertContext,
    deriveContext,
    loadContextInputs,
    resolveContext,
 } from '../context';
+import { Caly } from '../../index';
 
 function makeInstance(name: string, workspaceName: string, branchLabel = 'master') {
    return {
@@ -233,10 +235,151 @@ describe('context resolution', () => {
    it('treats a storage without a directory tree as an empty tree', async () => {
       const { storage } = makeStorage();
       storage.loadMergedConfig = () => {
-         throw new Error('Instance config not found');
+         throw new NoDirectoryTreeError('no directory tree');
       };
 
       const result = await resolveContext({ storage, context: {}, startDir: '' });
       expect(result.instanceConfig).toBeNull();
+   });
+
+   it('propagates tree read failures that are not the no-tree signal', async () => {
+      const { storage } = makeStorage();
+      storage.loadMergedConfig = () => {
+         throw new Error('EACCES: permission denied');
+      };
+
+      await expect(
+         resolveContext({ storage, context: {}, startDir: '.' })
+      ).rejects.toThrow('EACCES: permission denied');
+   });
+
+   it('--instance does not inherit a tree that names no instance', async () => {
+      const { storage } = makeStorage({
+         instanceConfig: null,
+         workspaceConfig: { id: 5, name: 'tree-ws', branches: [{ id: 50, label: 'tree-branch' }] },
+         branchConfig: { id: 50, label: 'tree-branch' },
+         foundLevels: { workspace: 'tree-ws', branch: 'tree-branch' },
+         instances: { staging },
+      });
+
+      const result = await resolveContext({
+         storage,
+         context: { instance: 'staging' },
+         startDir: '.',
+      });
+
+      expect(result.instanceConfig).toMatchObject({ name: 'staging' });
+      expect(result.workspaceConfig).toBeNull();
+      expect(result.branchConfig).toBeNull();
+      expect(result.context).toMatchObject({
+         instance: 'staging',
+         workspace: null,
+         branch: null,
+      });
+   });
+
+   it('still applies a tree without an instance config when no instance is requested', async () => {
+      const { storage } = makeStorage({
+         workspaceConfig: { id: 5, name: 'tree-ws', branches: [{ id: 50, label: 'tree-branch' }] },
+         foundLevels: { workspace: 'tree-ws', branch: 'tree-branch' },
+      });
+
+      const result = await resolveContext({ storage, context: {}, startDir: '.' });
+
+      expect(result.workspaceConfig).toMatchObject({ id: 5, name: 'tree-ws' });
+      expect(result.branchConfig).toMatchObject({ label: 'tree-branch' });
+      expect(result.context).toMatchObject({ workspace: 'tree-ws', branch: 'tree-branch' });
+   });
+
+   it('does not borrow the tree branch when --workspace selects another workspace', async () => {
+      const multiWorkspace = {
+         name: 'prod',
+         url: 'https://prod.xano.io',
+         workspaces: [
+            { id: 1, name: 'alpha', branches: [{ id: 10, label: 'master' }] },
+            { id: 2, name: 'beta', branches: [{ id: 20, label: 'develop' }] },
+         ],
+      } as any;
+      const { storage } = makeStorage({
+         instanceConfig: multiWorkspace,
+         workspaceConfig: { id: 1, name: 'alpha' },
+         branchConfig: { id: 10, label: 'master' },
+         foundLevels: { instance: 'prod', workspace: 'alpha', branch: 'master' },
+      });
+
+      const result = await resolveContext({
+         storage,
+         context: { workspace: 'beta' },
+         startDir: '.',
+      });
+
+      expect(result.workspaceConfig).toMatchObject({ id: 2, name: 'beta' });
+      expect(result.branchConfig).toBeNull();
+   });
+
+   it('borrows the tree branch when it belongs to the resolved workspace', async () => {
+      const { storage } = makeStorage({
+         instanceConfig: { name: 'prod', url: 'https://prod.xano.io', workspaces: [{ id: 1, name: 'alpha' }] },
+         workspaceConfig: { id: 1, name: 'alpha' },
+         branchConfig: { id: 10, label: 'master' },
+         foundLevels: { instance: 'prod', workspace: 'alpha', branch: 'master' },
+      });
+
+      const result = await resolveContext({
+         storage,
+         context: { workspace: 'alpha', branch: 'master' },
+         startDir: '.',
+      });
+
+      expect(result.branchConfig).toMatchObject({ label: 'master' });
+   });
+});
+
+describe('loadAndValidateContext', () => {
+   it('returns the resolved configs on the happy path', async () => {
+      const { storage } = makeStorage({
+         instanceConfig: prod,
+         foundLevels: { instance: 'prod', workspace: 'main', branch: 'master' },
+      });
+      const caly = new Caly(storage);
+
+      const configs = await caly.loadAndValidateContext({
+         instance: 'prod',
+         workspace: 'main',
+         branch: 'master',
+         startDir: '.',
+      });
+
+      expect(configs.instanceConfig).toMatchObject({ name: 'prod' });
+      expect(configs.workspaceConfig).toMatchObject({ id: 1, name: 'main' });
+      expect(configs.branchConfig).toMatchObject({ label: 'master' });
+   });
+
+   it('throws naming an unknown workspace instead of returning a null config', async () => {
+      const { storage } = makeStorage({ instanceConfig: prod });
+      const caly = new Caly(storage);
+
+      await expect(
+         caly.loadAndValidateContext({
+            instance: 'prod',
+            workspace: 'ghost-workspace',
+            branch: 'master',
+            startDir: '.',
+         })
+      ).rejects.toThrow('Workspace "ghost-workspace" not found in instance "prod"');
+   });
+
+   it('throws naming an unknown branch instead of returning a null config', async () => {
+      const { storage } = makeStorage({ instanceConfig: prod });
+      const caly = new Caly(storage);
+
+      await expect(
+         caly.loadAndValidateContext({
+            instance: 'prod',
+            workspace: 'main',
+            branch: 'ghost-branch',
+            startDir: '.',
+         })
+      ).rejects.toThrow('Branch "ghost-branch" not found in workspace "main"');
    });
 });

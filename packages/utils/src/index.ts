@@ -5,3 +5,4 @@ export { joinPath, dirname } from './methods/path';
 export { prepareRequest } from './methods/prepare-request';
 export { sanitizeFileName, sanitizeInstanceName, normalizeApiGroupName } from './methods/sanitize';
 export { replacePlaceholders } from './methods/replace-placeholders';
+export { NoDirectoryTreeError, isNoDirectoryTreeError } from './methods/errors';

@@ -172,6 +172,12 @@ export const nodeConfigStorage: ConfigStorage = {
    },
 
    async saveInstanceConfig(projectRoot: string = '', config: InstanceConfig) {
+      // Validate before writing anything: an invalid name must not clobber the
+      // local instance.config.json on its way to the per-instance copy.
+      if (config?.name) {
+         validateInstanceName(config.name);
+      }
+
       const configPath = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_FILE);
       if (projectRoot && !fs.existsSync(projectRoot)) {
          fs.mkdirSync(projectRoot, { recursive: true });
@@ -181,7 +187,6 @@ export const nodeConfigStorage: ConfigStorage = {
       // Keep a per-instance copy so `--instance <name>` can select a config
       // from any directory (browser storage already keys configs by name).
       if (config?.name) {
-         validateInstanceName(config.name);
          if (!fs.existsSync(INSTANCES_DIR)) {
             fs.mkdirSync(INSTANCES_DIR, { recursive: true });
          }
@@ -192,29 +197,25 @@ export const nodeConfigStorage: ConfigStorage = {
       }
    },
 
+   /**
+    * Loads the config for a named instance from ~/.xano-tools/instances, falling
+    * back to the nearest local instance.config.json. The argument is always an
+    * instance name; `undefined` searches from the current working directory.
+    */
    async loadInstanceConfig(instance?: string): Promise<any> {
-      // Backwards compatibility: a directory argument used to be treated as
-      // the search start dir rather than an instance name.
-      let instanceName = instance;
-      let startDir = process.cwd();
-      if (instance && fs.existsSync(instance) && fs.statSync(instance).isDirectory()) {
-         startDir = instance;
-         instanceName = undefined;
-      }
-
-      if (instanceName) {
-         validateInstanceName(instanceName);
-         const globalPath = path.join(INSTANCES_DIR, `${instanceName}.json`);
+      if (instance) {
+         validateInstanceName(instance);
+         const globalPath = path.join(INSTANCES_DIR, `${instance}.json`);
          if (fs.existsSync(globalPath)) {
             return JSON.parse(fs.readFileSync(globalPath, 'utf-8'));
          }
       }
 
-      const projectRoot = findProjectRoot(startDir);
+      const projectRoot = findProjectRoot(process.cwd());
       const configPath = path.join(projectRoot, DEFAULT_LOCAL_CONFIG_FILE);
       const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      if (instanceName && config.name !== instanceName) {
-         throw new Error(`Instance config not found: ${instanceName}`);
+      if (instance && config.name !== instance) {
+         throw new Error(`Instance config not found: ${instance}`);
       }
       return config;
    },

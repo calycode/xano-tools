@@ -1,3 +1,4 @@
+import { NoDirectoryTreeError } from '@repo/utils';
 import { BrowserConfigStorage } from '../browser-config-storage';
 import { initDB } from '../indexeddb-utils';
 
@@ -88,6 +89,12 @@ describe('BrowserConfigStorage', () => {
             expect(result.mergedConfig).toEqual(testConfig);
             expect(result.instanceConfig).toEqual(testConfig);
             expect(result.foundLevels).toEqual({ instance: 'test-instance' });
+        });
+    });
+
+    describe('loadMergedConfig without a matching instance', () => {
+        it('should signal the missing directory tree with a typed error', () => {
+            expect(() => storage.loadMergedConfig('missing')).toThrow(NoDirectoryTreeError);
         });
     });
 

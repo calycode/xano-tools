@@ -7,6 +7,7 @@ import type {
    InstanceConfig,
    WorkspaceConfig,
 } from '@repo/types';
+import { isNoDirectoryTreeError } from '@repo/utils';
 
 /**
  * The single owner of context resolution.
@@ -118,10 +119,24 @@ function matchesBranch(config: BranchConfig | null, ref: unknown): boolean {
    return config.label === ref || String((config as any).id) === String(ref);
 }
 
+/** True when both configs describe the same workspace (by id, else by name). */
+function sameWorkspace(a: WorkspaceConfig | null, b: WorkspaceConfig | null): boolean {
+   if (!a || !b) {
+      return false;
+   }
+   const aid = (a as any).id;
+   const bid = (b as any).id;
+   if (aid != null && bid != null) {
+      return String(aid) === String(bid);
+   }
+   return a.name != null && a.name === b.name;
+}
+
 /**
  * Reads every input a resolution needs exactly once: the nearest config level,
  * and the global config. The tree read is optional — storages without a
- * directory hierarchy (browser) throw and are treated as an empty tree.
+ * directory hierarchy (browser) throw `NoDirectoryTreeError` and are treated as
+ * an empty tree. Any other failure is a real read error and propagates.
  */
 async function loadContextInputs({
    storage,
@@ -150,6 +165,9 @@ async function loadContextInputs({
       branchConfig = loaded?.branchConfig ?? null;
       foundLevels = loaded?.foundLevels ?? {};
    } catch (error) {
+      if (!isNoDirectoryTreeError(error)) {
+         throw error;
+      }
       treeReadError = error;
    }
 
@@ -206,11 +224,16 @@ async function deriveContext({
    }
 
    // Tree-level workspace/branch only belong to the tree's instance. After an
-   // explicit instance switch they must not leak into the new instance.
+   // explicit instance switch they must not leak into the new instance. A tree
+   // that names no instance at all may only contribute while no instance was
+   // requested explicitly.
+   const treeInstanceName =
+      inputs.instanceConfig?.name ?? inputs.foundLevels.instance ?? null;
    const treeApplies =
       instanceName == null ||
-      inputs.instanceConfig == null ||
-      String(inputs.instanceConfig.name) === String(instanceName);
+      (treeInstanceName != null
+         ? String(treeInstanceName) === String(instanceName)
+         : context.instance == null);
 
    // The global currentContext belongs to a specific instance; do not leak its
    // workspace/branch into an explicitly different instance.
@@ -238,11 +261,15 @@ async function deriveContext({
    // Fall back to the first branch when only a workspace is known (e.g.
    // backups, which require instance + workspace but not branch). An explicit
    // branch that cannot be found stays null rather than resolving to another.
+   // The tree branch belongs to the tree workspace, so it is only borrowed when
+   // that workspace is the resolved one (or none resolved at all).
+   const treeBranchApplies =
+      treeApplies && (!workspaceConfig || sameWorkspace(workspaceConfig, inputs.workspaceConfig));
    let branchConfig =
       branchName == null
          ? workspaceConfig?.branches?.[0] ?? null
          : findBranchConfig(workspaceConfig, branchName);
-   if (!branchConfig && treeApplies && matchesBranch(inputs.branchConfig, branchName)) {
+   if (!branchConfig && treeBranchApplies && matchesBranch(inputs.branchConfig, branchName)) {
       branchConfig = inputs.branchConfig;
    }
 
