@@ -500,11 +500,28 @@ export class Caly extends TypedEmitter<EventMap> {
          DEFAULT_REQUIRED_FIELDS,
          'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
       );
-      return {
-         instanceConfig: resolution.instanceConfig,
-         workspaceConfig: resolution.workspaceConfig,
-         branchConfig: resolution.branchConfig,
-      };
+
+      // `assertContext` only proves the names are known. An unknown workspace
+      // or branch leaves the corresponding config null, which downstream
+      // callers dereference, so fail here with a message naming what is wrong.
+      const { instanceConfig, workspaceConfig, branchConfig } = resolution;
+      if (!instanceConfig) {
+         throw new Error(
+            `Instance config not found for "${resolution.context.instance}". Run 'caly-xano init --name ${resolution.context.instance}' first.`
+         );
+      }
+      if (!workspaceConfig) {
+         throw new Error(
+            `Workspace "${resolution.context.workspace}" not found in instance "${instanceConfig.name}".`
+         );
+      }
+      if (!branchConfig) {
+         throw new Error(
+            `Branch "${resolution.context.branch}" not found in workspace "${workspaceConfig.name}".`
+         );
+      }
+
+      return { instanceConfig, workspaceConfig, branchConfig };
    }
 
    /**
