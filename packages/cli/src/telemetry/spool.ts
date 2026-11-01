@@ -11,7 +11,7 @@ import {
    writeSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import type { TelemetryEvent } from './types';
 
 /**
@@ -192,8 +192,14 @@ export function createSinkLock(path: string, staleMs = SINK_LOCK_STALE_MS): Sink
    };
 }
 
+/** One canonical spelling per spool, so `./x` and its absolute form share a lock. */
+function canonicalPath(path: string): string {
+   const absolute = resolve(path);
+   return process.platform === 'win32' ? absolute.toLowerCase() : absolute;
+}
+
 function pathHash(path: string): string {
-   return createHash('sha256').update(path).digest('hex').slice(0, 12);
+   return createHash('sha256').update(canonicalPath(path)).digest('hex').slice(0, 12);
 }
 
 /** Path overrides exist so tests and wrappers can isolate the spool. */

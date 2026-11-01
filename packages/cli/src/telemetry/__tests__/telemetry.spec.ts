@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { isTelemetryEnabled, TELEMETRY_SINK_ENV } from '../config';
 import { createDetachedDispatcher } from '../detached-dispatcher';
 import { createTelemetry } from '../index';
@@ -332,6 +332,17 @@ describe('sink lock', () => {
       expect(
          defaultSinkLockPath({ CALY_TELEMETRY_SPOOL: join(dir, 'one.jsonl') })
       ).toBe(one);
+   });
+
+   it('maps relative and absolute spellings of one spool to the same lock', () => {
+      const relative = defaultSinkLockPath({
+         CALY_TELEMETRY_SPOOL: './telemetry.jsonl',
+      });
+      const absolute = defaultSinkLockPath({
+         CALY_TELEMETRY_SPOOL: resolve('telemetry.jsonl'),
+      });
+
+      expect(relative).toBe(absolute);
    });
 
    it('lets CALY_TELEMETRY_LOCK override the spool-derived default', () => {

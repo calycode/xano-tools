@@ -207,7 +207,16 @@ export const nodeConfigStorage: ConfigStorage = {
          validateInstanceName(instance);
          const globalPath = path.join(INSTANCES_DIR, `${instance}.json`);
          if (fs.existsSync(globalPath)) {
-            return JSON.parse(fs.readFileSync(globalPath, 'utf-8'));
+            const config = JSON.parse(fs.readFileSync(globalPath, 'utf-8'));
+            // The file is named after the instance; a mismatch means it was
+            // copied or edited by hand and would otherwise run against the
+            // wrong URL/token.
+            if (config?.name !== instance) {
+               throw new Error(
+                  `Instance config "${instance}" is invalid: the file declares "${config?.name ?? 'no name'}".`
+               );
+            }
+            return config;
          }
       }
 

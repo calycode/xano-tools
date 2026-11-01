@@ -55,6 +55,19 @@ describe('nodeConfigStorage instance configs', () => {
       await expect(storage.loadInstanceConfig('staging')).resolves.toEqual(staging);
    });
 
+   it('rejects a named instance file whose declared name does not match', async () => {
+      const instancesDir = join(home, '.xano-tools', 'instances');
+      await mkdir(instancesDir, { recursive: true });
+      await writeJson(join(instancesDir, 'staging.json'), {
+         name: 'production',
+         url: 'https://prod.xano.io',
+      });
+
+      await expect(storage.loadInstanceConfig('staging')).rejects.toThrow(
+         /declares "production"/
+      );
+   });
+
    it('falls back to the local config when no instance name is given', async () => {
       const project = join(home, 'project');
       await mkdir(project, { recursive: true });

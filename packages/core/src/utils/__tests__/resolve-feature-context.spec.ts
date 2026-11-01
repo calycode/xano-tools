@@ -11,6 +11,7 @@ function fullConfigs() {
 function makeCore(resolved: any = fullConfigs()) {
    return {
       loadAndValidateContext: jest.fn(async () => resolved),
+      resolveContext: jest.fn(async () => resolved),
    } as any;
 }
 
@@ -99,6 +100,28 @@ describe('resolveFeatureContext', () => {
          required: ['instanceConfig', 'workspaceConfig'],
       });
 
-      expect(core.loadAndValidateContext).toHaveBeenCalledTimes(1);
+      expect(core.resolveContext).toHaveBeenCalledTimes(1);
+      expect(core.loadAndValidateContext).not.toHaveBeenCalled();
+   });
+
+   it('resolves a branchless subset without requiring a branch', async () => {
+      const core = makeCore({
+         ...fullConfigs(),
+         branchConfig: null,
+      });
+
+      const result = await resolveFeatureContext({
+         core,
+         context: { instance: 'prod', workspace: 'main' },
+         startDir: '.',
+         required: ['instanceConfig', 'workspaceConfig'],
+      });
+
+      expect(result).toEqual({
+         instanceConfig: fullConfigs().instanceConfig,
+         workspaceConfig: fullConfigs().workspaceConfig,
+      });
+      expect(core.resolveContext).toHaveBeenCalledTimes(1);
+      expect(core.loadAndValidateContext).not.toHaveBeenCalled();
    });
 });

@@ -19,6 +19,7 @@ function makeCore() {
       emit: jest.fn(),
       loadToken: jest.fn(async () => 'token'),
       loadAndValidateContext: jest.fn(async () => fullConfigs),
+      resolveContext: jest.fn(async () => fullConfigs),
       storage: {
          getStartDir: () => '.',
          mkdir: jest.fn(async () => undefined),
@@ -51,7 +52,8 @@ describe('backup context configs', () => {
          })
       ).resolves.toBeDefined();
 
-      expect(core.loadAndValidateContext).toHaveBeenCalledTimes(1);
+      expect(core.resolveContext).toHaveBeenCalledTimes(1);
+      expect(core.loadAndValidateContext).not.toHaveBeenCalled();
       expect(mockedFetch).toHaveBeenCalledWith(
          expect.objectContaining({ path: '/workspace/1/import' })
       );
