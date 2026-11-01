@@ -21,11 +21,6 @@ export function getExtraCorsOriginsFromEnv(): string[] {
    return extraOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
 }
 
-/** Base CORS origins (static + env var) with no browser-extension origins. */
-export function getStaticCorsOrigins(): string[] {
-   return [XANO_APP_ORIGIN, ...getExtraCorsOriginsFromEnv()];
-}
-
 export function getCorsArgs(extraOrigins: string[], allowedOrigins: string[]) {
    const origins = new Set([...allowedOrigins, ...extraOrigins]);
    return Array.from(origins).flatMap((origin) => ['--cors', origin]);

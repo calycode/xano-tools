@@ -4,6 +4,7 @@ import { program } from './program';
 import { setupOpencode } from './commands/opencode/index';
 import { startNativeHost } from './commands/opencode/native-host';
 import { launchOpencodeServer } from './commands/opencode/distribution';
+import { detectNativeHostLaunch } from './commands/opencode/native-host/launch-args';
 import { exitIfLegacyXanoInvocation } from './utils/legacy-command-guard';
 
 /**
@@ -32,22 +33,6 @@ function escapeAppleScript(str: string): string {
 // If run with no arguments (double click), it triggers the init flow.
 // If run with arguments (CLI usage), it passes through to the standard program.
 
-function isNativeHostLaunchArgs(extraArgs: string[]): boolean {
-   if (extraArgs.length === 0) {
-      return true;
-   }
-
-   if (extraArgs.length === 2 && extraArgs[0] === '--oc-version' && !!extraArgs[1]) {
-      return true;
-   }
-
-   if (extraArgs.length === 1 && extraArgs[0].startsWith('--oc-version=')) {
-      return true;
-   }
-
-   return false;
-}
-
 (async () => {
    const isBundled = isSea();
    const args = process.argv;
@@ -56,18 +41,7 @@ function isNativeHostLaunchArgs(extraArgs: string[]): boolean {
    // Check if we are being called as the Native Host
    // This handles both direct chrome-extension:// invocations (Linux/Mac)
    // and manual "opencode native-host" invocations (Windows wrapper)
-   const chromeExtensionArg = args.find((arg) => arg.startsWith('chrome-extension://'));
-   const commandIndex = Math.max(args.lastIndexOf('opencode'), args.lastIndexOf('oc'));
-   const nativeHostExtraArgs =
-      commandIndex >= 0 && args[commandIndex + 1] === 'native-host'
-         ? args.slice(commandIndex + 2)
-         : [];
-   const isNativeHostCommand =
-      commandIndex >= 0 &&
-      args[commandIndex + 1] === 'native-host' &&
-      isNativeHostLaunchArgs(nativeHostExtraArgs);
-
-   if (chromeExtensionArg || isNativeHostCommand) {
+   if (detectNativeHostLaunch(args).isNativeHost) {
       // We are running as a Native Host
       // BYPASS Commander entirely to prevent stdout pollution
       startNativeHost({ launchServer: launchOpencodeServer });
