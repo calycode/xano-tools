@@ -408,23 +408,21 @@ $timer.Add_Tick({
 })
 
 $form.Add_Shown({
+   # Signal that the window exists before doing anything slow. Add-Type compiles
+   # C# on a cold cache and can take seconds; the Go side should not mistake that
+   # for "the window never opened" and fall back to text mode.
+   try { [System.IO.File]::WriteAllText($script:readyPath, 'ready') } catch { }
    try {
       # The window is launched from a GUI process with a hidden console, so
-      # Windows hands it a SW_HIDE startup state. Force it visible, then hide the
-      # console instead, which keeps the form as the only thing on screen.
-      $sig = '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int cmd); [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();'
-      $win32 = Add-Type -MemberDefinition $sig -Name 'Win32Show' -Namespace 'CalyCodeInstaller' -PassThru
-      [void]$win32::ShowWindow($form.Handle, 5)
-      $console = $win32::GetConsoleWindow()
-      if ($console -ne [IntPtr]::Zero) { [void]$win32::ShowWindow($console, 0) }
-   } catch { }
-   try {
-      $sig = '[DllImport("dwmapi.dll")] public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);'
-      $dwm = Add-Type -MemberDefinition $sig -Name 'DwmApi' -Namespace 'CalyCodeInstaller' -PassThru
+      # Windows hands it a SW_HIDE startup state. Force it visible; the console
+      # itself is already hidden by the parent process.
+      $sig = '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int cmd); [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd); [DllImport("dwmapi.dll")] public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);'
+      $native = Add-Type -MemberDefinition $sig -Name 'WindowFx' -Namespace 'CalyCodeInstaller' -PassThru
+      [void]$native::ShowWindow($form.Handle, 5)
+      [void]$native::SetForegroundWindow($form.Handle)
       $dark = 1
-      [void]$dwm::DwmSetWindowAttribute($form.Handle, 20, [ref]$dark, 4)
+      [void]$native::DwmSetWindowAttribute($form.Handle, 20, [ref]$dark, 4)
    } catch { }
-   try { [System.IO.File]::WriteAllText($script:readyPath, 'ready') } catch { }
    $form.Activate()
    $timer.Start()
 })
