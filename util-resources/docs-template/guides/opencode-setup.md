@@ -14,6 +14,7 @@ This guide covers setting up and using the OpenCode AI agent integration with th
 - [Agents & Slash Commands](#agents--slash-commands)
 - [Skills](#skills)
 - [Configuration Files](#configuration-files)
+- [Runtime Version](#runtime-version)
 - [Native Host for Browser Extension](#native-host-for-browser-extension)
 - [Troubleshooting](#troubleshooting)
 
@@ -291,6 +292,17 @@ You can modify the configuration to:
 | `OPENCODE_CONFIG_DIR`     | Override OpenCode config directory                        |
 | `CALY_EXTRA_CORS_ORIGINS` | Additional CORS origins for server mode (comma-separated) |
 
+## Runtime Version
+
+The CLI pins OpenCode V2 (`2.2.6`) because the CalyCode extension targets the V2
+API. V2 is distributed as the `@opencode/cli` package; the floating `latest`
+channel also resolves to V2. Explicit V1 versions still use `opencode-ai`, but
+the extension expects V2 and V1 traffic should be treated as legacy.
+
+V2 servers require a password. The CLI sets `OPENCODE_PASSWORD` when it starts
+the server and prints the generated password with `oc serve`. The native host
+also returns the password to the extension in its replies.
+
 ## Native Host for Browser Extension
 
 The CLI can act as a native messaging host for the CalyCode Chrome extension, enabling browser-to-local communication.
@@ -301,6 +313,52 @@ The CLI can act as a native messaging host for the CalyCode Chrome extension, en
 2. The native host (CLI) receives and processes requests
 3. OpenCode server can be started/stopped from the browser
 4. Results are returned to the extension
+
+### Port Selection and Discovery
+
+The requested port is a preference, not a guarantee. The native host tries the
+requested port first, then scans ports `4096-4127`, and finally asks the
+operating system for an ephemeral port. This means an extension can always start
+a server even when `4096` is already taken.
+
+Every reply that involves a server includes the real connection details:
+
+```json
+{
+  "status": "running",
+  "port": 4097,
+  "url": "http://localhost:4097",
+  "requestedPort": 4096,
+  "autoSelected": true,
+  "password": "generated-server-password"
+}
+```
+
+The extension should use `port`/`url` from the reply instead of assuming the
+requested port, and should store `password` for HTTP Basic Auth. Send that
+password back with `start`/`restart` so a reused or keep-alive server keeps the
+same credentials. `start` reuses a healthy server even if it is already on a
+different port; send `restart` to force a fresh server on the preferred port.
+
+If a reply is ever missed, probe `/api/info` on ports `4096-4127` with
+`Authorization: Basic base64("opencode:<password>")` and use the first response
+with a `version`. `/global/health` is only the V1 fallback. The extension can
+also ask for the current state at any time:
+
+```json
+{ "type": "status" }
+```
+
+The host replies with the same shape and, when more than one session exists, a
+`sessions` array. A `ping` reply includes the same fields.
+
+Send `{ "port": "auto" }` (or omit `port`) to let the host choose. To make the
+server survive the native messaging connection closing, send
+`{ "keepAlive": true }` with `start` or `restart`. A later native host process
+adopts the running keep-alive server and reports its actual port. This is
+required when the extension uses `chrome.runtime.sendNativeMessage`, because
+Chrome closes the host after the first reply; a persistent `connectNative` port
+can keep the default lifecycle instead.
 
 ### Setup
 
@@ -325,6 +383,23 @@ caly-xano oc native-host
 # The native host listens for JSON messages on stdin
 # and responds on stdout using Chrome's native messaging protocol
 ```
+
+### Dev Extension and Logging
+
+For an unpacked/dev Chromium extension, register its ID explicitly:
+
+```bash
+CALY_OC_INCLUDE_DEV_EXT=1 caly-xano oc init
+```
+
+The registered extension origin is merged into the OpenCode CORS list at
+runtime, even when Chrome launches the native host without that environment
+variable.
+
+Native-host logs live at `~/.calycode/logs/native-host.log`. They are enabled by
+default when the CLI runs from source through `node`, and disabled by default in
+packaged `caly`/`caly.exe` builds. Set `CALY_OC_NATIVE_HOST_DEBUG=1` to force
+them on or `CALY_OC_NATIVE_HOST_DEBUG=0` to force them off.
 
 ## Troubleshooting
 

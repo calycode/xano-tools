@@ -2,18 +2,33 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync, execFileSync } from 'node:child_process';
 import { getCalycodeOpencodeConfigDir, ensureDirectoryExists } from './paths';
-import { OC_VERSION_REGEX } from './version';
+import {
+   getOpencodeMajorVersion,
+   OC_VERSION_REGEX,
+   OPENCODE_V1_PACKAGE,
+   OPENCODE_V2_PACKAGE,
+} from './version';
 import { parseBooleanEnv } from '../../../utils';
 
 /**
- * opencode-ai ships a small placeholder binary until its postinstall copies the
- * real platform binary (tens of MB). Anything at or below this size is treated
- * as a placeholder.
+ * OpenCode packages ship a small placeholder binary until their postinstall
+ * copies the real platform binary (tens of MB). Anything at or below this size
+ * is treated as a placeholder.
  */
 const OPENCODE_PLACEHOLDER_MAX_BYTES = 64 * 1024;
 
+/**
+ * OpenCode V2 ships as `@opencode/cli`; V1 shipped as `opencode-ai`. The
+ * floating `latest` channel now means V2 because that is what the extension
+ * targets.
+ */
+export function getOpencodePackageName(version: string): string {
+   const major = version === 'latest' ? 2 : getOpencodeMajorVersion(version);
+   return major !== null && major >= 2 ? OPENCODE_V2_PACKAGE : OPENCODE_V1_PACKAGE;
+}
+
 export function getOpencodePackageSpecifier(version: string): string {
-   return `opencode-ai@${version}`;
+   return `${getOpencodePackageName(version)}@${version}`;
 }
 
 export function getManagedOpencodeVersionsDir(): string {
@@ -24,24 +39,26 @@ export function getManagedOpencodeInstallDir(version: string): string {
    return path.join(getManagedOpencodeVersionsDir(), version);
 }
 
+export function getManagedOpencodePackageDir(version: string): string {
+   return path.join(
+      getManagedOpencodeInstallDir(version),
+      'node_modules',
+      ...getOpencodePackageName(version).split('/'),
+   );
+}
+
 export function getManagedOpencodeBinPath(version: string): string {
    const binName = process.platform === 'win32' ? 'opencode.cmd' : 'opencode';
    return path.join(getManagedOpencodeInstallDir(version), 'node_modules', '.bin', binName);
 }
 
-/** The real platform binary that opencode-ai's postinstall materializes. */
+/** The real platform binary that the package's postinstall materializes. */
 export function getManagedOpencodePackageBinaryPath(version: string): string {
-   return path.join(
-      getManagedOpencodeInstallDir(version),
-      'node_modules',
-      'opencode-ai',
-      'bin',
-      'opencode.exe',
-   );
+   return path.join(getManagedOpencodePackageDir(version), 'bin', 'opencode.exe');
 }
 
 /**
- * Whether the managed OpenCode binary is still opencode-ai's placeholder
+ * Whether the managed OpenCode binary is still the package placeholder
  * (or missing entirely) rather than the real platform binary.
  */
 export function isOpencodePlaceholder(binaryPath: string): boolean {
@@ -53,7 +70,7 @@ export function isOpencodePlaceholder(binaryPath: string): boolean {
 }
 
 /**
- * opencode-ai relies on its postinstall to copy the real platform binary over a
+ * OpenCode relies on its postinstall to copy the real platform binary over a
  * placeholder. npm 11+ blocks lifecycle scripts unless explicitly approved, so
  * run the postinstall ourselves when the managed binary is still a placeholder.
  */
@@ -62,7 +79,7 @@ export function ensureOpencodePostinstall(version: string): void {
       return;
    }
 
-   const packageDir = path.join(getManagedOpencodeInstallDir(version), 'node_modules', 'opencode-ai');
+   const packageDir = getManagedOpencodePackageDir(version);
    const postinstallPath = path.join(packageDir, 'postinstall.mjs');
    if (!fileExists(postinstallPath)) {
       return;
@@ -275,7 +292,7 @@ export function ensureManagedOpencodeInstalled(version: string): string {
       { stdio: 'ignore', env: process.env },
    );
 
-   // npm 11+ blocks lifecycle scripts by default, so opencode-ai's postinstall
+   // npm 11+ blocks lifecycle scripts by default, so the package postinstall
    // (which copies the real platform binary over its placeholder) may not have
    // run; resolveManagedOpencodeBinary runs it on demand.
    const resolved = resolveManagedOpencodeBinary(version);

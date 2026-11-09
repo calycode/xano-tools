@@ -11,21 +11,35 @@ export interface NativeHostSessionMetadata {
    pid: number;
    ownerToken: string;
    updatedAt: string;
+   url?: string;
+   requestedPort?: number | null;
+   autoSelected?: boolean;
+   keepAlive?: boolean;
+   origins?: string[];
+   ocVersion?: string;
+   password?: string;
+}
+
+export function getNativeHostOwnerToken(): string | null {
+   try {
+      if (!fs.existsSync(NATIVE_HOST_OWNER_TOKEN_PATH)) {
+         return null;
+      }
+
+      const existing = fs.readFileSync(NATIVE_HOST_OWNER_TOKEN_PATH, 'utf8').trim();
+      return existing || null;
+   } catch {
+      return null;
+   }
 }
 
 export function getOrCreateNativeHostOwnerToken(): string {
-   ensureDirectoryExists(NATIVE_HOST_STATE_DIR);
-   try {
-      if (fs.existsSync(NATIVE_HOST_OWNER_TOKEN_PATH)) {
-         const existing = fs.readFileSync(NATIVE_HOST_OWNER_TOKEN_PATH, 'utf8').trim();
-         if (existing) {
-            return existing;
-         }
-      }
-   } catch {
-      // fall through and recreate
+   const existing = getNativeHostOwnerToken();
+   if (existing) {
+      return existing;
    }
 
+   ensureDirectoryExists(NATIVE_HOST_STATE_DIR);
    const token = randomUUID();
    fs.writeFileSync(NATIVE_HOST_OWNER_TOKEN_PATH, token, 'utf8');
    return token;
@@ -56,11 +70,17 @@ export function deleteNativeHostSessionMetadata(port: number): void {
    }
 }
 
-export function loadPersistedManagedPids(ownerToken: string): Set<number> {
-   const pids = new Set<number>();
+/**
+ * Read all persisted session metadata owned by this host installation.
+ *
+ * Keep-alive sessions outlive the native host process, so a later host can
+ * adopt them and report the real port instead of spawning a second server.
+ */
+export function loadNativeHostSessions(ownerToken: string): NativeHostSessionMetadata[] {
+   const sessions: NativeHostSessionMetadata[] = [];
    try {
       if (!fs.existsSync(NATIVE_HOST_STATE_DIR)) {
-         return pids;
+         return sessions;
       }
 
       const entries = fs.readdirSync(NATIVE_HOST_STATE_DIR, { withFileTypes: true });
@@ -76,8 +96,8 @@ export function loadPersistedManagedPids(ownerToken: string): Set<number> {
             if (parsed?.ownerToken !== ownerToken) {
                continue;
             }
-            if (Number.isInteger(parsed.pid) && parsed.pid > 0) {
-               pids.add(parsed.pid);
+            if (Number.isInteger(parsed.port) && Number.isInteger(parsed.pid) && parsed.pid > 0) {
+               sessions.push(parsed);
             }
          } catch {
             // ignore malformed file
@@ -85,6 +105,14 @@ export function loadPersistedManagedPids(ownerToken: string): Set<number> {
       }
    } catch {
       // Best effort only.
+   }
+   return sessions;
+}
+
+export function loadPersistedManagedPids(ownerToken: string): Set<number> {
+   const pids = new Set<number>();
+   for (const session of loadNativeHostSessions(ownerToken)) {
+      pids.add(session.pid);
    }
    return pids;
 }
