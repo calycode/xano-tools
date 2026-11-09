@@ -4,12 +4,14 @@ import os from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
 import { log } from '@clack/prompts';
 import { HOST_APP_INFO } from '../../../utils/host-constants';
+import { DEFAULT_OPENCODE_VERSION } from '../distribution';
 import { getNativeHostTargets, type NativeHostBrowserTarget } from './targets';
 import {
    resolveAllowedExtensionIds,
    resolveWriteAllBrowserManifests,
    type ResolveExtensionIdsResult,
 } from './discovery';
+import { getNativeHostOwnerToken, loadNativeHostSessions } from './state';
 
 interface SetupNativeHostResult {
    manifestExePath: string;
@@ -24,10 +26,19 @@ interface NativeHostManifest {
    allowed_origins: string[];
 }
 
+/** Write the browser-facing wrapper that launches the native host. */
 function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string, ocVersion?: string): string {
    const isWin = platform === 'win32';
    const executablePath = process.execPath;
-   const ocVersionArg = ocVersion ? ` --oc-version ${ocVersion}` : '';
+   // Do not bake a floating `latest` into the wrapper, and omit the default so
+   // the CLI's pinned V2 version applies automatically. Explicit non-default
+   // versions (for example a V1 rollback) still win.
+   const resolvedOcVersion = ocVersion?.trim();
+   const shouldPinVersion =
+      !!resolvedOcVersion &&
+      resolvedOcVersion !== 'latest' &&
+      resolvedOcVersion !== DEFAULT_OPENCODE_VERSION;
+   const ocVersionArg = shouldPinVersion ? ` --oc-version ${resolvedOcVersion}` : '';
 
    if (isWin) {
       const wrapperDir = path.join(homeDir, '.calycode', 'bin');
@@ -74,6 +85,7 @@ function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string, ocV
    return wrapperPath;
 }
 
+/** Build the native messaging manifest for the allowed extension origins. */
 function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: string[]): NativeHostManifest {
    return {
       name: HOST_APP_INFO.reverseAppId,
@@ -84,6 +96,7 @@ function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: 
    };
 }
 
+/** Write the manifest to every detected (or forced) browser target. */
 function writeNativeHostManifests(
    platform: NodeJS.Platform,
    targets: NativeHostBrowserTarget[],
@@ -113,6 +126,7 @@ function writeNativeHostManifests(
    return writtenTargets;
 }
 
+/** Register the manifest path in each Windows browser's registry key. */
 async function registerWindowsNativeHosts(targets: NativeHostBrowserTarget[]): Promise<void> {
    const registryFailures: string[] = [];
 
@@ -163,7 +177,9 @@ async function setupNativeHostRegistration(
    const platform = os.platform();
    const homeDir = os.homedir();
    const nativeHostTargets = getNativeHostTargets(platform, homeDir);
-   const extensionResolution = resolveAllowedExtensionIds(extensionIds);
+   const extensionResolution = resolveAllowedExtensionIds(extensionIds, {
+      includeRegistered: false,
+   });
    const allowedExtensionIds = extensionResolution.ids;
 
    if (allowedExtensionIds.length === 0) {
@@ -216,8 +232,12 @@ function showNativeHostStatus(): void {
    const homeDir = os.homedir();
    const wrapperPath = path.join(homeDir, '.calycode', 'bin', platform === 'win32' ? 'calycode-host.bat' : 'calycode-host.sh');
    const nativeHostTargets = getNativeHostTargets(platform, homeDir);
-   const extensionResolution = resolveAllowedExtensionIds();
+   const extensionResolution = resolveAllowedExtensionIds(undefined, {
+      includeRegistered: false,
+   });
    const expectedOrigins = extensionResolution.ids.map((id) => `chrome-extension://${id}/`);
+   const ownerToken = getNativeHostOwnerToken();
+   const persistedSessions = ownerToken ? loadNativeHostSessions(ownerToken) : [];
 
    const lines: string[] = [];
    lines.push('Native Host Status:');
@@ -226,6 +246,16 @@ function showNativeHostStatus(): void {
    lines.push(`  - Wrapper Exists: ${fs.existsSync(wrapperPath) ? 'Yes' : 'No'}`);
    lines.push(`  - App ID: ${HOST_APP_INFO.reverseAppId}`);
    lines.push(`  - Extension ID Source: ${extensionResolution.source}`);
+   lines.push(
+      `  - Server Sessions: ${persistedSessions.length === 0 ? '(none)' : persistedSessions.length}`,
+   );
+   for (const session of persistedSessions) {
+      lines.push(
+         `    - port=${session.port} pid=${session.pid} ` +
+         `keepAlive=${session.keepAlive ? 'yes' : 'no'} ` +
+         `url=${session.url ?? `http://localhost:${session.port}`}`,
+      );
+   }
 
    for (const target of nativeHostTargets) {
       const exists = fs.existsSync(target.manifestPath);
@@ -308,4 +338,4 @@ function showNativeHostStatus(): void {
    log.success(lines.join('\n'));
 }
 
-export { setupNativeHostRegistration, showNativeHostStatus };
+export { createNativeHostWrapper, setupNativeHostRegistration, showNativeHostStatus };

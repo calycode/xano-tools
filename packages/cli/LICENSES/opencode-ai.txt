@@ -3,7 +3,7 @@ OpenCode - The open source AI coding agent
 
 Repository: https://github.com/anomalyco/opencode
 Website: https://opencode.ai
-NPM Package: opencode-ai
+NPM Packages: opencode-ai (V1), @opencode/cli (V2)
 
 This project integrates with OpenCode, using it as the underlying AI coding
 agent for the CalyCode extension's AI-assisted development features.

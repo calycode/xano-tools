@@ -1,7 +1,12 @@
+import { randomBytes } from 'node:crypto';
 import { log } from '@clack/prompts';
 import { hideFromRootHelp } from '../../utils/commands/main-program-utils';
-import { distribution, validatePort } from './distribution';
+import { DEFAULT_OPENCODE_PORT, distribution } from './distribution';
 import { nativeHost } from './native-host';
+
+function generateServerPassword(): string {
+   return randomBytes(24).toString('base64url');
+}
 
 /**
  * Composition root for OpenCode setup: install the managed distribution, then
@@ -51,24 +56,39 @@ async function setupOpencode({
  * Serve the OpenCode server locally, in the foreground or detached.
  */
 async function serveOpencode({
-   port = 4096,
+   port,
    detach = false,
    ocVersion,
+   password,
 }: {
-   port?: number;
+   port?: number | string | null;
    detach?: boolean;
    ocVersion?: string;
+   password?: string;
 }) {
-   validatePort(port);
+   const requestedPort = distribution.parsePort(port);
+   const explicitlyAuto =
+      typeof port === 'string' && port.trim().toLowerCase() === 'auto';
+   const preferredPort = requestedPort ?? DEFAULT_OPENCODE_PORT;
+   const selection = await distribution.selectPort(preferredPort);
+
+   if (!explicitlyAuto && selection.port !== preferredPort) {
+      log.warn(
+         `Port ${preferredPort} is unavailable; using port ${selection.port} instead.`,
+      );
+   }
 
    const resolvedVersion = distribution.resolveVersion(ocVersion);
    distribution.warnIfNonDefault(resolvedVersion);
    const allowedOrigins = nativeHost.allowedOrigins();
+   const serverUrl = `http://localhost:${selection.port}`;
+   const serverPassword = password?.trim() || generateServerPassword();
 
    if (detach) {
-      log.info(`Starting OpenCode server on port ${port} in background...`);
+      log.info(`Starting OpenCode server on port ${selection.port} in background...`);
       const launched = distribution.launchServer({
-         port,
+         port: selection.port,
+         password: serverPassword,
          stdio: 'ignore',
          detach: true,
          ocVersion: resolvedVersion,
@@ -76,15 +96,20 @@ async function serveOpencode({
       });
       log.info(`OpenCode launcher: ${launched.plan.source}`);
       launched.proc.unref();
-      log.success('OpenCode server started in background.');
+      log.success(
+         `OpenCode server started in background at ${serverUrl}\n` +
+         `Password: ${serverPassword}`,
+      );
       return;
    }
 
    return new Promise<void>((resolve, reject) => {
-      log.info(`Starting OpenCode server on port ${port}...`);
+      log.info(`Starting OpenCode server at ${serverUrl}...`);
+      log.info(`Password: ${serverPassword}`);
 
       const launched = distribution.launchServer({
-         port,
+         port: selection.port,
+         password: serverPassword,
          stdio: 'inherit',
          ocVersion: resolvedVersion,
          allowedOrigins,
@@ -272,12 +297,17 @@ async function registerOpencodeCommands(program) {
    opencodeNamespace
       .command('serve')
       .description('Serve the OpenCode AI server locally.')
-      .option('--port <port>', 'Port to run the OpenCode server on (default: 4096)')
+      .option(
+         '--port <port>',
+         'Port to prefer, or "auto" to let the host pick (default: 4096; falls back when busy)',
+      )
       .option('-d, --detach', 'Run the server in the background (detached mode)')
+      .option('--password <password>', 'Password for the OpenCode server (default: generated)')
       .action(async (options, command) => {
           await serveOpencode({
-             port: options.port ? parseInt(options.port, 10) : undefined,
+             port: options.port,
              detach: options.detach,
+             password: options.password,
              ocVersion: command.parent?.opts()?.ocVersion,
           });
        });
