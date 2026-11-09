@@ -1,57 +1,59 @@
 package install
 
-import (
-	"bytes"
-	"fmt"
-	"os/exec"
-	"strings"
-)
+import "github.com/calycode/xano-tools/bootstrapper/i18n"
 
-// InstallCLI installs @calycode/cli globally via npm.
-// Returns the installed version string on success, empty string on failure.
-// On failure, stderr is captured for diagnostic dialogs.
-func InstallCLI(version string) (output string, errOut string) {
+// InstallCLI installs @calycode/cli globally with npm.
+//
+// It returns the version reported by the fresh binary. On failure it returns a
+// message ready to show to the user; the setup log keeps the full npm output.
+func InstallCLI(version string) (installed string, errDetail string) {
 	if version == "" {
 		version = "latest"
 	}
-	pkg := fmt.Sprintf("@calycode/cli@%s", version)
+	pkg := "@calycode/cli@" + version
 
-	var stderr bytes.Buffer
-	cmd := exec.Command("npm", "install", "-g", pkg)
-	setupSilent(cmd)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		if stderr.Len() > 0 {
-			return "", stderr.String()
-		}
+	if _, ok := CheckNpm(); !ok {
+		return "", i18n.T("install.npm.missing")
+	}
+
+	RefreshPath()
+	if _, err := runCmd("npm install", cliInstallTimeout, "npm", "install", "-g", pkg); err != nil {
 		return "", err.Error()
 	}
+	RefreshPath()
 
-	// Verify installation
-	verCmd := exec.Command("caly-xano", "--version")
-	setupSilent(verCmd)
-	out, err := verCmd.Output()
-	if err != nil {
-		return "", ""
+	installed, ok := CheckCLI()
+	if !ok {
+		return "", i18n.T("install.cli.notfound")
 	}
-	return strings.TrimSpace(string(out)), ""
+	return installed, ""
 }
 
-// InitNativeHost runs `caly-xano opencode init` to configure the Chrome native messaging host.
-// Returns stderr on failure.
-func InitNativeHost() (errOut string) {
+// VerifyCLI confirms the installed command runs and reports a version.
+func VerifyCLI() (string, string) {
+	RefreshPath()
+	version, ok := CheckCLI()
+	if !ok {
+		return "", i18n.T("install.cli.notfound")
+	}
+	if version == "" {
+		return "", i18n.T("install.cli.noversion")
+	}
+	Logf("verified caly-xano %s", version)
+	return version, ""
+}
+
+// InitNativeHost registers the browser extension's native messaging host and
+// installs the OpenCode agent templates and skills.
+func InitNativeHost() string {
 	if !CommandExists("caly-xano") {
-		return msg.CalyXanoNotFound
+		RefreshPath()
+	}
+	if !CommandExists("caly-xano") {
+		return i18n.T("install.cli.notfound")
 	}
 
-	var stderr bytes.Buffer
-	cmd := exec.Command("caly-xano", "opencode", "init")
-	setupSilent(cmd)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		if stderr.Len() > 0 {
-			return stderr.String()
-		}
+	if _, err := runCmd("caly-xano oc init", nativeHostTimeout, "caly-xano", "oc", "init"); err != nil {
 		return err.Error()
 	}
 	return ""

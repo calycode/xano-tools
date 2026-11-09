@@ -3,109 +3,82 @@
 package ui
 
 import (
-	"fmt"
+	"os"
+	"sync"
 	"syscall"
 	"unsafe"
+
+	"github.com/calycode/xano-tools/bootstrapper/i18n"
 )
 
-var (
-	user32      = syscall.NewLazyDLL("user32.dll")
-	messageBoxW = user32.NewProc("MessageBoxW")
-)
+var messageBoxW = syscall.NewLazyDLL("user32.dll").NewProc("MessageBoxW")
 
 const (
-	MB_OK              = 0x00000000
-	MB_OKCANCEL        = 0x00000001
-	MB_ICONINFORMATION = 0x00000040
-	MB_ICONWARNING     = 0x00000030
-	MB_ICONERROR       = 0x00000010
-	MB_ICONQUESTION    = 0x00000020
-	MB_SETFOREGROUND   = 0x00010000
-	MB_TOPMOST         = 0x00040000
-
-	IDOK     = 1
-	IDCANCEL = 2
+	mbOK            = 0x00000000
+	mbIconInfo      = 0x00000040
+	mbSetForeground = 0x00010000
+	mbTopMost       = 0x00040000
 )
 
-func messageBox(title, message string, flags uintptr) int {
-	t, _ := syscall.UTF16PtrFromString(title)
-	m, _ := syscall.UTF16PtrFromString(message)
-	ret, _, _ := messageBoxW.Call(
-		0,
-		uintptr(unsafe.Pointer(m)),
-		uintptr(unsafe.Pointer(t)),
-		flags,
-	)
-	return int(ret)
-}
-
-// ShowWelcome displays the welcome/setup-start dialog.
-func ShowWelcome() {
-	messageBox(
-		msg.SetupTitle,
-		msg.WelcomeMessage,
-		MB_OK|MB_ICONINFORMATION|MB_SETFOREGROUND|MB_TOPMOST,
-	)
-}
-
-// ShowInstallingNode displays progress: installing Node.js.
-func ShowInstallingNode() {
-	messageBox(
-		msg.SetupTitle,
-		msg.InstallingNodeWindowsMessage,
-		MB_OK|MB_ICONINFORMATION|MB_SETFOREGROUND|MB_TOPMOST,
-	)
-}
-
-// ShowInstallingCLI displays progress: installing CLI.
-func ShowInstallingCLI() {
-	messageBox(
-		msg.SetupTitle,
-		msg.InstallingCLIMessage,
-		MB_OK|MB_ICONINFORMATION|MB_SETFOREGROUND|MB_TOPMOST,
-	)
-}
-
-// ShowConfiguringNativeHost displays progress: configuring browser extension.
-func ShowConfiguringNativeHost() {
-	messageBox(
-		msg.SetupTitle,
-		msg.ConfiguringNativeHostMessage,
-		MB_OK|MB_ICONINFORMATION|MB_SETFOREGROUND|MB_TOPMOST,
-	)
-}
-
-// ShowError displays a fatal error dialog.
-func ShowError(title, message string) {
-	messageBox(
-		title,
-		message,
-		MB_OK|MB_ICONERROR|MB_SETFOREGROUND|MB_TOPMOST,
-	)
-}
-
-// ShowWarning displays a warning dialog (non-fatal).
-func ShowWarning(title, message string) {
-	messageBox(
-		title,
-		message,
-		MB_OK|MB_ICONWARNING|MB_SETFOREGROUND|MB_TOPMOST,
-	)
-}
-
-// ShowSuccess displays the completion dialog with next steps.
-func ShowSuccess(cliVersion string) {
-	success := msg.SuccessIntro
-	if cliVersion != "" {
-		success += fmt.Sprintf(msg.SuccessVersionFmt, cliVersion)
+// messageBoxOK is the last-resort channel: a Windows GUI binary has no console,
+// so if the installer window cannot start a dialog is the only way to speak.
+func messageBoxOK(title, body string) {
+	t, err := syscall.UTF16PtrFromString(title)
+	if err != nil {
+		return
 	}
-	success += msg.SuccessNextSteps
-	success += msg.SuccessReloadExtensionBullet
-	success += fmt.Sprintf(msg.SuccessRunHelpBulletFmt, msg.TerminalLabelWindows)
-	success += msg.SuccessClickOK
-	messageBox(
-		msg.SetupCompleteTitle,
-		success,
-		MB_OK|MB_ICONINFORMATION|MB_SETFOREGROUND|MB_TOPMOST,
-	)
+	m, err := syscall.UTF16PtrFromString(body)
+	if err != nil {
+		return
+	}
+	messageBoxW.Call(0, uintptr(unsafe.Pointer(m)), uintptr(unsafe.Pointer(t)), uintptr(mbOK|mbIconInfo|mbSetForeground|mbTopMost))
+}
+
+// windowsFallback keeps setup moving when the graphical window cannot open and
+// reports the outcome in one dialog at the end.
+type windowsFallback struct {
+	term *terminalBackend
+	mu   sync.Mutex
+	last Model
+}
+
+func newWindowsFallback(quiet bool) backend {
+	f := &windowsFallback{term: newTerminalBackend(os.Stdout, quiet, false)}
+	return backend{render: f.render, consent: f.consent, close: f.close}
+}
+
+func (f *windowsFallback) render(m Model) {
+	f.mu.Lock()
+	f.last = m
+	f.mu.Unlock()
+	f.term.render(m)
+}
+
+func (f *windowsFallback) consent() bool {
+	f.mu.Lock()
+	m := f.last
+	f.mu.Unlock()
+
+	messageBoxOK(m.Title, i18n.Tf("fallback.notice", m.LogPath))
+	return true
+}
+
+func (f *windowsFallback) close() {
+	f.term.close()
+
+	f.mu.Lock()
+	m := f.last
+	f.mu.Unlock()
+
+	if m.Headline == "" {
+		return
+	}
+	body := m.Headline + "\n\n" + m.Subheading
+	if m.DetailsTitle != "" {
+		body += "\n\n" + m.DetailsTitle + "\n" + m.DetailsBody
+	}
+	if m.LogPath != "" {
+		body += "\n\n" + i18n.Tf("footer.log", m.LogPath)
+	}
+	messageBoxOK(m.Title, body)
 }

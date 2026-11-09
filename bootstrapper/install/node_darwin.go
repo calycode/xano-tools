@@ -2,63 +2,27 @@
 
 package install
 
-import (
-	"bytes"
-	"os"
-	"os/exec"
-)
+import "github.com/calycode/xano-tools/bootstrapper/i18n"
 
-// InstallNode attempts to install Node.js via Homebrew.
-// Returns stderr output on failure.
-func InstallNode() (errOut string) {
-	// If Homebrew is not installed, install it first
+// InstallNode installs Node.js with Homebrew when Homebrew is already present.
+//
+// We deliberately do not install Homebrew here: its installer needs an
+// interactive administrator password, which a background setup step cannot
+// answer. A clear "install Node.js from nodejs.org" message beats a silent hang.
+func InstallNode() string {
 	if !CommandExists("brew") {
-		if out := installHomebrew(); out != "" {
-			return out
-		}
+		Logf("Homebrew not found; not attempting an unattended Homebrew install")
+		return i18n.T("install.node.manual")
 	}
 
-	var stderr bytes.Buffer
-	cmd := exec.Command("brew", "install", "node")
-	setupSilent(cmd)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		if stderr.Len() > 0 {
-			return stderr.String()
-		}
+	Logf("installing Node.js via Homebrew")
+	if _, err := runCmd("brew", nodeInstallTimeout, "brew", "install", "node"); err != nil {
 		return err.Error()
 	}
 
+	RefreshPath()
 	if !NodeOK() {
-		return msg.NodeInstalledNotInPath
-	}
-	return ""
-}
-
-func installHomebrew() string {
-	var stderr bytes.Buffer
-	cmd := exec.Command("/bin/bash", "-c",
-		`$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)`,
-	)
-	setupSilent(cmd)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		if stderr.Len() > 0 {
-			return stderr.String()
-		}
-		return msg.HomebrewInstallFailed
-	}
-
-	// Add Homebrew to PATH for Apple Silicon
-	if _, err := os.Stat("/opt/homebrew/bin/brew"); err == nil {
-		os.Setenv("PATH", "/opt/homebrew/bin:"+os.Getenv("PATH"))
-	}
-	if _, err := os.Stat("/usr/local/bin/brew"); err == nil {
-		os.Setenv("PATH", "/usr/local/bin:"+os.Getenv("PATH"))
-	}
-
-	if !CommandExists("brew") {
-		return msg.HomebrewInstalledNotInPath
+		return i18n.T("install.node.notinpath")
 	}
 	return ""
 }
