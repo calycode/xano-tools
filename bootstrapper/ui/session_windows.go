@@ -9,159 +9,243 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
+
+	"github.com/calycode/xano-tools/bootstrapper/install"
 )
 
-type installerStatus struct {
-	Title  string `json:"title"`
-	Detail string `json:"detail"`
-	Step   int    `json:"step"`
-	Total  int    `json:"total"`
-	Done   bool   `json:"done"`
+// newBackend picks the richest UI the machine can render. If the window cannot
+// start, setup continues with plain text progress so it never becomes a dead end.
+func newBackend(quiet bool) backend {
+	if quiet {
+		t := newTerminalBackend(os.Stdout, true, false)
+		return backend{render: t.render, consent: t.consent, close: t.close}
+	}
+	v, err := newWindowsViewer()
+	if err != nil {
+		return newWindowsFallback(false)
+	}
+	return backend{render: v.render, consent: v.consent, close: v.close}
 }
 
-func newInstallerSession() *InstallerSession {
-	tmpDir, err := os.MkdirTemp("", "calycode-installer-*")
+// windowsViewer drives a PowerShell/WinForms window through a status file.
+//
+// The Go process stays the single source of truth: it writes the model as JSON,
+// the window only paints it and writes back the user's consent.
+type windowsViewer struct {
+	dir          string
+	statusPath   string
+	scriptPath   string
+	decisionPath string
+	readyPath    string
+
+	mu       sync.Mutex
+	last     Model
+	logFile  *os.File
+	cmd      *exec.Cmd
+	exited   chan struct{}
+	fallback backend
+	closed   bool
+}
+
+func newWindowsViewer() (*windowsViewer, error) {
+	dir, err := os.MkdirTemp("", "calycode-installer-*")
 	if err != nil {
-		return &InstallerSession{}
+		return nil, err
+	}
+	v := &windowsViewer{
+		dir:          dir,
+		statusPath:   filepath.Join(dir, "status.json"),
+		scriptPath:   filepath.Join(dir, "viewer.ps1"),
+		decisionPath: filepath.Join(dir, "decision.txt"),
+		readyPath:    filepath.Join(dir, "ready.txt"),
+	}
+	// PowerShell 5.1 reads a script without a BOM using the ANSI code page, which
+	// would mangle the box-drawing glyphs in the script.
+	if err := os.WriteFile(v.scriptPath, []byte("\ufeff"+viewerScript), 0o600); err != nil {
+		_ = os.RemoveAll(dir)
+		return nil, err
+	}
+	return v, nil
+}
+
+func (v *windowsViewer) render(m Model) {
+	v.mu.Lock()
+	if v.closed {
+		v.mu.Unlock()
+		return
+	}
+	fallback := v.fallback
+	launched := v.cmd != nil
+	v.last = m
+	v.mu.Unlock()
+
+	if fallback.active() {
+		fallback.render(m)
+		return
 	}
 
-	statusPath := filepath.Join(tmpDir, "status.json")
-	scriptPath := filepath.Join(tmpDir, "viewer.ps1")
-
-	writeStatusFile := func(st installerStatus) {
-		payload, _ := json.Marshal(st)
-		tmp := statusPath + ".tmp"
-		_ = os.WriteFile(tmp, payload, 0600)
-		_ = os.Rename(tmp, statusPath)
+	v.writeStatus(m)
+	if !launched {
+		v.launch()
 	}
+}
 
-	writeStatusFile(installerStatus{Title: msg.SessionPreparingTitle, Detail: msg.SessionPreparingDetail, Step: 0, Total: 3, Done: false})
-
-	statusEscaped := strings.ReplaceAll(statusPath, "'", "''")
-	viewerScript := `Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-
-$statusPath = '` + statusEscaped + `'
-
-$form = New-Object System.Windows.Forms.Form
-$form.Text = '` + strings.ReplaceAll(msg.InstallerWindowTitle, "'", "''") + `'
-$form.StartPosition = 'CenterScreen'
-$form.Size = New-Object System.Drawing.Size(560, 220)
-$form.FormBorderStyle = 'FixedDialog'
-$form.MaximizeBox = $false
-$form.MinimizeBox = $false
-$form.TopMost = $true
-
-$titleLabel = New-Object System.Windows.Forms.Label
-$titleLabel.Location = New-Object System.Drawing.Point(24, 24)
-$titleLabel.Size = New-Object System.Drawing.Size(510, 32)
-$titleLabel.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
-$titleLabel.Text = '` + strings.ReplaceAll(msg.SessionPreparingTitle, "'", "''") + `'
-$form.Controls.Add($titleLabel)
-
-$detailLabel = New-Object System.Windows.Forms.Label
-$detailLabel.Location = New-Object System.Drawing.Point(24, 64)
-$detailLabel.Size = New-Object System.Drawing.Size(510, 44)
-$detailLabel.Font = New-Object System.Drawing.Font('Segoe UI', 9)
-$detailLabel.Text = '` + strings.ReplaceAll(msg.SessionPreparingDetail, "'", "''") + `'
-$form.Controls.Add($detailLabel)
-
-$progress = New-Object System.Windows.Forms.ProgressBar
-$progress.Location = New-Object System.Drawing.Point(24, 122)
-$progress.Size = New-Object System.Drawing.Size(510, 22)
-$progress.Minimum = 0
-$progress.Maximum = 100
-$progress.Style = 'Continuous'
-$progress.Value = 5
-$form.Controls.Add($progress)
-
-$stepLabel = New-Object System.Windows.Forms.Label
-$stepLabel.Location = New-Object System.Drawing.Point(24, 152)
-$stepLabel.Size = New-Object System.Drawing.Size(510, 24)
-$stepLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8)
-$stepLabel.Text = [string]::Format('` + strings.ReplaceAll(msg.SessionStepLabelFmtPS, "'", "''") + `', 0, 3)
-$form.Controls.Add($stepLabel)
-
-$timer = New-Object System.Windows.Forms.Timer
-$timer.Interval = 350
-$timer.Add_Tick({
-   try {
-      if (-not (Test-Path -LiteralPath $statusPath)) {
-         return
-      }
-      $raw = Get-Content -LiteralPath $statusPath -Raw
-      if (-not $raw) {
-         return
-      }
-      $status = $raw | ConvertFrom-Json
-
-      if ($status.title) { $titleLabel.Text = [string]$status.title }
-      if ($status.detail) { $detailLabel.Text = [string]$status.detail }
-
-      $total = [int]$status.total
-      if ($total -lt 1) { $total = 1 }
-      $step = [int]$status.step
-      if ($step -lt 0) { $step = 0 }
-      if ($step -gt $total) { $step = $total }
-
-      $pct = [int](($step * 100) / $total)
-      if ($pct -lt 1) { $pct = 1 }
-      if ($pct -gt 100) { $pct = 100 }
-      $progress.Value = $pct
-      $stepLabel.Text = [string]::Format('` + strings.ReplaceAll(msg.SessionStepLabelFmtPS, "'", "''") + `', $step, $total)
-
-      if ($status.done -eq $true) {
-         $timer.Stop()
-         $form.Close()
-      }
-   } catch {
-      # Ignore transient parse/read errors.
-   }
-})
-
-$timer.Start()
-[void]$form.ShowDialog()
-`
-
-	_ = os.WriteFile(scriptPath, []byte(viewerScript), 0600)
+func (v *windowsViewer) launch() {
+	logPath := filepath.Join(v.dir, "viewer.log")
+	logFile, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
 
 	cmd := exec.Command(
 		"powershell.exe",
 		"-NoProfile",
-		"-WindowStyle",
-		"Hidden",
-		"-ExecutionPolicy",
-		"Bypass",
-		"-File",
-		scriptPath,
+		"-STA",
+		"-ExecutionPolicy", "Bypass",
+		"-File", v.scriptPath,
+		"-StatusPath", v.statusPath,
 	)
-	_ = cmd.Start()
-
-	var mu sync.Mutex
-	closed := false
-
-	return &InstallerSession{
-		updateFn: func(step, total int, title, detail string) {
-			mu.Lock()
-			defer mu.Unlock()
-			if closed {
-				return
-			}
-			writeStatusFile(installerStatus{Title: title, Detail: detail, Step: step, Total: total, Done: false})
-		},
-		closeFn: func() {
-			mu.Lock()
-			defer mu.Unlock()
-			if closed {
-				return
-			}
-			closed = true
-			writeStatusFile(installerStatus{Title: msg.SessionDoneTitle, Detail: msg.SessionDoneDetail, Step: 3, Total: 3, Done: true})
-			go func() {
-				time.Sleep(2 * time.Second)
-				_ = os.RemoveAll(tmpDir)
-			}()
-		},
+	// Note: do not pass -WindowStyle Hidden. Windows applies that show-state to
+	// the first window the process creates, which is our form, so it would open
+	// invisible. SysProcAttr.HideWindow hides the console without that side effect.
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	if logFile != nil {
+		cmd.Stdout = logFile
+		cmd.Stderr = logFile
 	}
+	started := time.Now()
+	if err := cmd.Start(); err != nil {
+		if logFile != nil {
+			_ = logFile.Close()
+		}
+		install.Logf("viewer: could not start PowerShell: %v", err)
+		v.enableFallback()
+		return
+	}
+	install.Logf("viewer: PowerShell started (pid %d)", cmd.Process.Pid)
+
+	exited := make(chan struct{})
+	go func() {
+		_ = cmd.Wait()
+		close(exited)
+	}()
+
+	v.mu.Lock()
+	v.cmd = cmd
+	v.exited = exited
+	v.logFile = logFile
+	v.mu.Unlock()
+
+	// Give the window a moment to come up. If it never does (blocked execution
+	// policy, missing PowerShell), fall back instead of installing invisibly.
+	if waitForFile(v.readyPath, 20*time.Second) {
+		install.Logf("viewer: window ready after %s", time.Since(started).Round(time.Millisecond))
+		return
+	}
+	install.Logf("viewer: window did not appear within 20s; continuing with text output")
+	if cmd.Process != nil {
+		_ = cmd.Process.Kill()
+	}
+	<-exited
+	v.enableFallback()
+}
+
+func (v *windowsViewer) enableFallback() {
+	f := newWindowsFallback(false)
+	v.mu.Lock()
+	v.fallback = f
+	last := v.last
+	v.mu.Unlock()
+	f.render(last)
+}
+
+// consent waits for the user to press Install in the window.
+func (v *windowsViewer) consent() bool {
+	v.mu.Lock()
+	fallback := v.fallback
+	exited := v.exited
+	v.mu.Unlock()
+
+	if fallback.active() {
+		return fallback.consent()
+	}
+
+	deadline := time.Now().Add(30 * time.Minute)
+	for time.Now().Before(deadline) {
+		if raw, err := os.ReadFile(v.decisionPath); err == nil {
+			return strings.TrimSpace(string(raw)) == "install"
+		}
+		if exited != nil {
+			select {
+			case <-exited:
+				return false
+			default:
+			}
+		}
+		time.Sleep(120 * time.Millisecond)
+	}
+	return false
+}
+
+// close waits for the user to dismiss the window so the final state stays
+// readable, then removes the temporary work directory.
+func (v *windowsViewer) close() {
+	v.mu.Lock()
+	if v.closed {
+		v.mu.Unlock()
+		return
+	}
+	v.closed = true
+	fallback := v.fallback
+	cmd := v.cmd
+	exited := v.exited
+	logFile := v.logFile
+	v.mu.Unlock()
+
+	if fallback.active() {
+		fallback.close()
+		v.cleanup()
+		return
+	}
+
+	if cmd != nil && exited != nil {
+		select {
+		case <-exited:
+		case <-time.After(30 * time.Minute):
+			if cmd.Process != nil {
+				_ = cmd.Process.Kill()
+			}
+			<-exited
+		}
+	}
+	if logFile != nil {
+		_ = logFile.Close()
+	}
+	v.cleanup()
+}
+
+func (v *windowsViewer) cleanup() {
+	_ = os.RemoveAll(v.dir)
+}
+
+func (v *windowsViewer) writeStatus(m Model) {
+	payload, err := json.Marshal(m)
+	if err != nil {
+		return
+	}
+	tmp := v.statusPath + ".tmp"
+	if err := os.WriteFile(tmp, payload, 0o600); err != nil {
+		return
+	}
+	_ = os.Rename(tmp, v.statusPath)
+}
+
+func waitForFile(path string, timeout time.Duration) bool {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return false
 }
