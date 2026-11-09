@@ -1,5 +1,22 @@
 # @calycode/caly-core
 
+## 0.15.0
+
+### Minor Changes
+
+- 34e6f10: Remove dead code, deduplicate CLI bootstrapping, and add a type-check gate.
+
+  - Both entry points now share `detectNativeHostLaunch` for native-host argument detection, so `caly-xano` and the bundled binary can no longer drift apart.
+  - `registry add` fetches the registry index once and passes it to the component prompt instead of downloading it twice.
+  - `ensureGitignore` resolves the working directory at call time instead of freezing it at import.
+  - Removed the public `Caly.switchContext` (deprecated) and `Caly.loadInstanceConfig` facade methods, the unused CLI registry URL map, the unused `isEmptySchema`/`isNotEmpty` utilities, and `getStaticCorsOrigins`.
+  - Added a `typecheck` script (`tsc --noEmit`) to `@calycode/cli`.
+
+### Patch Changes
+
+- 34e6f10: Fetch XanoScript repo entities in bounded parallel waves and follow metadata list pagination instead of silently stopping at 500 items.
+- 34e6f10: fix: resolve context through one module, honour `--instance`, and avoid duplicate config reads
+
 ## 0.14.1
 
 ### Patch Changes
