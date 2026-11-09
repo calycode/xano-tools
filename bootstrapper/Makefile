@@ -15,7 +15,7 @@
 OUT_DIR    := dist
 BINARY     := calycode-installer
 MODULE     := github.com/calycode/xano-tools/bootstrapper
-VERSION    ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+VERSION    ?= $(patsubst @calycode/cli@%,%,$(shell git describe --tags --always --dirty 2>/dev/null || echo dev))
 LDFLAGS    := -s -w -X main.version=$(VERSION)
 STAGE      ?= welcome
 
