@@ -1,5 +1,64 @@
 # @calycode/xano-cli
 
+## 0.21.0
+
+### Minor Changes
+
+- 34e6f10: Use the OpenCode V2 runtime and authenticate the local server.
+
+  The default runtime is now pinned to OpenCode `2.2.6` and installed from
+  `@opencode/cli`; the floating `latest` channel also resolves to V2, while
+  explicit V1 versions continue to use `opencode-ai`. The native host now probes
+  the V2 `/api/info` endpoint (with `/global/health` as the V1 fallback), generates
+  or accepts a server password, starts OpenCode with `OPENCODE_PASSWORD`, and
+  returns the password in `starting`/`running`/`status` replies so the extension
+  can use HTTP Basic Auth. `oc serve` accepts `--password` and prints the generated
+  password alongside the actual URL.
+
+### Patch Changes
+
+- 34e6f10: fix: resolve context through one module, honour `--instance`, and avoid duplicate config reads
+- 34e6f10: Remove dead code, deduplicate CLI bootstrapping, and add a type-check gate.
+
+  - Both entry points now share `detectNativeHostLaunch` for native-host argument detection, so `caly-xano` and the bundled binary can no longer drift apart.
+  - `registry add` fetches the registry index once and passes it to the component prompt instead of downloading it twice.
+  - `ensureGitignore` resolves the working directory at call time instead of freezing it at import.
+  - Removed the public `Caly.switchContext` (deprecated) and `Caly.loadInstanceConfig` facade methods, the unused CLI registry URL map, the unused `isEmptySchema`/`isNotEmpty` utilities, and `getStaticCorsOrigins`.
+  - Added a `typecheck` script (`tsc --noEmit`) to `@calycode/cli`.
+
+- 34e6f10: Make OpenCode server ports dynamic and discoverable from the browser extension.
+
+  The native host now treats the requested port as a preference, scans `4096-4127`
+  when it is busy, and falls back to an OS-assigned ephemeral port. Every
+  native-messaging reply includes the real `port`, `url`, `requestedPort`, and
+  `autoSelected` fields, and a new `status` message lets the extension recover the
+  current port after reconnecting. `oc serve` uses the same fallback and prints the
+  actual URL, and `keepAlive` keeps a server running across native host restarts so
+  the next host can adopt it instead of starting a second server.
+
+  Native-host cleanup also handles Windows launcher wrappers that exit after
+  spawning the real server, uses command-line markers to avoid killing unrelated
+  OpenCode processes, and no longer crashes when Chrome closes the native
+  messaging pipe after a one-shot reply.
+
+- 34e6f10: Route generated output through one pipeline.
+
+  The five `generate` implementations publish files through one awaited clear ? mkdir ? write pipeline. They, plus backup export/restore, test-result writing and `serve`, resolve output destinations through one helper. Directory clearing is no longer fire-and-forget in the `generate` paths, so writes cannot race a pending clear. Backup export still writes through `core.storage`.
+
+- 34e6f10: Harden the native-host launcher for OpenCode V2.
+
+  The generated native-host wrapper no longer pins a floating `latest` version and
+  lets the CLI default apply. Windows child processes now spawn with
+  `windowsHide`, and a matching global OpenCode executable is preferred over the
+  `npx`/`.cmd` shim. Extension IDs already written into a native-host manifest are
+  merged into the runtime CORS allowlist, so an unpacked dev extension keeps
+  working after Chrome launches the host without `CALY_OC_INCLUDE_DEV_EXT`. Host
+  debug logging now defaults on for source-checkout runs and stays opt-in for
+  npm-installed and packaged binaries. Native-host state files are created with
+  owner-only permissions because they contain the server password and owner token.
+
+- 34e6f10: Telemetry no longer keeps the CLI process alive. Events are spooled to disk and drained by at most one detached flusher, which has a hard five-second deadline, removes its own lock on exit, and never blocks the command that produced the event. Telemetry can be disabled with `CALY_TELEMETRY=0` or `DO_NOT_TRACK=1`, and flush failures are swallowed.
+
 ## 0.20.0
 
 ### Minor Changes
