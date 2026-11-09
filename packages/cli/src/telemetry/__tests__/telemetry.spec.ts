@@ -1,5 +1,13 @@
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import {
+   mkdirSync,
+   mkdtempSync,
+   rmSync,
+   statSync,
+   symlinkSync,
+   utimesSync,
+   writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { isTelemetryEnabled, TELEMETRY_SINK_ENV } from '../config';
@@ -343,6 +351,27 @@ describe('sink lock', () => {
       });
 
       expect(relative).toBe(absolute);
+   });
+
+   it('maps a symlinked spool directory to the same lock', () => {
+      const realDir = join(dir, 'real');
+      const linkDir = join(dir, 'link');
+      mkdirSync(realDir);
+
+      try {
+         symlinkSync(realDir, linkDir, process.platform === 'win32' ? 'junction' : 'dir');
+      } catch {
+         return; // Symlinks are unavailable in this environment.
+      }
+
+      const direct = defaultSinkLockPath({
+         CALY_TELEMETRY_SPOOL: join(realDir, 'spool.jsonl'),
+      });
+      const linked = defaultSinkLockPath({
+         CALY_TELEMETRY_SPOOL: join(linkDir, 'spool.jsonl'),
+      });
+
+      expect(direct).toBe(linked);
    });
 
    it('lets CALY_TELEMETRY_LOCK override the spool-derived default', () => {

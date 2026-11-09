@@ -75,20 +75,28 @@ export function createDetachedDispatcher(
    const fileExists = deps.fileExists ?? existsSync;
    const isSea = deps.isSea ?? isSeaRuntime;
    const spool = deps.spool ?? createEventSpool(defaultSpoolPath(env));
-   const lock = deps.lock ?? createSinkLock(defaultSinkLockPath(env, spool.path));
+   const injectedLock = deps.lock;
 
    return (events: TelemetryEvent[]) => {
+      let acquired: SinkLock | undefined;
+
       try {
          if (events.length === 0) return;
          spool.append(events);
 
+         // Derive the lock after the append so the spool exists and its real
+         // path can key the lock (symlinks and on-disk case resolved).
+         const lock = injectedLock ?? createSinkLock(defaultSinkLockPath(env, spool.path));
+
          // A flusher is already draining; it will pick these events up on its
          // next run, or the next command will.
          if (!lock.acquire()) return;
+         acquired = lock;
 
          const args = resolveSinkArgs(scriptPath, fileExists, isSea);
          if (!args) {
             lock.release();
+            acquired = undefined;
             return;
          }
 
@@ -114,8 +122,9 @@ export function createDetachedDispatcher(
          child.on('error', () => lock.release());
          child.unref();
       } catch {
-         // Telemetry is best effort and must never break a command.
-         lock.release();
+         // Telemetry is best effort and must never break a command. Only release
+         // a lock this call actually acquired; an append failure creates none.
+         acquired?.release();
       }
    };
 }

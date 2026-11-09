@@ -5,13 +5,14 @@ import {
    mkdirSync,
    openSync,
    readFileSync,
+   realpathSync,
    rmSync,
    statSync,
    writeFileSync,
    writeSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import type { TelemetryEvent } from './types';
 
 /**
@@ -192,10 +193,26 @@ export function createSinkLock(path: string, staleMs = SINK_LOCK_STALE_MS): Sink
    };
 }
 
-/** One canonical spelling per spool, so `./x` and its absolute form share a lock. */
+/**
+ * One canonical spelling per spool file. When the file exists, its real path
+ * follows symlinks and resolves on-disk case, so `./x`, an absolute spelling,
+ * and a symlinked spelling all share a lock. Before the first append creates
+ * the file, the resolved parent plus the literal entry name is the best
+ * available key. Case is preserved on purpose: two files that differ only by
+ * case in a case-sensitive directory are different spools.
+ */
 function canonicalPath(path: string): string {
    const absolute = resolve(path);
-   return process.platform === 'win32' ? absolute.toLowerCase() : absolute;
+   try {
+      return realpathSync.native(absolute);
+   } catch {
+      // Not created yet: canonicalize the directory and keep the entry name.
+   }
+   try {
+      return join(realpathSync.native(dirname(absolute)), basename(absolute));
+   } catch {
+      return absolute;
+   }
 }
 
 function pathHash(path: string): string {
