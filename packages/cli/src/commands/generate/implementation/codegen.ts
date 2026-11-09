@@ -1,10 +1,12 @@
 import { log, outro, intro, spinner, select, text, isCancel, cancel } from '@clack/prompts';
-import { metaApiGet, normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
+import { metaApiGet, normalizeApiGroupName } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
-   findProjectRoot,
+   createOutputFileSystem,
    printOutputDir,
+   resolveOutputDestination,
    resolveConfigs,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 import { runOpenApiGenerator } from '../../../features/code-gen/open-api-generator';
 
@@ -119,12 +121,14 @@ async function generateCodeFromOas({
       s.start(`Generating code for group "${group.name}" with generator "${generator}"`);
 
       const apiGroupNameNorm = normalizeApiGroupName(group.name);
-      const outputPath = replacePlaceholders(instanceConfig.codegen.output, {
-         '@': await findProjectRoot(),
-         instance: instanceConfig.name,
-         workspace: workspaceConfig.name,
-         branch: branchConfig.label,
-         api_group_normalized_name: apiGroupNameNorm,
+      const outputPath = await resolveOutputDestination({
+         template: instanceConfig.codegen.output,
+         context: {
+            instance: instanceConfig.name,
+            workspace: workspaceConfig.name,
+            branch: branchConfig.label,
+            apiGroupNormalized: apiGroupNameNorm,
+         },
       });
 
       const openapiRaw = await metaApiGet({
@@ -142,9 +146,14 @@ async function generateCodeFromOas({
          storage: core.storage,
       });
 
-      // Create a temp file for the oas to reuse:
-      await core.storage.mkdir(outputPath, { recursive: true });
-      await core.storage.writeFile(`${outputPath}/spec.json`, JSON.stringify(oas, null, 2));
+      // Create a temp file for the oas to reuse. The directory is not cleared:
+      // the generator's own output lives next to spec.json.
+      await writeGeneratedOutput({
+         fileSystem: createOutputFileSystem(core.storage),
+         destination: outputPath,
+         entries: [{ path: 'spec.json', content: JSON.stringify(oas, null, 2) }],
+         clear: false,
+      });
 
       try {
          await runOpenApiGenerator({

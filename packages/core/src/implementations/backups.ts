@@ -1,9 +1,17 @@
 import { replacePlaceholders, joinPath, dirname, metaApiFetch } from '@repo/utils';
+import { resolveFeatureContext } from '../utils/methods/resolve-feature-context';
 
 /**
  * Exports a backup and emits events for CLI/UI.
  */
-async function exportBackupImplementation({ outputDir, instance, workspace, branch, core }) {
+async function exportBackupImplementation({
+   outputDir,
+   instance,
+   workspace,
+   branch,
+   contextConfigs,
+   core,
+}) {
    core.emit('start', {
       name: 'export-backup',
       payload: { instance, workspace, branch },
@@ -16,18 +24,12 @@ async function exportBackupImplementation({ outputDir, instance, workspace, bran
          percent: 5,
       });
       const startDir = core.storage.getStartDir();
-      const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-         instance,
-         workspace,
-         branch,
+      const { instanceConfig, workspaceConfig, branchConfig } = await resolveFeatureContext({
+         core,
+         context: { instance, workspace, branch },
          startDir,
+         contextConfigs,
       });
-
-      if (!instanceConfig || !workspaceConfig || !branchConfig) {
-         throw new Error(
-            'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
-         );
-      }
 
       core.emit('progress', {
          name: 'export-backup',
@@ -124,17 +126,19 @@ async function exportBackupImplementation({ outputDir, instance, workspace, bran
    }
 }
 
-async function restoreBackupImplementation({ instance, workspace, formData, core }) {
+async function restoreBackupImplementation({ instance, workspace, formData, contextConfigs, core }) {
    core.emit('progress', {
       name: 'restore-backup',
       message: 'Loading context...',
       percent: 5,
    });
    const startDir = core.storage.getStartDir();
-   const { instanceConfig, workspaceConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
+   const { instanceConfig, workspaceConfig } = await resolveFeatureContext({
+      core,
+      context: { instance, workspace },
       startDir,
+      contextConfigs,
+      required: ['instanceConfig', 'workspaceConfig'],
    });
 
    core.emit('progress', {

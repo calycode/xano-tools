@@ -17,7 +17,7 @@ import { registerRegistryCommands } from './commands/registry';
 import { registerServeCommands } from './commands/serve';
 import { registerOpencodeCommands } from './commands/opencode/index';
 import { Caly } from '@calycode/core';
-import { InitializedPostHog } from './utils/posthog/init';
+import { telemetry } from './telemetry';
 import { nodeConfigStorage } from './node-config-storage';
 import { registerGenerateCommands } from './commands/generate';
 import {
@@ -34,35 +34,30 @@ const core = new Caly(nodeConfigStorage);
 // Store start time on the command object
 program.hook('preAction', (thisCommand, actionCommand) => {
    commandStartTimes.set(thisCommand, Date.now());
-   InitializedPostHog.captureImmediate({
-      distinctId: 'anonymous',
-      event: 'command_started',
-      properties: {
-         $process_person_profile: false,
-         command: actionCommand.name(),
-      },
+   telemetry.recordEvent('command_started', {
+      $process_person_profile: false,
+      command: actionCommand.name(),
    });
 });
 
 program.hook('postAction', (thisCommand, actionCommand) => {
    const start = commandStartTimes.get(thisCommand);
-   if (!start) return;
-   if (actionCommand.name() === 'native-host') return;
-   const duration = ((Date.now() - start) / 1000).toFixed(2);
+   if (start && actionCommand.name() !== 'native-host') {
+      const duration = ((Date.now() - start) / 1000).toFixed(2);
 
-   const commandPath = getFullCommandPath(actionCommand);
+      const commandPath = getFullCommandPath(actionCommand);
 
-   console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
-   InitializedPostHog.captureImmediate({
-      distinctId: 'anonymous',
-      event: 'command_finished',
-      properties: {
+      console.log(`\n⏱️  Command "${commandPath}" completed in ${duration}s`);
+      telemetry.recordEvent('command_finished', {
          $process_person_profile: false,
          command: commandPath,
          duration: duration,
-      },
-   });
-   InitializedPostHog.shutdown();
+      });
+   }
+
+   // Fire and forget: the dispatcher hands events to a detached process, so
+   // analytics can never keep this process alive.
+   void telemetry.shutdown();
 });
 
 program

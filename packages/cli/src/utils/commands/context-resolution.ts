@@ -1,5 +1,5 @@
 import { select, text } from '@clack/prompts';
-import { Context, CoreContext, CurrentContextConfig } from '@repo/types';
+import { Context, CoreContext } from '@repo/types';
 
 async function promptForContext(
    missingFields: string[],
@@ -41,67 +41,64 @@ async function promptForContext(
    return responses;
 }
 
+/**
+ * Resolves the effective context through Core's single resolution module.
+ *
+ * The config tree is read once: when a prompt is needed we re-derive from the
+ * already-loaded inputs instead of walking the directory again. Resolution is
+ * only performed here; precedence and validation live in Core's context module.
+ */
 async function resolveConfigs({
    cliContext = {},
    core,
    startDir = process.cwd(),
    requiredFields = ['instance', 'workspace', 'branch'],
-   configFiles = ['branch.config.json', 'workspace.config.json', 'instance.config.json'],
+   configFiles,
    interactive = true,
 }: {
    cliContext?: Context;
    core: {
-      storage: { loadMergedConfig: (startDir: string, configFiles?: string[]) => any };
-      getCurrentContextConfig: (args: {
-         startDir?: string;
-         context: Context;
-      }) => Promise<CurrentContextConfig>;
+      loadContextInputs: (args: any) => Promise<any>;
+      deriveContext: (args: any) => Promise<any>;
    };
    startDir?: string;
    requiredFields?: string[];
    configFiles?: string[];
    interactive?: boolean;
 }) {
-   // 1. Initial config load (for choices, etc.)
-   let { mergedConfig, instanceConfig, foundLevels } = await core.storage.loadMergedConfig(
-      startDir,
-      configFiles
-   );
+   // 1. Read the tree and global config once.
+   const inputs = await core.loadContextInputs({ startDir, configFiles });
 
-   // 2. Determine current context (CLI > foundLevels > null)
-   let context = {
-      instance: cliContext.instance ?? foundLevels.instance ?? null,
-      workspace: cliContext.workspace ?? foundLevels.workspace ?? null,
-      branch: cliContext.branch ?? foundLevels.branch ?? null,
-      apigroup: cliContext.apigroup ?? null,
-   };
+   // 2. Derive with flag precedence (explicit > nearest level > global).
+   let resolution = await core.deriveContext({ inputs, context: cliContext });
 
-   // 3. Prompt for missing context
-   const missing = requiredFields.filter((f) => !context[f]);
+   // 3. Prompt for missing context, re-deriving from the same inputs.
+   const missing = resolution.missing(requiredFields);
    if (missing.length > 0 && interactive) {
-      const userInput = await promptForContext(missing, context, instanceConfig);
-      context = { ...context, ...userInput };
-   } else if (missing.length > 0 && !interactive) {
-      throw new Error(`Missing context: ${missing.join(', ')}`);
+      const userInput = await promptForContext(
+         missing,
+         resolution.context,
+         resolution.instanceConfig ?? {}
+      );
+      resolution = await core.deriveContext({
+         inputs,
+         context: { ...resolution.context, ...userInput },
+      });
    }
 
-   // 4. Derive the configs for the fully resolved context through core, so the
-   // workspace/branch/apigroup resolution lives in one place.
-   const {
-      instanceConfig: resolvedInstanceConfig,
-      workspaceConfig,
-      branchConfig,
-      apigroupConfig,
-   } = await core.getCurrentContextConfig({ context, startDir });
+   const stillMissing = resolution.missing(requiredFields);
+   if (stillMissing.length > 0) {
+      throw new Error(`Missing context: ${stillMissing.join(', ')}`);
+   }
 
    return {
-      context,
-      instanceConfig: resolvedInstanceConfig ?? instanceConfig,
-      workspaceConfig,
-      branchConfig,
-      apigroupConfig,
-      mergedConfig,
-      foundLevels,
+      context: resolution.context,
+      instanceConfig: resolution.instanceConfig,
+      workspaceConfig: resolution.workspaceConfig,
+      branchConfig: resolution.branchConfig,
+      apigroupConfig: resolution.apigroupConfig,
+      mergedConfig: inputs.mergedConfig,
+      foundLevels: inputs.foundLevels,
    };
 }
 
