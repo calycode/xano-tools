@@ -420,6 +420,7 @@ export function killProcessOnPort(
 const OPENCODE_V1_HEALTH_PATH = '/global/health';
 const OPENCODE_V2_HEALTH_PATH = '/api/info';
 
+/** Probe V2 first unless the requested runtime is explicitly V1. */
 function getHealthPaths(expectedOcVersion?: string): string[] {
    const major =
       expectedOcVersion === 'latest'
@@ -431,6 +432,12 @@ function getHealthPaths(expectedOcVersion?: string): string[] {
       : [OPENCODE_V2_HEALTH_PATH, OPENCODE_V1_HEALTH_PATH];
 }
 
+/**
+ * Probe a port for a compatible OpenCode server.
+ *
+ * V2 uses the authenticated `/api/info` endpoint; V1 uses `/global/health`.
+ * A 401 from `/api/info` still counts as "up" when no password is available.
+ */
 export async function isLikelyOpenCodeServerOnPort(
    port: number,
    expectedOcVersion?: string,
@@ -512,10 +519,12 @@ function delay(ms: number): Promise<void> {
    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Generate a URL-safe password for an OpenCode V2 server. */
 function generateServerPassword(): string {
    return randomBytes(24).toString('base64url');
 }
 
+/** Build the Basic auth header OpenCode V2 expects for API requests. */
 function basicAuthHeader(password: string): string {
    return `Basic ${Buffer.from(`opencode:${password}`).toString('base64')}`;
 }
@@ -587,11 +596,13 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       password: session.password ? '[redacted]' : null,
    });
 
+   /** Prefer a ready session, otherwise return the first tracked one. */
    const getPrimarySession = (): ManagedSession | null => {
       const sessions = Array.from(managedSessions.values());
       return sessions.find((session) => session.ready) ?? sessions[0] ?? null;
    };
 
+   /** Persist the session metadata needed to adopt it after a host restart. */
    const persistSession = (session: ManagedSession) => {
       writeNativeHostSessionMetadata({
          port: session.port,
@@ -608,6 +619,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       });
    };
 
+   /** Track a freshly spawned server and persist its port/password metadata. */
    const registerManagedSession = (
       selection: PortSelection,
       proc: ReturnType<typeof spawn>,
@@ -650,6 +662,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       deleteNativeHostSessionMetadata(port);
    };
 
+   /** Stop one server and clean up its persisted metadata. */
    const stopManagedSession = (session: ManagedSession, reason: string) => {
       logger.log(`Stopping managed session on port ${session.port}`, {
          reason,
@@ -679,6 +692,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       unregisterManagedSession(session.port);
    };
 
+   /** Stop every session tracked by this native host process. */
    const stopAllManagedSessions = (reason: string) => {
       for (const session of Array.from(managedSessions.values())) {
          stopManagedSession(session, reason);
@@ -773,6 +787,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       return adoptionPromise;
    };
 
+   /** Poll the server until it is healthy or the process exits. */
    const waitForServerHealthy = async (
       port: number,
       proc: ReturnType<typeof spawn>,
@@ -797,6 +812,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       return false;
    };
 
+   /** Reply to `ping`/`status` with the current endpoint and session list. */
    const sendStatus = (type: 'pong' | 'status') => {
       const primary = getPrimarySession();
       const sessions = Array.from(managedSessions.values()).map(sessionPayload);
@@ -822,6 +838,10 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       sendMessage({ type: 'status', ...payload });
    };
 
+   /**
+    * Reuse a healthy session when compatible, otherwise start a new server on
+    * the preferred port or the next available one.
+    */
    const startServer = async (
       requestedPort: number | null = null,
       extraOrigins: string[] = [],
@@ -1104,6 +1124,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       }
    };
 
+   /** Force a fresh server, optionally on a different preferred port. */
    const restartServer = async (
       requestedPort: number | null = null,
       extraOrigins: string[] = [],
@@ -1119,6 +1140,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
       });
    };
 
+   /** Read a non-empty password from a native message. */
    const requestedPasswordFrom = (msg: any): string | undefined => {
       if (typeof msg?.password !== 'string') {
          return undefined;
@@ -1288,6 +1310,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
 
    let messageQueue = Promise.resolve();
 
+   /** Serialize message handling so two starts cannot race for a port. */
    const enqueueMessage = (msg: unknown) => {
       messageQueue = messageQueue
          .then(() => handleMessage(msg))
@@ -1299,6 +1322,7 @@ export async function startNativeHost({ launchServer }: NativeHostDependencies) 
    // Cleanup function to kill managed server sessions and exit cleanly.
    // Keep-alive sessions are intentionally left running: they are owned by the
    // extension and are adopted by the next native host process.
+   /** Kill non-keep-alive sessions and exit the native host process. */
    const cleanup = (reason: string) => {
       if (cleanupTriggered) {
          return;

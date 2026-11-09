@@ -27,18 +27,22 @@ export function getOpencodePackageName(version: string): string {
    return major !== null && major >= 2 ? OPENCODE_V2_PACKAGE : OPENCODE_V1_PACKAGE;
 }
 
+/** npm specifier for the package family that owns this version. */
 export function getOpencodePackageSpecifier(version: string): string {
    return `${getOpencodePackageName(version)}@${version}`;
 }
 
+/** Root directory holding one managed install per OpenCode version. */
 export function getManagedOpencodeVersionsDir(): string {
    return path.join(getCalycodeOpencodeConfigDir(), 'versions');
 }
 
+/** Isolated install directory for one OpenCode version. */
 export function getManagedOpencodeInstallDir(version: string): string {
    return path.join(getManagedOpencodeVersionsDir(), version);
 }
 
+/** Installed package directory for the V1 or V2 launcher. */
 export function getManagedOpencodePackageDir(version: string): string {
    return path.join(
       getManagedOpencodeInstallDir(version),
@@ -47,6 +51,7 @@ export function getManagedOpencodePackageDir(version: string): string {
    );
 }
 
+/** npm .bin shim created for a managed install. */
 export function getManagedOpencodeBinPath(version: string): string {
    const binName = process.platform === 'win32' ? 'opencode.cmd' : 'opencode';
    return path.join(getManagedOpencodeInstallDir(version), 'node_modules', '.bin', binName);

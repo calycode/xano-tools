@@ -575,12 +575,20 @@ function resolveRegisteredExtensionIds(): string[] {
  *
  * If `providedIds` is supplied, it validates and returns those IDs.
  * Otherwise, it runs discovery (when enabled) and merges discovered IDs,
- * known IDs, and IDs already registered in native-host manifests.
+ * known IDs, and (unless disabled) IDs already registered in native-host
+ * manifests.
+ *
+ * Setup must pass `{ includeRegistered: false }` so previously registered IDs
+ * cannot keep themselves alive across re-initialization.
  *
  * @param providedIds Optional explicit extension IDs to trust and use.
+ * @param options.includeRegistered Merge IDs already present in manifests.
  * @returns Resolved extension IDs, match metadata, and source label.
  */
-function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIdsResult {
+function resolveAllowedExtensionIds(
+   providedIds?: string[],
+   options: { includeRegistered?: boolean } = {},
+): ResolveExtensionIdsResult {
    if (providedIds?.length) {
       const uniqueIds = Array.from(new Set(providedIds.map((id) => id.trim()).filter(Boolean)));
       const invalid = uniqueIds.filter((id) => !isValidExtensionId(id));
@@ -620,7 +628,8 @@ function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIds
       discovered = discoverExtensionIds();
    }
 
-   const registeredIds = resolveRegisteredExtensionIds();
+   const registeredIds =
+      options.includeRegistered === false ? [] : resolveRegisteredExtensionIds();
 
    const idSet = new Set<string>();
    for (const id of discovered.ids) {

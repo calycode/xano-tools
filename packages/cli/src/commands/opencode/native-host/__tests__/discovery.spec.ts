@@ -40,4 +40,23 @@ describe('resolveAllowedExtensionIds', () => {
       expect(resolution.ids).toContain(DEV_EXTENSION_ID);
       expect(resolution.source).toContain('+registered');
    });
+
+   it('does not feed registered ids back into setup or status checks', async () => {
+      const manifestDir = path.join(homeDir, '.calycode');
+      await mkdir(manifestDir, { recursive: true });
+      await writeFile(
+         path.join(manifestDir, `${HOST_APP_INFO.reverseAppId}.json`),
+         JSON.stringify({
+            name: HOST_APP_INFO.reverseAppId,
+            allowed_origins: [`chrome-extension://${DEV_EXTENSION_ID}/`],
+         }),
+      );
+
+      const resolution = resolveAllowedExtensionIds(undefined, {
+         includeRegistered: false,
+      });
+
+      expect(resolution.ids).not.toContain(DEV_EXTENSION_ID);
+      expect(resolution.source).not.toContain('+registered');
+   });
 });

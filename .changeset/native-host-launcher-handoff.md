@@ -10,5 +10,6 @@ lets the CLI default apply. Windows child processes now spawn with
 `npx`/`.cmd` shim. Extension IDs already written into a native-host manifest are
 merged into the runtime CORS allowlist, so an unpacked dev extension keeps
 working after Chrome launches the host without `CALY_OC_INCLUDE_DEV_EXT`. Host
-debug logging now defaults on for source/node runs and stays opt-in for packaged
-binaries.
+debug logging now defaults on for source-checkout runs and stays opt-in for
+npm-installed and packaged binaries. Native-host state files are created with
+owner-only permissions because they contain the server password and owner token.

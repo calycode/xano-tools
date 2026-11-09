@@ -26,6 +26,7 @@ interface NativeHostManifest {
    allowed_origins: string[];
 }
 
+/** Write the browser-facing wrapper that launches the native host. */
 function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string, ocVersion?: string): string {
    const isWin = platform === 'win32';
    const executablePath = process.execPath;
@@ -84,6 +85,7 @@ function createNativeHostWrapper(platform: NodeJS.Platform, homeDir: string, ocV
    return wrapperPath;
 }
 
+/** Build the native messaging manifest for the allowed extension origins. */
 function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: string[]): NativeHostManifest {
    return {
       name: HOST_APP_INFO.reverseAppId,
@@ -94,6 +96,7 @@ function createNativeHostManifest(manifestExePath: string, allowedExtensionIds: 
    };
 }
 
+/** Write the manifest to every detected (or forced) browser target. */
 function writeNativeHostManifests(
    platform: NodeJS.Platform,
    targets: NativeHostBrowserTarget[],
@@ -123,6 +126,7 @@ function writeNativeHostManifests(
    return writtenTargets;
 }
 
+/** Register the manifest path in each Windows browser's registry key. */
 async function registerWindowsNativeHosts(targets: NativeHostBrowserTarget[]): Promise<void> {
    const registryFailures: string[] = [];
 
@@ -173,7 +177,9 @@ async function setupNativeHostRegistration(
    const platform = os.platform();
    const homeDir = os.homedir();
    const nativeHostTargets = getNativeHostTargets(platform, homeDir);
-   const extensionResolution = resolveAllowedExtensionIds(extensionIds);
+   const extensionResolution = resolveAllowedExtensionIds(extensionIds, {
+      includeRegistered: false,
+   });
    const allowedExtensionIds = extensionResolution.ids;
 
    if (allowedExtensionIds.length === 0) {
@@ -226,7 +232,9 @@ function showNativeHostStatus(): void {
    const homeDir = os.homedir();
    const wrapperPath = path.join(homeDir, '.calycode', 'bin', platform === 'win32' ? 'calycode-host.bat' : 'calycode-host.sh');
    const nativeHostTargets = getNativeHostTargets(platform, homeDir);
-   const extensionResolution = resolveAllowedExtensionIds();
+   const extensionResolution = resolveAllowedExtensionIds(undefined, {
+      includeRegistered: false,
+   });
    const expectedOrigins = extensionResolution.ids.map((id) => `chrome-extension://${id}/`);
    const ownerToken = getNativeHostOwnerToken();
    const persistedSessions = ownerToken ? loadNativeHostSessions(ownerToken) : [];

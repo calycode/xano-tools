@@ -42,13 +42,14 @@ export function sendMessage(message: unknown) {
 }
 
 /**
- * Native-host logging is opt-in in packaged builds but on by default when the
- * CLI runs from source through `node`, so both sides are observable in dev
- * without extra environment setup. An explicit `0` still disables it.
+ * Native-host logging is on by default only for source checkouts. Npm-installed
+ * and packaged builds stay quiet unless explicitly enabled. An explicit `0`
+ * disables it in every mode.
  */
 export function isNativeHostDebugEnabled(
    envValue: string | undefined = process.env.CALY_OC_NATIVE_HOST_DEBUG,
    execPath: string = process.execPath,
+   entryPath: string | undefined = process.argv[1],
 ): boolean {
    const value = envValue?.trim();
    if (value === '1') {
@@ -59,7 +60,18 @@ export function isNativeHostDebugEnabled(
    }
 
    const executable = execPath.toLowerCase();
-   return !(executable.endsWith('caly.exe') || executable.endsWith('caly'));
+   if (executable.endsWith('caly.exe') || executable.endsWith('caly')) {
+      return false;
+   }
+
+   // `node dist/index.cjs` from a source checkout is a dev run. The same entry
+   // point under node_modules is an npm install and should not log by default.
+   const entry = (entryPath ?? '').replace(/\\/g, '/').toLowerCase();
+   if (!entry || entry.includes('/node_modules/')) {
+      return false;
+   }
+
+   return true;
 }
 
 // Simple file-based logger for debugging Native Host without polluting stdout

@@ -30,6 +30,7 @@ export interface SelectAvailablePortOptions {
    exclude?: Iterable<number>;
 }
 
+/** Validate an integer TCP port in the inclusive 1-65535 range. */
 function validatePortRange(port: number): void {
    if (!Number.isInteger(port) || port < 1 || port > 65535) {
       throw new Error(`Invalid port number: ${port}. Must be an integer between 1 and 65535.`);

@@ -397,9 +397,10 @@ runtime, even when Chrome launches the native host without that environment
 variable.
 
 Native-host logs live at `~/.calycode/logs/native-host.log`. They are enabled by
-default when the CLI runs from source through `node`, and disabled by default in
-packaged `caly`/`caly.exe` builds. Set `CALY_OC_NATIVE_HOST_DEBUG=1` to force
-them on or `CALY_OC_NATIVE_HOST_DEBUG=0` to force them off.
+default only for source-checkout runs (an entry point outside `node_modules`).
+Npm-installed CLIs and packaged `caly`/`caly.exe` builds keep them off. Set
+`CALY_OC_NATIVE_HOST_DEBUG=1` to force them on or
+`CALY_OC_NATIVE_HOST_DEBUG=0` to force them off.
 
 ## Troubleshooting
 
