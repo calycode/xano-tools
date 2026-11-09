@@ -422,12 +422,22 @@ Sets up native host integration for the @calycode extension.
 ### Serve OpenCode Server
 
 ```bash
-# Default port 4096
+# Prefer port 4096; falls back to the next free port when busy
 xano oc serve
 
-# Custom port, detached mode
+# Prefer a custom port, detached mode
 xano oc serve --port 8000 --detach
+
+# Let the host choose a free port
+xano oc serve --port auto
+
+# Supply a known password (otherwise one is generated)
+xano oc serve --password my-local-password
 ```
+
+The command prints the actual URL and password after startup; do not assume the
+preferred port was used. OpenCode V2 reads the password from
+`OPENCODE_PASSWORD` and requires HTTP Basic Auth (`opencode:<password>`).
 
 ### Execute OpenCode CLI commands:
 

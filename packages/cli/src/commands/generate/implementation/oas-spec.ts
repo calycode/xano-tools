@@ -1,10 +1,12 @@
-import { normalizeApiGroupName, replacePlaceholders, joinPath, dirname } from '@repo/utils';
+import { normalizeApiGroupName } from '@repo/utils';
 import {
    attachCliEventHandlers,
    chooseApiGroupOrAll,
-   findProjectRoot,
+   createOutputFileSystem,
    printOutputDir,
+   resolveOutputDestination,
    resolveConfigs,
+   writeGeneratedOutput,
 } from '../../../utils/index';
 
 async function updateOasWizard({
@@ -65,27 +67,30 @@ async function updateOasWizard({
       startDir,
       includeTables
    );
+
+   const fileSystem = createOutputFileSystem(core.storage);
+
    for (const { group, generatedItems } of allGroupResults) {
       const apiGroupNameNorm = normalizeApiGroupName(group);
 
-      const outputPath = replacePlaceholders(instanceConfig.openApiSpec.output, {
-         '@': await findProjectRoot(),
-         instance: instanceConfig.name,
-         workspace: workspaceConfig.name,
-         branch: branchConfig.label,
-         api_group_normalized_name: apiGroupNameNorm,
+      const outputPath = await resolveOutputDestination({
+         template: instanceConfig.openApiSpec.output,
+         context: {
+            instance: instanceConfig.name,
+            workspace: workspaceConfig.name,
+            branch: branchConfig.label,
+            apiGroupNormalized: apiGroupNameNorm,
+         },
       });
 
-      await Promise.all(
-         generatedItems.map(async ({ path, content }) => {
-            const finalPath = joinPath(outputPath, path);
-            const writeDir = dirname(finalPath);
-            if (!(await core.storage.exists(writeDir))) {
-               await core.storage.mkdir(writeDir, { recursive: true });
-            }
-            await core.storage.writeFile(finalPath, content);
-         })
-      );
+      // Existing spec output is not cleared: it can be regenerated per group
+      // and stale sibling files are intentionally left in place.
+      await writeGeneratedOutput({
+         fileSystem,
+         destination: outputPath,
+         entries: generatedItems,
+         clear: false,
+      });
 
       printOutputDir(printOutput, outputPath);
    }

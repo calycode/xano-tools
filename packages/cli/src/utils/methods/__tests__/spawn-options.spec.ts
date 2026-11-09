@@ -6,6 +6,7 @@ describe('getSpawnOptions', () => {
 
       expect(options.stdio).toBe('inherit');
       expect(options.shell).toBe(false);
+      expect(options.windowsHide).toBe(true);
    });
 
    it('defaults env to process.env', () => {

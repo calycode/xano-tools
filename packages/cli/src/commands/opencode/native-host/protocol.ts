@@ -15,9 +15,63 @@ export function encodeNativeMessage(message: unknown): Buffer {
    return Buffer.concat([header, payload]);
 }
 
+let stdoutClosed = false;
+
+process.stdout.on('error', (error: NodeJS.ErrnoException) => {
+   // Chrome closes the native messaging pipe after a one-shot
+   // `sendNativeMessage` reply. Later status writes must not crash the host,
+   // especially when a keep-alive server is still starting.
+   if (error.code === 'EPIPE' || error.code === 'ERR_STREAM_DESTROYED') {
+      stdoutClosed = true;
+      return;
+   }
+
+   throw error;
+});
+
 export function sendMessage(message: unknown) {
-   // Use the raw file descriptor to avoid any stream logic
-   process.stdout.write(encodeNativeMessage(message));
+   if (stdoutClosed) {
+      return;
+   }
+
+   try {
+      process.stdout.write(encodeNativeMessage(message));
+   } catch {
+      stdoutClosed = true;
+   }
+}
+
+/**
+ * Native-host logging is on by default only for source checkouts. Npm-installed
+ * and packaged builds stay quiet unless explicitly enabled. An explicit `0`
+ * disables it in every mode.
+ */
+export function isNativeHostDebugEnabled(
+   envValue: string | undefined = process.env.CALY_OC_NATIVE_HOST_DEBUG,
+   execPath: string = process.execPath,
+   entryPath: string | undefined = process.argv[1],
+): boolean {
+   const value = envValue?.trim();
+   if (value === '1') {
+      return true;
+   }
+   if (value === '0') {
+      return false;
+   }
+
+   const executable = execPath.toLowerCase();
+   if (executable.endsWith('caly.exe') || executable.endsWith('caly')) {
+      return false;
+   }
+
+   // `node dist/index.cjs` from a source checkout is a dev run. The same entry
+   // point under node_modules is an npm install and should not log by default.
+   const entry = (entryPath ?? '').replace(/\\/g, '/').toLowerCase();
+   if (!entry || entry.includes('/node_modules/')) {
+      return false;
+   }
+
+   return true;
 }
 
 // Simple file-based logger for debugging Native Host without polluting stdout
@@ -28,7 +82,7 @@ export class NativeHostLogger {
    private enabled: boolean;
 
    constructor() {
-      this.enabled = process.env.CALY_OC_NATIVE_HOST_DEBUG === '1';
+      this.enabled = isNativeHostDebugEnabled();
       const homeDir = os.homedir();
       this.logDir = path.join(homeDir, '.calycode', 'logs');
       this.logPath = path.join(this.logDir, 'native-host.log');

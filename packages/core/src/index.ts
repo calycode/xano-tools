@@ -3,7 +3,6 @@ import {
     BranchConfig,
     ConfigStorage,
     Context,
-    CoreContext,
     CurrentContextConfig,
     EventMap,
     InstanceConfig,
@@ -15,16 +14,22 @@ import { buildXanoscriptRepoImplementation } from './implementations/build-xanos
 import { doOasUpdate } from './features/oas/generate';
 import { exportBackupImplementation, restoreBackupImplementation } from './implementations/backups';
 import { generateRepoImplementation } from './implementations/generate-repo';
-import { getCurrentContextConfigImplementation } from './implementations/get-current-context';
-import { loadAndValidateContextImplementation } from './implementations/load-and-validate-context';
+import {
+    assertContext,
+    deriveContext,
+    loadContextInputs,
+    resolveContext,
+    DEFAULT_REQUIRED_FIELDS,
+} from './implementations/context';
+import type { ContextInputs, ContextResolution } from './implementations/context';
 import { runTestsImplementation } from './implementations/run-tests';
 import { setupInstanceImplementation } from './implementations/setup';
-import { switchContextImplementation } from './implementations/switch-context';
 import { getRegistryItem } from './features/registry/api';
 import { updateOpenapiSpecImplementation } from './implementations/generate-oas';
 import { generateInternalDocsImplementation } from './implementations/generate-internal-docs';
 import { getRegistryIndex } from './features/registry/api';
 import { installRegistryItemToXano } from './features/registry/install-to-xano';
+import type { FeatureContextConfigs } from './utils/methods/resolve-feature-context';
 
 /**
  * Main Caly class that provides core functionality for Xano development workflows.
@@ -92,30 +97,6 @@ export class Caly extends TypedEmitter<EventMap> {
    }
 
    /**
-    * @deprecated This has been deprecated in favor for feature invokation level overrides.
-    * Switches the current active context to a different instance, workspace, or branch.
-    * Updates the global configuration to reflect the new active context.
-    *
-    * @param context - The new context to switch to
-    * @param context.instance - Instance name to switch to
-    * @param context.workspace - Workspace identifier to switch to
-    * @param context.branch - Branch name to switch to
-    * @throws {Error} When the specified context configuration is invalid
-    *
-    * @example
-    * ```typescript
-    * await calyInstance.switchContext({
-    *   instance: 'staging',
-    *   workspace: 'main',
-    *   branch: 'develop'
-    * });
-    * ```
-    */
-   async switchContext({ instance, workspace, branch }: CoreContext): Promise<void> {
-      return switchContextImplementation(this.storage, { instance, workspace, branch });
-   }
-
-   /**
     * Generates OpenAPI Specification (OAS) documents from Xano API definitions.
     * Creates comprehensive API documentation with schemas, endpoints, and examples.
     *
@@ -152,6 +133,7 @@ export class Caly extends TypedEmitter<EventMap> {
       groups: any,
       startDir: string,
       includeTables?: boolean,
+      contextConfigs?: FeatureContextConfigs,
    ): Promise<{ group: string; oas: any; generatedItems: { path: string; content: string }[] }[]> {
       return updateOpenapiSpecImplementation(
          this.storage,
@@ -162,6 +144,7 @@ export class Caly extends TypedEmitter<EventMap> {
             branch,
             groups,
             includeTables,
+            contextConfigs,
          },
          startDir,
       );
@@ -187,12 +170,13 @@ export class Caly extends TypedEmitter<EventMap> {
     * });
     * ```
     */
-   async exportBackup({ instance, workspace, branch, outputDir }): Promise<Record<string, string>> {
+   async exportBackup({ instance, workspace, branch, outputDir, contextConfigs }): Promise<Record<string, string>> {
       return exportBackupImplementation({
          outputDir,
          instance,
          workspace,
          branch,
+         contextConfigs,
          core: this,
       });
    }
@@ -325,11 +309,12 @@ export class Caly extends TypedEmitter<EventMap> {
     * });
     * ```
     */
-   async restoreBackup({ instance, workspace, formData }): Promise<any> {
+   async restoreBackup({ instance, workspace, formData, contextConfigs }): Promise<any> {
       return restoreBackupImplementation({
          instance,
          workspace,
          formData,
+         contextConfigs,
          core: this,
       });
    }
@@ -343,11 +328,13 @@ export class Caly extends TypedEmitter<EventMap> {
       groups,
       testConfig,
       initialRuntimeValues,
+      contextConfigs,
    }: {
       context: Context;
       groups: ApiGroupConfig[];
       testConfig: any;
       initialRuntimeValues: Record<string, any>;
+      contextConfigs?: FeatureContextConfigs;
    }): Promise<
       {
          group: ApiGroupConfig;
@@ -368,6 +355,7 @@ export class Caly extends TypedEmitter<EventMap> {
          core: this,
          storage: this.storage,
          initialRuntimeValues,
+         contextConfigs,
       });
    }
 
@@ -415,8 +403,61 @@ export class Caly extends TypedEmitter<EventMap> {
 
    // ----- UTIL METHODS ----- //
    /**
+    * Reads the inputs for a context resolution exactly once (one directory walk
+    * plus the global config). Pass the result to `deriveContext` to derive a
+    * resolution, optionally after prompting for missing fields.
+    */
+   async loadContextInputs({
+      startDir,
+      configFiles,
+   }: {
+      startDir?: string;
+      configFiles?: string[];
+   } = {}): Promise<ContextInputs> {
+      return loadContextInputs({ storage: this.storage, startDir, configFiles });
+   }
+
+   /**
+    * Derives the effective context and configs from pre-loaded inputs.
+    * Pure except for loading an explicitly selected instance config.
+    */
+   async deriveContext({
+      inputs,
+      context = {},
+   }: {
+      inputs: ContextInputs;
+      context?: Context;
+   }): Promise<ContextResolution> {
+      return deriveContext({ storage: this.storage, inputs, context });
+   }
+
+   /**
+    * Resolves the effective context in one call: `loadContextInputs` followed by
+    * `deriveContext`. Explicit context values win over the nearest config level,
+    * which wins over the global `currentContext`.
+    */
+   async resolveContext({
+      context = {},
+      startDir,
+      configFiles,
+   }: {
+      context?: Context;
+      startDir?: string;
+      configFiles?: string[];
+   } = {}): Promise<ContextResolution> {
+      return resolveContext({
+         storage: this.storage,
+         context,
+         startDir,
+         configFiles,
+      });
+   }
+
+   /**
     * Loads and validates the configuration for a specific Xano context.
-    * Ensures that instance, workspace, and branch configurations exist and are valid.
+    *
+    * @deprecated Prefer `resolveContext` + the resolution's `missing()` check;
+    * this remains as a compatibility adapter for existing callers.
     *
     * @param context - The context to load and validate
     * @param context.instance - Instance name to validate
@@ -439,11 +480,38 @@ export class Caly extends TypedEmitter<EventMap> {
       workspaceConfig: WorkspaceConfig;
       branchConfig: BranchConfig;
    }> {
-      return loadAndValidateContextImplementation({
+      const resolution = await resolveContext({
          storage: this.storage,
-         overrides: { instance, workspace, branch },
+         context: { instance, workspace, branch },
          startDir,
       });
+      assertContext(
+         resolution,
+         DEFAULT_REQUIRED_FIELDS,
+         'Missing instance, workspace, or branch context. Please use setup-instance and switch-context.'
+      );
+
+      // `assertContext` only proves the names are known. An unknown workspace
+      // or branch leaves the corresponding config null, which downstream
+      // callers dereference, so fail here with a message naming what is wrong.
+      const { instanceConfig, workspaceConfig, branchConfig } = resolution;
+      if (!instanceConfig) {
+         throw new Error(
+            `Instance config not found for "${resolution.context.instance}". Run 'caly-xano init --name ${resolution.context.instance}' first.`
+         );
+      }
+      if (!workspaceConfig) {
+         throw new Error(
+            `Workspace "${resolution.context.workspace}" not found in instance "${instanceConfig.name}".`
+         );
+      }
+      if (!branchConfig) {
+         throw new Error(
+            `Branch "${resolution.context.branch}" not found in workspace "${workspaceConfig.name}".`
+         );
+      }
+
+      return { instanceConfig, workspaceConfig, branchConfig };
    }
 
    /**
@@ -472,11 +540,17 @@ export class Caly extends TypedEmitter<EventMap> {
       startDir?: any;
       context: Context;
    }): Promise<CurrentContextConfig> {
-      return getCurrentContextConfigImplementation({
+      const resolution = await resolveContext({
          storage: this.storage,
          startDir,
          context,
       });
+      return {
+         instanceConfig: resolution.instanceConfig,
+         workspaceConfig: resolution.workspaceConfig,
+         branchConfig: resolution.branchConfig,
+         apigroupConfig: resolution.apigroupConfig,
+      };
    }
 
    /**
@@ -490,23 +564,6 @@ export class Caly extends TypedEmitter<EventMap> {
     */
    async loadGlobalConfig(): Promise<any> {
       return this.storage.loadGlobalConfig();
-   }
-
-   /**
-    * Loads the configuration for a specific Xano instance.
-    * @param instance - Name of the instance to load configuration for
-    * @returns Promise resolving to the instance configuration
-    * @throws {Error} When instance configuration is not found
-    *
-    * @example
-    * ```typescript
-    * const instanceConfig = await calyInstance.loadInstanceConfig('production');
-    * console.log('Instance URL:', instanceConfig.url);
-    * console.log('Available workspaces:', instanceConfig.workspaces);
-    * ```
-    */
-   async loadInstanceConfig(instance: string): Promise<InstanceConfig> {
-      return this.storage.loadInstanceConfig(instance);
    }
 
    /**
@@ -550,3 +607,6 @@ export class Caly extends TypedEmitter<EventMap> {
        return results;
     }
 }
+
+export type { ContextField, ContextInputs, ContextResolution } from './implementations/context';
+export type { FeatureContextConfigs };

@@ -1,8 +1,8 @@
 import path from 'node:path';
-import { normalizeApiGroupName, replacePlaceholders } from '@repo/utils';
+import { normalizeApiGroupName } from '@repo/utils';
 import {
    chooseApiGroupOrAll,
-   findProjectRoot,
+   resolveOutputDestination,
    resolveConfigs,
    serveStaticDirectory,
 } from '../../utils/index';
@@ -26,12 +26,14 @@ async function serveOas({ instance, workspace, branch, group, listen = 5999, cor
    const currentApiGroup = apiGroups[0];
    const apiGroupNameNorm = normalizeApiGroupName(currentApiGroup.name);
 
-   const specBasePath = replacePlaceholders(instanceConfig.openApiSpec.output, {
-      '@': await findProjectRoot(),
-      instance: instanceConfig.name,
-      workspace: workspaceConfig.name,
-      branch: branchConfig.label,
-      api_group_normalized_name: apiGroupNameNorm,
+   const specBasePath = await resolveOutputDestination({
+      template: instanceConfig.openApiSpec.output,
+      context: {
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
+         branch: branchConfig.label,
+         apiGroupNormalized: apiGroupNameNorm,
+      },
    });
 
    await serveStaticDirectory({

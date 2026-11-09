@@ -20,6 +20,10 @@ _Avoid_: bridge, daemon, extension host
 An installable OpenCode payload — a template set or a skill set.
 _Avoid_: resource, asset, bundle
 
+**Generated output**:
+The repo, docs, spec, or test tree a command writes to the configured output path.
+_Avoid_: artifact (reserved for OpenCode payloads), export, build output
+
 **Registry**:
 A shareable collection of standardized Xano components (functions, tables, queries, and tests).
 _Avoid_: library, catalog, marketplace

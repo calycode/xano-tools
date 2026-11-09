@@ -1,4 +1,5 @@
 import type { ConfigStorage, InstanceConfig, CoreContext, WorkspaceConfig, BranchConfig } from '@repo/types';
+import { NoDirectoryTreeError } from '@repo/utils';
 import {
     initDB,
     getGlobalConfig,
@@ -110,10 +111,14 @@ export class BrowserConfigStorage implements ConfigStorage {
         branchConfig?: BranchConfig;
         foundLevels: { branch?: string; workspace?: string; instance?: string };
     } {
-        // In browser, no directory hierarchy, treat startDir as instance name
+        // In browser, no directory hierarchy, treat startDir as instance name.
+        // Without a cached instance there is simply no tree to walk; the typed
+        // error lets Core tolerate exactly this case instead of every failure.
         const instanceConfig = this.cachedInstanceConfigs.get(startDir);
         if (!instanceConfig) {
-            throw new Error(`Instance config not found: ${startDir}`);
+            throw new NoDirectoryTreeError(
+                `No directory tree to walk in browser storage (looked up "${startDir}")`
+            );
         }
         return {
             mergedConfig: instanceConfig,

@@ -10,6 +10,8 @@ import {
    TestResult,
 } from '@repo/types';
 import { metaApiGet, prepareRequest } from '@repo/utils';
+import { resolveFeatureContext } from '../../utils/methods/resolve-feature-context';
+import type { FeatureContextConfigs } from '../../utils/methods/resolve-feature-context';
 import { availableAsserts } from './asserts';
 
 // ----------- UTILS ------------- //
@@ -71,6 +73,7 @@ async function testRunner({
    core,
    storage,
    initialRuntimeValues = {},
+   contextConfigs,
 }: {
    context: CoreContext;
    groups: ApiGroupConfig[];
@@ -78,16 +81,17 @@ async function testRunner({
    core: Caly;
    storage: Caly['storage'];
    initialRuntimeValues?: Record<string, any>;
+   contextConfigs?: FeatureContextConfigs;
 }): Promise<TestGroupResult[]> {
    const { instance, workspace, branch } = context;
 
    core.emit('start', { name: 'start-testing', payload: context });
    const startDir = storage.getStartDir();
-   const { instanceConfig, workspaceConfig, branchConfig } = await core.loadAndValidateContext({
-      instance,
-      workspace,
-      branch,
+   const { instanceConfig, workspaceConfig, branchConfig } = await resolveFeatureContext({
+      core,
+      context: { instance, workspace, branch },
       startDir,
+      contextConfigs,
    });
 
    const DEFAULT_HEADERS = {

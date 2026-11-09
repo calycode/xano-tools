@@ -7,6 +7,7 @@ import {
    getOpencodeBinaryVersion,
    getOpencodePackageSpecifier,
 } from './install';
+import { DEFAULT_OPENCODE_VERSION, getOpencodeMajorVersion } from './version';
 
 export interface OpencodeSpawnPlan {
    command: string;
@@ -96,8 +97,16 @@ export function buildOpencodeSpawnPlan(
       const globalOpencode = findGlobalOpencodeBinary();
       if (globalOpencode) {
          const globalVersion = getOpencodeBinaryVersion(globalOpencode);
-         const isPinnedVersion = version !== 'latest';
-         if (!isPinnedVersion || globalVersion === version) {
+         const expectedMajor = getOpencodeMajorVersion(
+            version === 'latest' ? DEFAULT_OPENCODE_VERSION : version,
+         );
+         const globalMajor = getOpencodeMajorVersion(globalVersion);
+         const versionMatches =
+            version === 'latest'
+               ? expectedMajor !== null && globalMajor === expectedMajor
+               : globalVersion === version;
+
+         if (versionMatches) {
             return {
                command: globalOpencode,
                args: opencodeArgs,
@@ -115,8 +124,8 @@ export function buildOpencodeSpawnPlan(
             });
          }
 
-         // Global binary exists but does not match requested version; fall back to npx.
-         // This preserves strict version pinning behavior.
+         // Global binary exists but does not match the requested major/version;
+         // fall back to npx with the correct OpenCode package.
       }
    }
 

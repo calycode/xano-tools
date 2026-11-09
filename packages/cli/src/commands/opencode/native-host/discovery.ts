@@ -4,6 +4,7 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { HOST_APP_INFO } from '../../../utils/host-constants';
 import { parseBooleanEnv } from '../../../utils';
+import { getNativeHostTargets } from './targets';
 
 const CHROME_EXTENSION_ID_REGEX = /^[a-p]{32}$/;
 
@@ -530,16 +531,64 @@ function discoverExtensionIds(): ResolveExtensionIdsResult {
 }
 
 /**
+ * Extension IDs that were explicitly written into an existing native-host
+ * manifest. This keeps a dev/unpacked ID usable at runtime even when the
+ * native host was launched by Chrome without CALY_OC_INCLUDE_DEV_EXT.
+ */
+function resolveRegisteredExtensionIds(): string[] {
+   const ids = new Set<string>();
+
+   try {
+      const targets = getNativeHostTargets(os.platform(), os.homedir());
+      const seenPaths = new Set<string>();
+      for (const target of targets) {
+         if (seenPaths.has(target.manifestPath)) {
+            continue;
+         }
+         seenPaths.add(target.manifestPath);
+
+         const manifest = readJsonFile<{ allowed_origins?: unknown }>(target.manifestPath);
+         if (!Array.isArray(manifest?.allowed_origins)) {
+            continue;
+         }
+
+         for (const origin of manifest.allowed_origins) {
+            if (typeof origin !== 'string') {
+               continue;
+            }
+
+            const match = origin.match(/^chrome-extension:\/\/([a-p]{32})\/?$/);
+            if (match) {
+               ids.add(match[1]);
+            }
+         }
+      }
+   } catch {
+      // Best effort only; discovery still covers normal installs.
+   }
+
+   return Array.from(ids).sort();
+}
+
+/**
  * Resolve allowed browser extension IDs used in native-host manifests.
  *
  * If `providedIds` is supplied, it validates and returns those IDs.
- * Otherwise, it runs discovery (when enabled) and merges discovered IDs
- * with known IDs based on configuration.
+ * Otherwise, it runs discovery (when enabled) and merges discovered IDs,
+ * known IDs, and (unless disabled) IDs already registered in native-host
+ * manifests.
+ *
+ * Setup must pass `{ includeRegistered: false }` so previously registered IDs
+ * cannot keep themselves alive across re-initialization.
  *
  * @param providedIds Optional explicit extension IDs to trust and use.
+ * @param options.includeRegistered Merge IDs already present in manifests.
  * @returns Resolved extension IDs, match metadata, and source label.
  */
-function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIdsResult {
+function resolveAllowedExtensionIds(
+   providedIds?: string[],
+   options: { includeRegistered?: boolean } = {},
+): ResolveExtensionIdsResult {
    if (providedIds?.length) {
       const uniqueIds = Array.from(new Set(providedIds.map((id) => id.trim()).filter(Boolean)));
       const invalid = uniqueIds.filter((id) => !isValidExtensionId(id));
@@ -579,6 +628,9 @@ function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIds
       discovered = discoverExtensionIds();
    }
 
+   const registeredIds =
+      options.includeRegistered === false ? [] : resolveRegisteredExtensionIds();
+
    const idSet = new Set<string>();
    for (const id of discovered.ids) {
       idSet.add(id);
@@ -588,11 +640,16 @@ function resolveAllowedExtensionIds(providedIds?: string[]): ResolveExtensionIds
          idSet.add(id);
       }
    }
+   for (const id of registeredIds) {
+      idSet.add(id);
+   }
 
    return {
       ids: Array.from(idSet).sort(),
       matched: discovered.matched,
-      source: `${discovered.source}${includeKnownIds ? '+known' : ''}`,
+      source:
+         `${discovered.source}${includeKnownIds ? '+known' : ''}` +
+         `${registeredIds.length > 0 ? '+registered' : ''}`,
    };
 }
 

@@ -3,10 +3,37 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
    compareManagedVersionsDesc,
+   getManagedOpencodePackageBinaryPath,
+   getManagedOpencodePackageDir,
+   getOpencodePackageName,
+   getOpencodePackageSpecifier,
    parseManagedVersion,
    selectGlobalOpencodeBinary,
    isOpencodePlaceholder,
 } from '../install';
+
+describe('OpenCode package selection', () => {
+   it('uses @opencode/cli for V2 and the floating latest channel', () => {
+      expect(getOpencodePackageName('2.2.6')).toBe('@opencode/cli');
+      expect(getOpencodePackageName('latest')).toBe('@opencode/cli');
+      expect(getOpencodePackageSpecifier('2.2.6')).toBe('@opencode/cli@2.2.6');
+      expect(getOpencodePackageSpecifier('latest')).toBe('@opencode/cli@latest');
+   });
+
+   it('keeps opencode-ai for explicit V1 versions', () => {
+      expect(getOpencodePackageName('1.19.5')).toBe('opencode-ai');
+      expect(getOpencodePackageSpecifier('1.19.5')).toBe('opencode-ai@1.19.5');
+   });
+
+   it('resolves the V2 postinstall binary under @opencode/cli', () => {
+      expect(getManagedOpencodePackageDir('2.2.6')).toEqual(
+         expect.stringContaining(join('node_modules', '@opencode', 'cli')),
+      );
+      expect(getManagedOpencodePackageBinaryPath('2.2.6')).toEqual(
+         expect.stringContaining(join('@opencode', 'cli', 'bin', 'opencode.exe')),
+      );
+   });
+});
 
 describe('parseManagedVersion', () => {
    it('parses a plain semantic version', () => {

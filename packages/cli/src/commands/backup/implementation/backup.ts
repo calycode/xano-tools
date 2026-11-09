@@ -2,11 +2,10 @@ import { basename, join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { openAsBlob } from 'node:fs';
 import { select, confirm, outro, log } from '@clack/prompts';
-import { replacePlaceholders } from '@repo/utils';
 import {
    attachCliEventHandlers,
-   findProjectRoot,
    printOutputDir,
+   resolveOutputDestination,
    resolveConfigs,
 } from '../../../utils';
 const { FormData } = globalThis;
@@ -35,11 +34,13 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
          );
 
          // Find available backups for the selected branch
-         const backupsDir = replacePlaceholders(instanceConfig.backups.output, {
-            '@': await findProjectRoot(),
-            instance: instanceConfig.name,
-            workspace: workspaceConfig.name,
-            branch: branchConfig.label,
+         const backupsDir = await resolveOutputDestination({
+            template: instanceConfig.backups.output,
+            context: {
+               instance: instanceConfig.name,
+               workspace: workspaceConfig.name,
+               branch: branchConfig.label,
+            },
          });
 
          let availableBackups;
@@ -90,6 +91,7 @@ async function restorationWizard({ instance, workspace, sourceBackup, forceConfi
          formData,
          instance: instanceConfig.name,
          workspace: workspaceConfig.name,
+         contextConfigs: { instanceConfig, workspaceConfig },
       });
    } catch (err) {
       process.exit(1);
@@ -105,16 +107,21 @@ async function exportWizard({ instance, workspace, branch, core, doLog, output }
    });
 
    // Resolve output dir
-   const outputDir = output
-      ? output
-      : replacePlaceholders(instanceConfig.backups.output, {
-           '@': await findProjectRoot(),
-           instance: instanceConfig.name,
-           workspace: workspaceConfig.name,
-           branch: branchConfig.label,
-        });
+   const outputDir = await resolveOutputDestination({
+      template: instanceConfig.backups.output,
+      override: output,
+      context: {
+         instance: instanceConfig.name,
+         workspace: workspaceConfig.name,
+         branch: branchConfig.label,
+      },
+   });
 
-   const outputObject = await core.exportBackup({ ...context, outputDir });
+   const outputObject = await core.exportBackup({
+      ...context,
+      outputDir,
+      contextConfigs: { instanceConfig, workspaceConfig, branchConfig },
+   });
 
    printOutputDir(doLog, outputObject.outputDir);
 }

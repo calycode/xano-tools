@@ -8,6 +8,7 @@ import {
    getOpencodeWorkingDir,
    type OpencodeWorkingDirOverrides,
 } from './paths';
+import { validateOpenCodePort } from './ports';
 
 /** The main Xano application origin, always allowed. */
 export const XANO_APP_ORIGIN = 'https://app.xano.com';
@@ -21,11 +22,6 @@ export function getExtraCorsOriginsFromEnv(): string[] {
    return extraOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
 }
 
-/** Base CORS origins (static + env var) with no browser-extension origins. */
-export function getStaticCorsOrigins(): string[] {
-   return [XANO_APP_ORIGIN, ...getExtraCorsOriginsFromEnv()];
-}
-
 export function getCorsArgs(extraOrigins: string[], allowedOrigins: string[]) {
    const origins = new Set([...allowedOrigins, ...extraOrigins]);
    return Array.from(origins).flatMap((origin) => ['--cors', origin]);
@@ -37,13 +33,17 @@ export function getCorsArgs(extraOrigins: string[], allowedOrigins: string[]) {
  * @throws {Error} if port is invalid
  */
 export function validatePort(port: number): void {
-   if (!Number.isInteger(port) || port < 1 || port > 65535) {
-      throw new Error(`Invalid port number: ${port}. Must be an integer between 1 and 65535.`);
-   }
+   validateOpenCodePort(port);
 }
 
 export interface LaunchOpencodeServerOptions {
    port: number;
+   /**
+    * Password for the OpenCode server. V2 requires authentication and reads
+    * `OPENCODE_PASSWORD`; the same value is used by the native host's health
+    * check and returned to the extension.
+    */
+   password?: string;
    extraOrigins?: string[];
    /**
     * Full set of CORS origins to allow. Required: the caller (the composition
@@ -71,6 +71,7 @@ export interface LaunchedOpencodeServer {
 
 export function launchOpencodeServer({
    port,
+   password,
    extraOrigins = [],
    allowedOrigins,
    stdio = 'inherit',
@@ -98,6 +99,12 @@ export function launchOpencodeServer({
    const configDir = getCalycodeOpencodeConfigDir();
    const workingDir = getOpencodeWorkingDir('server');
    const extraEnv: Record<string, string> = { OPENCODE_CONFIG_DIR: configDir };
+   if (password) {
+      // V2 reads OPENCODE_PASSWORD. Keep the older name too for V1/server
+      // configurations that still look for it.
+      extraEnv.OPENCODE_PASSWORD = password;
+      extraEnv.OPENCODE_SERVER_PASSWORD = password;
+   }
    if (ownerToken) {
       extraEnv.CALY_OC_NATIVE_OWNER_TOKEN = ownerToken;
    }
@@ -127,7 +134,7 @@ export async function proxyOpencode(
       '🤖 Powered by OpenCode - The open source AI coding agent\n' +
          '   https://github.com/anomalyco/opencode (MIT License)',
    );
-   log.message('Passing command to opencode-ai...');
+   log.message('Passing command to OpenCode...');
 
    // Set the CalyCode OpenCode config directory
    const configDir = getCalycodeOpencodeConfigDir();
