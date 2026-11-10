@@ -1,5 +1,75 @@
 # @calycode/xano-cli
 
+## 0.22.0
+
+### Minor Changes
+
+- 2ec2789: Use the OpenCode V2 runtime and authenticate the local server.
+
+  The default runtime is now pinned to OpenCode `2.2.6` and installed from
+  `@opencode/cli`; the floating `latest` channel also resolves to V2, while
+  explicit V1 versions continue to use `opencode-ai`. The native host now probes
+  the V2 `/api/info` endpoint (with `/global/health` as the V1 fallback), generates
+  or accepts a server password, starts OpenCode with `OPENCODE_PASSWORD`, and
+  returns the password in `starting`/`running`/`status` replies so the extension
+  can use HTTP Basic Auth. `oc serve` accepts `--password` and prints the generated
+  password alongside the actual URL.
+
+### Patch Changes
+
+- 2ec2789: fix: resolve context through one module, honour `--instance`, and avoid duplicate config reads
+- 2ec2789: Remove dead code, deduplicate CLI bootstrapping, and add a type-check gate.
+
+  - Both entry points now share `detectNativeHostLaunch` for native-host argument detection, so `caly-xano` and the bundled binary can no longer drift apart.
+  - `registry add` fetches the registry index once and passes it to the component prompt instead of downloading it twice.
+  - `ensureGitignore` resolves the working directory at call time instead of freezing it at import.
+  - Removed the public `Caly.switchContext` (deprecated) and `Caly.loadInstanceConfig` facade methods, the unused CLI registry URL map, the unused `isEmptySchema`/`isNotEmpty` utilities, and `getStaticCorsOrigins`.
+  - Added a `typecheck` script (`tsc --noEmit`) to `@calycode/cli`.
+
+- 2ec2789: Make OpenCode server ports dynamic and discoverable from the browser extension.
+
+  The native host now treats the requested port as a preference, scans `4096-4127`
+  when it is busy, and falls back to an OS-assigned ephemeral port. Every
+  native-messaging reply includes the real `port`, `url`, `requestedPort`, and
+  `autoSelected` fields, and a new `status` message lets the extension recover the
+  current port after reconnecting. `oc serve` uses the same fallback and prints the
+  actual URL, and `keepAlive` keeps a server running across native host restarts so
+  the next host can adopt it instead of starting a second server.
+
+  Native-host cleanup also handles Windows launcher wrappers that exit after
+  spawning the real server, uses command-line markers to avoid killing unrelated
+  OpenCode processes, and no longer crashes when Chrome closes the native
+  messaging pipe after a one-shot reply.
+
+- 2ec2789: Route generated output through one pipeline.
+
+  The five `generate` implementations publish files through one awaited clear ? mkdir ? write pipeline. They, plus backup export/restore, test-result writing and `serve`, resolve output destinations through one helper. Directory clearing is no longer fire-and-forget in the `generate` paths, so writes cannot race a pending clear. Backup export still writes through `core.storage`.
+
+- 2ec2789: Give the downloadable installer a real, self-explanatory UI.
+
+  - Windows now opens one installer window with a step checklist, live progress, a spinner, a "Why this matters" panel for the active step, and a completion panel with next steps. The old stack of MessageBox dialogs is gone.
+  - The welcome step is part of that window, with an explicit Install/Cancel choice and a list of exactly what setup will change on the machine.
+  - macOS draws a single live block in Terminal (checklist, progress, explanations) instead of a modal dialog per step, and keeps the next steps on screen.
+  - Every run writes a setup log (`%LOCALAPPDATA%\CalyCode\logs` / `~/Library/Logs/CalyCode`) with commands, exit codes and output tails; the window links to it.
+  - Added timeouts to every child process (`npm`, `winget`, `choco`, `brew`, `caly-xano`), a `caly-xano --version` verification step, and PATH refresh so a fresh install works without restarting.
+  - Node.js is no longer installed through a Homebrew bootstrap step that could not answer sudo; macOS uses Homebrew only when it is already installed and otherwise points at nodejs.org.
+  - Added `--quiet`, `--version`, `CALYCODE_LANG` and `CALYCODE_LOG_DIR`, plus a text fallback (with a final dialog) when the Windows window cannot open.
+  - Added `go test` coverage for the message catalog, command parsing and terminal rendering, and a `go run ./preview` harness for iterating on the window.
+
+- 2ec2789: Harden the native-host launcher for OpenCode V2.
+
+  The generated native-host wrapper no longer pins a floating `latest` version and
+  lets the CLI default apply. Windows child processes now spawn with
+  `windowsHide`, and a matching global OpenCode executable is preferred over the
+  `npx`/`.cmd` shim. Extension IDs already written into a native-host manifest are
+  merged into the runtime CORS allowlist, so an unpacked dev extension keeps
+  working after Chrome launches the host without `CALY_OC_INCLUDE_DEV_EXT`. Host
+  debug logging now defaults on for source-checkout runs and stays opt-in for
+  npm-installed and packaged binaries. Native-host state files are created with
+  owner-only permissions because they contain the server password and owner token.
+
+- 2ec2789: Telemetry no longer keeps the CLI process alive. Events are spooled to disk and drained by at most one detached flusher, which has a hard five-second deadline, removes its own lock on exit, and never blocks the command that produced the event. Telemetry can be disabled with `CALY_TELEMETRY=0` or `DO_NOT_TRACK=1`, and flush failures are swallowed.
+
 ## 0.21.0
 
 ### Minor Changes
