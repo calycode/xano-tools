@@ -85,6 +85,7 @@
                hook.beforeEach((content) => beforeEach(content));
                hook.doneEach(() => {
                   setupTermynal();
+                  renderMermaid();
                   showRandomAnnouncement('announce-left', 5000);
                   showRandomAnnouncement('announce-right', 10000);
                });
@@ -101,12 +102,39 @@
    <script src="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/plugins/search.min.js"></script>
    <script src="https://unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
    <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 
    <!-- Page actions plugin -->
    <script src="https://cdn.jsdelivr.net/npm/docsify-page-actions-menu@latest"></script>
 
    <!-- Mouse highlight animation -->
    <script>
+      /**
+       * Renders ```mermaid fences. The static docs site renders these through
+       * content-kit; this keeps the legacy docsify deployment showing the same
+       * diagrams instead of leaving them as code blocks.
+       */
+      let mermaidSeq = 0;
+      function renderMermaid() {
+         if (!window.mermaid) return;
+         window.mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+         document.querySelectorAll('pre code.lang-mermaid').forEach((code) => {
+            const source = code.textContent || '';
+            const host = document.createElement('div');
+            host.className = 'mermaid-block';
+            code.parentElement.replaceWith(host);
+            const id = `docsify-mermaid-${++mermaidSeq}`;
+            window.mermaid
+               .render(id, source)
+               .then(({ svg }) => {
+                  host.innerHTML = svg;
+               })
+               .catch(() => {
+                  host.textContent = source;
+               });
+         });
+      }
+
       const highlight = document.getElementById('mouse-highlight');
       function updateHighlight(e) {
          const w = window.innerWidth,

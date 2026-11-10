@@ -147,3 +147,18 @@ body {
        opacity: 0;
     }
  }
+/* Mermaid diagrams in the docsify deployment (guide pages use ```mermaid). */
+.mermaid-block {
+   display: flex;
+   justify-content: center;
+   margin: 1.5rem 0;
+   padding: 1rem;
+   overflow-x: auto;
+   background: #1b1e24;
+   border-radius: 8px;
+}
+
+.mermaid-block svg {
+   max-width: 100%;
+   height: auto;
+}

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-10T00:08:27.401Z",
+  "generatedAt": "2026-11-10T00:27:53.706Z",
   "entries": [
     {
       "section": "Overview",
@@ -546,11 +546,24 @@
     },
     {
       "section": "Guides",
+      "path": "guides/installer",
+      "title": "Installing the CalyCode CLI",
+      "group": null,
+      "parent": null,
+      "order": 39,
+      "source": "guide",
+      "segments": [
+        "installer"
+      ],
+      "file": "guides/installer.md"
+    },
+    {
+      "section": "Guides",
       "path": "guides/opencode-setup",
       "title": "OpenCode AI Agent Setup",
       "group": null,
       "parent": null,
-      "order": 39,
+      "order": 40,
       "source": "guide",
       "segments": [
         "opencode-setup"
@@ -563,7 +576,7 @@
       "title": "Xano Development Patterns & Best Practices",
       "group": null,
       "parent": null,
-      "order": 40,
+      "order": 41,
       "source": "guide",
       "segments": [
         "patterns"
@@ -576,7 +589,7 @@
       "title": "Registry Authoring Guide",
       "group": null,
       "parent": null,
-      "order": 41,
+      "order": 42,
       "source": "guide",
       "segments": [
         "registry-authoring"
@@ -589,7 +602,7 @@
       "title": "Scaffolding New Xano Components",
       "group": null,
       "parent": null,
-      "order": 42,
+      "order": 43,
       "source": "guide",
       "segments": [
         "scaffolding"
@@ -602,7 +615,7 @@
       "title": "API Testing Guide",
       "group": null,
       "parent": null,
-      "order": 43,
+      "order": 44,
       "source": "guide",
       "segments": [
         "testing"
@@ -615,7 +628,7 @@
       "title": "XanoScript in Xano Tools",
       "group": null,
       "parent": null,
-      "order": 44,
+      "order": 45,
       "source": "guide",
       "segments": [
         "xanoscript"
