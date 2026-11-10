@@ -65,7 +65,6 @@
 
 - **Guides**
 
-  - [Installing the CLI](guides/installer.md)
   - [Getting Started](guides/git-workflow.md)
   - [Registry Authoring](guides/registry-authoring.md)
   - [Scaffolding Components](guides/scaffolding.md)
