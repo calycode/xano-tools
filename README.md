@@ -15,6 +15,9 @@
 
 [📚 **View CLI Documentation**](https://calycode.com/cli/docs)
 
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/calycode/xano-tools) 
+
 # xano tools
 
 **_(Work In Progress)_**

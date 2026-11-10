@@ -1,5 +1,45 @@
 # @calycode/caly-core
 
+## 0.15.0
+
+### Minor Changes
+
+- 34e6f10: Remove dead code, deduplicate CLI bootstrapping, and add a type-check gate.
+
+  - Both entry points now share `detectNativeHostLaunch` for native-host argument detection, so `caly-xano` and the bundled binary can no longer drift apart.
+  - `registry add` fetches the registry index once and passes it to the component prompt instead of downloading it twice.
+  - `ensureGitignore` resolves the working directory at call time instead of freezing it at import.
+  - Removed the public `Caly.switchContext` (deprecated) and `Caly.loadInstanceConfig` facade methods, the unused CLI registry URL map, the unused `isEmptySchema`/`isNotEmpty` utilities, and `getStaticCorsOrigins`.
+  - Added a `typecheck` script (`tsc --noEmit`) to `@calycode/cli`.
+
+### Patch Changes
+
+- 34e6f10: Fetch XanoScript repo entities in bounded parallel waves and follow metadata list pagination instead of silently stopping at 500 items.
+- 34e6f10: fix: resolve context through one module, honour `--instance`, and avoid duplicate config reads
+
+## 0.14.1
+
+### Patch Changes
+
+- e03c632: Deepen the OpenCode subsystem, unify Xano HTTP, and harden the CLI.
+
+  The OpenCode command is split into two deep modules — `native-host` (messaging
+  protocol, runtime, origins) and distribution (version/install/spawn/launch,
+  artifact install) — with tests at the seams, and the Windows launcher now
+  resolves `.exe`/`.cmd` shims correctly and repairs `opencode-ai`'s npm-blocked
+  postinstall instead of shipping a placeholder binary. Core Xano calls route
+  through a single `metaApiFetch` adapter, context resolution and registry
+  file-type ordering are unified, and duplicated helpers (dead registry client,
+  `clearDirectory`, `getSpawnOptions`, boolean-env parsing, schema loading) are
+  collapsed.
+
+  The CLI is also more predictable and easier to use: prompt cancellation and
+  non-TTY runs are handled, errors no longer print stack traces, `generate repo`
+  fetches by default, `serve` uses a built-in static server and guards a missing
+  registry, help shows required vs optional arguments and gains short flags,
+  `codegen` gets an interactive generator picker, and help/serve banners use a
+  width-capped note box.
+
 ## 0.14.0
 
 ### Minor Changes
