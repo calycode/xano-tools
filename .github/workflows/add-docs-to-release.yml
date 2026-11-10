@@ -52,7 +52,11 @@ jobs:
             echo "No changes to commit."
             echo "commit=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "chore: update docs [skip ci]"
+            # Do not use a [skip ci]-style keyword here. This commit lives on the
+            # release branch, and a squash merge copies its message into the
+            # commit that lands on main. GitHub skips on:push workflows for such
+            # commits, which silently killed the release (and npm publish) twice.
+            git commit -m "chore: update docs"
             echo "commit=true" >> $GITHUB_OUTPUT
           fi
 
