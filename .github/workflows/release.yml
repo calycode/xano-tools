@@ -5,6 +5,9 @@ on:
    push:
       branches:
          - main
+   # Manual recovery path: lets a release be published after a skipped or broken
+   # run without pushing an empty commit to main.
+   workflow_dispatch:
 
 # Set up for Trusted Publishing by NPM
 permissions:
