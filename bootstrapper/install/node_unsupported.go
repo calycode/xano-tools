@@ -2,7 +2,9 @@
 
 package install
 
-// InstallNode is a no-op on unsupported platforms.
+import "github.com/calycode/xano-tools/bootstrapper/i18n"
+
+// InstallNode is not automated on unsupported platforms.
 func InstallNode() string {
-	return msg.NodeInstallManual
+	return i18n.T("install.node.manual")
 }

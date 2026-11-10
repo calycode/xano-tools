@@ -28,12 +28,21 @@ jobs:
            with:
               go-version: "1.26.x"
 
+         - name: Test
+           working-directory: bootstrapper
+           run: go test ./...
+
+         - name: Resolve version
+           id: version
+           working-directory: bootstrapper
+           run: echo "value=$(git describe --tags --always --dirty | sed 's/^@calycode\/cli@//')" >> "$GITHUB_OUTPUT"
+
          - name: Build Windows x64
            working-directory: bootstrapper
            run: |
               mkdir -p dist
               GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-                 go build -ldflags "-s -w -H=windowsgui" \
+                 go build -ldflags "-s -w -X main.version=${{ steps.version.outputs.value }} -H=windowsgui" \
                  -o dist/calycode-installer-windows-x64.exe \
                  .
 
@@ -41,7 +50,7 @@ jobs:
            working-directory: bootstrapper
            run: |
               GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
-                 go build -ldflags "-s -w" \
+                 go build -ldflags "-s -w -X main.version=${{ steps.version.outputs.value }}" \
                  -o dist/calycode-installer-darwin-x64 \
                  .
               cd dist
@@ -51,7 +60,7 @@ jobs:
            working-directory: bootstrapper
            run: |
               GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
-                 go build -ldflags "-s -w" \
+                 go build -ldflags "-s -w -X main.version=${{ steps.version.outputs.value }}" \
                  -o dist/calycode-installer-darwin-arm64 \
                  .
               cd dist

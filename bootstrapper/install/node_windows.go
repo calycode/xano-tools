@@ -3,72 +3,59 @@
 package install
 
 import (
-	"bytes"
-	"os"
-	"os/exec"
-	"path/filepath"
+	"strings"
+
+	"github.com/calycode/xano-tools/bootstrapper/i18n"
 )
 
-// InstallNode attempts to install Node.js LTS via winget (primary) or Chocolatey (fallback).
-// Returns stderr output on failure.
-func InstallNode() (errOut string) {
-	// Primary: winget
+// InstallNode installs the Node.js LTS release via winget, falling back to
+// Chocolatey when winget is unavailable or fails.
+//
+// It returns an empty string on success, otherwise a message that explains what
+// went wrong (the log holds the full output).
+func InstallNode() string {
+	var problems []string
+
 	if CommandExists("winget") {
-		var stderr bytes.Buffer
-		cmd := exec.Command("winget",
-			"install", "-e",
+		Logf("installing Node.js via winget")
+		_, err := runCmd("winget", nodeInstallTimeout,
+			"winget", "install", "-e",
 			"--id", "OpenJS.NodeJS.LTS",
 			"--silent",
 			"--accept-package-agreements",
 			"--accept-source-agreements",
 		)
-		setupSilent(cmd)
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err != nil {
-			// winget failed, fall through to Chocolatey
-		} else {
-			refreshPathWindows()
+		if err == nil {
+			RefreshPath()
 			if NodeOK() {
 				return ""
 			}
+			problems = append(problems, i18n.T("install.node.notinpath"))
+		} else {
+			problems = append(problems, "winget: "+err.Error())
 		}
+	} else {
+		Logf("winget not available")
 	}
 
-	// Fallback: Chocolatey
 	if CommandExists("choco") {
-		var stderr bytes.Buffer
-		cmd := exec.Command("choco", "install", "nodejs-lts", "-y", "--limit-output")
-		setupSilent(cmd)
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err != nil {
-			if stderr.Len() > 0 {
-				return stderr.String()
+		Logf("installing Node.js via Chocolatey")
+		_, err := runCmd("choco", nodeInstallTimeout, "choco", "install", "nodejs-lts", "-y", "--limit-output")
+		if err == nil {
+			RefreshPath()
+			if NodeOK() {
+				return ""
 			}
-			return err.Error()
+			problems = append(problems, i18n.T("install.node.notinpath"))
+		} else {
+			problems = append(problems, "choco: "+err.Error())
 		}
-
-		refreshenv := filepath.Join(os.Getenv("ChocolateyInstall"), "bin", "refreshenv.cmd")
-		if _, err := os.Stat(refreshenv); err == nil {
-			exec.Command("cmd", "/c", refreshenv).Run()
-		}
-		refreshPathWindows()
-		if NodeOK() {
-			return ""
-		}
+	} else {
+		Logf("Chocolatey not available")
 	}
 
-	return msg.NodeInstallManual
-}
-
-func refreshPathWindows() {
-	commonPaths := []string{
-		filepath.Join(os.Getenv("ProgramFiles"), "nodejs"),
-		filepath.Join(os.Getenv("APPDATA"), "npm"),
-		filepath.Join(os.Getenv("LOCALAPPDATA"), "Programs", "nodejs"),
+	if len(problems) == 0 {
+		return i18n.T("install.node.manual")
 	}
-	for _, p := range commonPaths {
-		if _, err := os.Stat(p); err == nil {
-			os.Setenv("PATH", p+";"+os.Getenv("PATH"))
-		}
-	}
+	return strings.Join(problems, "\n\n")
 }
