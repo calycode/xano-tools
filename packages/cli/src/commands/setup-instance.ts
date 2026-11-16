@@ -122,8 +122,8 @@ export function registerInitCommand(program, core) {
                // Non-interactive mode for CI/CD
                let userDirectory;
                if (opts.directory) {
-                  opts.directory.trim();
-                  if (opts.directory === '.') {
+                  userDirectory = opts.directory.trim();
+                  if (userDirectory === '.') {
                      userDirectory = process.cwd();
                   }
                } else {
@@ -133,8 +133,8 @@ export function registerInitCommand(program, core) {
                await core.setupInstance({
                   name: opts.name,
                   projectRoot: userDirectory,
-                  url: opts.url,
-                  apiKey: opts.token,
+                  url: opts.url.trim(),
+                  apiKey: opts.token.trim(),
                   setAsCurrent: opts.setCurrent,
                });
             } else {
