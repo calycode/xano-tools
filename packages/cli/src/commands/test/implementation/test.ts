@@ -128,6 +128,25 @@ function printTestSummary(results): { total: number; passed: number; failed: num
       }
    }
 
+   // Print out the errors list. A failed run is only actionable if the reason is
+   // on screen; otherwise it lives in the results file only.
+   const testsWithErrors = results.filter(
+      (r) => r.errors && (!Array.isArray(r.errors) || r.errors.length > 0)
+   );
+   if (testsWithErrors.length > 0) {
+      log.message('\nError details:');
+      for (const r of testsWithErrors) {
+         log.message(`- ${r.method} ${r.path}:`);
+         // Assertion errors are { key, message }; a thrown request error is a string.
+         const errors = Array.isArray(r.errors)
+            ? r.errors
+            : [{ key: 'request', message: String(r.errors) }];
+         for (const err of errors) {
+            log.message(`    [${err.key}] ${err.message}`);
+         }
+      }
+   }
+
    return { total, passed: succeeded, failed, warnings: totalWarnings };
 }
 

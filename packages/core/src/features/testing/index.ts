@@ -165,7 +165,7 @@ async function testRunner({
                value: replaceDynamicValues(param.value, runtimeValues),
             }));
             const resolvedHeaders = replaceDynamicValues(
-               { ...headers, ...DEFAULT_HEADERS },
+               { ...DEFAULT_HEADERS, ...headers },
                {
                   ...runtimeValues,
                }
